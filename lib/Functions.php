@@ -330,9 +330,9 @@ class Functions
     }
     public static function is_within_folders_where_file_change_is_allowed($file)
     {
-        $allowed_folders = array('eol_php_code/tmp/', 'eol_php_code/temp/', 'eol_php_code/public/tmp/', 'eol_php_code/applications/content_server/resources/', 'eol_php_code/applications/content_server/tmp', '/opt/resources'
-        , '/Volumes/AKiTiO4/d_w_h/', 'eol_php_code/applications/content_server/resources_2/', '/Volumes/AKiTiO4/eol_php_code_tmp/', '/extra/eol_php_code_tmp/', 'temp/'
-        , 'eol_php_code/applications/content_server/resources_3/'); //allowed folders so far; we can add more.
+        $allowed_folders = array('eol_php8_code/tmp/', 'eol_php8_code/temp/', 'eol_php8_code/public/tmp/', 'eol_php8_code/applications/content_server/resources/', 'eol_php8_code/applications/content_server/tmp', '/opt/resources'
+        , '/Volumes/AKiTiO4/d_w_h/', 'eol_php8_code/applications/content_server/resources_2/', '/Volumes/AKiTiO4/eol_php_code_tmp/', '/extra/eol_php_code_tmp/', 'temp/'
+        , 'eol_php8_code/applications/content_server/resources_3/'); //allowed folders so far; we can add more.
         foreach($allowed_folders as $folder) {
             if(strpos($file, $folder) !== false) return true;
         }
@@ -374,7 +374,7 @@ class Functions
     }
     public static function fromJenkinsYN()
     {
-        if(DOC_ROOT == "/html/eol_php_code/") return true;
+        if(DOC_ROOT == "/html/eol_php8_code/") return true;
         else return false;
     }
     public static function delete_if_exists($file_path)
@@ -447,7 +447,7 @@ class Functions
         elseif(in_array($resource_id, array('80', '957', '201'))) { echo $msg; }
         /* exclude:
         same reason with 80 en and 957 de - both are wikipedia lang resource also
-        13322676	201	Museum of Comparative Zoology, Harvard	https://editors.eol.org/eol_php_code/applications/content_server/resources/201.tar.gz	https://opendata.eol.org/dataset/befc28a0-43ac-4b82-9db3-cae728744bc8/resource/43a9e0bb-fd46-4bd2-8037-69fd2143be88
+        13322676	201	Museum of Comparative Zoology, Harvard	https://editors.eol.org/eol_php8_code/applications/content_server/resources/201.tar.gz	https://opendata.eol.org/dataset/befc28a0-43ac-4b82-9db3-cae728744bc8/resource/43a9e0bb-fd46-4bd2-8037-69fd2143be88
             -> there is a final 201_meta_recoded_2.tar.gz resource that is in Zenodo. 201.tar.gz is just a step. 202 should be deleted in CKAN actually.
         */
         elseif(@$end_options['go_zenodo']) {

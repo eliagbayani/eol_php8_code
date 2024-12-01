@@ -17,6 +17,12 @@ class Protisten_deAPI_V2
     private $report_file;
     private $protisten_de_legacy_taxa;
     private $func;
+    private $taxon_EOLpageID;
+    private $legacy;
+    private $agent_id;
+    private $report_main_url;
+    private $debug;
+    private $taxon_EOLpageID_HTML;
 
     function __construct($folder, $param)
     {
@@ -190,7 +196,7 @@ class Protisten_deAPI_V2
             echo "\ngenus_dash_species3: [$genus_dash_species3]";
             // ------------------------------------------------------------------------------
             $addtl_synonym = self::get_addtl_synonym($html);
-            $genus_dash_synonym = str_replace(" ", "-", $addtl_synonym);
+            $genus_dash_synonym = str_replace(" ", "-", $addtl_synonym ? $addtl_synonym : "");
             echo "\ngenus_dash_synonym: [$genus_dash_synonym]";
             // ------------------------------------------------------------------------------
             $genus_dash = false;
@@ -515,7 +521,7 @@ class Protisten_deAPI_V2
                 foreach($fields as $field) { $k++;
                     $rec[$field] = @$row[$k];
                 }
-                $rec = array_map('trim', $rec);
+                if($rec['taxonID']) $rec = array_map('trim', $rec);
                 // print_r($rec); break; exit;
             }
             /*Array(

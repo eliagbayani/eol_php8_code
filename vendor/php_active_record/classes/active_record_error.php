@@ -3,7 +3,8 @@ namespace php_active_record;
 
 class ActiveRecordError extends \Exception
 {
-    public static function printException(\Exception $e)
+    // public static function printException(\Exception $e)
+    public static function printException(\Throwable $e) //PHP8
     {
         if(@$GLOBALS['ENV_DEBUG_TO_FILE'])
         {
@@ -12,12 +13,16 @@ class ActiveRecordError extends \Exception
                  "<pre>". $e->getTraceAsString());
         }
         
+        print_r($e);
         echo "<b>Uncaught ". trim_namespace(get_class($e)) ."</b>: ". $e->getMessage() . "<br/>\n" .
-             "in ". $e->file ."[". $e->line ."]<br/>\n" .
+            //  "in ". $e->file ."[". $e->line ."]<br/>\n" .
+            "in ". $e->getFile() ."[". $e->getLine() ."]<br/>\n" . //PHP8
+
              "<pre>". $e->getTraceAsString() ."</pre>\n";
     }
 
-    public static function handleException(\Exception $e)
+    // public static function handleException(\Exception $e)
+    public static function handleException(\Throwable $e) //PHP8
     {
         //static::printException($e);
         self::printException($e);

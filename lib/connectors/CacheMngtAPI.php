@@ -3,6 +3,8 @@ namespace php_active_record;
 /* first client: iNatImagesAPI.php */
 class CacheMngtAPI
 {
+    // below PHP8
+    private $json_path;
     function __construct($cache_path)
     {
         $this->json_path = $cache_path;

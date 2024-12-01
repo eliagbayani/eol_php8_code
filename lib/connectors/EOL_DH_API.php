@@ -23,7 +23,7 @@ class EOL_DH_API
     private $parent_of_taxonID;
     private $landmark_value_of;
     private $is_family;
-    private $DH_canonical_EOLid;
+    public $DH_canonical_EOLid;
     private $DH_EOLid_canonical;
 
     function __construct()

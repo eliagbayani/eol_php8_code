@@ -5,7 +5,21 @@ class DarwinCoreExtensionBase
 {
     const EXTENSION_URL = NULL;
     const ROW_TYPE = NULL;
-    
+
+    // PHP8 below
+    private $accepted_properties_by_name;
+    private $accepted_properties;
+    private $accepted_properties_by_uri;
+    private $extension_row_type;
+
+    // E_DEPRECATED: Creation of dynamic property eol_schema\Agent::$term_name is deprecated in
+    public $term_name;
+    public $agentRole;
+    public $identifier;
+    private $term_homepage;
+    private $term_mbox;
+
+
     public function __construct($parameters = array())
     {
         if(!isset($GLOBALS['DarwinCoreExtensionProperties'])) $GLOBALS['DarwinCoreExtensionProperties'] = array();
@@ -72,7 +86,12 @@ class DarwinCoreExtensionBase
     
     protected function assign_properties($parameters)
     {
-        while(list($property_name, $value) = each($parameters))
+        /*
+        while (list($i, $arg) = each($args)) {        
+        foreach ($args as $i => $arg) {
+        */
+        // while(list($property_name, $value) = each($parameters)) // each() is deprecated
+        foreach($parameters as $property_name => $value) //PHP 8
         {
             $this->__set($property_name, $value);
         }

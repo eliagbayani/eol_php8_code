@@ -357,7 +357,7 @@ class DWCADiagnoseAPI
         }
         return $undefined;
     }
-    function get_fields_from_tab_file($resource_id, $cols, $url = false, $suggested_fields = false, $tab_file) //$tab_file e.g. 'taxon.tab'
+    function get_fields_from_tab_file($resource_id, $cols, $url = false, $suggested_fields = false, $tab_file = 'xxx.tab') //$tab_file e.g. 'taxon.tab'
     {   /* sample usage of $suggested_fields: this has to be in perfect order from the source taxon file
         $suggested_fields = explode("\t", "taxonID	scientificName	taxonRank	parentNameUsageID"); //from BOLDS_DumpsServiceAPI.php */
         if(!$url) $url = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . "/".$tab_file;

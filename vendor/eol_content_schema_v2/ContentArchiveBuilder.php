@@ -6,6 +6,11 @@ class ContentArchiveBuilder
     private $core;
     private $extensions;
     private $tables;
+    // below PHP8
+    private $directory;
+    private $file_handles;
+    private $file_classes;
+    private $file_columns;
 
     public function __construct($parameters = array())
     {

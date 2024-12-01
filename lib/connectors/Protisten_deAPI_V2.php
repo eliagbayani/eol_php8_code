@@ -4,6 +4,20 @@ namespace php_active_record;
 // http://content.eol.org/resources/791
 class Protisten_deAPI_V2
 {
+    // below PHP8
+    private $resource_id;
+    private $taxa;
+    private $path_to_archive_directory;
+    private $archive_builder;
+    private $resource_reference_ids;
+    private $do_ids;
+    private $download_options;
+    private $page;
+    private $report;
+    private $report_file;
+    private $protisten_de_legacy_taxa;
+    private $func;
+
     function __construct($folder, $param)
     {
         $this->resource_id = $folder;
@@ -33,7 +47,7 @@ class Protisten_deAPI_V2
         $this->protisten_de_legacy_taxa = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/protisten_de/protisten_2024_07_10/taxon.tab';
     }
     function start()
-    {   
+    {
         // /* access DH
         require_library('connectors/EOL_DH_API');
         $this->func = new EOL_DH_API();

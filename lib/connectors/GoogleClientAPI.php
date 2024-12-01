@@ -7,6 +7,11 @@ require_once __DIR__ . '/../../vendor/google_client_lib_2023/autoload.php';
 
 class GoogleClientAPI
 {
+    // below PHP8
+    private $cache_path;
+    private $credentials_json_path;
+    private $func;
+
     function __construct()
     {
         if(Functions::is_production()) $this->cache_path = '/extra/other_files/wikidata_cache/';

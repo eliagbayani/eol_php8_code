@@ -9,6 +9,9 @@ class FileIterator implements \Iterator
     protected $line_number = -1; // bit of a hack. So the first iteration sets it to 0
     protected $remove_file_on_destruct;
     protected $trim_newlines;
+    // below PHP8
+    protected $options;
+
     #[\ReturnTypeWillChange]
     public function __construct($file_path, $remove_file_on_destruct = false, $trim_newlines = true, $options = array())
     {

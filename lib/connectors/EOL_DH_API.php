@@ -16,6 +16,16 @@ https://editors.eol.org/other_files/DWH/DH223test2.zip
 
 class EOL_DH_API
 {
+    // below PHP8
+    private $EOL_DH;
+    private $EOL_2_DH;
+    private $DH_2_EOL;
+    private $parent_of_taxonID;
+    private $landmark_value_of;
+    private $is_family;
+    private $DH_canonical_EOLid;
+    private $DH_EOLid_canonical;
+
     function __construct()
     {   // for the longest time
         $this->EOL_DH = "http://localhost/cp/summary%20data%20resources/DH/eoldynamichierarchywithlandmarks.zip";

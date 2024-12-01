@@ -1,0 +1,24 @@
+table_of_contents_1:
+    id: 1
+    parent_id: 0
+    label: Overview
+    view_order: 1
+
+table_of_contents_2:
+    id: 2
+    parent_id: 1
+    label: Introduction
+    view_order: 1
+
+table_of_contents_3:
+    id: 3
+    parent_id: 0
+    label: Description
+    view_order: 2
+
+table_of_contents_4:
+    id: 4
+    parent_id: 0
+    label: Ecology and Distribution
+    view_order: 4
+

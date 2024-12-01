@@ -1,0 +1,7 @@
+synonym_relations_1:
+    id: 1
+    label: synonym
+
+synonym_relations_2:
+    id: 2
+    label: common name

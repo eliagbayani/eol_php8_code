@@ -1,0 +1,21 @@
+languages_152:
+    id: 152
+    label: English
+    name: English
+    iso_639_1: en
+    iso_639_2: eng
+    iso_639_3: eng
+    source_form: English
+    sort_order: 1
+    activated_on:
+
+languages_501:
+    id: 501
+    label: Scientific Name
+    name: 
+    iso_639_1: 
+    iso_639_2: 
+    iso_639_3: 
+    source_form: 
+    sort_order: 1
+    activated_on: 

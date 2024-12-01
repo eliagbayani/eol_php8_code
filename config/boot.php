@@ -160,13 +160,13 @@ function prepare_jenkins($argv, $root)
         }
         else { //means NOT Jenkins
             if($root != "/opt/homebrew/var/www/eol_php_code/") $cache_path = '/var/www/html/cache_LiteratureEditor/';        //for archive
-            else                                                      $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+            else                                               $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
         }
     }
     else {
         // echo "\ngoes here 04\n"; //very good debug - to use when working with dwc_validator_jenkins
         if($root != "/opt/homebrew/var/www/eol_php_code/") $cache_path = '/var/www/html/cache_LiteratureEditor/';        //for archive
-        else                                                      $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+        else                                               $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
     }
     return array($root, $cache_path);
 }

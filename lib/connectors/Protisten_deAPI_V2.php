@@ -23,6 +23,10 @@ class Protisten_deAPI_V2
     private $report_main_url;
     private $debug;
     private $taxon_EOLpageID_HTML;
+    private $EOLid;
+    private $taxonID;
+    private $taxon_ids;
+    private $obj_ids;
 
     function __construct($folder, $param)
     {
@@ -412,6 +416,7 @@ class Protisten_deAPI_V2
 
                 $taxon = new \eol_schema\Taxon();
                 $taxon->scientificName = $sciname;
+                echo "\nsciname: [$sciname]\n";
 
                 /*
                 [Cochliopodium vestitum] => Array

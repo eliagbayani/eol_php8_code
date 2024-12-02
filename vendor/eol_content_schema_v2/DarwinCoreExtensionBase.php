@@ -16,8 +16,37 @@ class DarwinCoreExtensionBase
     public $term_name;
     public $agentRole;
     public $identifier;
-    private $term_homepage;
-    private $term_mbox;
+    public $term_homepage;
+    public $term_mbox;
+
+    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::
+    public $agentID;
+    public $taxonID;
+    public $type;
+    public $language;
+    public $format;
+    public $accessURI;
+    public $furtherInformationURL;
+    public $Owner;
+    public $UsageTerms;
+    public $description;
+
+    // E_DEPRECATED: Creation of dynamic property eol_schema\Taxon::
+    // User Warning: Undefined property `taxonID` on eol_schema\Taxon as defined by `https://raw.githubusercontent.com/tdwg/PlinianCore/master/xsd/abstract%20models/stable%20version/tdwg_dwcterms.xsd` in /html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 275
+    public $EOLid;
+    public $scientificName;
+    // private $taxonID;
+    public $parentNameUsageID;
+    public $higherClassification;
+    // private $furtherInformationURL;
+    public $order;
+    public $family;
+    public $genus;
+
+
+    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::$accepted_properties is deprecated in /html/eol_php8_code/vendor/eol_content_schema_v2/MediaResource.php on line 346
+    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::$accepted_properties_by_name is deprecated in /html/eol_php8_code/vendor/eol_content_schema_v2/MediaResource.php on line 347
+    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::$accepted_properties_by_uri is deprecated in /html/eol_php8_code/vendor/eol_content_schema_v2/MediaResource.php on line 348
 
 
     public function __construct($parameters = array())

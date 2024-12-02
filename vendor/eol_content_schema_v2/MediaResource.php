@@ -5,9 +5,14 @@ class MediaResource extends DarwinCoreExtensionBase
 {
     // const EXTENSION_URL = "http://eol.org/schema/media_extension.xml";
     const EXTENSION_URL = "http://editors.eol.org/other_files/ontology/media_extension.xml";
-    
     const ROW_TYPE = "http://eol.org/schema/media/Document";
     
+
+    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::
+    private $accepted_properties;
+    private $accepted_properties_by_name;
+    private $accepted_properties_by_uri;
+
     public static function validation_rules()
     {
         static $rules = array();

@@ -6,6 +6,9 @@ class ContentArchiveReader
     private $archive_is_local;
     private $archive_directory;
     private $core;
+
+    // PHP8 below
+    public $tables;
     
     function __construct($uri = null, $directory = null)
     {

@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class FileIterator implements \Iterator
 {
     protected $FILE;
@@ -9,10 +11,7 @@ class FileIterator implements \Iterator
     protected $line_number = -1; // bit of a hack. So the first iteration sets it to 0
     protected $remove_file_on_destruct;
     protected $trim_newlines;
-    // below PHP8
-    protected $options;
-
-    #[\ReturnTypeWillChange]
+    
     public function __construct($file_path, $remove_file_on_destruct = false, $trim_newlines = true, $options = array())
     {
         $this->file_path = $file_path;
@@ -58,13 +57,13 @@ class FileIterator implements \Iterator
         // should only get here the very first time
         return $this->get_next_line();
     }
-
+    
     #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->line_number;
     }
-
+    
     #[\ReturnTypeWillChange]
     public function next()
     {

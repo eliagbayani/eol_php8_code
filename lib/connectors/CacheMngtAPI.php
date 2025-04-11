@@ -1,10 +1,10 @@
 <?php
 namespace php_active_record;
 /* first client: iNatImagesAPI.php */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class CacheMngtAPI
 {
-    // below PHP8
-    private $json_path;
     function __construct($cache_path)
     {
         $this->json_path = $cache_path;

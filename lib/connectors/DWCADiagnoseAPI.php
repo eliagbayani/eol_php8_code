@@ -1,10 +1,11 @@
 <?php
 namespace php_active_record;
 /* This will contain functions to diagnose EOL DWC-A files */
+
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DWCADiagnoseAPI
 {
-    private $file;
-
     function __construct()
     {
         $this->file['taxon']             = "http://rs.tdwg.org/dwc/terms/taxonID";
@@ -134,10 +135,10 @@ class DWCADiagnoseAPI
                 // print_r($meta); exit;
                 self::process_fields_V2($meta, pathinfo($table, PATHINFO_BASENAME));
             }
-            // /* new
+            /* new
             $dir = CONTENT_RESOURCE_LOCAL_PATH . "_working";
-            if(is_dir($dir)) rmdir($dir);
-            // */
+            if(is_dir($dir)) recursive_rmdir($dir);
+            */
         }
         echo "\n----------end Checking unique IDs----------\n";
     }
@@ -359,12 +360,13 @@ class DWCADiagnoseAPI
         }
         return $undefined;
     }
-    function get_fields_from_tab_file($resource_id, $cols, $url = false, $suggested_fields = false, $tab_file = 'always_has_value') //$tab_file e.g. 'taxon.tab'
+    // function get_fields_from_tab_file($resource_id, $cols, $url = false, $suggested_fields = false, $tab_file) //$tab_file e.g. 'taxon.tab'
+    function get_fields_from_tab_file($resource_id, $cols, $url = false, $suggested_fields = false, $tab_file = 'always_has_value') //$tab_file e.g. 'taxon.tab' //for PHP 8.2
     {   /* sample usage of $suggested_fields: this has to be in perfect order from the source taxon file
         $suggested_fields = explode("\t", "taxonID	scientificName	taxonRank	parentNameUsageID"); //from BOLDS_DumpsServiceAPI.php */
         if(!$url) $url = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . "/".$tab_file;
         if(!file_exists($url)) {
-            echo "\nFile does not exist: [$url]\n";
+            echo "\nFile does not exist: [$url]\nProcess failed!\n";
             return;
         }
         else echo "\nProcessing file ($url)\n";
@@ -471,6 +473,7 @@ class DWCADiagnoseAPI
         else           echo "\nOK: All acceptedNameUsageID have entries.\n";
     }
     // /* ++++++++++++++++++++++++++++++++++++++ start Associations integrity check ++++++++++++++++++++++++++++++++++++++
+    // function check_if_source_and_taxon_in_associations_exist($resource_id, $url = false, $tab_file)
     function check_if_source_and_taxon_in_associations_exist($resource_id, $url = false, $tab_file = 'always_has_value')
     {
         $WRITE = fopen(CONTENT_RESOURCE_LOCAL_PATH . "reports/" . $resource_id . "_source_target_NotInOccurrence.txt", "w");

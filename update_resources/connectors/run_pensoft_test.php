@@ -124,12 +124,30 @@ $descs[] = "Locality: Known from mangrove swamps at Luango, north to Pointe Noir
 $descs[] = "Locality: Known from mangrove swamps at Luango, north to Pointe Noire, and from saltx marsh creeks at Río San Pedro."; //marsh-ENVO_00000035
 // does not include 'salt marshes' or 'saltmarshes'.
 
-/*
+$descs[] = "Many animals live in the dense settlement biome."; //ENVO_01000248 (dense settlement biome), this is a descendant of ENVO_00000002. Which is now excluded.
+// dense settlement biome-ENVO_01000248 -> is now excluded
+
+// "Stream" exclude; "stream" acceptable
+$descs[] = "Genova, Cosmo (11 January 2022). How to Preserve a Squirrel Pelt For Fly Tying. Field & Stream. Retrieved 1 June 2024.";
+$descs[] = "Many fish live in the stream.";
+$descs[] = "A taxon named Trifolium occidentale Coombe. I like to go to these places cwm, coombe, corrie";
+
+/* 
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
-$descs[] = "Locality: Known from mangrove swamps at Luango, north to Pointe Noire, and from saltmarshes creeks at Río San Pedro.";
-$descs[] = "Locality: Known from mangrove swamps at Luango, north to Pointe Noire, and from salt marshes creeks at Río San Pedro.";
+$descs[] = "I went to 'Malabar Coast (India)'.";
+// $descs[] = "I live in India, near the Malabar coast.";
+// $descs[] = "He lives in the coast";
+// $descs[] = "I went to Malabar in India";
+// $descs[] = "Malabar (New South Wales, Australia)";
+// $descs[] = "Malabar (Florida, USA)";
 */
+
+// Good idea. I think it's best if we use WikiData uris:
+//     Malabar Coast (India) https://www.wikidata.org/entity/Q473181
+//     Malabar (New South Wales, Australia) https://www.wikidata.org/entity/Q2915709
+//     Malabar (Florida, USA) https://www.wikidata.org/wiki/Q1022772
+
 
 $final = array();
 $IDs = array('24', '617_ENV', 'TreatmentBank_ENV', '26_ENV'); //normal operation --- 617_ENV -> Wikipedia EN //24 -> AntWeb resource ID
@@ -157,7 +175,9 @@ foreach($IDs as $resource_id) {
         echo "\n[$resource_id $i] - "; echo("[$desc] [$ret]");
         // $i = 9; //force-assign
         if($resource_id == '24') {            
-            if($i == 1) {$s = "woodland-ENVO_01000175|orchard-ENVO_00000115|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            // if($i == 1) {$s = "woodland-ENVO_01000175|orchard-ENVO_00000115|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 1) {$s = "woodland-ENVO_01000175|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+
             if($i == 2) {$s = "mozambique-1036973|zambezi-Zambezi";     if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 3) {$s = "pakistan-1168579|valley-ENVO_00000100"; if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 4) {$s = "slovakia-3057568|romania-798549|russia-2017370"; if($ret == $s)                  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
@@ -186,7 +206,9 @@ foreach($IDs as $resource_id) {
         }
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();
-            $q[1] = array('s' => "woodland-ENVO_01000175|orchard-ENVO_00000115|dune-ENVO_00000170");
+            // $q[1] = array('s' => "woodland-ENVO_01000175|orchard-ENVO_00000115|dune-ENVO_00000170");
+            $q[1] = array('s' => "woodland-ENVO_01000175|dune-ENVO_00000170");
+
             $q[2] = array('s' => "mozambique-1036973|zambezi-Zambezi");
             $q[3] = array('s' => "pakistan-1168579|valley-ENVO_00000100");
             $q[4] = array('s' => "slovakia-3057568|romania-798549|russia-2017370");
@@ -254,7 +276,8 @@ foreach($IDs as $resource_id) {
 
         if($i == 42) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 43) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 44) {$s = "canal-ENVO_00000014";                   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // if($i == 44) {$s = "canal-ENVO_00000014";                   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 44) {$s = "";                   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         
         if($i == 45) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 46) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
@@ -262,16 +285,25 @@ foreach($IDs as $resource_id) {
         if($i == 48) {$s = "mountains-ENVO_00000081";               if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
         if($i == 49) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 50) {$s = "orchard-ENVO_00000115";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // if($i == 50) {$s = "orchard-ENVO_00000115";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 50) {$s = "";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
         if($i == 51) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 52) {$s = "bay-ENVO_00000032";                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // if($i == 52) {$s = "bay-ENVO_00000032";                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 52) {$s = "";                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+
 
         if($i == 53) {$s = "kelp forest-ENVO_01000058";             if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 54) {$s = "forest-ENVO_01000174";                  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
         if($i == 55) {$s = "salt marsh-ENVO_00000054";             if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 56) {$s = "marsh-ENVO_00000035";                  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 57) {$s = "";                                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+
+        if($i == 58) {$s = "";                                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 59) {$s = "stream-ENVO_01000253";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 60) {$s = "";                                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+
     }
     echo "\nerrors: [$resource_id][$errors errors]";
     $final[] =     "[$resource_id][$errors errors]";

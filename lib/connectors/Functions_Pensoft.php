@@ -160,7 +160,7 @@ class Functions_Pensoft
         $pipe_delimited = $rec['http://rs.tdwg.org/ac/terms/additionalInformation'];
         $arr = explode("|", $pipe_delimited);
         $description_type = $arr[0];
-        $zip_file = $arr[1];
+        $zip_file = @$arr[1]; //seems not used anyway
 
         $title            = $rec['http://purl.org/dc/terms/title'];
         // $this->ontologies = "envo,eol-geonames"; //orig
@@ -290,7 +290,11 @@ class Functions_Pensoft
         $labels = array('malabar', 'antarctica'); //A. malabar OR C. antarctica - exclude | Off to Malabar - include
         $lbl = $rek['lbl'];
         if(in_array($lbl, $labels)) {
-            if(strpos($rek['context'], "<b>$lbl</b>") !== false) {debug("\nExcluded: huli_5\n"); return false;} //continue;
+            if(strpos($rek['context'], "<b>$lbl</b>") !== false) {
+                // debug("\nExcluded: huli_5\n"); 
+                @$this->debug['Excluded if lowercase'][$lbl]++;
+                return false;
+            } //continue;
         }
         // */
 
@@ -325,7 +329,11 @@ class Functions_Pensoft
         //, ' ed. ', 'eds. ' from Eli 
         $cont = true;
         foreach($parts_of_lit_ref as $part) {
-            if(stripos($rek['context'], $part) !== false) { $cont = false; debug("\nExcluded: part: [$part]\n"); } //string is found
+            if(stripos($rek['context'], $part) !== false) { 
+                $cont = false;
+                @$this->debug['Excluded: part:'][$part]++;
+                // debug("\nExcluded: part: [$part]\n"); 
+            } //string is found
         }
         if(!$cont) return false;//continue;
         // */

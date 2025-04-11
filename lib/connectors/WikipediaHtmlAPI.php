@@ -133,14 +133,29 @@ class WikipediaHtmlAPI
         */
 
         // remove temp dir
+        // /* main operation
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
+        // */
+        if(isset($this->debug)) print_r($this->debug);
     }
     private function prepare_archive_for_access($dwca)
     {
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
+        // /* main operation
         $paths = $func->extract_archive_file($dwca, "meta.xml", array('timeout' => 172800, 'expire_seconds' => 60*60*24*30)); //1 month expires
+        // print_r($paths); exit;
+        // */
+
+        /* during dev only
+        // print_r($paths); exit;
+        $paths = Array(
+            "archive_path"  => "/Volumes/AKiTiO4/eol_php_code_tmp/dir_03066/",
+            "temp_dir"      => "/Volumes/AKiTiO4/eol_php_code_tmp/dir_03066/"
+        );
+        */
+
         $archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
         $harvester = new ContentArchiveReader(NULL, $archive_path);
@@ -154,7 +169,7 @@ class WikipediaHtmlAPI
         return array("harvester" => $harvester, "temp_dir" => $temp_dir, "tables" => $tables, "index" => $index);
     }
     private function process_extension($media_tab, $filename)
-    {
+    {   //echo "\ngoes here 1\n";
         $i = 0; $savedYN = false;
         foreach(new FileIterator($media_tab) as $line => $row) { $i++; 
             if($i == 1) $fields = explode("\t", $row);
@@ -168,8 +183,16 @@ class WikipediaHtmlAPI
                 }
                 $rec = array_map('trim', $rec); // print_r($rec); exit;
             
-                if($rec['CVterm'] == "http://rs.tdwg.org/ontology/voc/SPMInfoItems#Description") {
-                    self::save_to_html($rec['description'], $filename);
+                if($rec['CVterm'] == "http://rs.tdwg.org/ontology/voc/SPMInfoItems#Description") { //echo "\ngoes here 2\n";
+                    $desc = $rec['description'];
+                    $lang = $rec['language'];
+                    /* Designed when generating individual HTML pages for languages, NOT to remove sections.
+                    And remove_start_ending_chars() should have been run already. --- Comment in real operation.
+                    It was only added here during development of these 2 functions.
+                    $desc = self::remove_start_ending_chars($desc, $lang);
+                    $desc = self::remove_wiki_sections($desc, $rec); //$rec here is just for debug
+                    */
+                    self::save_to_html($desc, $filename);
                     $savedYN = true;
                 }
                 else continue;
@@ -178,7 +201,7 @@ class WikipediaHtmlAPI
                 else continue;
                 */
                 break; //part of main operation, process only 1 record.
-                // if($i >= 1000) break; //debug only
+                // if($i >= 100) break; //debug only
             }
         }
         if(!$savedYN) $this->debug['no HTML page generated'][$filename];
@@ -212,6 +235,119 @@ class WikipediaHtmlAPI
                 else exit("\nInvestigate: No source text file for list of languages [$txt_file].\n");
             }
         }
+    }
+    function remove_start_ending_chars($html, $language = false) //NEW: Dec 2024
+    {
+        // remove bad starting chars e.g. '>'
+        /* other bad staring chars from other languages
+        lang="ab" dir="ltr">
+        lang="ang" dir="ltr">
+        lang="atj" dir="ltr">
+        lang="fj" dir="ltr">
+        */
+        $bad_start_strings = array(">");
+        if($language) $bad_start_strings[] = 'lang="'.$language.'" dir="ltr">';
+        foreach($bad_start_strings as $bad_starting_chars) {
+            $starting_chars = substr($html, 0, strlen($bad_starting_chars));
+            if($starting_chars == $bad_starting_chars) {
+                $html = substr($html, strlen($bad_starting_chars), strlen($html));
+                $html = trim($html);
+            }    
+        }
+
+        // remove bad ending chars e.g. '<div class="'
+        $html = trim($html);
+        $bad_ending_chars = '<div class="';
+        $ending_chars = substr($html, strlen($bad_ending_chars)*-1);
+        if($ending_chars == $bad_ending_chars) {
+            $html = substr($html, 0, strlen($html) - strlen($bad_ending_chars));
+        }
+        return $html;
+    }
+    function remove_wiki_sections($html, $rec = array()) //NEW: Dec 2024 | $rec here is just for debug
+    {
+        // below start remove wiki sections:
+        $sections = array('<h2 id="See_also">See also</h2>', '<h2 id="Notes">Notes</h2>', '<h2 id="References">References</h2>', '<h2 id="External_links">External links</h2>');
+        $sections[] = '<h2 id="Footnotes">Footnotes</h2>';
+        $sections[] = '<h2 id="Notes_and_references">Notes and references</h2>';
+        $sections[] = '<h2 id="Cited_references">Cited references</h2>';
+        $sections[] = '<h2 id="_References"> References</h2>';
+        $sections[] = '<h2 id="General_references">General references</h2>';
+        $sections[] = '<h2 id="External_links_and_references">External links and references</h2>';
+        $sections[] = '<h2 id="References_and_external_links">References and external links</h2>';
+        $sections[] = '<h2 id="Sources">Sources</h2>';
+        $sections[] = '<h2 id="Citations">Citations</h2>';
+        $sections[] = '<h2 id="General_References">General References</h2>';
+        $sections[] = '<h2 id="Bibliography_and_References">Bibliography and References</h2>';
+        $sections[] = '<h2 id="External_links_and_reference">External links and reference</h2>';
+        $sections[] = '<h2 id="Footnotes_and_references">Footnotes and references</h2>';
+        $sections[] = '<h2 id="Footnotes_&_References"><span id="Footnotes_.26_References"></span>Footnotes & References</h2>';
+        $sections[] = '<h2 id="References[6]"><span id="References.5B6.5D"></span>References<sup id="cite_ref-6"><a href="#cite_note-6"><span>[</span>6<span>]</span></a></sup></h2>';
+        $sections[] = '<h2 id="Literature_cited">Literature cited</h2>';
+        $sections[] = '<h2 id="References_and_links">References and links</h2>';
+        $sections[] = '<h2 id="References_and_further_reading">References and further reading</h2>';
+        $sections[] = '<h2 id="References====External_links"><span id="References.3D.3D.3D.3DExternal_links"></span>References====External links</h2>';
+        $sections[] = '<h2 id="References_links">References links</h2>';
+        $sections[] = '<h2 id="Reference">Reference</h2>';
+        $sections[] = '<h2 id="References_and_notes">References and notes</h2>';
+        $sections[] = '<h2 id="Reference_List">Reference List</h2>';
+        $sections[] = '<h2 id="Reference_list">Reference list</h2>';
+        $sections[] = '<h2 id="References.">References.</h2>';
+        $sections[] = '<h2 id="References,"><span id="References.2C"></span>References,</h2>';
+        $sections[] = '<h2 id="References"><a href="http://en.wikipedia.org/wiki/References" title="References">References</a></h2>';
+        $sections[] = '<h2 id="Further_reading">Further reading</h2>';
+        $sections[] = '<h2 id="References"><small>References</small></h2>';
+        $sections[] = '<h2 id="Rreferences">Rreferences</h2>';
+        $sections[] = '<h2 id="References"><i>References</i></h2>';
+        $sections[] = '<h2 id="References"><big>References</big></h2>';
+        $sections[] = '<h2 id="Cited_literature">Cited literature</h2>';
+        $sections[] = '<h2 id="Bibliography">Bibliography</h2>';
+        $sections[] = '<h2 id="Literature">Literature</h2>';
+        $sections[] = '<h2 id="Refererence">Refererence</h2>';
+        $sections[] = '<h2 id="Referernces">Referernces</h2>';
+        $sections[] = '<h2 id="Identification">Identification</h2>';
+        // $sections[] = '<h2 id="Taxonomy">Taxonomy</h2>';     //don't add this, it will remove many good information
+        // $sections[] = '<h2 id="Subspecies">Subspecies</h2>'; //don't add this, it will remove many good information
+        // $sections[] = '<h2 id="Species">Species</h2>';       //don't add this, it will remove many good information
+        $sections[] = '<h2 id="Other_Information">Other Information</h2>';
+        $sections[] = '<h2 id="Gallery">Gallery</h2>';
+        // $sections[] = '';    
+        // $sections[] = '';
+        // $sections[] = '';
+        // $sections[] = '';
+        $sections[] = '<h2 id="References[3]"><span id="References.5B3.5D"></span>References<sup id="cite_ref-:0_3-1"><a href="#cite_note-:0-3"><span>[</span>3<span>]</span></a></sup></h2>';
+        $sections[] = '<h2 id="References[3]"><span id="References.5B3.5D"></span>References<sup id="cite_ref-3"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup></h2>';
+        $sections[] = '<h2 id="External_resources">External resources</h2>';
+        $sections[] = '<h2 id="References_and_External_Links">References and External Links</h2>';
+        $sections[] = '<h2 id="External_sources">External sources</h2>';
+        // print_r($sections); exit;
+        
+        // <h2 id="References">References</h2></div>
+        if(preg_match_all("/<h2 id=(.*?)<\/h2>/ims", $html, $arr)) { // print_r($arr[1]);
+            foreach($arr[1] as $str) $arr2[] = "<h2 id=" . $str . "</h2>";
+            // print_r($arr2);
+            $start_section = false;
+            foreach($arr2 as $str) {
+                if(in_array($str, $sections)) {
+                    $start_section = $str;
+                    break;
+                }
+            }
+            if(!$start_section) {
+                echo("\nCannot find start section.\n"); print_r(@$rec['furtherInformationURL']);
+                print_r($arr2);
+                @$this->debug['no start section']++;
+            }
+            else {
+                // echo "\nstart_section: [$start_section]\n";
+                $html = Functions::delete_all_between($start_section, "Retrieved from", $html, false, false); 
+                // 4th param $inclusiveYN = false
+                // 5th param $caseSensitiveYN = false
+            }
+
+        }
+        // exit("\n-stop muna-\n");
+        return $html;
     }
 }
 ?>

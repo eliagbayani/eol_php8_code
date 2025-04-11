@@ -330,9 +330,10 @@ class Functions
     }
     public static function is_within_folders_where_file_change_is_allowed($file)
     {
-        $allowed_folders = array('eol_php8_code/tmp/', 'eol_php8_code/temp/', 'eol_php8_code/public/tmp/', 'eol_php8_code/applications/content_server/resources/', 'eol_php8_code/applications/content_server/tmp', '/opt/resources'
-        , '/Volumes/AKiTiO4/d_w_h/', 'eol_php8_code/applications/content_server/resources_2/', '/Volumes/AKiTiO4/eol_php_code_tmp/', '/extra/eol_php_code_tmp/', 'temp/'
-        , 'eol_php8_code/applications/content_server/resources_3/'); //allowed folders so far; we can add more.
+        $allowed_folders = array('eol_php_code/tmp/', 'eol_php_code/temp/', 'eol_php_code/public/tmp/', 'eol_php_code/applications/content_server/resources/', 'eol_php_code/applications/content_server/tmp', '/opt/resources'
+        , '/Volumes/AKiTiO4/d_w_h/', 'eol_php_code/applications/content_server/resources_2/', '/Volumes/AKiTiO4/eol_php_code_tmp/', '/extra/eol_php_code_tmp/', 'temp/'
+        , 'eol_php_code/applications/content_server/resources_3/',
+          'eol_php8_code/applications/content_server/'); //allowed folders so far; we can add more.
         foreach($allowed_folders as $folder) {
             if(strpos($file, $folder) !== false) return true;
         }
@@ -374,7 +375,7 @@ class Functions
     }
     public static function fromJenkinsYN()
     {
-        if(DOC_ROOT == "/html/eol_php8_code/") return true;
+        if(DOC_ROOT == "/html/eol_php_code/") return true;
         else return false;
     }
     public static function delete_if_exists($file_path)
@@ -400,7 +401,7 @@ class Functions
                                                   $timestart = false, 
                                                   $ContResLocPath = CONTENT_RESOURCE_LOCAL_PATH,
                                                   $end_options = array('go_zenodo' => true))
-    {
+    {   echo "\n---------------\nStart finalize_dwca_resource()...\n---------------\n";
         if(!$resource_id) return;
         if(stripos($resource_id, ".") !== false) return; //string is found
         if(stripos($resource_id, "*") !== false) return; //string is found
@@ -434,6 +435,9 @@ class Functions
         //added 14-Nov-2017: decided to remove folders xxx_previous for all resources
         if(is_dir($ContResLocPath . $resource_id . "_previous")) recursive_rmdir($ContResLocPath . $resource_id . "_previous");
 
+        if($status = chmod(CONTENT_RESOURCE_LOCAL_PATH.$resource_id.".tar.gz", 0775)) echo "\nFile permission update: [$status] OK\n";
+        else echo "\nFile permission update: failed!\n";
+
         /* as of Jul 18, 2023: snippet to update CKAN "Life updated" metadata in opendata.eol.org
         require_library('connectors/CKAN_API_AccessAPI');
         $forced_date = "";
@@ -441,19 +445,20 @@ class Functions
         $func->update_CKAN_resource_using_EOL_resourceID($resource_id);
         */
 
-        $msg = "\n[$resource_id] will not go to Zenodo at this time.\n";
+        $msg = "\nDesigned not to proceed to Zenodo at this time [$resource_id].\n";
         if(stripos($resource_id, "wikipedia-") !== false) { echo $msg; } //wikipedia lang resources will go to Zenodo in FillUpMissingParentsAPI.php, not here. //string is found
         elseif(stripos($resource_id, "wikipedia_combined") !== false) { echo $msg; }
         elseif(in_array($resource_id, array('80', '957', '201'))) { echo $msg; }
         /* exclude:
         same reason with 80 en and 957 de - both are wikipedia lang resource also
-        13322676	201	Museum of Comparative Zoology, Harvard	https://editors.eol.org/eol_php8_code/applications/content_server/resources/201.tar.gz	https://opendata.eol.org/dataset/befc28a0-43ac-4b82-9db3-cae728744bc8/resource/43a9e0bb-fd46-4bd2-8037-69fd2143be88
+        13322676	201	Museum of Comparative Zoology, Harvard	https://editors.eol.org/eol_php_code/applications/content_server/resources/201.tar.gz	https://opendata.eol.org/dataset/befc28a0-43ac-4b82-9db3-cae728744bc8/resource/43a9e0bb-fd46-4bd2-8037-69fd2143be88
             -> there is a final 201_meta_recoded_2.tar.gz resource that is in Zenodo. 201.tar.gz is just a step. 202 should be deleted in CKAN actually.
         */
         elseif(@$end_options['go_zenodo']) {
             /* as of Sep 4, 2024: snippet to update corresponding Zenodo record
             // $EOL_resource_id = "200_meta_recoded"; // $EOL_resource_id = "24"; //force assign, dev only
             $EOL_resource_id = $resource_id;
+            require_library('connectors/ZenodoFunctions');
             require_library('connectors/ZenodoConnectorAPI');
             require_library('connectors/ZenodoAPI');
             $func = new ZenodoAPI();
@@ -461,7 +466,7 @@ class Functions
             // $func->new_description_for_zenodo = ""; //initialize again
             */
         }
-        else echo "\nDesigned not to proceed to Zenodo at this time [$resource_id].\n";
+        else echo $msg;
     }
     public static function get_time_elapsed($timestart)
     {
@@ -1129,10 +1134,11 @@ class Functions
 
     public static function import_decode($string, $remove_shitespace = false, $decode = true)
     {
-        if($decode)
+        if(!$string) return $string;
+        if($decode) 
         {
-            $string = str_replace('&nbsp;',  ' ', $string ? $string : "");
-            $string = htmlspecialchars_decode(html_entity_decode($string, ENT_COMPAT, 'UTF-8'));
+                $string = str_replace('&nbsp;',  ' ', $string);
+                $string = htmlspecialchars_decode(html_entity_decode($string, ENT_COMPAT, 'UTF-8'));    
         }
 
         $string = str_replace(" ", " ", $string);
@@ -2564,21 +2570,40 @@ class Functions
             if($val = trim($a[1])) return $val;
         }
     }
-    public static function delete_all_between($beginning, $end, $string) {
-      $beginningPos = strpos($string, $beginning);
-      $endPos = strpos($string, $end);
-      if ($beginningPos === false || $endPos === false) {
+    public static function delete_all_between($beginning, $end, $string, $inclusiveYN = true, $caseSensitiveYN = true) {
+        if($caseSensitiveYN) {
+            $beginningPos = strpos($string, $beginning);
+            $endPos = strpos($string, $end);  
+        }
+        else {
+            $beginningPos = stripos($string, $beginning);
+            $endPos = stripos($string, $end);  
+        }
+        if(!$inclusiveYN) {
+            $endPos = $endPos - strlen($end);
+        }
+        if ($beginningPos === false || $endPos === false) {
+            return trim($string);
+        }
+        $textToDelete = substr($string, $beginningPos, ($endPos + strlen($end)) - $beginningPos);
+        if($textToDelete) return self::delete_all_between($beginning, $end, str_replace($textToDelete, '', $string)); // recursion to ensure all occurrences are replaced
         return trim($string);
-      }
-      $textToDelete = substr($string, $beginningPos, ($endPos + strlen($end)) - $beginningPos);
-      return self::delete_all_between($beginning, $end, str_replace($textToDelete, '', $string)); // recursion to ensure all occurrences are replaced
+    }
+    public static function preg_delete_all_between($left, $right, $str) //inclusive | e.g. $left = 'style="'  $right='"'
+    {
+        if(preg_match_all("/".preg_quote($left, '/')."(.*?)".preg_quote($right, '/')."/ims", $str, $arr)) { 
+            foreach($arr[1] as $substr) $str = str_replace($left . $substr . $right, "", $str);
+        }
+        return Functions::remove_whitespace($str);
     }
     public static function start_print_debug($this_debug, $resource_id)
     {
-        $file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id."_debug.txt";
-        $WRITE = Functions::file_open($file, "w");
+        if(in_array($resource_id, array('gen_map_data_via_gbif_csv'))) $attrib = "a"; //new 2025
+        else                                                           $attrib = "w"; //orig value
+        $file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id."_debug_".date('Y-m-d').".txt";
+        $WRITE = Functions::file_open($file, $attrib);
         foreach($this_debug as $topic => $arr) {
-            fwrite($WRITE, "============================================================="."\n");
+            fwrite($WRITE, "=============================================================[".date('Y-m-d')."]\n");
             fwrite($WRITE, $topic."\n");
             if(is_array($arr)) {
                 foreach($arr as $subtopic => $arr2) {

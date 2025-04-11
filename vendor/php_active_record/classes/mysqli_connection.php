@@ -19,7 +19,8 @@ class MysqliConnection
     private $master_port;
     private $master_socket;
     private $master_mysqli;
-    public $transaction_in_progress;
+    // private $transaction_in_progress;
+    public $transaction_in_progress; //for PHP 8.2
 
     function __construct($server, $user, $password, $database, $encoding, $port, $socket, $master_server, $master_user, $master_password, $master_database, $master_encoding, $master_port, $master_socket)
     {

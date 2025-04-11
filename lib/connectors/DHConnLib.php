@@ -18,21 +18,34 @@ class DHConnLib
         }
         else {
             $this->download_options = array(
-                'cache_path'         => '/Volumes/AKiTiO4/active_DH_cache/',
+                'cache_path'         => '/Volumes/Crucial_4TB/active_DH_cache/',
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/";
+            $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/";  //used for the longest time
+            // $this->main_path = "/Volumes/AKiTiO4/d_w_h/history/dhv21/";                              //supposedly latest but doesn't have EOLid
         }
+        if(!is_dir($this->download_options['cache_path'])) mkdir($this->download_options['cache_path']);
+        $this->download_options['expire_seconds'] = 60*60*24*7; //1 week cache
         
         $this->listOf_taxa['order']  = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_order_4maps.txt';
         $this->listOf_taxa['family'] = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_family_4maps.txt';
         $this->listOf_taxa['genus']  = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_genus_4maps.txt';
         $this->listOf_taxa['all']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_4maps.txt';
+        $this->listOf_taxa['all_plantae']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_plantae_4maps.txt'; //new 23Mar2025
+        $this->listOf_taxa['all_chordata']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_chordata_4maps.txt'; //new 23Mar2025
+        $this->listOf_taxa['all_arthropoda']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_arthropoda_4maps.txt'; //new 23Mar2025
+        $this->listOf_taxa['all_passeriformes']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_passeriformes_4maps.txt'; //new 23Mar2025
         
         $this->all_ranks_['order'] = array('infraorder', 'hyporder', 'superorder', 'order', 'suborder');
         $this->all_ranks_['family'] = array('superfamily', 'family', 'subfamily', 'tribe');
         $this->all_ranks_['genus'] = array('genus', 'subgenus', 'series');
         $this->all_ranks_['species'] = array('species', 'subspecies', 'infraspecies', 'species group', 'variety', 'subvariety', 'form');
         $this->all_ranks_['all'] = array_merge($this->all_ranks_['order'], $this->all_ranks_['family'], $this->all_ranks_['genus'], $this->all_ranks_['species']);
+        $this->all_ranks_['all_plantae'] = $this->all_ranks_['all'];
+        $this->all_ranks_['all_chordata'] = $this->all_ranks_['all'];
+        $this->all_ranks_['all_arthropoda'] = $this->all_ranks_['all'];
+        $this->all_ranks_['all_passeriformes'] = $this->all_ranks_['all'];
+
+
         /*Array(
         Hi Jen, looking at the actual values for taxon rank in DH.
         I will include these:
@@ -69,8 +82,16 @@ class DHConnLib
         }
         else echo "\nNo children\n";
         echo "\ncount: ".count($this->taxID_info)."\n";
-        exit("\n-end tests-\n");
+        echo("\n-end tests-\n");
         */
+    }
+    function generate_any_taxa_list($what)
+    {
+        if($what == 'kingdom Plantae') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa plantae', 'all_plantae'); // for all Plantae taxa
+        if($what == 'phylum Chordata') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa chordata', 'all_chordata'); // for all x taxa
+        if($what == 'phylum Arthropoda') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa arthropoda', 'all_arthropoda'); // for all x taxa        
+        if($what == 'phylum Passeriformes') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa passeriformes', 'all_passeriformes'); // for all x taxa        
+
     }
     function generate_children_of_taxa_from_DH() /* This generates cache of children of order, family & genus. Also generates respective list txt files. */
     {
@@ -98,7 +119,8 @@ class DHConnLib
         if($purpose == 'initialize') $this->mint2EOLid = array();
         elseif($purpose == 'buildup ancestry and children') { $this->taxID_info = array(); $this->descendants = array(); }
 
-        if(in_array($purpose, array('list of taxa', 'save children of genus and family'))) {
+        if(in_array($purpose, array('list of taxa', 'list of taxa plantae', 'list of taxa chordata', 'list of taxa arthropoda', 'list of taxa passeriformes',  
+            'save children of genus and family'))) {
             $FILE = Functions::file_open($this->listOf_taxa[$filter_rank], 'w'); //this file will be used DATA-1818
             fwrite($FILE, implode("\t", array('canonicalName', 'EOLid', 'taxonRank', 'taxonomicStatus'))."\n");
         }
@@ -184,14 +206,81 @@ class DHConnLib
                     }
                 }
             }
+            elseif($purpose == 'list of taxa plantae') { //2025
+                if(self::rec_is_Plantae_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
+            }
+            elseif($purpose == 'list of taxa chordata') { //2025
+                if(self::rec_is_Chordata_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
+            }
+            elseif($purpose == 'list of taxa arthropoda') { //2025
+                if(self::rec_is_Arthropoda_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
+            }
+            elseif($purpose == 'list of taxa passeriformes') { //2025
+                if(self::rec_is_Passeriformes_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
+            }
+
         }
-        if(in_array($purpose, array('list of taxa', 'save children of genus and family'))) fclose($FILE);
+        if(in_array($purpose, array('list of taxa', 'list of taxa plantae', 'list of taxa chordata', 'list of taxa arthropoda', 
+        'list of taxa passeriformes', 'save children of genus and family'))) fclose($FILE);
         // print_r($debug);
         
         if($returnYN && $purpose == 'list of taxa') {
             return $taxID_rank_info; //to be used in library GBIFoccurrenceAPI_DwCA - save_ids_to_text_from_many_folders()
         }
     }
+    private function proceed_save_or_not($rec, $found, $FILE)
+    {
+        // if(in_array($rec['taxonRank'], $this->all_ranks_['all'])) { //this block was copied above; from $purpose == 'list of taxa'
+            if($eol_id = $rec['EOLid']) { $found++;
+                // /* text file here will be used in generating map data for all Plantae taxa
+                if($val = $rec['canonicalName']) $sciname = $val;
+                else                             $sciname = Functions::canonical_form($rec['scientificName']);
+                $save = array($sciname, $eol_id, $rec['taxonRank'], $rec['taxonomicStatus']);
+                fwrite($FILE, implode("\t", $save)."\n");
+                // */
+            }
+        // }
+        return $found;
+    }
+    private function rec_is_Plantae_YN($rec)
+    {   if($higherClassification = $rec['higherClassification']) {
+            /* if(stripos($higherClassification, "Plantae") !== false) return true;    //string is found --- did not work */
+            // Phylums list based from: https://www.gbif.org/species/6
+            if( (stripos($higherClassification, "Anthocerotophyta") !== false)   ||    //string is found
+                (stripos($higherClassification, "Bryophyta") !== false) ||     //string is found
+                (stripos($higherClassification, "Charophyta") !== false) ||     //string is found
+                (stripos($higherClassification, "Chlorophyta") !== false) ||     //string is found
+                (stripos($higherClassification, "Glaucophyta") !== false) ||     //string is found
+                (stripos($higherClassification, "Langiophytophyta") !== false) ||     //string is found
+                (stripos($higherClassification, "Marchantiophyta") !== false) ||     //string is found
+                (stripos($higherClassification, "Rhodophyta") !== false) ||     //string is found
+                (stripos($higherClassification, "Tracheophyta") !== false)     //string is found
+            ) return true;
+        }
+        return false;
+    }
+    private function rec_is_Chordata_YN($rec)
+    {
+        if($higherClassification = $rec['higherClassification']) {
+            if(stripos($higherClassification, "Chordata") !== false) return true;    //string is found
+        }
+        return false;
+    }
+    private function rec_is_Arthropoda_YN($rec)
+    {
+        if($higherClassification = $rec['higherClassification']) {
+            if(stripos($higherClassification, "Arthropoda") !== false) return true;    //string is found
+        }
+        return false;
+    }
+    private function rec_is_Passeriformes_YN($rec)
+    {
+        if($higherClassification = $rec['higherClassification']) {
+            if(stripos($higherClassification, "Passeriformes") !== false) return true;    //string is found
+        }
+        return false;
+    }
+
     function get_children_from_json_cache($name, $options = array(), $gen_descendants_ifNot_availableYN = true)
     {
         // download_wait_time
@@ -214,7 +303,9 @@ class DHConnLib
             }
             @unlink($cache_path);
         }
-        else echo "\nAlert: json not yet saved for this taxon ($name).\n"; //almost not seen, since all concerned taxa will have a json file. Even for those without children will have '[]' json value
+        else {  //almost not seen, since all concerned taxa will have a json file. Even for those without children will have '[]' json value
+            // echo "\nAlert: json not yet saved for this taxon ($name).\n"; exit("\n-=-=-=\n");
+        }
         if($gen_descendants_ifNot_availableYN) {
             //generate json
             // echo "\nGenerating cache json for the first time ($name)...\n"; //good debug

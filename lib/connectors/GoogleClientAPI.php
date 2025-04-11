@@ -5,13 +5,10 @@ require_once __DIR__ . '/../../vendor/google_client_lib_2023/autoload.php';
 
 /* sample connector: [google_client.php] */
 
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class GoogleClientAPI
 {
-    // below PHP8
-    private $cache_path;
-    private $credentials_json_path;
-    private $func;
-
     function __construct()
     {
         if(Functions::is_production()) $this->cache_path = '/extra/other_files/wikidata_cache/';

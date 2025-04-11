@@ -1,14 +1,13 @@
 <?php
 namespace php_active_record;
 
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class ContentArchiveReader
 {
     private $archive_is_local;
     private $archive_directory;
     private $core;
-
-    // PHP8 below
-    public $tables;
     
     function __construct($uri = null, $directory = null)
     {
@@ -134,7 +133,7 @@ class ContentArchiveReader
         {
             $table_definition->lines_terminated_by = "\n";
         }
-        $table_definition->enclosure = preg_quote($table_definition->fields_enclosed_by, "/");
+        if($val = $table_definition->fields_enclosed_by) $table_definition->enclosure = preg_quote($val, "/");
         $table_definition->terminator = preg_quote($table_definition->fields_terminated_by, "/");
         
         // file location
@@ -336,6 +335,7 @@ class ContentArchiveReader
     
     private static function convert_escaped_chars($str)
     {
+        if(!$str) return $str;
         // strcmp does a case insensitive string comparison
         if(strcasecmp($str, "\\n") == 0) return "\n";
         if(strcasecmp($str, "\\r") == 0) return "\r";

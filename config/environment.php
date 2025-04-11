@@ -11,7 +11,7 @@ ini_set('max_execution_time', 60*60*24*15); // 15 days | 21600 = 6 hours
 ini_set('display_errors', false);
 
 /* Default Environment */
-if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = 'production';
+if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = 'development';
 // passing in the CLI arguments
 set_and_load_proper_environment($argv);
 
@@ -91,7 +91,7 @@ if(!defined('CONTENT_LOCAL_PATH'))          define('CONTENT_LOCAL_PATH',        
 # where harvested media will be temporarily stored before being moved the above directory
 if(!defined('CONTENT_TEMP_PREFIX'))         define('CONTENT_TEMP_PREFIX',           DOC_ROOT . 'applications/content_server/tmp/');
 # where resource XML files will be downloaded to
-if(!defined('CONTENT_RESOURCE_LOCAL_PATH')) define('CONTENT_RESOURCE_LOCAL_PATH',   DOC_ROOT . 'applications/content_server/resources/');
+if(!defined('CONTENT_RESOURCE_LOCAL_PATH')) define('CONTENT_RESOURCE_LOCAL_PATH',   DOC_ROOT . 'applications/content_server/resources_3/');
 if(!defined('CONTENT_GNI_RESOURCE_PATH'))   define('CONTENT_GNI_RESOURCE_PATH',     DOC_ROOT . 'applications/content_server/gni_tcs_files/');
 # where datasets prepared by app servers will reside (must be web accessible)
 if(!defined('CONTENT_DATASET_PATH'))        define('CONTENT_DATASET_PATH',          DOC_ROOT . 'applications/content_server/datasets/');

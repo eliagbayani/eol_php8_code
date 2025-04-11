@@ -42,25 +42,6 @@ ERROR	update_0924	13382488	{"error_id":"de4cd960650442a18c9e185ca90326e9","messa
 
 class ZenodoAPI extends ZenodoConnectorAPI
 {
-    public $download_options;
-    public $api;
-    public $path_2_file_dat;
-    public $log_file;
-    public $html_report;
-    public $Write_EOL_resource_id_and_Zenodo_id_file;
-    public $report;
-    public $org_name;
-    public $ckan;
-    public $temp_count;
-    public $license_map;
-    public $debug;
-    public $divide_and_conquer;
-    public $new_description_for_zenodo;
-    public $show_print_r;
-    public $html_contributors;
-    public $ORCIDs;
-    public $github_EOL_resource_id_and_Zenodo_id_file;    
-
     function __construct($folder = null, $query = null)
     {
         $this->download_options = array(
@@ -71,12 +52,19 @@ class ZenodoAPI extends ZenodoConnectorAPI
         $this->download_options['expire_seconds'] = 60*60*24*30; //for eol content partners
 
         $this->api['domain'] = 'https://zenodo.org';
-        if(Functions::is_production()) $this->path_2_file_dat = '/extra/other_files/Zenodo/';
-        else                           $this->path_2_file_dat = '/Volumes/OWC_Express/other_files/Zenodo/';
-        echo "\n[$this->path_2_file_dat]\n";
+        if(Functions::is_production()) {
+            $this->path_2_file_dat = '/extra/other_files/Zenodo/';
+            $this->cache_path      = '/extra/other_files/Zenodo/cache/';
+        }
+        else {
+            $this->path_2_file_dat = '/Volumes/OWC_Express/other_files/Zenodo/';
+            $this->cache_path      = '/Volumes/OWC_Express/other_files/Zenodo/cache/';
+        }
         if(!is_dir($this->path_2_file_dat)) mkdir($this->path_2_file_dat);
+        if(!is_dir($this->cache_path)) mkdir($this->cache_path);
         $this->log_file = $this->path_2_file_dat . "Zenodo_logs.tsv";
         $this->html_report = $this->path_2_file_dat . "opendata_zenodo.html";
+        $this->stats_file = $this->path_2_file_dat . "stats.tsv";
 
         $this->Write_EOL_resource_id_and_Zenodo_id_file = $this->path_2_file_dat . "EOL_resource_id_and_Zenodo_id_file.tsv";
         $WRITE = Functions::file_open($this->Write_EOL_resource_id_and_Zenodo_id_file, "c");
@@ -149,6 +137,8 @@ class ZenodoAPI extends ZenodoConnectorAPI
         $this->ORCIDs['Katja Schulz'] = '0000-0001-7134-3324'; //https://orcid.org/0000-0001-7134-3324
 
         $this->github_EOL_resource_id_and_Zenodo_id_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Zenodo/EOL_resource_id_and_Zenodo_id_file.tsv';
+        $this->api['record'] = 'https://zenodo.org/api/records/'; //e.g. https://zenodo.org/api/records/13322979
+        $this->api['versions'] = "https://zenodo.org/api/records/ZENODO_ID/versions?page=PAGE_NUM&size=25&sort=version"; //e.g. "https://zenodo.org/api/records/14035881/versions?page=1&size=25&sort=version"
     }
     function start()
     {   self::log_error(array("==================== Log starts here ===================="));
@@ -186,7 +176,6 @@ class ZenodoAPI extends ZenodoConnectorAPI
 
         $arr = array_keys($this->debug['urls pathinfo']);
         asort($arr); //print_r($arr);
-
 
         print_r(array_keys($this->debug));
         echo "\ntotal resources: ".$this->debug['total resources'];
@@ -912,7 +901,7 @@ class ZenodoAPI extends ZenodoConnectorAPI
             return $obj;    
         }
     }
-    function get_depositions_by_part_title($q, $allVersions = false)
+    function get_depositions_by_part_title($q, $allVersions = false, $returnNow = false)
     {
         $final = array();
         echo "\nallVersions: [$allVersions]\n";
@@ -940,9 +929,11 @@ class ZenodoAPI extends ZenodoConnectorAPI
             foreach($obj as $o) { $i++;
                 $id = $o['id'];
                 $result_title = $o['metadata']['title'];
-                echo "\n- [$page_num] $i. [$id] [$result_title]...";
+                $publication_date = $o['metadata']['publication_date'];
+                echo "\n- [$page_num] $i. [$id] [$result_title] [$publication_date]...";
                 $final[] = $o;
             }
+            if($returnNow) return $final;
             // return $final; //debug only, return the first 25 records only
             // if($page_num >= 3) return; //debug only
         } //end while()

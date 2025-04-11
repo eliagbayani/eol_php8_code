@@ -28,6 +28,9 @@ http://api.pensoft.net/annotator?text=OZARK-OUACHITA PLECOPTERA SPECIES LIST. Oz
 https://github.com/EOL/textmine_rules
 -> Textmining rules: Filters, remapped lists, subset labels, etc. used in textmining connector using the Pensoft Annotator.
 */
+
+define("SERVICE_TERM_DESCENDANTS", "https://editors.eol.org/eol_php_code/update_resources/connectors/get_descendants_of_term.php?term=");
+
 class Pensoft2EOLAPI extends Functions_Pensoft
 {
     function __construct($param)
@@ -98,6 +101,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         }
         
         $this->download_options = array('expire_seconds' => 60*60*24, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 0.5);
+        // $this->download_options['expire_seconds'] = 1; //only for run_pensoft_test.php //comment in real operation
+
         $this->call['opendata resource via name'] = "https://opendata.eol.org/api/3/action/resource_search?query=name:RESOURCE_NAME";
 
         /* report for Jen - 'difference' report | entities file now obsolete
@@ -109,11 +114,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         // exclude descendants of 'aquatic': AntWeb
         $this->descendants_habitat_group['aquatic']    = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/AmphibiaWeb/descendants_of_aquatic.tsv';
    
-        $this->remove_across_all_resources = array();
-        /* 2024: already placed in text file
-        $this->remove_across_all_resources = array('http://purl.obolibrary.org/obo/ENVO_01000760', 'http://purl.obolibrary.org/obo/ENVO_00000474'); //cloud, cut
-        $this->remove_across_all_resources[] = 'http://purl.obolibrary.org/obo/ENVO_00000016'; //'sea' per Jen: https://eol-jira.bibalex.org/browse/DATA-1858?focusedCommentId=65552&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65552
-        */
+        $this->remove_across_all_resources = array(); //original contents have now been moved to terms_to_remove.txt and/or other txt files below
 
         $this->another_set_exclude_URIs = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/terms_implying_missing_filter.txt';
         $this->another_set_exclude_URIs_02 = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/terms_to_remove.txt';
@@ -184,6 +185,14 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text: entire resource was processed.
             $this->descendants_of_saline_water = self::get_descendants_of_habitat_group('saline water'); //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
         }
+        if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN -> creates a new DwCA    
+            // /* New: Dec 7, 2024
+            if(!isset($this->func_WikipediaHtmlAPI)) {
+                require_library('connectors/WikipediaHtmlAPI');
+                $this->func_WikipediaHtmlAPI = new WikipediaHtmlAPI();
+            }
+            // */
+        }
         // ------------------------- end customize ------------------------- */
         
         self::lookup_opendata_resource();
@@ -191,6 +200,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         self::initialize_files();
         // */
         $info = self::parse_dwca($resource, $download_options); // print_r($info); exit;
+        if(!$info) exit("\nERROR: It seems 80.tar.gz is missing.\n");
         $tables = $info['harvester']->tables;
         print_r(array_keys($tables)); //exit;
 
@@ -245,7 +255,9 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         $excluded_rowtypes = array();
         
         // /* -------------------- start customize --------------------
-        if($this->param['resource_id'] == '617_ENV') $excluded_rowtypes = array('http://eol.org/schema/media/document'); //Wikipedia EN -> creates a new DwCA
+        if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN -> creates a new DwCA
+            $excluded_rowtypes = array('http://eol.org/schema/media/document');    
+        }
         elseif($this->param['resource_id'] == '21_ENV') $excluded_rowtypes = array(); //AmphibiaWeb text -> doesn't create a new DwCA
         if(in_array($this->param['resource_id'], array("10088_5097_ENV", "10088_6943_ENV", "118935_ENV", "120081_ENV", "120082_ENV", "118986_ENV", "118920_ENV", "120083_ENV", 
             "118237_ENV", "MoftheAES_ENV", "30355_ENV", "27822_ENV", "30354_ENV", "119035_ENV", "118946_ENV", "118936_ENV", "118950_ENV",
@@ -396,6 +408,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         // /* un-comment in real operation
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
+        $download_options['expire_seconds'] = 1;
         $paths = $func->extract_archive_file($this->DwCA_URLs[$resource], "meta.xml", $download_options); //true 'expire_seconds' means it will re-download, will NOT use cache. Set TRUE when developing
         print_r($paths); //exit("\n-exit muna-\n");
         // */
@@ -408,7 +421,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         $harvester = new ContentArchiveReader(NULL, $archive_path);
         $tables = $harvester->tables;
         $index = array_keys($tables);
-        if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
+        if(!(@$tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
             debug("Invalid archive file. Program will terminate.");
             return false;
         }
@@ -439,6 +452,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                 $k++;
             }
             // print_r($rec); exit("\n[1]\n");
+            // if($i >= 100) break; //debug only
 
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
             
@@ -491,6 +505,13 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                 $this->ontologies = "envo"; //always 'envo' unless WoRMS' distribution texts.
                 
                 // /* -------------------- start customize --------------------
+                if($this->param['resource_id'] == '617_ENV') {
+                    $desc = $rec['http://purl.org/dc/terms/description'];
+                    $desc = $this->func_WikipediaHtmlAPI->remove_start_ending_chars($desc); //no longer needed here, but just in case.
+                    $desc = $this->func_WikipediaHtmlAPI->remove_wiki_sections($desc, $rec); //2nd param $rec here is just for debug
+                    $rec['http://purl.org/dc/terms/description'] = $desc;
+                }
+
                 if($this->param['resource_id'] == '26_ENV') { //for WoRMS only with title = 'habitat' and 'distribution' will be processed.
                     if(strtolower($rec['http://purl.org/dc/terms/title']) == 'habitat') @$this->text_that_are_habitat++;
                     elseif(strtolower($rec['http://purl.org/dc/terms/title']) == 'distribution') $this->ontologies = "eol-geonames";
@@ -729,9 +750,9 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                 else continue;
                 
                 if(stripos($uri, "ENVO_") !== false) { //string is found
-                    $arr = array($basename, '', '', $label, pathinfo($uri, PATHINFO_FILENAME), $rek['ontology'], ""); //7th param is mType
+                    $arr = array($basename, '', '', $label, pathinfo($uri, PATHINFO_FILENAME), $rek['ontology'], "", $rek['context']); //7th param is mType
                 }
-                else $arr = array($basename, '', '', $label, $uri, $rek['ontology'], ""); //7th param is mType
+                else $arr = array($basename, '', '', $label, $uri, $rek['ontology'], "", $rek['context']); //7th param is mType
                 
                 /*===== CUSTOMIZE START =====*/
                 // /* DATA-1893 - a provision to assign measurementType as early as this stage
@@ -813,7 +834,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         $loops = $len/$batch_length; //echo("\nloops: [$loops]\n");
         $loops = ceil($loops);
         $ctr = 0;
-        sleep(0.5);
+        // sleep(0.5);
         for($loop = 1; $loop <= $loops; $loop++) { //echo "\n[$loop of $loops]";
             // ----- block check start -----
             $i = 100;
@@ -1146,13 +1167,13 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             //============= below this point is where $this->results is populated =============
             if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN
                 if(ctype_lower(substr($rek['lbl'],0,1))) { //bec. references has a lot like 'Urban C.' which are authors.
-                    $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype']);
+                    $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype'], "context" => $rek['context']);
                     // $this->eli[$rek['id']][] = $rek['lbl']; //good debug
                 }
                 // else exit("\nWent here...\n"); //means Wikipedia EN is strict. "Sri Lanka" will be excluded.
             }
             else { //rest of the resources --> Just be sure the citation, reference, biblio parts of text is not included as input to Pensoft
-                $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype']);
+                $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype'], "context" => $rek['context']);
             }
             // echo "\nGoes- 103\n";
 
@@ -1323,7 +1344,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         "lbl": "hill",
         "context": "Michael R. and Joseph <b>Hill</b>",
         */
-        $words = array('urban', 'hill', 'heath'); //Urban C. -> is a name
+        $words = array('urban', 'hill', 'heath', 'stream', 'corrie'); //Urban C. -> is a name | coombe. Many can be included here but since they are now blacklisted so no need.
         foreach($words as $word) {
             if($rek['lbl'] == $word) {
                 if(strpos($rek['context'], $word) !== false) return true;   //if small letter then OK   //string is found
@@ -1723,6 +1744,15 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             $arr = array_values($arr); //reindex key
             // print_r($arr); exit("\n".count($arr)."\n");
             foreach($arr as $uri) $this->delete_MoF_with_these_uris[$uri] = '';
+        }
+        // */
+
+        // /* NEW: remove descendants of ENVO_00000002: https://github.com/EOL/ContentImport/issues/21#issuecomment-2508735608
+        $term = 'http://purl.obolibrary.org/obo/ENVO_00000002'; //a geographic feature resulting from the influence of human beings on nature
+        $url = SERVICE_TERM_DESCENDANTS . $term;
+        if($json = Functions::lookup_with_cache($url, $this->download_options)) {
+            $arr = json_decode($json, true);
+            foreach($arr as $uri) $this->delete_MoF_with_these_uris[$uri] = ''; 
         }
         // */
         

@@ -1,0 +1,27 @@
+{
+    "creator": "eagbayani@eol.org",
+    "sendNotification": true,
+    "notificationAddresses": [
+        "eagbayani@eol.org" 
+    ],
+    "format": "SQL_TSV_ZIP", 
+    "sql": "SELECT decimallatitude, decimallongitude, taxonkey, acceptedtaxonkey, kingdomkey, 
+            phylumkey, classkey, orderkey, familykey, genuskey, subgenuskey, specieskey
+            FROM occurrence
+            WHERE
+            orderkey = 549
+            AND hascoordinate = 1
+            AND hasgeospatialissues = 0
+            AND specieskey IS NOT NULL
+            AND occurrencestatus = 'PRESENT'
+            AND (
+                basisofrecord = 'HUMAN_OBSERVATION'
+                OR basisofrecord = 'MACHINE_OBSERVATION'
+                OR basisofrecord = 'OCCURRENCE'
+                OR basisofrecord = 'LIVING_SPECIMEN'
+                OR basisofrecord = 'MATERIAL_SAMPLE'
+            )
+            AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
+            AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')" 
+}        
+

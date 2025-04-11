@@ -1,54 +1,13 @@
 <?php
 namespace eol_schema;
 
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DarwinCoreExtensionBase
 {
     const EXTENSION_URL = NULL;
     const ROW_TYPE = NULL;
-
-    // PHP8 below
-    private $accepted_properties_by_name;
-    private $accepted_properties;
-    private $accepted_properties_by_uri;
-    private $extension_row_type;
-
-    // E_DEPRECATED: Creation of dynamic property eol_schema\Agent::$term_name is deprecated in
-    public $term_name;
-    public $agentRole;
-    public $identifier;
-    public $term_homepage;
-    public $term_mbox;
-
-    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::
-    public $agentID;
-    public $taxonID;
-    public $type;
-    public $language;
-    public $format;
-    public $accessURI;
-    public $furtherInformationURL;
-    public $Owner;
-    public $UsageTerms;
-    public $description;
-
-    // E_DEPRECATED: Creation of dynamic property eol_schema\Taxon::
-    // User Warning: Undefined property `taxonID` on eol_schema\Taxon as defined by `https://raw.githubusercontent.com/tdwg/PlinianCore/master/xsd/abstract%20models/stable%20version/tdwg_dwcterms.xsd` in /html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 275
-    public $EOLid;
-    public $scientificName;
-    // private $taxonID;
-    public $parentNameUsageID;
-    public $higherClassification;
-    // private $furtherInformationURL;
-    public $order;
-    public $family;
-    public $genus;
-
-
-    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::$accepted_properties is deprecated in /html/eol_php8_code/vendor/eol_content_schema_v2/MediaResource.php on line 346
-    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::$accepted_properties_by_name is deprecated in /html/eol_php8_code/vendor/eol_content_schema_v2/MediaResource.php on line 347
-    // E_DEPRECATED: Creation of dynamic property eol_schema\MediaResource::$accepted_properties_by_uri is deprecated in /html/eol_php8_code/vendor/eol_content_schema_v2/MediaResource.php on line 348
-
-
+    
     public function __construct($parameters = array())
     {
         if(!isset($GLOBALS['DarwinCoreExtensionProperties'])) $GLOBALS['DarwinCoreExtensionProperties'] = array();
@@ -115,11 +74,7 @@ class DarwinCoreExtensionBase
     
     protected function assign_properties($parameters)
     {
-        /*
-        while (list($i, $arg) = each($args)) {        
-        foreach ($args as $i => $arg) {
-        */
-        // while(list($property_name, $value) = each($parameters)) // each() is deprecated
+        // while(list($property_name, $value) = each($parameters))
         foreach($parameters as $property_name => $value) //PHP 8
         {
             $this->__set($property_name, $value);

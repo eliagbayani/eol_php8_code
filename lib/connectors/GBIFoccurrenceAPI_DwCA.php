@@ -13,7 +13,22 @@ that is mapped to EOL's (sciname, taxonConceptID)
 2.2. get taxonkey using scientific name
 2.3. use taxonkey to get the occurrence in CSV file (CSV created in 4.2)
 
+curl -X 'GET' \
+  'https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=8084280&hasCoordinate=true&hasGeospatialIssue=false&occurrenceStatus=PRESENT
+
+  // ' \
+  -H 'accept: application/json'
+
+curl -X 'GET' \
+  'https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=8084280&associatedSequences=http%3A%2F%2Fwww.ncbi.nlm.nih.gov%2Fnuccore%2FU34853.1&basisOfRecord=PRESERVED_SPECIMEN&bed=Harlem%20coal&catalogNumber=K001275042&classKey=212&collectionCode=F&collectionKey=dceb8d52-094c-4c2c-8960-75e0097c6861&continent=EUROPE&country=AF&crawlId=1&datasetId=https%3A%2F%2Fdoi.org%2F10.1594%2FPANGAEA.315492&datasetKey=13b70480-bd69-11dd-b15f-b8a03c50a862&degreeOfEstablishment=Invasive&dwcaExtension=http%3A%2F%2Frs.tdwg.org%2Fac%2Fterms%2FMultimedia&earliestEonOrLowestEonothem=Mesozoic&earliestEraOrLowestErathem=Proterozoic&earliestPeriodOrLowestSystem=Neogene&earliestEpochOrLowestSeries=Holocene&earliestAgeOrLowestStage=Skullrockian&endDayOfYear=6&establishmentMeans=Native&eventDate=2000%2C2001-06-30&eventId=A%20123&familyKey=2405&fieldNumber=RV%20Sol%2087-03-08&formation=Notch%20Peak%20Formation&gadmGid=AGO.1_1&gadmLevel0Gid=AGO&gadmLevel1Gid=AGO.1_1&gadmLevel2Gid=AFG.1.1_1&gadmLevel3Gid=AFG.1.1.1_1&gbifId=2005380410&gbifRegion=AFRICA&genusKey=2877951&georeferencedBy=Brad%20Millen&geometry=POLYGON%20%28%2830.1%2010.1%2C%2040%2040%2C%2020%2040%2C%2010%2020%2C%2030.1%2010.1%29%29&group=Bathurst&hasCoordinate=true&higherGeography=Argentina&highestBiostratigraphicZone=Blancan&hasGeospatialIssue=false&hostingOrganizationKey=fbca90e3-8aed-48b1-84e3-369afbd000ce&identifiedBy=Allison&identifiedByID=https%3A%2F%2Forcid.org%2F0000-0001-6492-4016&installationKey=17a83780-3060-4851-9d6f-029d5fcb81c9&institutionCode=K&institutionKey=fa252605-26f6-426c-9892-94d071c2c77f&issue=COUNTRY_COORDINATE_MISMATCH&island=Zanzibar&islandGroup=Seychelles&iucnRedListCategory=EX&kingdomKey=5&lastInterpreted=2023-02&latestEonOrHighestEonothem=Proterozoic&latestEraOrHighestErathem=Cenozoic&latestPeriodOrHighestSystem=Neogene&latestEpochOrHighestSeries=Pleistocene&latestAgeOrHighestStage=Boreal&license=CC0_1_0&lifeStage=Juvenile&lowestBiostratigraphicZone=Maastrichtian&member=Lava%20Dam%20Member&modified=2023-02-20&month=5&networkKey=2b7c7b4f-4d4f-40d3-94de-c28b6fa054a6&occurrenceId=URN%3Acatalog%3AUWBM%3ABird%3A126493
+  // &occurrenceStatus=PRESENT&orderKey=1448&organismQuantity=1&organismQuantityType=individuals&parentEventId=A%20123&pathway=Agriculture&phylumKey=44&preparations=pinned&previousIdentifications=Chalepidae&programme=BID&projectId=bid-af2020-039-reg&protocol=DWC_ARCHIVE&publishedByGbifRegion=AFRICA&publishingOrg=e2e717bf-551a-4917-bdc9-4fa0f342c530&recordedBy=MiljoStyrelsen&recordedByID=https%3A%2F%2Forcid.org%2F0000-0003-0623-6682&recordNumber=1&sampleSizeUnit=hectares&sampleSizeValue=50.5&samplingProtocol=malaise%20trap&sex=MALE&scientificName=Quercus%20robur&speciesKey=2476674&startDayOfYear=5&stateProvince=Leicestershire&taxonConceptId=8fa58e08-08de-4ac1-b69c-1235340b7001&taxonKey=2476674&taxonId=urn%3Alsid%3Adyntaxa.se%3ATaxon%3A103026&taxonomicStatus=SYNONYM&typeStatus=HOLOTYPE&verbatimScientificName=Quercus%20robur%20L.&waterBody=Lake%20Michigan&year=1998' \
+  -H 'accept: application/json'
 */
+/* Workspaces for GBIF map tasks:
+- GBIFMapDataAPI
+- GBIF_map_harvest
+- GBIF_SQL_DownloadsAPI
+- GBIFTaxonomy */
 class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downloads
 {
     function __construct()
@@ -21,16 +36,28 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         /* add: 'resource_id' => "gbif" ;if you want to add cache inside a folder [gbif] inside [eol_cache_gbif] */
         $this->download_options = array(
             'expire_seconds'     => false, //60*60*24*30*3, //ideally 3 months to expire
-            'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 1);
+            'download_wait_time' => 1000000, 
+            'timeout' => 60*8, // 8 mins before it timesout
+            'download_attempts' => 2, 
+            'delay_in_minutes' => 1 //1 minute before it tries again to download after a failed attempt.
+        );
         // $this->download_options['expire_seconds'] = false; //debug | true -- expires now
 
         if(Functions::is_production()) $this->download_options['cache_path'] = "/extra/eol_cache_gbif/";
-        else                           $this->download_options['cache_path'] = "/Volumes/Thunderbolt4/eol_cache_gbif/";
+        else                           $this->download_options['cache_path'] = "/Volumes/Crucial_4TB/eol_cache_gbif/";
 
         //GBIF services
         $this->gbif_taxon_info      = "http://api.gbif.org/v1/species/match?name="; //http://api.gbif.org/v1/species/match?name=felidae&kingdom=Animalia
         $this->gbif_record_count    = "http://api.gbif.org/v1/occurrence/count?taxonKey=";
         $this->gbif_occurrence_data = "http://api.gbif.org/v1/occurrence/search?taxonKey=";
+
+        $this->gbif_record_count    = "http://api.gbif.org/v1/occurrence/count?hasCoordinate=true&hasGeospatialIssue=false&occurrenceStatus=PRESENT&taxonKey=";
+        $this->gbif_occurrence_data = "http://api.gbif.org/v1/occurrence/search?hasCoordinate=true&hasGeospatialIssue=false&occurrenceStatus=PRESENT&taxonKey=";
+                                
+        /*
+        https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=8084280&hasCoordinate=true&hasGeospatialIssue=false&occurrenceStatus=PRESENT
+        from: https://techdocs.gbif.org/en/openapi/v1/occurrence#/Searching%20occurrences/searchOccurrence
+        */
         
         $this->html['publisher']    = "http://www.gbif.org/publisher/";
         $this->html['dataset']      = "http://www.gbif.org/dataset/";
@@ -48,12 +75,14 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             $this->occurrence_txt_path['Other7Groups'] = "/extra/other_files/GBIF_occurrence/DwCA_Other7Groups/occurrence.txt";
         }
         else {
-            $this->save_path['taxa_csv_path']     = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/GBIF_taxa_csv_dwca/";
-            $this->save_path['multimedia_gbifID'] = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/multimedia_gbifID/";
-            $this->save_path['map_data']          = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/map_data_dwca/";
+            $this->save_path['taxa_csv_path']     = "/Volumes/Crucial_4TB/google_maps/GBIF_taxa_csv_dwca/";
+            $this->save_path['multimedia_gbifID'] = "/Volumes/Crucial_4TB/google_maps/multimedia_gbifID/";
+            $this->save_path['map_data']          = "/Volumes/Crucial_4TB/google_maps/map_data_dwca/";
             // $this->eol_taxon_concept_names_tab    = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/JRice_tc_ids/taxon_concept_names.tab"; obsolete
             // $this->eol_taxon_concept_names_tab    = "/Volumes/AKiTiO4/other_files/from_OpenData/EOL_dynamic_hierarchyV1Revised/taxa.txt"; //working but old DH ver.
-            $this->eol_taxon_concept_names_tab = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/taxon.tab"; //latest active DH ver.
+
+            // $this->eol_taxon_concept_names_tab = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/taxon.tab"; //latest active DH ver. --- moved to a faster ssd: Crucial_4TB
+            $this->eol_taxon_concept_names_tab = "/Volumes/Crucial_4TB/d_w_h_subset/EOL Dynamic Hierarchy Active Version/DH_v1_1/taxon.tab"; //latest active DH ver.
 
             $this->occurrence_txt_path['Gadus morhua'] = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/occurrence_downloads/DwCA/Gadus morhua/occurrence.txt";
             $this->occurrence_txt_path['Lates niloticus'] = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/occurrence_downloads/DwCA/Lates niloticus/occurrence.txt";
@@ -61,9 +90,11 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         $this->csv_paths = array();
         $this->csv_paths[] = $this->save_path['taxa_csv_path'];
         
-        $this->rec_limit = 100000; //50000;
-        $this->limit_20k = 20000; //20000;
-        $this->api['dataset'] = "http://api.gbif.org/v1/dataset/";
+        $this->rec_limit     = 100000; // 100000 ideal for csv downloads
+        $this->rec_limit_api = 50000; //new 2025: 50000 ideal for API
+        $this->limit_20k = 20000; //20000; --- map points limit
+        $this->api['dataset']      = "http://api.gbif.org/v1/dataset/";      //http://api.gbif.org/v1/dataset/4fa7b334-ce0d-4e88-aaae-2e0c138d049e
+        $this->api['organization'] = "http://api.gbif.org/v1/organization/"; //http://api.gbif.org/v1/organization/645eec4e-8d79-4291-80b4-0402b74ba92c
         $this->debug = array();
         
         // For DATA-1818
@@ -73,7 +104,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         $this->listOf_taxa['all']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_4maps.txt';
         $this->auto_refresh_mapYN = false;
         // New 2020 Jun 20
-        $this->use_API_YN = true;
+        $this->use_API_YN_old = true;
     }
     function jenkins_call($group, $batches, $connector_task, $filter_rank = '') //4th param $filter_rank is for gen_map_data_forTaxa_with_children() only
     {
@@ -117,7 +148,6 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             if    ($connector_task == "breakdown_GBIF_DwCA_file")               $cmd = PHP_PATH.' breakdown_GBIF_DwCA_file.php jenkins ' . "'" . $json . "'";
             elseif($connector_task == "generate_map_data_using_GBIF_csv_files") $cmd = PHP_PATH.' generate_map_data_using_GBIF_csv_files.php jenkins ' . "'" . $json . "'";
             elseif($connector_task == "gen_map_data_forTaxa_with_children")     $cmd = PHP_PATH.' gen_map_data_forTaxa_with_children.php jenkins ' . "'" . $json . "'";
-            
             // echo "\n$cmd\n";
             
             // /* works well locally but bit problematic in eol-archive, will abandon for a while. Works OK now, as of Apr 25, 2019.
@@ -164,7 +194,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         /* tests
         $datasetKey = "0e7bd6f7-7fc6-4150-a531-2209f7156a91";
         $datasetKey = "492d63a8-4978-4bc7-acd8-7d0e3ac0e744";
-        $str = self::get_org_name('dataset', $datasetKey);
+        $str = self::get_dataset_field($datasetKey, 'title');
         echo "\ndataset: [$str]\n";
         $orgKey = self::get_dataset_field($datasetKey, 'publishingOrganizationKey');
         $dataset_name = self::get_dataset_field($datasetKey, 'title');
@@ -266,6 +296,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             }//end loop text file
         }//end foreach($paths)
     }
+    /* commented Feb 27, 2025
     function breakdown_GBIF_DwCA_file($group = false, $range_from = false, $range_to = false) //e.g. $group = 'Animalia'
     {
         // exit("\nFinished running Aug 23, 2018\n");
@@ -281,9 +312,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                 $paths[] = $this->occurrence_txt_path['Other7Groups'];    //~25 million - Took 5 hr 10 min (when API calls are not yet cached)
             }
         }
-        else {
-            $paths[] = $this->occurrence_txt_path[$group];
-        }
+        else $paths[] = $this->occurrence_txt_path[$group];
         foreach($paths as $path) {
             $i = 0;
             foreach(new FileIterator($path) as $line_number => $line) { // 'true' will auto delete temp_filepath
@@ -296,11 +325,9 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                     continue;
                 }
                 else {
-                    /*
-                        [0] => 1        [1] => 47416
-                        [0] => 47416    [1] => 94831
-                    */
-                    // /* new ranges ----------------------------------------------------
+                    // [0] => 1        [1] => 47416
+                    // [0] => 47416    [1] => 94831
+                    // new ranges ----------------------------------------------------
                     if($range_from && $range_to) {
                         $cont = false;
                         if($i >= $range_from && $i < $range_to) $cont = true;
@@ -312,8 +339,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                             break;
                         }
                     }
-                    // */ ----------------------------------------------------
-                    
+                    // ----------------------------------------------------
                     if(!@$row[0]) continue; //$row[0] is gbifID
                     $k = 0; $rec = array();
                     foreach($fields as $fld) {
@@ -346,8 +372,8 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                 }
             } //end foreach()
         } //end loop paths
-    }
-    private function get_dataset_field($datasetKey, $return_field)
+    } */
+    function get_dataset_field($datasetKey, $return_field)
     {
         $options = $this->download_options;
         $options['expire_seconds'] = false; //should always be false, unless dataset info changes alot. e.g. http://api.gbif.org/v1/dataset/e9b63688-ed8d-4be8-aa35-89646d887a5e
@@ -359,13 +385,26 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             }
             return $obj->$return_field;
         }
-        else return self::get_org_name('dataset', $datasetKey);
     }
+    function get_organization_field($organizationKey, $return_field)
+    {
+        $options = $this->download_options;
+        $options['expire_seconds'] = false; //should always be false, unless organization info changes alot
+        if($organizationKey && $json = Functions::lookup_with_cache($this->api['organization'].$organizationKey, $options)) {
+            $obj = json_decode($json);
+            if(!isset($obj->$return_field)) { //debug only
+                print_r($obj);
+                exit("\nInvestigate 1: [$organizationKey]: ".$this->api['organization'].$organizationKey."\n");
+            }
+            return $obj->$return_field;
+        }
+    }
+
     //##################################### end DwCA process #############################################################################################################################
     //==========================
     // start GBIF methods
     //==========================
-    private function get_md5_path($path, $taxonkey)
+    function get_md5_path($path, $taxonkey)
     {
         $md5 = md5($taxonkey);
         $cache1 = substr($md5, 0, 2);
@@ -374,9 +413,9 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         if(!file_exists($path . "$cache1/$cache2")) mkdir($path . "$cache1/$cache2");
         return $path . "$cache1/$cache2/";
     }
-    function gen_map_data_forTaxa_with_children($sciname = false, $tc_id = false, $range_from = false, $range_to = false, $filter_rank = '')
+    function x_gen_map_data_forTaxa_with_children($sciname = false, $tc_id = false, $range_from = false, $range_to = false, $filter_rank = '')
     {
-        $this->use_API_YN = false; //no more API calls at this point.
+        $this->use_API_YN_old = false; //no more API calls at this point.
         require_library('connectors/DHConnLib'); $func = new DHConnLib('');
         $paths = $this->csv_paths; 
         
@@ -440,14 +479,12 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             //  --------------------------------------------------------
             echo "\n$i of $range_to. [".$rec['canonicalName']."][".$rec['EOLid']."]";
             self::create_map_data_include_descendants($rec['canonicalName'], $rec['EOLid'], $paths, $func); //result of refactoring
-            
         }
         unlink($local);
     }
     private function get_json_map_data($basename)
     {
-        $filename = self::get_map_data_path($basename).$basename.".json";
-        // echo "\n$filename\n";
+        $filename = self::get_map_data_path($basename).$basename.".json"; // echo "\n$filename\n";
         // if($GLOBALS['ENV_DEBUG']) echo "\nmap file: [$filename]\n";
         if(file_exists($filename)) {
             if(filesize($filename) > 0) {
@@ -459,17 +496,17 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         }
         return false;
     }
-    private function create_map_data_include_descendants($sciname, $taxon_concept_id, $paths, $func)
+    function create_map_data_include_descendants($sciname, $taxon_concept_id, $paths, $func)
     {
         /* step 1: get children of taxon_concept_id */
         $json = $func->get_children_from_json_cache($taxon_concept_id, array(), false); //3rd param false means it will not generate children if it doesn't exist. Generation happens in DHConnLib.php
         $children = json_decode($json, true);
-        // print_r($children);
-        debug("\nNo. of children: ".count($children)."\n");
+        echo "\nChildren: "; print_r($children);
+        debug("\nNo. of children: ".count($children)."\n"); //exit("\nstop 3\n");
         
         /* step 2: refresh map data of $taxon_concept_id. Important: since the current ver. is the cumulated-from-children version. */
         $this->auto_refresh_mapYN = true;
-        self::generate_map_data_using_GBIF_csv_files($sciname, $taxon_concept_id);
+        self::generate_map_data_using_GBIF_csv_files($sciname, $taxon_concept_id); //goes to local version
         $this->auto_refresh_mapYN = false;
         
         /* step 3: loop to all children (include taxon in question), consolidate map data. Then save to json file. */
@@ -479,7 +516,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             $sep = " |";
             if($json = self::get_json_map_data($child)) {
                 $arr = json_decode($json, true); // print_r($arr);
-                // echo "\n[$child] - ".count(@$arr['records']); //good debug
+                echo "\n[$child] - ".count(@$arr['records']); //good debug
                 if($val = @$arr['records']) {
                     $final = array_merge($final, $val);
                     if(count($final) > $this->rec_limit) $final = self::process_revised_cluster(array('count' => count($final), 'records' => $final), $taxon_concept_id, true, 'a'); //3rd param true means 'early cluster'
@@ -497,8 +534,13 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         }
         return;
     }
-    function generate_map_data_using_GBIF_csv_files($sciname = false, $tc_id = false, $range_from = false, $range_to = false, $autoRefreshYN = false)
-    {
+    private function generate_map_data_using_GBIF_csv_files($sciname = false, $tc_id = false, $range_from = false, $range_to = false, $autoRefreshYN = false)
+    {   
+        echo "\nsciname: [$sciname]";
+        echo "\ntc_id: [$tc_id]";
+        echo "\nautoRefreshYN: [$autoRefreshYN]";
+        // exit("\n--- So this is still being used ---\n");
+
         // $eol_taxon_id_list["Gadus morhua"] = 206692;
         // $eol_taxon_id_list["Achillea millefolium L."] = 45850244;
         // $eol_taxon_id_list["Francolinus levaillantoides"] = 1; //5227890
@@ -519,7 +561,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         // $eol_taxon_id_list["Aichi virus"] = 540501;
         */
         
-        $paths = $this->csv_paths; 
+        $paths = $this->csv_paths; //print_r($paths);
         if($sciname && $tc_id) {
             $eol_taxon_id_list[$sciname] = $tc_id; //print_r($eol_taxon_id_list);
             self::create_map_data($sciname, $tc_id, $paths); //result of refactoring
@@ -583,17 +625,18 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
     }
     private function if_needed_2cluster_orSave($final, $taxon_concept_id)
     {
+        $final['tc_id'] = $taxon_concept_id; //for debug only
         if($final['count'] > $this->limit_20k) {
-            debug(" --- > 20K\n");
+            debug(" --- ".$final['count']." > 20K\n");
             self::process_revised_cluster($final, $taxon_concept_id, false, 'b'); //done after main demo using screenshots
         }
         elseif($final['count'] <= $this->limit_20k) {
-            debug(" --- <= 20K\n");
+            debug(" --- ".$final['count']." <= 20K\n");
             $final['actual'] = $final['count'];
             self::save_json_file($taxon_concept_id, $final);
         }
     }
-    private function create_map_data($sciname, $taxon_concept_id, $paths)
+    function create_map_data($sciname, $taxon_concept_id, $paths)
     {
         if($usageKey = self::get_usage_key($sciname)) { debug("\nOK GBIF key [$usageKey]\n");
             if(!$this->auto_refresh_mapYN) {
@@ -601,7 +644,11 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             }
             
             if($final = self::prepare_csv_data($usageKey, $paths)) {
-                debug("\n Records from CSV: " . $final['count'] . "");
+                // echo "\n=======================\n";
+                // print_r($final); 
+                // print_r(array_keys($final));
+                // echo "\n=======================\n";
+                debug("\nUsed records from CSV: [$sciname][$taxon_concept_id][$usageKey] " . $final['count'] . "");
                 self::if_needed_2cluster_orSave($final, $taxon_concept_id);
             }
             else {
@@ -610,7 +657,24 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                 $this->debug['CSV map data not available']["[$sciname][$taxon_concept_id]"] = '';
                 self::gen_map_data_using_api($sciname, $taxon_concept_id);
                 */
-                $this->debug['no CSV data']["[$sciname][$taxon_concept_id]"] = '';
+                // $this->debug['no CSV data']["[$sciname][$taxon_concept_id][$usageKey]"] = ''; //not needed
+                echo "\nNo CSV data: [$sciname][$taxon_concept_id][$usageKey]\n";
+
+                // /* ---------- 2025 block
+                // IMPORTANT: If u disable this block and no map data from CSV then no map data will be generated. 
+                // After that if u decide to enable this block then that's the time it will call the API calls for this taxon, and generate map data using API results.
+                echo "\nWill use API for: [$sciname][$taxon_concept_id][$usageKey]\n";
+                if(!$this->auto_refresh_mapYN) {
+                    if(self::map_data_file_already_been_generated($taxon_concept_id)) continue;
+                }    
+                $num = self::get_georeference_data_via_api($usageKey, $taxon_concept_id);
+                if($num) {
+                    $this->debug['no CSV data but with API']['genus'][self::get_genus($sciname)] = '';
+                    $this->debug['no CSV data but with API']['usageKey'][$usageKey] = '';
+                    $this->debug['no CSV data but with API']['sciname'][$sciname] = '';
+                    // print_r($this->debug); exit("\nhuli ka\n"); //debug only
+                }
+                // ---------- */
             }
         }
         else {
@@ -618,50 +682,69 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             $this->debug['usageKey not found']["[$sciname][$taxon_concept_id]"] = '';
         }
     }
+    /* not used anymore, since May 30, 2022
     private function gen_map_data_using_api($sciname, $taxon_concept_id) //NEW Aug 24, 2018
     {
-        if($this->use_API_YN) {
+        if($this->use_API_YN_old) {
             debug("\nWill try to use API...");
-            if($rec = self::get_initial_data($sciname)) {
-                // print_r($rec);
+            if($rec = self::get_initial_data($sciname)) { // print_r($rec);
                 echo " -- usageKey: ".$rec['usageKey']." | count: ". $rec["count"];
                 self::get_georeference_data_via_api($rec['usageKey'], $taxon_concept_id);
             }
         }
-    }
-    private function get_georeference_data_via_api($taxonKey, $taxon_concept_id) //updated from original version
-    {
+    } */
+    function get_georeference_data_via_api($taxonKey, $taxon_concept_id) //updated from original version
+    {   echo "\nUsing the API...\n";
+        $options = $this->download_options;
+        $options['download_wait_time'] = 500000; //never use bigger than 1 sec here.
         $offset = 0; $limit = 300; $continue = true; $final = array(); echo "\n";
         $final['records'] = array();
         while($continue) {
-            if($offset > $this->rec_limit) break; //working... uncomment if u want to limit to 100,000
+            if($offset > $this->rec_limit_api) break; //working... uncomment if u want to limit to 100,000
+            
+            // /* new: Mar 5, 2025
+            if(($offset + $limit) > 100001) $limit = 100001 - $offset;
+            // */
+
             // if($offset > 50000) break; //debug only --- during development only - COMMENT IN REAL OPERATION
             $url = $this->gbif_occurrence_data . $taxonKey . "&limit=$limit";
             if($offset) $url .= "&offset=$offset";
-            if($json = Functions::lookup_with_cache($url, $this->download_options)) {
+            if($json = Functions::lookup_with_cache($url, $options)) {
                 $j = json_decode($json);
                 if(!is_object($j)) {
                     $offset += $limit;
                     continue;
                 }
-                $recs = self::write_to_file($j);
+                $recs = self::write_to_file($j); //ngayon lang commented
                 $final['records'] = array_merge($final['records'], $recs);
                 debug(" increments: " . count($recs) . "");
-                if($j->endOfRecords)                            $continue = false;
-                if(count($final['records']) > $this->rec_limit) $continue = false; //limit no. of markers in Google maps is 100K //working... uncomment if u want to limit to 100,000
+                if($j->endOfRecords)                                $continue = false;
+                if(count($final['records']) > $this->rec_limit_api) $continue = false; //limit no. of markers in Google maps is 100K //working... uncomment if u want to limit to 100,000
             }
             else break; //just try again next time...
             $offset += $limit;
         }
         $final['count']  = count($final['records']);
         $final['actual'] = count($final['records']);
-        debug("\n: " . $final['count'] . " -- ");
+        debug("\n: Found in API: " . $final['count'] . " -- ");
         self::if_needed_2cluster_orSave($final, $taxon_concept_id);
+        return $final['count']; //only for stats report
     }
     private function process_revised_cluster($final, $basename, $early_cluster = false, $whoCalled) //4th param $whoCalled is just for debug.
     {
+        // study running 'a'
+        // Used records from CSV: [Ammodramus savannarum][45511206][2491123] 30898
+        // why seems a duplicate clustering routine...
+
+        $usage_ki = @$final['usageKey']; //just for debug
+        $tc_aydi = @$final['tc_id']; //just for debug
+
+        // echo "\nAAA count: ".@$final['count']."";
+        // echo "\nAAA total: ".@$final['total']."\n";
+
         if($early_cluster) debug("\nStart of early cluster [$whoCalled]...");
         else               debug("\nStart with revised cluster [$whoCalled]");
+        echo "\nInitial total: [$usage_ki][$tc_aydi] ".count($final['records']);
         $to_be_saved = array();
         $to_be_saved['records'] = array();
         $unique = array();
@@ -671,15 +754,19 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                 if(is_numeric($r['h']) && is_numeric($r['i'])) {
                     $lat = number_format($r['h'], $decimal_places);
                     $lon = number_format($r['i'], $decimal_places);
+                    // /* orig: change this block if u want to prioritize recs with rec['l'] meaning with media stillimage movingimage or audio
                     if(isset($unique["$lat,$lon"])) continue;
                     else $unique["$lat,$lon"] = '';
+                    // */
                     $to_be_saved['records'][] = $r;
                 }
             }
-            debug("\n New total [$decimal_places]: " . count($unique) . "");
+            echo "\n New total [$decimal_places]: " . count($unique) . "";
             $limit_to_break = $this->limit_20k;
             if($basename == 281) $limit_to_break = 35000; //Plantae 34131
-
+            // /* NEW: Feb 26, 2025
+            if($decimal_places == 1) break; //this is the least decimal places value
+            // */
             if(count($to_be_saved['records']) < $limit_to_break || $decimal_places == 0) break; //orig value is 0, not 1
             else {   //initialize vars
                 $decimal_places--;
@@ -687,11 +774,12 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                 $to_be_saved['records'] = array();
                 $unique = array();
             }
-        }
+        } //end while()
         
         //flag if after revised cluster is still unsuccessful
         if(count($unique) > $limit_to_break) {
             debug("\ntaxon_concept_ID/gbifID [$basename] revised cluster unsuccessful [$early_cluster YN] [".count($unique)."]\n"); //gbifID is only for early clustering
+            echo "\nearly_cluster = [".self::format_YN($early_cluster)."]\n";
             $fhandle = Functions::file_open(CONTENT_RESOURCE_LOCAL_PATH . "/revised_cluster_unsuccessful.txt", "a");
             fwrite($fhandle, "$basename" . "\t" . count($unique) ."\t". date('Y-m-d') . "\n"); fclose($fhandle);
             
@@ -701,19 +789,28 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
 
             $to_be_saved['count'] = count($to_be_saved['records']); //the smaller value; the bigger one is $to_be_saved['actual']
             $to_be_saved['actual'] = $final['count'];
+            echo "\nearly_cluster A: [".self::format_YN($early_cluster)."]\n";
             if(!$early_cluster) self::save_json_file($basename, $to_be_saved);
             else return $to_be_saved['records'];
         }
         else {
-            debug("\n Final total [$decimal_places]: " . count($unique) . "\n");
-            $to_be_saved['count'] = count($to_be_saved['records']); //the smaller value; the bigger one is $to_be_saved['actual']
+            $to_be_saved_records_count = count($to_be_saved['records']);
+            debug("\n Final total [$decimal_places]: " . count($unique) . "");
+            debug(" to_be_saved_records: ".$to_be_saved_records_count."\n");
+            $to_be_saved['count'] = $to_be_saved_records_count; //the smaller value; the bigger one is $to_be_saved['actual']
             $to_be_saved['actual'] = $final['count'];
-            if(!$early_cluster) self::save_json_file($basename, $to_be_saved);
+            echo "\nearly_cluster B: [".self::format_YN($early_cluster)."]\n";
+            if(!$early_cluster) {
+                $to_be_saved = self::add_recs_from_original_if_needed($to_be_saved, $final['records']);
+                self::save_json_file($basename, $to_be_saved);
+            }
             else return $to_be_saved['records'];
         }
     }
     private function save_json_file($tc_id, $rec)
     {
+        if(@$rec['records']) $rec = self::run_lookups_now($rec, 2); //for API and CSV --- should be the only place for lookups! or does it?
+
         if($rec['count'] > 0) {
             $filename = self::get_map_data_path($tc_id).$tc_id.".json";
             debug(" -> saving json... recs: ".$rec['count']. " [$filename]");
@@ -747,7 +844,8 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
     }
     private function prepare_csv_data($usageKey, $paths)
     {
-        $final = array();
+        $final = array(); $elix = 0;
+        $main_total = 0; //new 2025
         foreach($paths as $path) {
             $final_path = self::get_md5_path($path, $usageKey);
             $csv = $final_path . $usageKey . ".csv";
@@ -785,22 +883,39 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                     $rec = array();
                     $rec['a']   = $rek['catalognumber'];
                     $rec['b']   = $rek['scientificname'];
-                    $rec['c']   = self::get_org_name('publisher', @$rek['publishingorgkey']);
+
+                    /* new 2025: these can be postponed
+                    $rec['c']   = self::get_org_name(@$rek['publishingorgkey']);
                     $rec['d']   = @$rek['publishingorgkey'];
                     if($val = @$rek['institutioncode']) $rec['c'] .= " ($val)";
-                    $rec['e']   = self::get_dataset_field(@$rek['datasetkey'], 'title'); //self::get_org_name('dataset', @$rek['datasetkey']);
+                    */
+                    $rec['c'] = 'nyc';
+                    $rec['d'] = 'nyc';
+
+                    // /* ----- new 2025: postpone assignment of letter e since not all records that pass here will be used.
+                    // $rec['e']   = self::get_dataset_field(@$rek['datasetkey'], 'title');
+                    $rec['e'] = 'nyc';
+                    // ----- */    
                     $rec['f']   = @$rek['datasetkey'];
                     $rec['g']   = $rek['gbifid'];
                     $rec['h']   = $rek['decimallatitude'];
                     $rec['i']   = $rek['decimallongitude'];
                     $rec['j']   = @$rek['recordedby'];
                     $rec['k']   = @$rek['identifiedby'];
+
+                    /* orig but obsolete
                     $rec['l']   = self::get_media_by_gbifid($gbifid);
+                    */
+                    // /* 2025
+                    $rec['l']   = self::format_media_2025(@$rec['v_associatedmedia']);
+                    // */
+
                     $rec['m']   = @$rek['eventdate'];
                     /* to have map data with only those with media
                     if($rec['l']) $final['records'][] = $rec;
                     */
                     $final['records'][] = $rec;
+                    $main_total++;
                     
                     /* new - WORKS BUT DOES NOT USE early clustering
                     if(count($final['records']) > $this->rec_limit) {
@@ -809,20 +924,107 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                     }
                     */
                     
+                    /* As of 31Mar2025 doing an early cluster here is beneficial. Should remain as is. */
                     // /* PROBABLY WE CAN TRY early cluster here. Early clustering may provide a better spread of coordinates.
-                    if(count($final['records']) > $this->rec_limit) { /* for early clustering, the taxon_concept_id or gbifID is irrelevant bec. you're not saving json file yet. */
-                        $final['records'] = self::process_revised_cluster(array('count' => count($final['records']), 'records' => $final['records']), $gbifid."_gbifID", true, 'c'); //3rd param true means 'early cluster'
+                    if(count($final['records']) > $this->rec_limit) { //for early clustering, the taxon_concept_id or gbifID is irrelevant bec. you're not saving json file yet.
+                        $final['records'] = self::process_revised_cluster(array('count' => count($final['records']), 'records' => $final['records'], 'usageKey' => $usageKey), $gbifid."_gbifID", true, 'c'); //3rd param true means 'early cluster'
+                        $elix = 0;                        
+                        echo "\nmain_total: [$main_total]\n";
                     }
                     // */
-                    
-                }
+                    @$elix++;
+
+                    if($main_total >= 1000000) break; //new 2025 for those big big csv records e.g. [Agelaius phoeniceus][45511155] OK GBIF key [9409198] --- 18 million records
+
+                } //inner foreach()
                 $final['count'] = count($final['records']);
             }
             else debug("\n[$usageKey] NOT found in [$path]");
-        }
+        } //outer foreach()
+
+        echo "\nLast records to add: [".@$elix."]\n";
+        // echo "\nCCC count: ".@$final['count']."";
+        // echo "\nCCC total: ".@$final['total']."\n";
+
+        /* correct to comment this since lookups are done in 1 place only: save_json_file()
+        if(@$final['records']) $final = self::run_lookups_now($final, 1); //for csv download
+        */
+
+        // print_r($final); exit("\nelix 2025\n");
+        // echo "\nBBB count: ".@$final['count']."";
+        // echo "\nBBB total: ".@$final['total']."\n";
         return $final;
     }
-    private function get_media_by_gbifid($gbifid)
+    /*
+    375977 of . [Gersemia rubiformis][46547909]
+    OK GBIF key [2263181]
+    :: [update_resources/connectors/gbif_map_data.php [29]]<br>
+    map file: [/Volumes/Crucial_4TB/google_maps/map_data_dwca//9/46547909.json]
+    */
+    private function format_media_2025($pipe_delimited)
+    {
+        if($pipe_delimited) {
+            $arr = explode("|", $pipe_delimited);
+            return @$arr[0]; //just get 1 image
+        }
+        else return "";
+    }
+    private function run_lookups_now($arr, $what)
+    { echo "\nrun_lookups_now...$what\n";
+        /*Array(
+            [records] => Array(
+                    [0] => Array(
+                            [a] => 
+                            [b] => Stichastrella rosea (O.F.Müller, 1776)
+                            [c] => nyc
+                            [d] => nyc
+                            [e] => 
+                            [f] => 139a966c-22d5-486b-bff2-cfcbccd6fdfc
+                            [g] => 2933760949
+                            [h] => 53.296003
+                            [i] => -4.059275
+                            [j] => 
+                            [k] => 
+                            [l] => 
+                            [m] => 1992-06-02/1992-08-02
+                        )
+                    [1] => Array(
+                            [a] => 
+                            [b] => Stichastrella rosea (O.F.Müller, 1776)
+                            [c] => nyc
+                            [d] => nyc
+                            [e] => 
+                            [f] => 139a966c-22d5-486b-bff2-cfcbccd6fdfc
+                            [g] => 2933243777
+                            [h] => 58.418566
+                            [i] => -5.127211
+                            [j] => Connor, D. David
+                            [k] => 
+                            [l] => 
+                            [m] => 1991-05-16
+                        )
+        */
+        $final = array();
+        foreach($arr['records'] as $r) {
+            $r['c'] = ''; $r['d'] = ''; $r['e'] = ''; //remove the 'nyc' not yet computed reminder.
+            if($datasetkey = $r['f']) {
+                if($publishingorgkey = self::get_dataset_field($datasetkey, 'publishingOrganizationKey')) { //this was postponed before
+                    $r['c']   = self::get_org_name($publishingorgkey);
+                    $r['d']   = $publishingorgkey;    
+                }
+                $r['e']   = self::get_dataset_field($datasetkey, 'title');
+            }
+            $final[] = $r;
+            /* debug only
+            if($r['c']) { //organization name or title
+                print_r($r); exit("\nhuli ka\n");
+            }
+            */
+        }
+        if($final) return array('records' => $final, 'count' => count($final));
+        return $arr;
+    }
+    function get_media_by_gbifid($gbifid)
     {
         $path = $this->save_path['multimedia_gbifID'];
         $final_path = self::get_md5_path($path, $gbifid);
@@ -890,12 +1092,14 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         if($GLOBALS['ENV_DEBUG']) echo "\nmap file: [$filename]\n";
         if(file_exists($filename)) {
             if(filesize($filename) > 0) {
-                if($GLOBALS['ENV_DEBUG']) echo "[$basename] map data (.json) already generated OK [$filename]";
-                echo " - already generated\n";
+                if($GLOBALS['ENV_DEBUG']) echo "[$basename][$filename] map data (.json) already generated OK";
+                // echo " - already generated\n";
                 return true;
             }
             else {
-                $this->debug['json exists but zero length, will delete file'][$filename] = '';
+                $msg = 'json exists but zero length, will delete file';
+                $this->debug[$msg][$filename] = '';
+                echo "\n$msg [$filename]\n";
                 unlink($filename);
             }
         }
@@ -912,6 +1116,36 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             if(count($final) >= $this->limit_20k) break;
         }
         $to_be_saved['records'] = $final;
+        return $to_be_saved;
+    }
+    function add_recs_from_original_if_needed($to_be_saved, $original_recs)
+    {
+        echo "\norig recs: [".count($original_recs)."]";
+        echo "\ncurrent 1: [".count($to_be_saved['records'])."]";
+        // step 1: get all gbif IDs from current
+        foreach($to_be_saved['records'] as $r) {
+            $gbif_ids[$r['g']] = '';
+        }
+
+        /* seems not needed for now, but this works OK
+        // step 1-a: remove from original those records from current
+        $i = -1;
+        foreach($original_recs as $o) { $i++;
+            if(isset($gbif_ids[$o['g']])) unset($original_recs[$i]);
+        }
+        echo "\norig recs 2: [".count($original_recs)."]";
+        // step 1-b: compute how many records to add to current
+        $to_add = $this->limit_20k - count($to_be_saved['records']);
+        echo "\n# of records to be added to current: [$to_add]\n";
+        */
+
+        // step 2: add to current the recs from original but not existing gbif id in current
+        foreach($original_recs as $o) {
+            if(!isset($gbif_ids[$o['g']])) $to_be_saved['records'][] = $o;
+            if(count($to_be_saved['records']) >= $this->limit_20k) break;
+        }
+        $to_be_saved['count'] = count($to_be_saved['records']);
+        echo "\ncurrent 2: [".count($to_be_saved['records'])."] (final)\n"; //exit("\nstop muna\n");
         return $to_be_saved;
     }
     function save_ids_to_text_from_many_folders() //a utility
@@ -1093,7 +1327,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                         )
         */
     }
-    private function write_to_file($j) //for cluster map
+    private function write_to_file($j) //for cluster map | when using API to get georeference data
     {
         $recs = array();
         $i = 0;
@@ -1104,10 +1338,17 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                 $rec = array();
                 $rec['a']   = (string) @$r->catalogNumber;
                 $rec['b']   = self::get_sciname($r);
-                $rec['c']   = self::get_org_name('publisher', @$r->publishingOrgKey);
+
+                /* postpone
+                $rec['c']   = self::get_org_name(@$r->publishingOrgKey);
                 $rec['d']   = @$r->publishingOrgKey;
                 if($val = @$r->institutionCode) $rec['c'] .= " ($val)";
-                $rec['e']   = self::get_dataset_field(@$rek['datasetkey'], 'title'); //self::get_org_name('dataset', @$r->datasetKey);
+                $rec['e']   = self::get_dataset_field(@$rek['datasetkey'], 'title');
+                */
+                $rec['c']   = 'nyc';
+                $rec['d']   = 'nyc';
+                $rec['e']   = 'nyc';
+
                 $rec['f']   = @$r->datasetKey;
                 $rec['g']   = $r->gbifID;
                 $rec['h']   = $r->decimalLatitude;
@@ -1185,8 +1426,10 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         // if($r->taxonRank == "SPECIES") return $r->species;
         return $r->scientificName;
     }
-    private function get_org_name($org, $id)
+    function get_org_name($organizationKey)
     {
+        return self::get_organization_field($organizationKey, 'title');
+        /* obsolete
         $id = trim($id);
         if(!$id) return "";
         $options = $this->download_options;
@@ -1195,6 +1438,8 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         if($html = Functions::lookup_with_cache($this->html[$org] . $id, $options)) {
             if(preg_match("/Full title<\/h3>(.*?)<\/p>/ims", $html, $arr)) return strip_tags(trim($arr[1]));
         }
+        return '';
+        */
     }
     private function get_initial_data($sciname)
     {
@@ -1223,7 +1468,33 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
                 if(isset($json->note)) $usageKey = self::get_usage_key_again($sciname);
                 else {} // e.g. Fervidicoccaceae
             }
-            else $usageKey = trim((string) $json->usageKey);
+            else { // echo "\nGoes here 100\n"; // print_r($json);
+                /*stdClass Object(
+                    [usageKey] => 9594474
+                    [scientificName] => Gonyaulax Diesing, 1866
+                    [canonicalName] => Gonyaulax
+                    [rank] => GENUS
+                    [status] => ACCEPTED
+                    [confidence] => 94
+                    [matchType] => HIGHERRANK
+                    [kingdom] => Chromista
+                    [phylum] => Myzozoa
+                    [order] => Gonyaulacales
+                    [family] => Gonyaulacaceae
+                    [genus] => Gonyaulax
+                    [kingdomKey] => 4
+                    [phylumKey] => 8770992
+                    [classKey] => 9049014
+                    [orderKey] => 8775728
+                    [familyKey] => 7665054
+                    [genusKey] => 9594474
+                    [synonym] => 
+                    [class] => Dinophyceae
+                )*/
+                if($sciname == $json->canonicalName) {
+                    $usageKey = trim((string) $json->usageKey);
+                }
+            }
             if($val = $usageKey) return $val;
         }
         return false;
@@ -1238,8 +1509,31 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
             $options = array();
             $json = json_decode($json);
             if(!isset($json->alternatives)) return false;
-            foreach($json->alternatives as $rec) {
-                if($rec->canonicalName == $sciname) {
+            foreach($json->alternatives as $rec) { //print_r($rec);
+                /*{
+                "usageKey": 3212024,
+                "scientificName": "Globigerina d'Orbigny, 1826",
+                "canonicalName": "Globigerina",
+                "rank": "GENUS",
+                "status": "ACCEPTED",
+                "confidence": 99,
+                "note": "Similarity: name=100; authorship=0; classification=-2; rank=0; status=1; score=99",
+                "matchType": "EXACT",
+                "kingdom": "Chromista",
+                "phylum": "Foraminifera",
+                "order": "Rotaliida",
+                "family": "Globigerinidae",
+                "genus": "Globigerina",
+                "kingdomKey": 4,
+                "phylumKey": 8376456,
+                "classKey": 7434778,
+                "orderKey": 7692889,
+                "familyKey": 8273781,
+                "genusKey": 3212024,
+                "synonym": false,
+                "class": "Globothalamea"
+                },*/
+                if($rec->canonicalName == $sciname && $rec->status == "ACCEPTED" && $rec->confidence >= 99) {
                     $options[$rec->rank][] = $rec->usageKey;
                     $usagekeys[] = $rec->usageKey;
                 }
@@ -1340,6 +1634,16 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         if($total > 120000 && $total <= 240000) return 60000;
         if($total > 240000 && $total <= 300000) return 100000;
         if($total > 300000) return 200000;
+    }
+    private function format_YN($bool)
+    {
+        if($bool) return 'Yes';
+        else return "No";
+    }
+    private function get_genus($sciname)
+    {
+        $arr = explode(" ", trim($sciname));
+        return @$arr[0];
     }
     /*
     private function main_loop($sciname, $taxon_concept_id = false)

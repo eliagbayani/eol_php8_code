@@ -65,11 +65,11 @@ class WikiDataAPI extends WikipediaAPI
             $this->download_options['cache_path'] = "/extra/eol_cache_wiki_regions/";
         }
         else {
-            $this->path['raw_dump']         = "/Volumes/Thunderbolt4/wikidata/latest-all.json";       //from https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz
-            $this->path['wiki_data_json']   = "/Volumes/Thunderbolt4/wikidata/latest-all-taxon.json"; //an all_taxon dump generated from raw [latest-all.json.gz]
-            $this->path['commons']          = "/Volumes/Thunderbolt4/wikidata/wikimedia/commonswiki-latest-pages-articles.xml"; //from http://dumps.wikimedia.org/commonswiki/latest/commonswiki-latest-pages-articles.xml.bz2
-            $this->path['wikimedia_cache']  = "/Volumes/Thunderbolt4/wikimedia_cache/";
-            $this->download_options['cache_path'] = "/Volumes/Thunderbolt4/eol_cache_wiki_regions/";
+            $this->path['raw_dump']         = "/Volumes/Crucial_2TB/wikidata/latest-all.json";       //from https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz
+            $this->path['wiki_data_json']   = "/Volumes/Crucial_2TB/wikidata/latest-all-taxon.json"; //an all_taxon dump generated from raw [latest-all.json.gz]
+            $this->path['commons']          = "/Volumes/Crucial_2TB/wikidata/wikimedia/commonswiki-latest-pages-articles.xml"; //from http://dumps.wikimedia.org/commonswiki/latest/commonswiki-latest-pages-articles.xml.bz2
+            $this->path['wikimedia_cache']  = "/Volumes/Crucial_2TB/wikimedia_cache/";
+            $this->download_options['cache_path'] = "/Volumes/Crucial_2TB/eol_cache_wiki_regions/";
         }
         
         if($this->what == "wikipedia") { //80 - wikipedia-en | 957 - wikipedia-de
@@ -608,7 +608,7 @@ class WikiDataAPI extends WikipediaAPI
         // */
         
         foreach(new FileIterator($this->path['wiki_data_json']) as $line_number => $row) {
-            $k++; if(($k % 5000) == 0) echo " AAA ".number_format($k)." ";
+            $k++; if(($k % 5000) == 0) echo " EEE ".number_format($k)." ";
             $this->k = $k;
             /* debug only, during dev only*
             if($k >= 50000) break;
@@ -661,18 +661,48 @@ class WikiDataAPI extends WikipediaAPI
 
             $row = self::remove_last_char_if_comma($row); //remove the last char if it is "," a comma
             $arr = json_decode($row); //print_r($arr); exit;
+            $old_arr = $arr;
             $Q_id = @$arr->id; //use @ bec. needed for last rec
+            $old_Q_id = $Q_id;
             $instance_of = trim((string) @$arr->claims->P31[0]->mainsnak->datavalue->value->id); //should be of 'taxon' Q16521
             $taxon_name  = trim((string) @$arr->claims->P225[0]->mainsnak->datavalue->value); //has a taxon name
+
             
+            /* debug only dev only: Jan 2, 2025
+            if($Q_id == "Q199788") print_r($arr); //Gadus morhua
+            if($Q_id == "Q19486") {
+                echo "\n===================================================================\n";
+                print_r($arr);
+                exit("\nhuli ka 01...[$Q_id]\n");
+            }
+            else continue;
+            */
+            // grep '"type":"item","id":"Q199788","labels":' latest-all-taxon.json
+            // grep '"type":"item","id":"Q19486","labels":' latest-all-taxon.json
+
+
+            $old_arr2 = array();
+
             // /* New: Feb 16, 2022 - use get_object for some taxon names since dump is not reflective of website and API
             if(self::needs_get_object_func($taxon_name)) {
-                $arr = self::get_object($Q_id);
+                $arr = self::get_object($Q_id); $old_arr2 = $arr;
                 $arr = $arr->entities->$Q_id; $Q_id = $arr->id;
                 $instance_of = trim((string) @$arr->claims->P31[0]->mainsnak->datavalue->value->id); //should be of 'taxon' Q16521
                 $taxon_name  = trim((string) @$arr->claims->P225[0]->mainsnak->datavalue->value); //has a taxon name
             }
             // */
+
+            /* debug Jan 2, 2025
+            if($Q_id == "Q19486" || $old_Q_id == "Q19486") {
+                echo "\n===================================================================\n";
+                print_r($old_arr);
+                print_r($old_arr2);
+                print_r($arr);
+                exit("\nhuli ka...[$old_Q_id][$Q_id]\n");
+            }
+            else continue;
+            */
+
 
             /* force use of API - March 12, 2023 --- customize
             if($Q_id == 'Q1130386') {
@@ -2706,10 +2736,10 @@ class WikiDataAPI extends WikipediaAPI
     }
     function get_taxon_name($arr, $option = "OPTIONAL") //other value aside from OPTIONAL is REQUIRED.
     {
-        // /* new block: to be used until the dump is fixed --- just temporary
+        /* new block: to be used until the dump is fixed --- just temporary
         if(@$arr->id == "Q107694904") return "Trachipleistophora";
         if(@$arr->id == "Q15657618") return "Hemaris thetis";
-        // */
+        */
         
         $claims = @$arr->claims;
         if($val = @$claims->P225[0]->mainsnak->datavalue->value) return (string) $val;
@@ -3247,8 +3277,13 @@ class WikiDataAPI extends WikipediaAPI
             else $i++;
         }
         fclose($f);
-        echo "\ntaxa  wikis: [$e]\n";
+        echo "\n\ntaxa  wikis: [$e]";
         echo "\nnon-taxa  wikis: [$i]\n";
+        /*
+        11Jan2025   taxa  wikis: [3740694]      non-taxa  wikis: [109801484]
+        03Jan2025   taxa  wikis: [3740260]      non-taxa  wikis: [109732025]
+        22Oct2024   taxa  wikis: [3733361]      non-taxa  wikis: [108899750]
+        */
     }
     private function save_filenames_2file($files)
     {   //save to text file

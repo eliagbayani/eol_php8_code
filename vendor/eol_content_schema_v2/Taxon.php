@@ -9,11 +9,6 @@ class Taxon extends DarwinCoreExtensionBase
     const PRIMARY_KEY = "http://rs.tdwg.org/dwc/terms/taxonID";
     const GRAPH_NAME = "taxa";
 
-    private $accepted_properties;
-    private $accepted_properties_by_name;
-    private $accepted_properties_by_uri;
-
-
     public static function validation_rules()
     {
         static $rules = array();

@@ -46,7 +46,7 @@ class MysqliResultIterator implements \Iterator
     {
         return $this->get_next_row();
     }
-
+    
     #[\ReturnTypeWillChange]
     public function valid()
     {

@@ -2,32 +2,11 @@
 namespace php_active_record;
 // connector: [protisten.php]
 // http://content.eol.org/resources/791
+
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class Protisten_deAPI_V2
 {
-    // below PHP8
-    private $resource_id;
-    private $taxa;
-    private $path_to_archive_directory;
-    private $archive_builder;
-    private $resource_reference_ids;
-    private $do_ids;
-    private $download_options;
-    private $page;
-    private $report;
-    private $report_file;
-    private $protisten_de_legacy_taxa;
-    private $func;
-    private $taxon_EOLpageID;
-    private $legacy;
-    private $agent_id;
-    private $report_main_url;
-    private $debug;
-    private $taxon_EOLpageID_HTML;
-    private $EOLid;
-    private $taxonID;
-    private $taxon_ids;
-    private $obj_ids;
-
     function __construct($folder, $param)
     {
         $this->resource_id = $folder;
@@ -55,10 +34,13 @@ class Protisten_deAPI_V2
         if(!is_dir($path)) mkdir($path);
         $this->report_file = $path.'protistenDE_images.tsv';
         $this->protisten_de_legacy_taxa = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/protisten_de/protisten_2024_07_10/taxon.tab';
+        $this->desc_suffix = '<p>© Wolfgang Bettighofer,<br />images under Creative Commons License V 3.0 (CC BY-NC-SA).<br />For permission to use of (high resolution) images please contact <a href="mailto:postmaster@protisten.de">postmaster@protisten.de</a>.</p>';
+        /* To edit 1 record search for "******" and un-comment line. */
+        $this->RunTest = @$param['RunTest'];
     }
     function start()
-    {
-        // /* access DH
+    {   
+        // /* access DH - part of main operation
         require_library('connectors/EOL_DH_API');
         $this->func = new EOL_DH_API();
         $this->func->parse_DH(); $landmark_only = false; $return_completeYN = true; //default value anyway is true
@@ -73,6 +55,7 @@ class Protisten_deAPI_V2
         // exit("\nchaeli\n");
         // */
 
+        // /* part of main operation
         self::taxon_mapping_from_GoogleSheet(); //print_r($this->taxon_EOLpageID);    exit("\ncount: ".count($this->taxon_EOLpageID)."\nstop 1\n");
         // echo "\n111\n";
         // print_r($this->taxon_EOLpageID['Heleopera petricola var. amethystea']); 
@@ -82,6 +65,7 @@ class Protisten_deAPI_V2
 
         self::load_legacy_taxa_data();          //print_r($this->legacy);             exit("\nstop 2\n");
         self::write_agent();
+        // */
 
         if($paths = self::get_main_paths()) {
             print_r($paths); //exit("\nstop 1\n");
@@ -89,8 +73,9 @@ class Protisten_deAPI_V2
             foreach($paths as $url) { $i++; $this->report_main_url = $url;
                 echo "\nprocess [$url]\n";
                 self::process_one_group($url);
-                // break; //debug - process only 1
-                // if($i >= 3) break; //debug only
+                // break; //debug - process only 1 just 1 group | ******
+                // if($i >= 5) break; //debug only
+                if($this->RunTest) break;
             }
         }
         else exit("\nStructure changed. Investigate.\n");
@@ -102,42 +87,98 @@ class Protisten_deAPI_V2
         // exit("\nstop muna\n");
         $this->archive_builder->finalize(true);
         if(isset($this->debug)) print_r($this->debug);
+        echo "\n[image no text]: ".count(@$this->debug['image no text'])."\n";
         if(!@$this->debug['does not exist']) echo "\n--No broken images!--\n";    
     }
     private function process_one_group($url)
     {
         $recs = self::get_records_per_group($url);
-        foreach($recs as $rec) { //print_r($rec); //exit("\nhuli 2\n");
+        foreach($recs as $rec) { //print_r($rec); exit("\nhuli 2\n");
             /*Array(
                 [title] => Teleostei egg
                 [data-href] => https://www.protisten.de/home-new/metazoa/chordata/teleostei-species/
                 [target] => _blank
                 [src] => https://www.protisten.de/wp-content/uploads/2024/08/Asset_Fischei-STEMI-4180361-HEL.jpg
                 [data-lazy-src] => https://www.protisten.de/wp-content/uploads/2024/08/Asset_Fischei-STEMI-4180361-HEL.jpg
+            )
+            OR
+            Array(
+                [title] => Achromatium oxaliferum
+                [data-href] => https://www.protisten.de/home-new/bac-proteo/achromatium-oxaliferum/
+                [target] => _blank
+                [src] => https://www.protisten.de/wp-content/uploads/2024/07/Asset_achromatium-oxaliferum-jwbw_144.jpg
+                [data-lazy-src] => https://www.protisten.de/wp-content/uploads/2024/07/Asset_achromatium-oxaliferum-jwbw_144.jpg
             )*/
 
+            /* force assign dev only --- works OK | ******
+            $rec = array();
+            $rec['title'] = 'Aphanizomenon flos-aquae';
+            $rec['data-href'] = 'https://www.protisten.de/home-new/bac-cya-chlorobi/bac-cya/bac-nostocales/aphanizomenon-flos-aquae/';
+
+            // $rec['title'] = 'Aphanothece stagnina';
+            // $rec['data-href'] = 'https://www.protisten.de/home-new/bac-cya-chlorobi/bac-cya/bac-chroococcales/aphanothece-stagnina/';
+
+            // $rec['title'] = 'Spongilla lacustris';
+            // $rec['data-href'] = 'https://www.protisten.de/home-new/metazoa/porifera/spongilla-lacustris/';
+
+            // $rec['title'] = 'Chloromonas spec.';
+            // $rec['data-href'] = 'https://www.protisten.de/home-new/colored-flagellates/archaeplastida-colored-flagellates/chlamydomonadales-colored-flagellates/chloromonas-spec/';
+            // */
+
+            if($test = @$this->RunTest) {
+                $rec = array();
+                $rec['title'] = $test['title'];
+                $rec['data-href'] = $test['data-href'];    
+            }
+
             $ret = self::process_taxon_rec($rec, $url); //print_r($ret); //2nd param $url is just for debug
+            
+            // $this->image_text = array(); --- NEVER initialize this
+            $this->image_text_current = array(); //IMPORTANT: this has to be initialized here
+            self::parse_images_and_descriptions_from_elementors($ret); //for single images, no sliders
+            self::parse_images_and_descriptions_from_elementors_v2($ret); //for slider images
+            // print_r($this->image_text_current); print_r($this->image_text); 
+            // exit("\nelix 3\n");
+
             if($val = $ret['images']) $images = $val;
             else                      $images = array();
-            $images = array_filter($images); //remove null arrays
-            $images = array_unique($images); //make unique
-            $images = array_values($images); //reindex key
+            $images = self::array_filter_unique_values($images);
             $this->report[$url][$rec['title']]['url']       = $rec['data-href'];
             $title = self::clean_sciname($rec['title']);
             $this->report[$url][$rec['title']]['DH_EOLid']  = @$this->func->DH_canonical_EOLid[$title];  //EOLid from the Katjaj's DH file
             $this->report[$url][$rec['title']]['XLS_EOLid'] = @$this->taxon_EOLpageID[$title];           //EOLid from Wolfgang's Googlespreadsheet
             $this->report[$url][$rec['title']]['images']    = $images;
-
+            $this->report[$url][$rec['title']]['images_v2'] = $this->image_text_current;
+            // print_r($this->report); exit("\n-report exit-\n"); //good debug for single rec testing | ******
+            // break; //dev only process only 1 just 1 rec | ******
+            if(@$this->RunTest) {
+                print_r($this->report);
+                $test_sciname = $this->RunTest['title'];
+                $pre = $this->report['https://www.protisten.de/home-new/bac-proteo/'][$test_sciname];
+                self::run_local_tests($pre, $test_sciname);
+                exit("\n-end tests-\n");
+            }
         } //end foreach()
         // print_r($this->report); exit("\nstopx\n");
     }
     private function process_taxon_rec($rec, $url)
     {
-        $url2 = $rec['data-href'];
-        if($url2 == 'https://www.protisten.de/home-new/bacillariophyta/bacillariophyceae/cymbella-spec-2/') //return; //page not found
-            {
-                return; print_r($rec); exit("\nbroken link\n[$url]\n");
-            }
+        $url2 = $rec['data-href']; //e.g. https://www.protisten.de/home-new/bac-proteo/achromatium-oxaliferum/
+
+        /* force assign during dev
+        $url2 = 'https://www.protisten.de/home-new/colored-flagellates/archaeplastida-colored-flagellates/chlamydomonadales-colored-flagellates/chloromonas-spec/';
+        $rec['title'] = 'Chloromonas spec.';
+
+        $url2 = 'https://www.protisten.de/home-new/metazoa/porifera/spongilla-lacustris/';
+        $rec['title'] = 'Spongilla lacustris';
+
+        $url2 = 'https://www.protisten.de/home-new/bac-cya-chlorobi/bac-cya/bac-chroococcales/aphanothece-stagnina/';
+        $rec['title'] = 'Aphanothece stagnina';
+        */
+
+        if($url2 == 'https://www.protisten.de/home-new/bacillariophyta/bacillariophyceae/cymbella-spec-2/') {
+            return; print_r($rec); exit("\nbroken link\n[$url]\n");
+        }
 
         // $url2 = 'https://www.protisten.de/home-new/heliozoic-amoeboids/haptista-heliozoic-amoeboids/panacanthocystida-acanthocystida/acanthocystis-penardi/';
         // $url2 = 'https://www.protisten.de/home-new/testatamoeboids-infra/amoebozoa-testate/glutinoconcha/excentrostoma/centropyxis-aculeata/';
@@ -159,9 +200,15 @@ class Protisten_deAPI_V2
             // to do: differentiate eol.org with tree and without tree but just a link to eol page
             self::get_EOLid_from_HTML($html, $sciname, $rec);
 
-            if(preg_match_all("/<div class=\"elementor-widget-container\">(.*?)<\/div>/ims", $html, $arr)) { //possibly for text descriptions. Not used atm.
-                // print_r($arr[1]); //exit("\nhuli 5\n");
+            if(preg_match_all("/<div class=\"elementor-widget-container\">(.*?)<\/div>/ims", $html, $arr)) { //for single image text descriptions. Not sliders.
+                $rec['elementor'] = $arr[1];
+                // print_r($arr[1]); exit;
             }
+            if(preg_match_all("/data-id=(.*?)<\/div>/ims", $html, $arr)) { //for slider images text descriptions.
+                $rec['elementor_v2'] = $arr[1];
+                $rec['html'] = $html;
+            }
+
 
             $images1 = array();
             // background-image:url(https://www.protisten.de/wp-content/uploads/2024/06/Centropyxis-aculeata-Matrix-063-200-Mipro-P3224293-302-HID_NEW.jpg)
@@ -181,10 +228,19 @@ class Protisten_deAPI_V2
                 }
             }
 
+            // <div class="elementor-element elementor-element-4d03d177 elementor-widget elementor-widget-image" data-id="4d03d177" data-element_type="widget" data-widget_type="image.default">
+			// 	<div class="elementor-widget-container">
+			// 												<img loading="lazy" decoding="async" width="800" height="692" src="https://www.protisten.de/wp-content/uploads/2024/01/achromatium-oxaliferum-jwbw-1.jpg" class="attachment-full size-full wp-image-1231" alt="Achromatium oxaliferum" srcset="https://www.protisten.de/wp-content/uploads/2024/01/achromatium-oxaliferum-jwbw-1.jpg 800w, https://www.protisten.de/wp-content/uploads/2024/01/achromatium-oxaliferum-jwbw-1-300x260.jpg 300w, https://www.protisten.de/wp-content/uploads/2024/01/achromatium-oxaliferum-jwbw-1-768x664.jpg 768w" sizes="(max-width: 800px) 100vw, 800px">															
+            //         </div>
+			// 	</div>
+
+            // <div class="elementor-element elementor-element-c657c5e elementor-widget elementor-widget-text-editor" data-id="c657c5e" data-element_type="widget" data-widget_type="text-editor.default">
+			// 	<div class="elementor-widget-container">
+			// 						<p>Sampling date 09/2009. Scale bar indicates 50 µm.</p><p>Multi-layer image shows cell in conjugation sharing genetic information.</p><p>Place name: Pond situated in the vicinity of Lake Constance (Germany).<br>Latitude: 47.734945 &nbsp;&nbsp;&nbsp; Longitude: 9.091097</p><p>Microscope Zeiss Universal, camera Olympus C7070.</p>								</div>
+			// 	</div>
+
             $pre_tmp = array_merge($images1, $images2);
-            $pre_tmp = array_filter($pre_tmp); //remove null arrays
-            $pre_tmp = array_unique($pre_tmp); //make unique
-            $pre_tmp = array_values($pre_tmp); //reindex key
+            $pre_tmp = self::array_filter_unique_values($pre_tmp);
             // print_r($pre_tmp);
 
             $tmp = array();
@@ -200,7 +256,7 @@ class Protisten_deAPI_V2
             echo "\ngenus_dash_species3: [$genus_dash_species3]";
             // ------------------------------------------------------------------------------
             $addtl_synonym = self::get_addtl_synonym($html);
-            $genus_dash_synonym = str_replace(" ", "-", $addtl_synonym ? $addtl_synonym : "");
+            $genus_dash_synonym = str_replace(" ", "-", $addtl_synonym);
             echo "\ngenus_dash_synonym: [$genus_dash_synonym]";
             // ------------------------------------------------------------------------------
             $genus_dash = false;
@@ -215,8 +271,14 @@ class Protisten_deAPI_V2
             echo "\ngenus_name: [$genus_name]";
             // ------------------------------------------------------------------------------
             foreach($pre_tmp as $f) {
-                if(stripos($f, "Asset_") !== false) continue; //string is found
+                if(self::invalid_media_url($f)) continue;
                 if(stripos($f, $genus_name.".jpg") !== false) continue; //string is found
+                
+                // if(stripos($f, "Asset_") !== false) continue; //string is found
+                // // /* exclude taxonomic tree image e.g. https://www.protisten.de/wp-content/uploads/2024/01/Aphanothece-e1722003443558.jpg
+                // if(stripos($f, "-e1") !== false) continue; //string is found 
+                // // */
+                
                 if(stripos($f, $genus_dash_species) !== false) $tmp[] = $f; //string is found
                 if(stripos($f, $genus_dash_species2) !== false) $tmp[] = $f; //string is found
                 if(stripos($f, $genus_dash_species3) !== false) $tmp[] = $f; //string is found
@@ -228,12 +290,13 @@ class Protisten_deAPI_V2
                     if(stripos($f, $genus_dash2) !== false) $tmp[] = $f; //string is found
                 }
             }
-            print_r($tmp); echo " ret - 111";
+            echo "\n---elix---\n"; print_r($tmp); echo " ret - 111";
             if(count($tmp) > 0) { $rec['images'] = $tmp; return $rec; }
 
             if(count($tmp) == 0) {
                 foreach($pre_tmp as $f) {
-                    if(stripos($f, "Asset_") !== false) continue; //string is found
+                    // if(stripos($f, "Asset_") !== false) continue; //string is found
+                    if(self::invalid_media_url($f)) continue;
                     if(stripos($f, $genus_name.".jpg") !== false) continue; //string is found
                     if(stripos($f, $genus_name) !== false) $tmp[] = $f; //string is found    
                 }
@@ -246,32 +309,57 @@ class Protisten_deAPI_V2
             if(count($tmp) == 0) {
                 if(preg_match_all("/src=\"(.*?)\"/ims", $html, $arr)) {
                     foreach($arr[1] as $str) {
-                        if(stripos($str, "Asset_") !== false) continue; //string is found
+                        // if(stripos($str, "Asset_") !== false) continue; //string is found
+                        if(self::invalid_media_url($str)) continue;
                         if(stripos($str, $genus_dash_species) !== false) $final[] = $str; //string is found
                         if($genus_dash) {
                             if(stripos($str, $genus_dash) !== false) $final[] = $str; //string is found
                         }                            
                     }
                 }
-                print_r($final); echo " ret - 222";
+                print_r($final); echo " ret - 333";
                 if(count($final) > 0) { $rec['images'] = $final; return $rec; }
 
                 if(count($final) == 0) { 
                     if($genus_name) {
                         foreach($arr[1] as $str) {
-                            if(stripos($str, "Asset_") !== false) continue; //string is found
+                            // if(stripos($str, "Asset_") !== false) continue; //string is found
+                            if(self::invalid_media_url($str)) continue;
                             if(stripos($str, $genus_name.".jpg") !== false) continue; //string is found
                             if(stripos($str, $genus_name) !== false) $final[] = $str; //string is found    
                         }
                         if(count($final) == 0) { 
-                            print_r($rec); print_r($this->debug); exit("\nhuli 3 [$genus_name]\n"); 
+                            print_r($rec); print_r($this->debug); echo("\nhuli 3 [$genus_name]\n"); //un-comment in real operation. Let there be exit()
                         }
                         else { print_r($final); echo(" 111\n"); $rec['images'] = $final; return $rec; }        
                     }
                 }
             }
         }
-        print_r($rec); print_r($this->debug); exit("\nhuli 4 - should not go here.\n"); //return
+        print_r($rec); print_r($this->debug); echo("\nhuli 4 - should not go here.\n"); //return //un-comment in real operation. Let there be exit()
+        // return
+    }
+    private function invalid_media_url($url, $scientificName = '')
+    {
+        if(stripos($url, "Asset_") !== false) return true; //string is found
+        if(stripos($url, "button") !== false) return true; //string is found        e.g. https://www.protisten.de/wp-content/uploads/2024/11/Special-observation-button.jpg
+
+        // /* exclude taxonomic tree image e.g. https://www.protisten.de/wp-content/uploads/2024/01/Aphanothece-e1722003443558.jpg
+        if(stripos($url, "-e1") !== false) return true; //string is found 
+        // */
+
+        // /* e.g. https://www.protisten.de/wp-content/uploads/2024/08/Spongilla.jpg
+        if($scientificName) {
+            $tmp_arr = explode(" ", $scientificName);
+            if($genus_name = $tmp_arr[0]) {
+                if($scientificName != $genus_name) {
+                    echo "\nsciname: [$scientificName] | genus_name: [$genus_name]";
+                    if(stripos($url, $genus_name.".jpg") !== false) return true; //string is found            
+                }
+            }
+        }
+        // */
+        return false;
     }
     private function get_EOLid_from_HTML($html, $sciname, $rec)
     {
@@ -416,7 +504,6 @@ class Protisten_deAPI_V2
 
                 $taxon = new \eol_schema\Taxon();
                 $taxon->scientificName = $sciname;
-                echo "\nsciname: [$sciname]\n";
 
                 /*
                 [Cochliopodium vestitum] => Array
@@ -503,11 +590,12 @@ class Protisten_deAPI_V2
                     $this->taxon_ids[$taxon->taxonID] = '';
                 }
                 if(@$rec['images']) self::write_image($rec);
+                $rec['scientificName'] = $taxon->scientificName;
+                if(@$rec['images_v2']) self::write_image_v2($rec);
 
                 // $arr[] = $sciname;
                 // $arr[] = $rec['url'];
-                // if($val = @$rec['images']) {
-                // }
+                // if($val = @$rec['images']) {}
             }
         }
         // exit("\nstop muna a\n");
@@ -518,6 +606,7 @@ class Protisten_deAPI_V2
         $local_tsv = Functions::save_remote_file_to_local($this->protisten_de_legacy_taxa, $options);
         $i = 0;
         foreach(new FileIterator($local_tsv) as $line_number => $line) { $i++;
+            if(!$line) continue;
             $row = explode("\t", $line);
             if($i == 1) $fields = $row;
             else {
@@ -526,8 +615,9 @@ class Protisten_deAPI_V2
                 foreach($fields as $field) { $k++;
                     $rec[$field] = @$row[$k];
                 }
-                if($rec['taxonID']) $rec = array_map('trim', $rec);
-                // print_r($rec); break; exit;
+                // if(!is_null($rec) && $rec && is_array($rec)) 
+                $rec = array_map('trim', $rec);
+                // print_r($rec); //break; exit;
             }
             /*Array(
                 [taxonID] => cca346e3c523a12c1532c45d6de2ad98
@@ -659,13 +749,13 @@ class Protisten_deAPI_V2
             if(preg_match('/<nav id=\"ubermenu-main-40\"(.*?)<\/nav>/ims', $html, $arr)) {
                 $html = $arr[1];
                 if(preg_match_all('/href=\"(.*?)\"/ims', $html, $arr)) {
-                    print_r($arr[1]); //exit("\nstop 3\n");
+                    // print_r($arr[1]); //exit("\nstop 3\n");
                     $final = array();
                     foreach($arr[1] as $r) {
                         if(stripos($r, "usage") !== false) continue; //string is found
                         if(stripos($r, "home-new") !== false) $final[] = $r;; //string is found
                     }
-                    print_r($final);
+                    // print_r($final); exit;
                     return $final;
                 }    
             }
@@ -743,8 +833,17 @@ class Protisten_deAPI_V2
         $this->agent_id = array($r->identifier);
     }
     private function write_image($rec)
-    {
+    {   /*[images] => Array(
+            [0] => https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-1-125-8172344-SSW_NEW.jpg
+            [1] => https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-1-125-8172348-SSW_NEW.jpg
+            [2] => https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-2-25-8172352-SSW_NEW.jpg
+            [3] => https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-2-25-8172353-SSW_NEW.jpg
+            [4] => https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-2-115-8172361-SSW_NEW.jpg
+            [5] => https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-2-115-8172366-SSW_NEW.jpg
+            [6] => https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-IMG-20210818-094755_NEW.jpg
+        )*/
         foreach($rec['images'] as $image) {
+            $image = str_replace('"', '', $image);
             $mr = new \eol_schema\MediaResource();
             $mr->agentID                = implode("; ", $this->agent_id);
             $mr->taxonID                = $rec["taxonID"];
@@ -765,12 +864,72 @@ class Protisten_deAPI_V2
             $mr->furtherInformationURL  = $rec['url'];
             $mr->Owner                  = "Wolfgang Bettighofer";
             $mr->UsageTerms             = "http://creativecommons.org/licenses/by-nc-sa/3.0/";
-            $mr->description            = ''; //waiting on Wolfgang
+
+            if($val = @$this->image_text[$image]) {
+                $str = '<p>For further information about the image, please click here: <a href="'.$rec['url'].'">Link to protisten.de page</a></p>';
+                $mr->description = self::format_description($val . $this->desc_suffix . $str);
+            }
+            else $this->debug['image no text'][$image] = $mr->furtherInformationURL;
+
             if(!isset($this->obj_ids[$mr->identifier])) {
                 $this->archive_builder->write_object_to_file($mr);
                 $this->obj_ids[$mr->identifier] = '';
             }
         }
+    }
+    private function write_image_v2($rec)
+    {   /*[images_v2] => Array(
+            [https://www.protisten.de/wp-content/uploads/2024/07/Asset_Apanizomenon-flos-aquae-016-100-P6030438-ODB_144.jpg] => <p>Sampling date 08/2021. Scale bar indicates 2 cm.</p><p>Huge colonies, many of them were about 1cm long! The images below show details.</p><p>Place name: Wetland Seekamper Seewiesen in Schilksee (Kiel, Germany).<br />Latitude: 54.410447     Longitude: 10.159699</p><p>Camera Olympus OM-D M5 MKII.</p>
+            [https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-e1722003560374.jpg] => <p>Sampling date 08/2021. Scale bar indicates 2 cm.</p><p>Huge colonies, many of them were about 1cm long! The images below show details.</p><p>Place name: Wetland Seekamper Seewiesen in Schilksee (Kiel, Germany).<br />Latitude: 54.410447     Longitude: 10.159699</p><p>Camera Olympus OM-D M5 MKII.</p>
+            [https://www.protisten.de/wp-content/uploads/2024/01/Apanizomenon-flos-aquae-016-100-P6030438-ODB_NEW.jpg] => <p>Scale bars indicate 2 mm (1, 2), 0.5 mm (3, 4) and 100 µm (5, 6).</p><p>Six images of the huge colonies.<br />Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Wetland Seekamper Seewiesen in Schilksee (Kiel, Germany).<br />Latitude: 54.410447     Longitude: 10.159699</p><p>Stereomicroscope Olympus SZX16, camera Olympus OM-D M5 MKII.</p>
+            [https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-IMG-20210818-094755_NEW.jpg] => <p>Scale bars indicate 2 mm (1, 2), 0.5 mm (3, 4) and 100 µm (5, 6).</p><p>Six images of the huge colonies.<br />Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Wetland Seekamper Seewiesen in Schilksee (Kiel, Germany).<br />Latitude: 54.410447     Longitude: 10.159699</p><p>Stereomicroscope Olympus SZX16, camera Olympus OM-D M5 MKII.</p>
+        )*/
+        foreach($rec['images_v2'] as $image => $text_desc) { //print_r($rec); exit;
+            if(self::invalid_media_url($image, $rec['scientificName'])) continue;
+            $mr = new \eol_schema\MediaResource();
+            $mr->agentID                = implode("; ", $this->agent_id);
+            $mr->taxonID                = $rec["taxonID"];
+            $mr->identifier             = md5($image);
+            $mr->type                   = "http://purl.org/dc/dcmitype/StillImage";
+            $mr->language               = 'en';
+            $mr->format                 = Functions::get_mimetype($image);
+            $this->debug['mimetype'][$mr->format] = '';
+            $mr->accessURI              = $image;
+            
+            // /* New: Jun 13,2023
+            if(!self::image_exists_YN($mr->accessURI)) {
+                $this->debug['does not exist'][$mr->accessURI] = '';
+                continue;
+            }
+            // */
+            
+            $mr->furtherInformationURL  = $rec['url'];
+            $mr->Owner                  = "Wolfgang Bettighofer";
+            $mr->UsageTerms             = "http://creativecommons.org/licenses/by-nc-sa/3.0/";
+
+            if($val = $text_desc) {
+                $str = '<p>For further information about the image, please click here: <a href="'.$rec['url'].'">Link to protisten.de page</a></p>';
+                $mr->description = self::format_description($val . $this->desc_suffix . $str);
+            }
+            else $this->debug['image no text'][$image] = $mr->furtherInformationURL;
+
+            if(!isset($this->obj_ids[$mr->identifier])) {
+                $this->archive_builder->write_object_to_file($mr);
+                $this->obj_ids[$mr->identifier] = '';
+            }
+        }
+    }
+    private function format_description($desc)
+    {   // remove this line: "Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!"
+        $beginning = "<p>Please click on";      $end = "through the slides!</p>";
+        $inclusiveYN = true;                    $caseSensitiveYN = false;
+        $desc = Functions::delete_all_between($beginning, $end, $desc, $inclusiveYN, $caseSensitiveYN);
+        $desc = Functions::remove_whitespace($desc);
+        // 2nd try
+        $beginning = "Please click on";      $end = "through the slides!";
+        $desc = Functions::delete_all_between($beginning, $end, $desc, $inclusiveYN, $caseSensitiveYN);
+        $desc = Functions::remove_whitespace($desc);
+        return $desc;
     }
     private function image_exists_YN($image_url)
     {   
@@ -939,6 +1098,303 @@ class Protisten_deAPI_V2
         }
         // print_r($this->taxon_EOLpageID['Heleopera petricola var. amethystea']); exit("\nend 2\n");
         // print_r($this->remove_scinames); exit; //seems obsolete already
+    }
+    private function array_filter_unique_values($images)
+    {
+        $images = array_filter($images); //remove null arrays
+        $images = array_unique($images); //make unique
+        $images = array_values($images); //reindex key
+        return $images;
+    }
+    private function parse_images_and_descriptions_from_elementors($ret) //for single images, no sliders
+    {   // ----- step 1
+        $tmp = array(); $i = -1;
+        $elementors = $ret['elementor'];
+        foreach($elementors as $e) { $i++;
+            $old_e = $e;
+            if(self::has_place_name_OR_dimension_strings($e)) {
+
+                // gets images 5th and 6th https://www.protisten.de/home-new/ciliophora/oligohymenophorea/hymenostomatia/tetrahymena-pyriformis/
+                if(self::valid_image_url($elementors[$i-6])) {
+                    $tmp[] = $elementors[$i-6];
+                    $tmp[] = $e;    
+                }
+                if(self::valid_image_url($elementors[$i-5])) {
+                    $tmp[] = $elementors[$i-5];
+                    $tmp[] = $e;    
+                }
+
+                if(self::valid_image_url($elementors[$i-4])) {
+                    $tmp[] = $elementors[$i-4]; //gets the 4th image. e.g. https://www.protisten.de/home-new/bacillariophyta/coscinodiscophyceae/melosira-nummuloides/
+                    $tmp[] = $e;    
+                }
+
+                if(self::valid_image_url($elementors[$i-3])) {
+                    $tmp[] = $elementors[$i-3]; //gets the 3rd image upwards from the text desc. e.g. https://www.protisten.de/home-new/bac-cya-chlorobi/bac-cya/bac-oscillatoriales/lyngbya-nigra/
+                    $tmp[] = $e;                //the 3rd image is: https://www.protisten.de/wp-content/uploads/2024/01/Lyngbya-nigra-040-125-2-1208386-393-AQU_NEW.jpg    
+                }
+
+                if(self::valid_image_url($elementors[$i-2])) {
+                    $tmp[] = $elementors[$i-2];
+                    $tmp[] = $e;    
+                }
+                
+                if(self::valid_image_url($elementors[$i-1])) {
+                    $tmp[] = $elementors[$i-1];
+                    $tmp[] = $e;    
+                }
+
+                // echo "\n-----\n".$elementors[$i-1]."\n-----\n$e\n";
+            }
+        } //end foreach() // print_r($tmp);
+        // ----- step 2
+        $i = 0;
+        foreach($tmp as $t) { $i++;
+            if ($i % 2 == 0) { //even meaning text description
+                if($image_is) {
+                    $t = Functions::preg_delete_all_between('style="', '"', $t);
+                    if(!isset($this->image_text[$image_is])) {
+                        echo "\n($i)text:[$image_is] [".$t."]\n";
+                        $this->image_text[$image_is] = $t; //for saving    
+                        $this->image_text_current[$image_is] = $t; //for saving    
+                    }
+                }
+            }
+            else { //odd meaning image(s)
+                $image_is = "";
+                if(preg_match_all("/src=\"(.*?)\"/ims", $t, $arr)) {
+                    $image_is = $arr[1][0];
+                    echo "\nimages: "; echo $image_is; //there is only 1 image here
+                    if(count($arr[1]) > 1) exit("\nhuli stop - does not go here.\n");
+                }
+            }
+        } //end foreach()
+        // print_r($this->image_text); exit("\nstop muna 1\n");
+    }
+    private function valid_image_url($html_block)
+    {
+        if(preg_match_all("/src=\"(.*?)\"/ims", $html_block, $arr)) return true;
+        return false;
+    }
+    private function has_place_name_OR_dimension_strings($e)
+    {
+        if(stripos($e, "place name:") !== false || stripos($e, "dimension:") !== false 
+                                                || stripos($e, "<strong>Place names") !== false
+                                                || stripos($e, "<p>Place name") !== false
+                                                || stripos($e, "Microscope Zeiss") !== false
+                                                || stripos($e, "Scale bar indicate") !== false
+                                                ) { //string is found
+            return true;
+        }
+        return false;
+    }
+    private function parse_images_and_descriptions_from_elementors_v2($ret) //for slider images
+    {   // ----- step 1
+        $tmp = array(); $i = -1;
+        $elementors = $ret['elementor_v2'];
+        echo "\n-=-=-=-=-=\n";
+        foreach($elementors as $e) { $i++;
+            if(self::has_place_name_OR_dimension_strings($e)) $tmp[] = $e;
+        }
+        if($tmp) {
+            print_r($tmp); //exit("\nstopx 1\n");
+            /*Array(
+                [0] => "59772381" data-element_type="widget" data-widget_type="text-editor.default">
+                            <div class="elementor-widget-container">
+                                                <p>Sampling date 04/2006. Scale bar indicates 10 µm.</p><p><i>Achromatium oxaliferum</i> is a large colorless sulpher bacterium containing large refractile structures of calcite spherulites.</p><p>Place name: Pond Demühlen, rain storage reservoir in Kiel-Russee (Schleswig-Holstein, Germany).<br />Latitude: 54.304095     Longitude: 10.086073</p><p>Microscope Zeiss Universal, camera Olympus C7070.</p>								
+                [1] => "c657c5e" data-element_type="widget" data-widget_type="text-editor.default">
+                            <div class="elementor-widget-container">
+                                                <p>Sampling date 09/2009. Scale bar indicates 50 µm.</p><p>Multi-layer image shows cell in conjugation sharing genetic information.</p><p>Place name: Pond situated in the vicinity of Lake Constance (Germany).<br />Latitude: 47.734945     Longitude: 9.091097</p><p>Microscope Zeiss Universal, camera Olympus C7070.</p>								
+            )*/
+            /*Array(
+                [0] => "dc99d5c" data-element_type="widget" data-widget_type="text-editor.default">
+                            <div class="elementor-widget-container">
+                                                <p>Sampling date 08/2012. </p><p>Two images. <br />Underwater photos taken with an Olympus Tough. The sponge branches in the first picture were about 3 cm long and about 5 mm thick at the base.</p><p>Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Lake Brahmsee near Kiel (Schleswig-Holstein, Germany)   <br />Latitude: 54.202309     Longitude: 9.906453</p>						
+                [1] => "6d3877e" data-element_type="widget" data-widget_type="text-editor.default">
+                            <div class="elementor-widget-container">
+                                                <p>Two images. <br />Some branches of the sponge were broken off and placed in a Petri dish filled with local water in the laboratory. After a few days, the loose sponge tissue had formed into a new sponge.</p><p>Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Lake Brahmsee near Kiel (Schleswig-Holstein, Germany)   <br />Latitude: 54.202309     Longitude: 9.906453</p><p>Dissecting microscope Zeiss SV6, camera Olympus C7070WZ. DOF images.</p>								
+            )*/
+            // ----- step 2: get IDs
+            $IDs = array();
+            foreach($tmp as $t) {
+                if(preg_match("/\"(.*?)\"/ims", $t, $arr)) $IDs[$arr[1]] = '';
+            }
+            print_r($IDs); //exit;
+            /*Array(
+                [59772381] => 
+                [c657c5e] => 
+            )*/
+            // ----- step 3: do the preg_match()
+            $i = 0; $prev_ID = ''; $saved_ID_images = array(); $gotImagesYN = false;
+            foreach(array_keys($IDs) as $ID) { $i++;
+                if($i == 1) {
+                    $arr_images = self::proc_preg_match("background-image:url", $ID, $i, $ret['html']);
+                    $saved_ID_images[$ID] = $arr_images;
+                    if($arr_images) $gotImagesYN = true;
+                }
+                else {
+                    $arr_images = self::proc_preg_match($prev_ID, $ID, $i, $ret['html']);
+                    $saved_ID_images[$ID] = $arr_images;
+                    if($arr_images) $gotImagesYN = true;
+                }
+                $prev_ID = $ID;
+            }
+            // /* ---------- NEW to accomodate: https://www.protisten.de/home-new/bac-cya-chlorobi/bac-cya/bac-nostocales/aphanizomenon-flos-aquae/
+            if(!$gotImagesYN) {
+                $arr_images = self::proc_preg_match("background-image:url", $ID, 1, $ret['html']);
+                $saved_ID_images[$ID] = $arr_images;
+                if($arr_images) $gotImagesYN = true;
+            }
+            // ---------- */
+            print_r($saved_ID_images); //exit("\nHere is where image(s) is/are assigned.\n[$gotImagesYN]\n");
+            /*Array(
+                [dc99d5c] => Array(
+                        [0] => https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-P8130028_NEW.jpg
+                        [1] => https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-P8130023-_NEW.jpg
+                    )
+                [6d3877e] => Array(
+                        [0] => https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-STEMI-P8135439-441-BRA_NEW.jpg
+                        [1] => https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-STEMI-P8135445-448-BRA_NEW.jpg
+                    )
+            )*/
+            // ----- step 4: assign ID to text desc.
+            $saved_ID_texts = self::assign_ID_to_text($tmp);
+            print_r($saved_ID_texts); //exit("\nhuli 4\n");
+            /*Array(
+                [dc99d5c] => <p>Sampling date 08/2012. </p><p>Two images. <br />Underwater photos taken with an Olympus Tough. The sponge branches in the first picture were about 3 cm long and about 5 mm thick at the base.</p><p>Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Lake Brahmsee near Kiel (Schleswig-Holstein, Germany)   <br />Latitude: 54.202309     Longitude: 9.906453</p>
+                [6d3877e] => <p>Two images. <br />Some branches of the sponge were broken off and placed in a Petri dish filled with local water in the laboratory. After a few days, the loose sponge tissue had formed into a new sponge.</p><p>Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Lake Brahmsee near Kiel (Schleswig-Holstein, Germany)   <br />Latitude: 54.202309     Longitude: 9.906453</p><p>Dissecting microscope Zeiss SV6, camera Olympus C7070WZ. DOF images.</p>
+            )*/
+            // ----- step 5: saving to: $this->image_text[$image_is] = $t; //for saving
+            foreach($saved_ID_images as $ID => $images) {
+                if($images) {
+                    foreach($images as $image_is) {
+                        $this->image_text[$image_is] = $saved_ID_texts[$ID]; //for saving
+                        $this->image_text_current[$image_is] = $saved_ID_texts[$ID]; //for saving
+                        // $current[$image_is] = saved_ID_texts[$ID];
+                    }    
+                }
+            }
+            // print_r($current); exit("\ncurrent exit\n");
+        }
+    }
+    private function proc_preg_match($left, $right, $i, $html)
+    {
+        if($i == 1) {}
+        else $left = "element.elementor-element-".$left;
+        $right = "element.elementor-element-".$right;
+        echo "\nleft: [$left]";
+        echo "\nright: [$right]\n";
+
+        if(preg_match("/".preg_quote($left, '/')."(.*?)".preg_quote($right, '/')."/ims", $html, $arr)) {
+            // [0] => (https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-P8130028_NEW.jpg);background-size:cover;}
+            if(preg_match_all("/\(https(.*?)\)/ims", $arr[1], $arr2)) {
+                // print_r($arr2[1]); exit("\nok huli 1\n");
+                $final = array();
+                foreach($arr2[1] as $s) $final[] = 'https'.$s;
+                return $final;
+            }
+            // exit("\nok huli 2\n");
+        }
+        // exit("\ndito siya\n");
+    }
+    private function assign_ID_to_text($tmp)
+    {
+        /*Array(
+            [0] => "dc99d5c" data-element_type="widget" data-widget_type="text-editor.default">
+                        <div class="elementor-widget-container">
+                                            <p>Sampling date 08/2012. </p><p>Two images. <br />Underwater photos taken with an Olympus Tough. The sponge branches in the first picture were about 3 cm long and about 5 mm thick at the base.</p><p>Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Lake Brahmsee near Kiel (Schleswig-Holstein, Germany)   <br />Latitude: 54.202309     Longitude: 9.906453</p>						
+            [1] => "6d3877e" data-element_type="widget" data-widget_type="text-editor.default">
+                        <div class="elementor-widget-container">
+                                            <p>Two images. <br />Some branches of the sponge were broken off and placed in a Petri dish filled with local water in the laboratory. After a few days, the loose sponge tissue had formed into a new sponge.</p><p>Please click on &lt; or &gt; on the image edges or on the dots at the bottom edge of the images to browse through the slides!</p><p>Place name: Lake Brahmsee near Kiel (Schleswig-Holstein, Germany)   <br />Latitude: 54.202309     Longitude: 9.906453</p><p>Dissecting microscope Zeiss SV6, camera Olympus C7070WZ. DOF images.</p>								
+        )*/
+        $final = array();
+        foreach($tmp as $t) {
+            if(preg_match("/\"(.*?)\"/ims", $t, $arr)) {
+                $ID = $arr[1];
+                if(preg_match("/<div class=\"elementor-widget-container\">(.*?)elix/ims", $t."elix", $arr)) $final[$ID] = Functions::remove_whitespace($arr[1]);
+            }
+        }
+        return $final;
+    }
+    private function run_local_tests($pre, $test_sciname)
+    {   
+        if($test_sciname == 'Aphanizomenon flos-aquae') {
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/01/Apanizomenon-flos-aquae-016-100-P6030438-ODB_NEW.jpg']) {
+                if(stripos($desc, "Sampling date 05/2011") !== false) echo "\nPass OK 1"; //string is found
+                else echo "\nTest Error 1a\n";
+            }
+            else echo "\nTest Error 1b\n";
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-IMG-20210818-094755_NEW.jpg']) {
+                if(stripos($desc, "Sampling date 08/2021") !== false) echo "\nPass OK 2"; //string is found
+                else echo "\nTest Error 2a\n";
+            }
+            else echo "\nTest Error 2b\n";
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-1-125-8172344-SSW_NEW.jpg']) {
+                if(stripos($desc, "Scale bars indicate 2 mm") !== false) echo "\nPass OK 3"; //string is found
+                else echo "\nTest Error 3a\n";
+            }
+            else echo "\nTest Error 3b\n";
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/01/Aphanizomenon-flos-aquae-SZX16-2-115-8172366-SSW_NEW.jpg']) {
+                if(stripos($desc, "Scale bars indicate 2 mm") !== false) echo "\nPass OK 4"; //string is found
+                else echo "\nTest Error 4a\n";
+            }
+            else echo "\nTest Error 4b\n";
+            if(count($pre['images'] == 7)) echo "\nPass OK 5";
+            else echo "\nTest Error 5\n";
+        }
+        elseif($test_sciname == 'Aphanothece stagnina') {
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/01/Aphanothece-stagnina-016-100-P9284680-SIM_NEW.jpg']) {
+                if(stripos($desc, "Scale bars indicate 100 µm") !== false) echo "\nPass OK 1"; //string is found
+                else echo "\nTest Error 1a\n";
+            }
+            else echo "\nTest Error 1b\n";
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/01/Aphanothece-stagnina-025-100-P9284676-BOD_NEW.jpg']) {
+                if(stripos($desc, "Scale bars indicate 100 µm") !== false) echo "\nPass OK 2"; //string is found
+                else echo "\nTest Error 2a\n";
+            }
+            else echo "\nTest Error 2b\n";            
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/01/Aphanothece-stagnina-Epithemia-adnata-040-100-P6101397-404-PIL_NEW.jpg']) {
+                if(stripos($desc, "Sampling date 05/2011") !== false) echo "\nPass OK 3"; //string is found
+                else echo "\nTest Error 3a\n";
+            }
+            else echo "\nTest Error 3b\n";
+            if(count($pre['images'] == 3)) echo "\nPass OK 4";
+            else echo "\nTest Error 4\n";    
+        }  
+        elseif($test_sciname == 'Spongilla lacustris') {
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-P8130028_NEW.jpg']) {
+                if(stripos($desc, "Sampling date 08/2012") !== false) echo "\nPass OK 1"; //string is found
+                else echo "\nTest Error 1a\n";
+            }
+            else echo "\nTest Error 1b\n";
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-P8130023-_NEW.jpg']) {
+                if(stripos($desc, "Sampling date 08/2012") !== false) echo "\nPass OK 2"; //string is found
+                else echo "\nTest Error 2a\n";
+            }
+            else echo "\nTest Error 2b\n";
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-STEMI-P8135439-441-BRA_NEW.jpg']) {
+                if(stripos($desc, "Two images.") !== false) echo "\nPass OK 3"; //string is found
+                else echo "\nTest Error 3a\n";
+            }
+            else echo "\nTest Error 3b\n";
+            if($desc = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/08/Spongilla-lacustris-STEMI-P8135445-448-BRA_NEW.jpg']) {
+                if(stripos($desc, "Two images.") !== false) echo "\nPass OK 4"; //string is found
+                else echo "\nTest Error 4a\n";
+            }
+            else echo "\nTest Error 4b\n";
+            if(count($pre['images'] == 4)) echo "\nPass OK 5";
+            else echo "\nTest Error 5\n";
+        }
+        elseif($test_sciname == 'Chloromonas spec.') {
+            $desc1 = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/10/Chloromonas-040-200-2-5171985-994-1.5kV-ASW_NEW.jpg'];
+            $desc2 = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/10/Chloromonas-040-200-2-5171985-994-1kV-ASW_NEW.jpg'];
+            $desc3 = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/10/Chloromonas-040-200-2-5171985-994-2kV-ASW_NEW.jpg'];
+            $desc4 = $pre['images_v2']['https://www.protisten.de/wp-content/uploads/2024/10/Chloromonas-040-200-2-5171985-994-1.5kV2-ASW_NEW.jpg'];
+            if($desc1 == $desc2 && $desc3 == $desc4 && $desc1 == $desc4) echo "\nPass OK 1";
+            else echo "\nTest Error 1\n";
+            if(count($pre['images'] == 4)) echo "\nPass OK 2";
+            else echo "\nTest Error 2\n";
+        }  
     }
 }
 ?>

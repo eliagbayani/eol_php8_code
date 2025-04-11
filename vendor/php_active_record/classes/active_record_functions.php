@@ -198,10 +198,8 @@ function get_last_function($index = 1)
     $backtrace = debug_backtrace();
     $line = @$backtrace[$index]['line'];
     $file = @$backtrace[$index]['file'];
-    if($file) {
-        $file = str_replace(DOC_ROOT, "", $file);
-        return "$file [$line]";    
-    }
+    if($file) $file = str_replace(DOC_ROOT, "", $file);
+    return "$file [$line]";
 }
 
 function shutdown_check()

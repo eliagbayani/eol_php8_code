@@ -34,7 +34,8 @@ class DwCA_Utility
                                   //start of other row_types: check for NOTICES or WARNINGS, add here those undefined URIs
                                   "http://rs.gbif.org/terms/1.0/description"        => "document",
                                   "http://rs.gbif.org/terms/1.0/multimedia"         => "document",
-                                  "http://eol.org/schema/reference/reference"       => "reference"
+                                  "http://eol.org/schema/reference/reference"       => "reference",
+                                  "http://eol.org/schema/association"               => "association"
                                   );
 
                                   /*
@@ -68,6 +69,8 @@ class DwCA_Utility
             'temp_dir' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_99493/'
         );
         */
+
+        if(!$paths) return false;
         
         $this->archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
@@ -112,6 +115,7 @@ class DwCA_Utility
             if(Functions::is_production()) $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 0)); //expires now
             else                           $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 60*60*1)); //1 hour expire
         }
+        elseif(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 0)); //expires now
         elseif(substr($this->resource_id,0,3) == 'SC_' || substr($this->resource_id,0,2) == 'c_') $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 60*60*24*1)); //1 day expire
         elseif(stripos($this->resource_id, "_meta_recoded") !== false) $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 0)); //0 orig expires now | during dev false
         elseif($annotateYes) $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 0)); //expires now
@@ -160,6 +164,9 @@ class DwCA_Utility
             /* not used
             if($this->resource_id == 'globi_associations_refuted') break; //all extensions will be processed elsewhere IN real operation.
             */
+
+            if(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") break; //all extensions will be processed elsewhere.
+
                 if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
             elseif(in_array($this->resource_id, array("BF", "gbif_classification", "gbif_classification_without_ancestry", "gbif_classification_final", 
                                                       "708", "Brazilian_Flora_with_canonical"))) break; //all extensions will be processed elsewhere.
@@ -261,7 +268,13 @@ class DwCA_Utility
             $func = new DWCA_Measurements_Fix($this->archive_builder, $this->resource_id);
             $func->start($info);
         }
-        
+
+        if(in_array($this->resource_id, array('NorthAmericanFlora_All_subset'))) {
+            require_library('connectors/DWCA_Remove_MoF_RecordsAPI');
+            $func = new DWCA_Remove_MoF_RecordsAPI($this->archive_builder, $this->resource_id); //diff ways of removing MoF records
+            $func->task2_remove_MoF_records_with_criteria($info);
+        }
+
         /* this has been run already. Other connector(s) are created for further adjustments on DwCA's. e.g. DATA-1841
         if(substr($this->resource_id,0,3) == 'SC_') {
             if($this->resource_id == 'SC_australia') { //customized for DATA-1833
@@ -276,7 +289,13 @@ class DwCA_Utility
             }
         }
         */
-        if(substr($this->resource_id,0,3) == 'SC_' || substr($this->resource_id,0,2) == 'c_') { //for DATA-1841 terms remapping. "c_" resources (3) came from DATA-1840.
+
+        if(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") { //this block also processes SC_ DwCA files.
+            require_library('connectors/FillUpMissingParents_GBIFChecklistsAPI');
+            $func = new FillUpMissingParents_GBIFChecklistsAPI($this->archive_builder, $this->resource_id, $this->archive_path);
+            $func->start($info);
+        }
+        elseif(substr($this->resource_id,0,3) == 'SC_' || substr($this->resource_id,0,2) == 'c_') { //for DATA-1841 terms remapping. "c_" resources (3) came from DATA-1840.
             require_library('connectors/SpeciesChecklistAPI');
             $func = new SpeciesChecklistAPI($this->archive_builder, $this->resource_id);
             $func->start_terms_remap($info, $this->resource_id);
@@ -487,7 +506,7 @@ class DwCA_Utility
             exit("\n[$sciname] [$canonical]\n");
             */
         }
-        
+
         if(@$this->params['resource'] == "Deltas_4hashing") {
             require_library('connectors/DeltasHashIDsAPI');
             $func = new DeltasHashIDsAPI($this->archive_builder, $this->resource_id, $this->archive_path);
@@ -757,7 +776,8 @@ class DwCA_Utility
             elseif($class == "occurrence")  $c = new \eol_schema\Occurrence();
             elseif($class == "occurrence_specific")  $c = new \eol_schema\Occurrence_specific(); //1st client is 10088_5097_ENV
             elseif($class == "measurementorfact")   $c = new \eol_schema\MeasurementOrFact();
-            else exit("\nUndefined class [$class]. Will terminate.\n");
+            elseif($class == "association")   $c = new \eol_schema\Association();
+            else exit("\nUndefined class [$class]. Will terminate*.\n");
             
             if($this->resource_id == 'parent_basal_values_Carnivora') { //this actually works. But only goes here during dev. if needed, since MoF is customized in /lib/SDRreportLib.php in real operation
                 if($class == "measurementorfact") $c = new \eol_schema\MeasurementOrFact_specific();
@@ -991,7 +1011,7 @@ class DwCA_Utility
             elseif($class == "occurrence")          $o = new \eol_schema\Occurrence();
             elseif($class == "occurrence_specific") $o = new \eol_schema\Occurrence_specific(); //1st client is 10088_5097_ENV
             elseif($class == "measurementorfact")   $o = new \eol_schema\MeasurementOrFact();
-            else exit("\nUndefined class [$class]. Will terminate.\n");
+            else exit("\nUndefined class [$class]. Will terminate**.\n");
             
             foreach($uris as $uri) {
                 $field = pathinfo($uri, PATHINFO_BASENAME);
@@ -1203,6 +1223,11 @@ class DwCA_Utility
         $column = $params['column'];
         $meta = $tables[$row_type][0];
 
+        // /* new feature: for country and waterbody checklists
+        $sought_field       = @$params['sought_field'];
+        $sought_field_value = @$params['sought_field_value'];
+        // */
+
         $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 200000) == 0) echo "\n".number_format($i);
@@ -1217,7 +1242,16 @@ class DwCA_Utility
                 $k++;
             }
             // print_r($rec); exit;
-            $unique[$rec[$column]] = '';
+
+            if($sought_field && $sought_field_value) { //new feature
+                if($rec[$sought_field] == $sought_field_value) $trait_value = $rec[$column];
+            }
+            else $unique[$rec[$column]] = ''; //orig
+        }
+
+        if(self::if_dwca_is_national_or_waterbody_checklist($this->dwca_file)) {
+            $unique['Total Taxa'] = self::count_taxa_in_checklist($tables['http://rs.tdwg.org/dwc/terms/taxon'][0]);
+            $unique['Trait URI'] = $trait_value;
         }
 
         // /* un-comment in real operation
@@ -1229,7 +1263,42 @@ class DwCA_Utility
         // print_r($unique);
         return $unique;
     }
-
+    private function count_taxa_in_checklist($meta)
+    {
+        $i = 0; $final = 0;
+        foreach(new FileIterator($meta->file_uri) as $line => $row) {
+            $i++; if(($i % 200000) == 0) echo "\n".number_format($i);
+            if($meta->ignore_header_lines && $i == 1) continue;
+            if(!$row) continue;
+            $row = Functions::conv_to_utf8($row); //possibly to fix special chars
+            $tmp = explode("\t", $row);
+            $rec = array(); $k = 0;
+            foreach($meta->fields as $field) {
+                if(!$field['term']) continue;
+                $rec[$field['term']] = $tmp[$k];
+                $k++;
+            }
+            // print_r($rec); exit("\nelix 1\n");
+            /*Array(
+                [http://rs.tdwg.org/dwc/terms/taxonID] => 3
+                [http://rs.tdwg.org/dwc/terms/scientificName] => Bacteria
+                [http://rs.tdwg.org/dwc/terms/taxonRank] => kingdom
+                [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => 
+                [http://rs.gbif.org/terms/1.0/canonicalName] => Bacteria
+                [http://rs.tdwg.org/ac/terms/furtherInformationURL] => 
+                [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 
+                [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => 
+            )*/
+            if($rec['http://rs.tdwg.org/ac/terms/furtherInformationURL']) $final++; //only taxa with furtherInformationURL are those with Present info.
+        }
+        return $final;
+    }
+    private function if_dwca_is_national_or_waterbody_checklist($dwca)
+    {
+        $basename = pathinfo($dwca, PATHINFO_BASENAME);
+        if(substr($basename,0,3) == "SC_" || substr($basename,0,2) == "c_") return true;
+        return false;
+    }
     function get_uri_value($raw, $uri_values) //$raw e.g. "Philippines" ---- good func but not yet used, soon...
     {
         if($uri = @$uri_values[$raw]) return $uri;

@@ -4,7 +4,7 @@ namespace php_active_record;
 class ActiveRecordError extends \Exception
 {
     // public static function printException(\Exception $e)
-    public static function printException(\Throwable $e) //PHP8
+    public static function printException(\Throwable $e) //for PHP 8.2
     {
         if(@$GLOBALS['ENV_DEBUG_TO_FILE'])
         {
@@ -12,17 +12,21 @@ class ActiveRecordError extends \Exception
                  "in $e->file [$e->line]<br/>\n" .
                  "<pre>". $e->getTraceAsString());
         }
-        
-        print_r($e);
+        /* for PHP 5.6
         echo "<b>Uncaught ". trim_namespace(get_class($e)) ."</b>: ". $e->getMessage() . "<br/>\n" .
-            //  "in ". $e->file ."[". $e->line ."]<br/>\n" .
-            "in ". $e->getFile() ."[". $e->getLine() ."]<br/>\n" . //PHP8
-
+             "in ". $e->file ."[". $e->line ."]<br/>\n" . 
              "<pre>". $e->getTraceAsString() ."</pre>\n";
+        */
+
+        // /* for PHP 8.2
+        echo "<b>Uncaught ". trim_namespace(get_class($e)) ."</b>: ". $e->getMessage() . "<br/>\n" .
+            "in ". $e->getFile() ."[". $e->getLine() ."]<br/>\n" . 
+            "<pre>". $e->getTraceAsString() ."</pre>\n";
+        // */
     }
 
     // public static function handleException(\Exception $e)
-    public static function handleException(\Throwable $e) //PHP8
+    public static function handleException(\Throwable $e) //for PHP 8.2
     {
         //static::printException($e);
         self::printException($e);
@@ -69,7 +73,7 @@ class ActiveRecordError extends \Exception
         if(in_array($error_type_string, array('Error', 'Core Error', 'User Error')))
         {
             exit(1);
-            // break;
+            // break; //not allowed in PHP8
         }
        
         /* Don't execute PHP internal error handler */

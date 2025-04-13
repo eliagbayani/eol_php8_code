@@ -20,7 +20,8 @@ $resource_id = @$params['resource_id']; //destination DWCA filename
 if($resource_id == 'Brazilian_Flora') { // 1st client: Brazilian Flora: https://opendata.eol.org/dataset/brazilian-flora/resource/04e94dff-d997-4e3f-946c-2c4bf5173256
     // /* 
     $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/BF.tar.gz'; //normal operation
-    // $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/BF.tar.gz'; //during dev.
+    // $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/BF.tar.gz'; //during dev PHP 5.6.
+    // $dwca_file = 'http://host.docker.internal/eol_php_code/applications/content_server/resources_3/BF.tar.gz'; //during dev PHP 8.2.
     // */
 }
 else exit("Resource ID not defined.");

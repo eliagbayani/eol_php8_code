@@ -253,7 +253,8 @@ class ContentArchiveReader
         if($table_definition->ignore_header_lines && $this->file_iterator_index <= $table_definition->ignore_header_lines) return array();
         
         if(!trim($line)) return array();
-        $fields = self::line_to_array($line, $table_definition->terminator, $table_definition->enclosure);
+        $tb_enclosure = @$table_definition->enclosure; //for PHP 8.2
+        $fields = self::line_to_array($line, $table_definition->terminator, $tb_enclosure);
         return self::assign_field_types($table_definition, $fields);
     }
     
@@ -284,8 +285,8 @@ class ContentArchiveReader
         $fields = explode($terminate, $line);
         foreach($fields as &$field)
         {
-            $field = str_replace("|-|-|", $enclosure, $field);
-            $field = str_replace("|+|+|", $terminate, $field);
+            if($enclosure) $field = str_replace("|-|-|", $enclosure, $field);
+            if($terminate) $field = str_replace("|+|+|", $terminate, $field);
         }
         return $fields;
     }

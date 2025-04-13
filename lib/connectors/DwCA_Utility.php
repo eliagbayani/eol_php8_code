@@ -5,6 +5,8 @@ Processes any DwCA archive file.
 Using the parentNameUsageID, generates a new DwCA with a new taxon column: http://rs.tdwg.org/dwc/terms/higherClassification
 User Warning: Undefined property `rights` on eol_schema\Taxon as defined by `http://rs.tdwg.org/dwc/xsd/tdwg_dwcterms.xsd` in /opt/homebrew/var/www/eol_php_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 168
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DwCA_Utility
 {
     function __construct($folder = NULL, $dwca_file = NULL, $params = array())
@@ -1208,7 +1210,7 @@ class DwCA_Utility
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
     }
-    function lookup_values_in_dwca($download_options = array("timeout" => 172800, 'expire_seconds' => 60*60*24*1), $params)
+    function lookup_values_in_dwca($download_options = array("timeout" => 172800, 'expire_seconds' => 60*60*24*1), $params = 'always_has_value')
     {
         if(!($info = self::start(false, $download_options))) return;
         $temp_dir = $info['temp_dir'];

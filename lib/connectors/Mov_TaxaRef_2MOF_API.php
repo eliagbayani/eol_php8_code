@@ -4,6 +4,8 @@ namespace php_active_record;
 1st client: mov_TaxaRef_toMOF.php (Brazilian Flora)
 2nd client: xxx.php
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class Mov_TaxaRef_2MOF_API
 {
     function __construct($archive_builder, $resource_id)

@@ -5,6 +5,8 @@ This lib basically combined DwCA's (.tar.gz) resources.
 First client is combining several wikipedia languages -> combine_wikipedia_DwCAs(). Started with languages "ta", "el", "ceb".
 2nd client is /connectors/wikipedia.php
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DwCA_Aggregator extends DwCA_Aggregator_Functions
 {
     function __construct($folder = NULL, $dwca_file = NULL, $DwCA_Type = 'wikipedia') //'wikipedia' is the first client of this lib.
@@ -125,7 +127,7 @@ class DwCA_Aggregator extends DwCA_Aggregator_Functions
         $this->archive_builder->finalize(TRUE);
         if($this->debug) print_r($this->debug);
     }
-    private function convert_archive($preferred_rowtypes = false, $dwca_file, $download_options = array('timeout' => 172800, 'expire_seconds' => 0))
+    private function convert_archive($preferred_rowtypes = false, $dwca_file = 'always_has_value', $download_options = array('timeout' => 172800, 'expire_seconds' => 0))
     {   /* param $preferred_rowtypes is the option to include-only those row_types you want on your final DwCA.*/
         echo "\nConverting archive to EOL DwCA [$dwca_file]...\n";
         $info = self::start($dwca_file, $download_options); //1 day expire -> 60*60*24*1

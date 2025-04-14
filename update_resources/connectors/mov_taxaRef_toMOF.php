@@ -21,7 +21,8 @@ if($resource_id == 'Brazilian_Flora') { // 1st client: Brazilian Flora: https://
     // /* 
     $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/BF.tar.gz'; //normal operation
     // $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/BF.tar.gz'; //during dev PHP 5.6.
-    // $dwca_file = 'http://host.docker.internal/eol_php_code/applications/content_server/resources_3/BF.tar.gz'; //during dev PHP 8.2.
+    // $dwca_file = 'http://host.docker.internal/eol_php_code/applications/content_server/resources_3/BF.tar.gz';  //during dev PHP 8.2. Works OK
+    // $dwca_file = 'http://localhost/eol_php8_code/applications/content_server/resources_3/BF.tar.gz';            //during dev PHP 8.2. Works OK
     // */
 }
 else exit("Resource ID not defined.");

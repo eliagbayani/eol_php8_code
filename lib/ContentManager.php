@@ -193,7 +193,8 @@ class ContentManager
     public static function enforce_extensions_for_type($temp_file_path_with_extension, $type)
     {
         $pathinfo = pathinfo($temp_file_path_with_extension);
-        $extension = strtolower(@$pathinfo['extension']);
+        if($val = @$pathinfo['extension']) $extension = strtolower($val);
+        else $extension = '';
         if(($type == 'image' && !in_array($extension, self::$valid_image_extensions)) ||
            ($type == 'video' && !in_array($extension, self::$valid_video_extensions)) ||
            ($type == 'sound' && !in_array($extension, self::$valid_sound_extensions)))

@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class ContentArchiveValidator
 {
     private $content_archive_reader;
@@ -367,7 +369,7 @@ class ContentArchiveValidator
 
     public static function is_utf8($v)
     {
-        $v = trim($v);
+        if($v) $v = trim($v);
         if(!$v) return true;
         $return = Functions::is_utf8($v);
         return $return;

@@ -58,9 +58,11 @@ class DarwinCoreExtensionBase
                 {
                     $success_or_error = $rule->validate($fields);
                 }
-                if(get_parent_class($success_or_error) == 'eol_schema\ContentArchiveErrorBase')
-                {
-                    $errors[] = $success_or_error;
+                if($success_or_error) {
+                    if(get_parent_class($success_or_error) == 'eol_schema\ContentArchiveErrorBase')
+                    {
+                        $errors[] = $success_or_error;
+                    }    
                 }
             }
         }

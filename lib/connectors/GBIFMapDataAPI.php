@@ -73,7 +73,7 @@ class GBIFMapDataAPI
         $this->auto_refresh_mapYN = false;  //use false for normal operation
         $this->use_API_not_CSV_YN_2025 = false;     //use false for normal operation
         $this->use_API_YN = false;     //use false for normal operation
-
+        $this->run_species_level = true;
     }
     private function initialize()
     {
@@ -404,18 +404,20 @@ class GBIFMapDataAPI
     {
         self::initialize();
         $this->func->use_API_YN = false; //no more API calls at this point. Since this is higher-level taxa now
+        $this->func->run_species_level = false;
         require_library('connectors/DHConnLib'); $func = new DHConnLib('');
         $paths = $this->csv_paths; 
         
-        /* for testing only - works OK
-        // $sciname = "Gadus";     $tc_id = "46564414";
+        /* ----- for testing only - works OK
+        $sciname = "Gadus";     $tc_id = "46564414";
         // $sciname = "Gadidae";   $tc_id = "5503";
+        // $sciname = 'Adlafia'; $tc_id = '12093';
         if($sciname && $tc_id) {
             $eol_taxon_id_list[$sciname] = $tc_id; print_r($eol_taxon_id_list); 
             $this->func->create_map_data_include_descendants($sciname, $tc_id, $paths, $func); //result of refactoring
             return;
         }
-        */
+        ----- */
         
         /* used FileIterator below instead, to save on memory
         $i = 0;
@@ -472,11 +474,46 @@ class GBIFMapDataAPI
             //  -------------------------------------------------------- */
 
             $first_char = substr($rec['canonicalName'],0,1);
-            if($ctr == 1) { if(in_array(strtolower($first_char), array('a', 'b', 'c', 'd', 'e'))) {} else continue; } //1
-            if($ctr == 2) { if(in_array(strtolower($first_char), array('f', 'g', 'h', 'i', 'j'))) {} else continue; } //2
-            if($ctr == 3) { if(in_array(strtolower($first_char), array('k', 'l', 'm', 'n', 'o'))) {} else continue; } //3
-            if($ctr == 4) { if(in_array(strtolower($first_char), array('p', 'q', 'r', 's', 't'))) {} else continue; } //4
-            if($ctr == 5) { if(in_array(strtolower($first_char), array('u', 'v', 'w', 'x', 'y', 'z'))) {} else continue; } //5
+            $first_2chars = substr($rec['canonicalName'],0,2);
+            
+            if($ctr == 1) { 
+                // if(in_array(strtolower($first_char), array('a'))) {} else continue; 
+                if(in_array(strtolower($first_2chars), array('aa', 'ab', 'ac', 'ad', 'ae', 'af', 'ag', 'ah', 'ai', 'aj', 'ak', 'al', 'am'))) {} else continue;  //1
+            } //1
+            if($ctr == 13) { 
+                if(in_array(strtolower($first_2chars), array('an', 'ao', 'ap', 'aq', 'ar', 'as', 'at', 'au', 'av', 'aw', 'ax', 'ay', 'az'))) {} else continue;  //1
+            } //1
+
+            if($ctr == 2) { if(in_array(strtolower($first_char), array('b'))) {} else continue; } //1
+            
+            if($ctr == 3) { 
+                if(in_array(strtolower($first_2chars), array('ca', 'cb', 'cc', 'cd', 'ce', 'cf', 'cg', 'ch', 'ci', 'cj', 'ck', 'cl', 'cm'))) {} else continue;  //1
+            } //1
+            if($ctr == 16) { 
+                if(in_array(strtolower($first_2chars), array('cn', 'co', 'cp', 'cq', 'cr', 'cs', 'ct', 'cu', 'cv', 'cw', 'cx', 'cy', 'cz'))) {} else continue;  //1
+            } //1
+
+            if($ctr == 14) { if(in_array(strtolower($first_char), array('d', 'e'))) {} else continue; } //1
+
+
+            if($ctr == 4) { if(in_array(strtolower($first_char), array('f', 'g'))) {} else continue; } //2
+            if($ctr == 5) { if(in_array(strtolower($first_char), array('h', 'i', 'j'))) {} else continue; } //2
+            if($ctr == 6) { if(in_array(strtolower($first_char), array('k', 'l'))) {} else continue; } //3
+
+            if($ctr == 7) { if(in_array(strtolower($first_char), array('m'))) {} else continue; } //3
+            if($ctr == 17) { if(in_array(strtolower($first_char), array('n', 'o'))) {} else continue; } //3
+
+            if($ctr == 8) { if(in_array(strtolower($first_char), array('p'))) {} else continue; } //4
+            if($ctr == 18) { if(in_array(strtolower($first_char), array('q'))) {} else continue; } //3
+
+            
+            if($ctr == 9) { if(in_array(strtolower($first_char), array('r'))) {} else continue; } //4
+            if($ctr == 15) { if(in_array(strtolower($first_char), array('s'))) {} else continue; } //4
+
+
+            if($ctr == 10) { if(in_array(strtolower($first_char), array('t'))) {} else continue; } //4
+            if($ctr == 11) { if(in_array(strtolower($first_char), array('u', 'v', 'w'))) {} else continue; } //5
+            if($ctr == 12) { if(in_array(strtolower($first_char), array('x', 'y', 'z'))) {} else continue; } //5
 
             echo "\n$i of . [".$rec['canonicalName']."][".$rec['EOLid']."]";
             $this->func->create_map_data_include_descendants($rec['canonicalName'], $rec['EOLid'], $paths, $func); //result of refactoring

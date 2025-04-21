@@ -302,6 +302,10 @@ class ContentManager
 
     public static function determine_file_suffix($file_path, $suffix)
     {
+        // echo "\n file_path: [$file_path]
+        //       \n suffix: [$suffix] 
+        //       \n FILE_BIN_PATH: [".FILE_BIN_PATH."]";
+
         // use the Unix/Linux `file` command to determine file type
         $stat = strtolower(shell_exec(FILE_BIN_PATH . " " . escapeshellarg($file_path)));
         $file_type = "";

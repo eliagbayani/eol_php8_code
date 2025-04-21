@@ -45,7 +45,7 @@ class FileIterator implements \Iterator
     #[\ReturnTypeWillChange]
     public function rewind()
     {
-        fseek($this->FILE, 0);
+        if($this->FILE) fseek($this->FILE, 0);
     }
     
     #[\ReturnTypeWillChange]

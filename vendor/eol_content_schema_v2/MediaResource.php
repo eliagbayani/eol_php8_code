@@ -180,10 +180,12 @@ class MediaResource extends DarwinCoreExtensionBase
 
     public static function valid_subject($v)
     {
-        if(preg_match("/^http:\/\/rs\.tdwg\.org\/ontology\/voc\/SPMInfoItems#(.*)$/i", $v, $arr)) $v = $arr[1];
-        elseif(preg_match("/^http:\/\/rs\.tdwg\.org\/pccore\/([a-z]+)$/i", $v, $arr)) $v = $arr[1];
-        elseif(preg_match("/^http:\/\/eol\.org\/schema\/eol_info_items\.xml#(.*)$/i", $v, $arr)) $v = $arr[1];
-        elseif(preg_match("/^http:\/\/www\.eol\.org\/voc\/table_of_contents#(.*)$/i", $v, $arr)) $v = $arr[1];
+        if($v) {
+            if(preg_match("/^http:\/\/rs\.tdwg\.org\/ontology\/voc\/SPMInfoItems#(.*)$/i", $v, $arr)) $v = $arr[1];
+            elseif(preg_match("/^http:\/\/rs\.tdwg\.org\/pccore\/([a-z]+)$/i", $v, $arr)) $v = $arr[1];
+            elseif(preg_match("/^http:\/\/eol\.org\/schema\/eol_info_items\.xml#(.*)$/i", $v, $arr)) $v = $arr[1];
+            elseif(preg_match("/^http:\/\/www\.eol\.org\/voc\/table_of_contents#(.*)$/i", $v, $arr)) $v = $arr[1];    
+        }
         if($v && !in_array(strtolower($v), array(
             'associations',
             'behaviour',

@@ -19,6 +19,7 @@ set_and_load_proper_environment($argv);
 if(!defined('PS_LITE_CMD')) define('PS_LITE_CMD', 'ps -eo uid,pid,ppid,stime,tty,time,command'); // No -f
 // if(!defined('WEB_ROOT')) define('WEB_ROOT', 'http://localhost/eol_php_code/');  // URL prefix of this installation
 if(!defined('WEB_ROOT')) define('WEB_ROOT', 'https://editors.eol.org/eol_php_code/');  // URL prefix of this installation
+// if(!defined('WEB_ROOT')) define('WEB_ROOT', 'https://localhost:81/eol_php8_code/');  // this is not needed for tools to work
 
 if(!defined('MYSQL_BIN_PATH')) define('MYSQL_BIN_PATH', 'mysql ');              // path to mysql binary. THE SPACE AT THE END IS IMPORTANT
 if(!defined('CONVERT_BIN_PATH')) define('CONVERT_BIN_PATH', 'convert');        // path to imagemagick convert binary

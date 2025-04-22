@@ -55,6 +55,11 @@ else exit("<hr>File missing or maybe too big for the system. Please browse a new
 if(Functions::is_production()) $for_DOC_ROOT =  '/var/www/html/eol_php_code/'; //'/html/eol_php_code/';
 else                           $for_DOC_ROOT = DOC_ROOT;
 
+/* good debug
+echo "<hr>DOC_ROOT: ".DOC_ROOT."<hr>";
+echo "<hr>for_DOC_ROOT: $for_DOC_ROOT<hr>"; //exit;
+*/
+
 $newfile = $for_DOC_ROOT . "applications/dwc_validator_jenkins/" . $newfile;
 // echo "<br>newfile: [$newfile]<br>"; exit;
 

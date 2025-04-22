@@ -55,15 +55,14 @@ class EOL_DH_API
                           'temp_dir' => '/opt/homebrew/var/www/eol_php_code/tmp/dir_86040/',
                           'tables' => Array('taxa' => 'taxa.txt'));
             */
-            $info = Array('archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_31008/',                             //for dhv21.zip
-                          'temp_dir'     => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_31008/',
-                          'tables'       => Array('taxa' => $filename));            
+            // $info = Array('archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_31008/',                             //for dhv21.zip
+            //               'temp_dir'     => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_31008/',
+            //               'tables'       => Array('taxa' => $filename));            
 
-            // if(!($info = self::extract_DH($filename))) {
-            //     exit("\nERROR: Cannot access DH file.\n");
-            //     return;
-            // }
-
+            if(!($info = self::extract_DH($filename))) {
+                exit("\nERROR: Cannot access DH file.\n");
+                return;
+            }
 
         }
         print_r($info); //exit;
@@ -170,10 +169,10 @@ class EOL_DH_API
         $this->DH_2_EOL[93302] = 6061725; //Biota - Cellular Organisms
         */
 
-        /* un-comment in real operation --- //remove temp dir
+        // /* un-comment in real operation --- //remove temp dir
         recursive_rmdir($info['temp_dir']);
         echo ("\n temporary directory removed: " . $info['temp_dir']);
-        */
+        // */
         echo "\nDynamic hierarchy ready OK.\n";
     }
     public function get_ancestry_via_DH($page_id, $landmark_only = true, $return_completeYN = false)

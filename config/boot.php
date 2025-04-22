@@ -139,35 +139,43 @@ function environment_defined($environment_name)
 
 function prepare_jenkins($argv, $root)
 {
+    echo 'Current PHP version: ' . phpversion()."<br>";
+    // echo "<hr>root 1: $root<hr>"; //debug only
     // print_r($argv); //good debug
     if($jenkins_or_cron = @$argv[1]) {
         // echo "\ngoes here 01\n";
         if($jenkins_or_cron == "jenkins") {
             // echo "\ngoes here 02\n";
-            if($root != "/opt/homebrew/var/www/eol_php_code/") { //means Jenkins in eol-archive is running
+            if(in_array($root, array('/opt/homebrew/var/www/eol_php_code/', '/var/www/html/eol_php8_code/'))) { //means Jenkins in Mac mini is running
+                // echo "\ngoes here 02.a\n";
+                $GLOBALS['ENV_NAME'] = 'jenkins_development';
+                $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/';   //for mac mini
+            }
+            else { //means Jenkins in eol-archive is running
                 // echo "\ngoes here 03\n";
                 $GLOBALS['ENV_NAME'] = 'jenkins_production';
                 // $cache_path = '/html/cache_LiteratureEditor/';  //for archive
                 // $root = '/html/eol_php_code/';
                 $cache_path = '/var/www/html/cache_LiteratureEditor/';  //for archive
                 $root = '/var/www/html/eol_php_code/';
-
-            }
-            else { //means Jenkins in Mac mini is running
-                $GLOBALS['ENV_NAME'] = 'jenkins_development';
-                $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/';   //for mac mini
             }
         }
         else { //means NOT Jenkins
-            if($root != "/opt/homebrew/var/www/eol_php_code/") $cache_path = '/var/www/html/cache_LiteratureEditor/';        //for archive
-            else                                                      $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+            if($root == '/var/www/html/eol_php8_code/')             $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+            elseif($root == '/opt/homebrew/var/www/eol_php_code/')  $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+            else                                                    $cache_path = '/var/www/html/cache_LiteratureEditor/';        //for archive
         }
     }
     else {
         // echo "\ngoes here 04\n"; //very good debug - to use when working with dwc_validator_jenkins
-        if($root != "/opt/homebrew/var/www/eol_php_code/") $cache_path = '/var/www/html/cache_LiteratureEditor/';        //for archive
-        else                                                      $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+        if($root == '/var/www/html/eol_php8_code/')             $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+        elseif($root == '/opt/homebrew/var/www/eol_php_code/')  $cache_path = '/Volumes/Crucial_2TB/cache_LiteratureEditor/'; //for mac mini
+        else                                                    $cache_path = '/var/www/html/cache_LiteratureEditor/';        //for archive
     }
+    /* good debug
+    echo "<hr>root 2: $root<hr>";
+    echo "<hr>cache_path: $cache_path<hr>";
+    */
     return array($root, $cache_path);
 }
 

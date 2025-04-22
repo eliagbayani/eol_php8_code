@@ -80,6 +80,7 @@ class dwc_validator_controller extends ControllerBase
                 )
                 */
                 self::show_results($final);
+                echo "\nwill unlink tmp file: ".$parameters['dwca_upload']['tmp_name']."\n";
                 unlink($parameters['dwca_upload']['tmp_name']);
                 return;
             }

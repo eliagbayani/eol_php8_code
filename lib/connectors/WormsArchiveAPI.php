@@ -906,11 +906,11 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 */
                 // /* new May 11, 2021
                 $term = @$field['term'];
-                $rec[$term] = @$tmp[$k];
+                $rec[$term] = @$tmp[$k] ? trim($tmp[$k]) : "";
                 $k++;
                 // */
             } // print_r($rec); exit;
-            if($rec) $rec = array_map('trim', $rec); //worked OK - important!
+            // if($rec) $rec = Functions::array_map_eol('trim', $rec); //worked OK - important!
 
             // /* Eli Dec 16. To remove 3 parentMoF without entry. From: https://editors.eol.org/eol_php_code/applications/content_server/resources/26_undefined_parentMeasurementIDs.txt
             $mID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];

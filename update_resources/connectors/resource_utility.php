@@ -226,7 +226,9 @@ if($resource_id == 'col_meta_recoded') ini_set('memory_limit','15096M'); //15096
 
 if($task == 'remove_taxa_without_MoF') {
     if(Functions::is_production()) $dwca_file = '/u/scripts/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-    else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
+    else {
+        $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
+    }
     // /* ---------- customize here ----------
     if($resource_id == '617_final') $resource_id = "wikipedia_en_traits";
     else exit("\nERROR: [$task] resource_id not yet initialized. Will terminate.\n");
@@ -336,11 +338,15 @@ elseif($task == 'metadata_recoding') {
 
     elseif($resource_id == '26_meta_recoded_1') { //task_45: statisticalMethod | measurementUnit
         if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/26.tar.gz";
-        else                            $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources_3/26.tar.gz";
+        else {
+            $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources_3/26.tar.gz";
+            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26.tar.gz";
+        }
+
     }
     elseif($resource_id == '26_meta_recoded') { //task_67: lifeStage | sex
         if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/26_meta_recoded_1.tar.gz";
-        else                            $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources_3/26_meta_recoded_1.tar.gz";
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_meta_recoded_1.tar.gz";
     }
 
     // /* Unrecognized_fields

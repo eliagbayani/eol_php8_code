@@ -2721,5 +2721,16 @@ class Functions
         }
         return $o;
     }
+    public static function array_map_eol($arr)
+    {
+        if(is_array($arr)) {
+            if($arr) {
+                $final = array();
+                foreach($arr as $key => $val) $final[$key] = $val ? trim($val) : "";
+                return $final;
+            }    
+        }
+        return $arr;
+    }
 }
 ?>

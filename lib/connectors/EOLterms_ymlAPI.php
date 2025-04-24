@@ -11,6 +11,8 @@ https://github.com/EOL/eol_terms/blob/main/resources/terms.yml
 3rd client: [WormsArchiveAPI]
 4th client*: [Trait spreadsheet to DwC-A Tool] -> [http://localhost/eol_php_code/applications/trait_data_import/] - DID NOT MATERIALIZE
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class EOLterms_ymlAPI
 {
     function __construct($archive_builder = false, $resource_id = false)

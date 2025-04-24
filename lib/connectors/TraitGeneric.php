@@ -18,6 +18,8 @@ minimum cols on a child record in MoF
 - MeasurementOfTaxon should be 'false' if to represent additional metadata. OBSOLETE
 -------------------------------------------------------------------------
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class TraitGeneric
 {
     function __construct($resource_id, $archive_builder, $is_long_type = true)

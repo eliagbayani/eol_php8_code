@@ -26,6 +26,8 @@ define("TROPICOS_IMAGE_LOCATION_LOW_BANDWIDTH", "http://www.tropicos.org/ImageSc
 define("TROPICOS_API_KEY", "2810ce68-f4cf-417c-b336-234bc8928390");
 define("TROPICOS_API_SERVICE", "http://services.tropicos.org/Name/");
 
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class TropicosArchiveAPI
 {
     function __construct($folder)

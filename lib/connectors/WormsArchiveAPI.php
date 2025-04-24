@@ -24,6 +24,8 @@ Connector downloads the archive file, extracts, reads it, assembles the data and
 http://www.marinespecies.org/rest/#/
 http://www.marinespecies.org/aphia.php?p=taxdetails&id=9
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class WormsArchiveAPI extends ContributorsMapAPI
 {
     function __construct($folder)
@@ -39,7 +41,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             if(Functions::ping_v2($url)) $this->dwca_file = $url;
             else                         $this->dwca_file = "https://editors.eol.org/other_files/WoRMS/WoRMS2EoL.zip";
         }
-        else                            $this->dwca_file = "http://localhost/cp/WORMS/WoRMS2EoL.zip";                            //local - when developing only
+        else                            $this->dwca_file = "http://host.docker.internal:81/cp/WORMS/WoRMS2EoL.zip";                            //local - when developing only
         //                              $this->dwca_file = "http://localhost/cp/WORMS/Archive.zip";                              //local subset copy
         
         $this->occurrence_ids = array();
@@ -908,7 +910,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $k++;
                 // */
             } // print_r($rec); exit;
-            $rec = array_map('trim', $rec); //worked OK - important!
+            if($rec) $rec = array_map('trim', $rec); //worked OK - important!
 
             // /* Eli Dec 16. To remove 3 parentMoF without entry. From: https://editors.eol.org/eol_php_code/applications/content_server/resources/26_undefined_parentMeasurementIDs.txt
             $mID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];

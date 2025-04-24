@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class Functions_Pensoft
 {
     function __construct() {}
@@ -84,7 +86,8 @@ class Functions_Pensoft
         // step 2: loop $mappings, search each uri
         $ret = array();
         foreach($mappings as $string => $uri) {
-            $arr = explode(":", $uri); // print_r($arr);
+            $arr = array();
+            if($uri) $arr = explode(":", $uri); // print_r($arr);
             $sub_uri = @$arr[1]; # '//www.wikidata.org/entity/Q11703'
             if($new_uri = @$info[$sub_uri]) $ret[$string] = $new_uri;
             else $ret[$string] = $uri;

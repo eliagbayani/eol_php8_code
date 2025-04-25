@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [708] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class EnvironmentsEOLDataConnector
 {
     function __construct($folder = null)

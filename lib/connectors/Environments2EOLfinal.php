@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from Environments2EOLAPI.php; from environments_2_eol.php for DATA-1851] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class Environments2EOLfinal extends ContributorsMapAPI
 {
     function __construct($archive_builder, $resource_id, $params = array())
@@ -23,7 +25,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
         */
         // /* NEW - Pensoft
         if(Functions::is_production()) $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/html/Pensoft_annotator/';
-        else                           $this->root_path = '/opt/homebrew/var/www/Pensoft_annotator/';
+        else                           $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/opt/homebrew/var/www/Pensoft_annotator/';
         
         if($resource_id == '617_ENV') {} //Wikipedia EN
         else { //rest of the resources
@@ -41,7 +43,10 @@ class Environments2EOLfinal extends ContributorsMapAPI
         
         // /* Utility: reports for WoRMS
         if(Functions::is_production()) $this->source_tsv = '/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv'; //'/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';
-        else                           $this->source_tsv = '/opt/homebrew/var/www/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';
+        else {
+            // $this->source_tsv = '/opt/homebrew/var/www/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';    //OBSOLETE only for PHP 5.6
+            $this->source_tsv = '/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';               //for PHP 8.2
+        }
         // */
     }
     function report_for_WoRMS() //https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65762&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65762

@@ -48,8 +48,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         else $this->includeOntologiesYN = true; //the rest
         // */
         
-        if(in_array($param['resource_id'], array('617_ENV', 'TreatmentBank_ENV'))) $this->modulo = 10000; //50000; //Wikipedia EN
-        else                                                                       $this->modulo = 1000;
+        if(in_array($param['resource_id'], array('617_ENV', 'TreatmentBank_ENV', '26_ENV'))) $this->modulo = 10000; //50000; //Wikipedia EN
+        else                                                                                 $this->modulo = 1000;
         /*-----------------------Resources-------------------*/
         // $this->DwCA_URLs['AmphibiaWeb text'] = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/21.tar.gz';
         /*-----------------------Subjects-------------------*/
@@ -68,8 +68,13 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         http://rs.tdwg.org/ontology/voc/SPMInfoItems#TaxonBiology: 447831
         */
         /*-----------------------Paths----------------------*/
+        // echo "<hr>DOC_ROOT: ".DOC_ROOT."<hr>"; exit;
         if(Functions::is_production()) $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/html/Pensoft_annotator/';
-        else                           $this->root_path = '/opt/homebrew/var/www/Pensoft_annotator/';
+        else {
+            // $this->root_path = '/opt/homebrew/var/www/Pensoft_annotator/';                               //obsolete - orig PHP 5.6
+            // $this->root_path = '/Volumes/Macintosh HD/opt/homebrew/var/www/Pensoft_annotator/';          //might work but not used
+            $this->root_path = '/var/www/html/Pensoft_annotator/';                                          //PHP 8.2
+        }
         
         if($this->param['resource_id'] == '617_ENV') {} //Wikipedia EN
         else { //rest of the resources

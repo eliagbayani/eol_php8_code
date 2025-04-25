@@ -27,7 +27,7 @@ $params                     = json_decode(@$argv[2], true);
 $resource_id = @$params['resource_id']; 
 
 if(Functions::is_production())  $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-else                            $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
+else                            $dwca_file = WEB_ROOT . '/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
 
 // /* ---------- CUSTOMIZE HERE: ----------
 if(in_array($resource_id, array('708'))) { //Environments EOL resource

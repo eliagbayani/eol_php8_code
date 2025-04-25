@@ -1,5 +1,5 @@
 <?php
-namespace php_active_record;
+namespace php_active_record; 
 /* This can be a template for any Delta resource, a means to hash identifiers (DATA-1903)
 
 php update_resources/connectors/make_hash_IDs_4Deltas.php _ '{"task": "", "resource":"Deltas_4hashing", "resource_id":"71"}' //Wikimedia commons
@@ -31,7 +31,7 @@ $resource = $param['resource'];
 echo "\n========== START hash identifiers ==========\n";
 if(in_array($resource_id, array("71", "15", "368_cleaned_MoF", "26_ENV_final", "globi_associations_final"))) {
     if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-    else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz'; //during dev only
+    else                           $dwca_file = WEB_ROOT . '/applications/content_server/resources_3/'.$resource_id.'.tar.gz'; //during dev only
 }
 else exit("\nNot yet initialized [$resource_id]\n");
 

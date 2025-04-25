@@ -1,7 +1,9 @@
 <?php
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from make_hash_IDs_4Deltas.php] */
-class DeltasHashIDsAPI
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
+class DeltasHashIDsAPI 
 {
     function __construct($archive_builder, $resource_id, $archive_path)
     {

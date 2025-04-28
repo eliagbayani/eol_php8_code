@@ -242,7 +242,7 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
     }
     //##################################### start DwCA process ###########################################################################################################################
     function breakdown_multimedia_to_gbifID_files()
-    {
+    {   return; //obsolete
         $path2 = $this->save_path['multimedia_gbifID'];
         if(Functions::is_production()) {
             $paths[] = "/extra/other_files/GBIF_occurrence/DwCA_Other7Groups/multimedia.txt";
@@ -755,7 +755,8 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
         }
         $final['count']  = count($final['records']);
         $final['actual'] = count($final['records']);
-        debug("\n: Found in API: " . $final['count'] . " -- ");
+        if($final['count'] > 0) debug("\n: Found in API: " . $final['count'] . " -- ");
+        else                    debug("\n: Nothing found in API -- ");
         self::if_needed_2cluster_orSave($final, $taxon_concept_id);
         return $final['count']; //only for stats report
     }

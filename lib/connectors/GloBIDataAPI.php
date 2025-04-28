@@ -801,7 +801,8 @@ class GloBIDataAPI extends Globi_Refuted_Records
 
             if($what == 'build info') {
                 $kingdom = $rec['http://rs.tdwg.org/dwc/terms/kingdom'];
-                if(isset($this->taxonIDS[$taxonID])) {
+                $val = @$this->taxonIDS[(string) $taxonID];
+                if($val) {
                     $this->taxonIDS[$taxonID]['kingdom'] = $kingdom;
                     $this->taxonIDS[$taxonID]['orig kingdom'] = $kingdom;
                     $this->taxonIDS[$taxonID]['sciname'] = (string) $rec['http://rs.tdwg.org/dwc/terms/scientificName'];
@@ -1034,8 +1035,8 @@ class GloBIDataAPI extends Globi_Refuted_Records
     private function get_taxon_kingdom_4occurID($targetORsource_OccurrenceID, $targetORsource) //targetOccurrenceID points to a taxon, then return its kingdom value
     {
         $taxonID = self::get_taxonID_given_occurID($targetORsource_OccurrenceID, $targetORsource);
-        $sciname = (string) @$this->taxonIDS[$taxonID]['sciname'];
-        $orig_sciname = $sciname;
+        $sciname = (string) @$this->taxonIDS[(string) $taxonID]['sciname'];
+        $orig_sciname = trim($sciname);
 
         $sciname = self::format_sciname($sciname); //manual cleaning
         

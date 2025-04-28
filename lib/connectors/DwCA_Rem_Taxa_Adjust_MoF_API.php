@@ -4,6 +4,8 @@ namespace php_active_record;
 1st client: treatmentbank_adjust.php
 2nd client: xxx.php
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DwCA_Rem_Taxa_Adjust_MoF_API
 {
     function __construct($archive_builder, $resource_id)

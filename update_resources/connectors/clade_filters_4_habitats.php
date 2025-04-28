@@ -22,7 +22,7 @@ $params                     = json_decode(@$argv[2], true);
 $resource_id = @$params['resource_id']; 
 
 if(Functions::is_production())  $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-else                            $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
+else                            $dwca_file = WEB_ROOT . '/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
 
 // /* ---------- CUSTOMIZE HERE: ----------
 if($resource_id == "TreatmentBank_adjustment_01") $resource_id = "TreatmentBank_adjustment_02";   //TreatmentBank between tasks

@@ -163,12 +163,11 @@ class TreatmentBankAPI
         debug("".$url."");
         $xml_string = Functions::lookup_with_cache($url, $this->download_TB_options);
         $hash = simplexml_load_string($xml_string); // print_r($hash); 
-        
-        if($hash{"docType"} == "treatment" && $hash{"masterDocId"} && $hash{"docLanguage"} == "en") {
-            // echo "\ndocType: [".$hash{"docType"}."]";
-            // echo "\nmasterDocId: [".$hash{"masterDocId"}."]\n";
+        if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {
+            // echo "\ndocType: [".$hash["docType"]."]";
+            // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
 
-            $masterDocId = (string) $hash{"masterDocId"};
+            $masterDocId = (string) $hash["masterDocId"];
             $this->stats['masterDocId'][$masterDocId] = '';
             // ---------------------
             $ret = self::generate_source_destination($masterDocId);
@@ -230,10 +229,10 @@ class TreatmentBankAPI
         $url = $xml->link.".xml"; // debug("".$url."");
         $xml_string = Functions::lookup_with_cache($url, $this->download_TB_options);
         $hash = simplexml_load_string($xml_string); // print_r($hash); 
-        if($hash{"docType"} == "treatment" && $hash{"masterDocId"} && $hash{"docLanguage"} == "en") {
-            // echo "\ndocType: [".$hash{"docType"}."]";
-            // echo "\nmasterDocId: [".$hash{"masterDocId"}."]\n";
-            $masterDocId = (string) $hash{"masterDocId"};
+        if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {
+            // echo "\ndocType: [".$hash["docType"]."]";
+            // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
+            $masterDocId = (string) $hash["masterDocId"];
             // ---------------------
             $ret = self::generate_source_destination($masterDocId);
             $source = $ret['source']; $destination = $ret['destination'];

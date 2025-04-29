@@ -25,7 +25,7 @@ class GloBIRefutedRecords
     }
     private function process_association($meta, $what)
     {   //print_r($meta);
-        echo "\nprocess_association [$what]\n";
+        echo "\nprocess_association BB [$what]\n";
         $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
@@ -57,9 +57,9 @@ class GloBIRefutedRecords
             $associationType = $rec['http://eol.org/schema/associationType'];
             $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
             $targetOccurrenceID = $rec['http://eol.org/schema/targetOccurrenceID'];
-            if($what == 'build info') {
-            }
+            if($what == 'build info') {}
             elseif($what == 'create extension') {}
+            // if($i > 1000) break; //debug only - during dev only
         }
     }
     private function process_occurrence($meta, $what)

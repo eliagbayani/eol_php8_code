@@ -246,7 +246,7 @@ class Globi_Refuted_Records
     private function write_report($rek)
     {
         $f = Functions::file_open($this->report['destination'], "a");
-        foreach($this->report['cols'] as $index) $arr[] = $rek[$index];
+        foreach($this->report['cols'] as $index) $arr[] = @$rek[$index];
         $row = implode("\t", $arr);
         fwrite($f, $row . "\n");
         fclose($f);

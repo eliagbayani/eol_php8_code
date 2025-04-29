@@ -112,8 +112,7 @@ class GloBIRefutedRecords
             )*/
             $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-            if($what == 'build info') {
-            }
+            if($what == 'build info') {}
             elseif($what == 'create extension') {}
             
             // if($i >= 10) break; //debug only

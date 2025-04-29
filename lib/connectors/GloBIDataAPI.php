@@ -1034,15 +1034,24 @@ class GloBIDataAPI extends Globi_Refuted_Records
     }
     private function get_taxon_kingdom_4occurID($targetORsource_OccurrenceID, $targetORsource) //targetOccurrenceID points to a taxon, then return its kingdom value
     {
-        $taxonID = self::get_taxonID_given_occurID($targetORsource_OccurrenceID, $targetORsource);
-        $sciname = (string) @$this->taxonIDS[(string) $taxonID]['sciname'];
-        $orig_sciname = trim($sciname);
-
-        $sciname = self::format_sciname($sciname); //manual cleaning
+        $sciname = '';
+        if($taxonID = self::get_taxonID_given_occurID($targetORsource_OccurrenceID, $targetORsource)) {
+            $taxonID = trim((string) $taxonID);
+            if($taxonID) {
+                // echo "\ntaxonID: [$taxonID]\n";
+                if($tmp = @$this->taxonIDS[$taxonID]) {
+                    $sciname = $tmp['sciname'];
+                    $orig_sciname = trim($sciname);
+                    $sciname = self::format_sciname($sciname); //manual cleaning            
+                }
+            }
+        }
         
         $return_kingdom = false;
         if($taxonID) {
-            if($kingdom = $this->taxonIDS[$taxonID]['kingdom']) $return_kingdom = $kingdom; // Animalia or Plantae
+            $kingdom = '';
+            if($tmp = @$this->taxonIDS[$taxonID]) $kingdom = @$tmp['kingdom'];
+            if($kingdom) $return_kingdom = $kingdom; // Animalia or Plantae
             elseif(in_array($taxonID, array('EOL:23306280', 'EOL:5051697', 'EOL:5536407', 'EOL:5231462', 'EOL:6922431', 'EOL:5540593', 'EOL_V2:5170411', 'EOL:107287', 
             'EOL_V2:5169796', 'EOL:2879598', 'IRMNG:11155392', 'EOL:5356331', 'EOL:703626', 'EOL:2865819', 'EOL_V2:5544078', 'EOL:5164786', 'EOL_V2:5426294', 
             'EOL:5024066', 'WD:Q5389420', 'EOL:29378842', 'EOL:40469587', 'EOL:71360', 'EOL:5744742', 'EOL:5631615', 'EOL_V2:6346627', 'EOL_V2:5350526', 'EOL_V2:5178076', 
@@ -1081,7 +1090,7 @@ class GloBIDataAPI extends Globi_Refuted_Records
             }
 
             if($return_kingdom) {
-                $this->taxonIDS[$taxonID]['kingdom'] = $return_kingdom;
+                if($tmp = @$this->taxonIDS[$taxonID]) $this->taxonIDS[$taxonID]['kingdom'] = $return_kingdom;
                 return $return_kingdom;
             }
             else $this->debug['does not have kingdom']['EOL GBIF INAT'][$taxonID][$sciname] = ''; // echo("\nInvestigate: this taxonID [$taxonID] does not have kingdom char\n");

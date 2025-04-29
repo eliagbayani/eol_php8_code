@@ -355,6 +355,12 @@ class Eol_v3_API
     {   if(!$options) {
             $options = $this->download_options;
         }
+        // /* new 2025
+        if($PagesX == 'Pages5') {
+            $options['download_attempts'] = 2;  //gives more chance to access
+            $options['delay_in_minutes'] = 2;   //gives a longer time to try again after failed attempt
+        }
+        // */
         $url = str_replace("EOL_PAGE_ID", $eol_page_id, $this->api[$PagesX]);
         if($json = Functions::lookup_with_cache($url, $options)) {
             $arr = json_decode($json, true);

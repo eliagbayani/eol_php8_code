@@ -103,22 +103,24 @@ class Globi_Refuted_Records
         $targetOccurrenceID = $rec['http://eol.org/schema/targetOccurrenceID'];
 
         if($source_taxonID = $this->occurrenceIDS[$occurrenceID]) {
-            $e['sourceTaxonId'] = $this->taxonIDS[$source_taxonID]['taxonID'];
-            $e['sourceTaxonName'] = $this->taxonIDS[$source_taxonID]['sciname'];
-            $e['sourceTaxonRank'] = $this->taxonIDS[$source_taxonID]['taxonRank'];
-            $e['sourceTaxonKingdomName'] = $this->taxonIDS[$source_taxonID]['kingdom'];
-            /* DATA-1862 start */
-            $e['refuted:sourceOccurrenceId'] = $occurrenceID;
-            $e['refuted:sourceTaxonId'] = $source_taxonID;
-            $e['refuted:sourceTaxonName'] = $this->taxonIDS[$source_taxonID]['sciname'];
-            $e['refuted:sourceTaxonRank'] = $this->taxonIDS[$source_taxonID]['taxonRank'];
-            $e['refuted:sourceTaxonGenusName'] = $this->taxonIDS[$source_taxonID]['genus'];
-            $e['refuted:sourceTaxonFamilyName'] = $this->taxonIDS[$source_taxonID]['family'];
-            $e['refuted:sourceTaxonOrderName'] = $this->taxonIDS[$source_taxonID]['order'];
-            $e['refuted:sourceTaxonClassName'] = $this->taxonIDS[$source_taxonID]['class'];
-            $e['refuted:sourceTaxonPhylumName'] = $this->taxonIDS[$source_taxonID]['phylum'];
-            $e['refuted:sourceTaxonKingdomName'] = @$this->taxonIDS[$source_taxonID]['orig kingdom'];
-            if($source_taxonID != $e['sourceTaxonId']) exit("\nThey should be the same 01\n"); //for checking only
+            if($tmp = @$this->taxonIDS[$source_taxonID]) {
+                $e['sourceTaxonId'] = $this->taxonIDS[$source_taxonID]['taxonID'];
+                $e['sourceTaxonName'] = $this->taxonIDS[$source_taxonID]['sciname'];
+                $e['sourceTaxonRank'] = $this->taxonIDS[$source_taxonID]['taxonRank'];
+                $e['sourceTaxonKingdomName'] = $this->taxonIDS[$source_taxonID]['kingdom'];
+                /* DATA-1862 start */
+                $e['refuted:sourceOccurrenceId'] = $occurrenceID;
+                $e['refuted:sourceTaxonId'] = $source_taxonID;
+                $e['refuted:sourceTaxonName'] = $this->taxonIDS[$source_taxonID]['sciname'];
+                $e['refuted:sourceTaxonRank'] = $this->taxonIDS[$source_taxonID]['taxonRank'];
+                $e['refuted:sourceTaxonGenusName'] = $this->taxonIDS[$source_taxonID]['genus'];
+                $e['refuted:sourceTaxonFamilyName'] = $this->taxonIDS[$source_taxonID]['family'];
+                $e['refuted:sourceTaxonOrderName'] = $this->taxonIDS[$source_taxonID]['order'];
+                $e['refuted:sourceTaxonClassName'] = $this->taxonIDS[$source_taxonID]['class'];
+                $e['refuted:sourceTaxonPhylumName'] = $this->taxonIDS[$source_taxonID]['phylum'];
+                $e['refuted:sourceTaxonKingdomName'] = @$this->taxonIDS[$source_taxonID]['orig kingdom'];
+                if($source_taxonID != $e['sourceTaxonId']) exit("\nThey should be the same 01\n"); //for checking only    
+            }
         }
         else {
             print_r($rec);
@@ -127,22 +129,24 @@ class Globi_Refuted_Records
         }
         
         if($target_taxonID = $this->targetOccurrenceIDS[$targetOccurrenceID]) {
-            $e['targetTaxonId'] = $this->taxonIDS[$target_taxonID]['taxonID'];
-            $e['targetTaxonName'] = $this->taxonIDS[$target_taxonID]['sciname'];
-            $e['targetTaxonRank'] = $this->taxonIDS[$target_taxonID]['taxonRank'];
-            $e['targetTaxonKingdomName'] = $this->taxonIDS[$target_taxonID]['kingdom'];
-            /* DATA-1862 start */
-            $e['refuted:targetOccurrenceId'] = $targetOccurrenceID;
-            $e['refuted:targetTaxonId'] = $target_taxonID;
-            $e['refuted:targetTaxonName'] = $this->taxonIDS[$target_taxonID]['sciname'];
-            $e['refuted:targetTaxonRank'] = $this->taxonIDS[$target_taxonID]['taxonRank'];
-            $e['refuted:targetTaxonGenusName'] = $this->taxonIDS[$target_taxonID]['genus'];
-            $e['refuted:targetTaxonFamilyName'] = $this->taxonIDS[$target_taxonID]['family'];
-            $e['refuted:targetTaxonOrderName'] = $this->taxonIDS[$target_taxonID]['order'];
-            $e['refuted:targetTaxonClassName'] = $this->taxonIDS[$target_taxonID]['class'];
-            $e['refuted:targetTaxonPhylumName'] = $this->taxonIDS[$target_taxonID]['phylum'];
-            $e['refuted:targetTaxonKingdomName'] = @$this->taxonIDS[$target_taxonID]['orig kingdom'];
-            if($target_taxonID != $e['targetTaxonId']) exit("\nThey should be the same 02\n"); //for checking only
+            if($tmp = @$this->taxonIDS[$target_taxonID]) {
+                $e['targetTaxonId'] = $this->taxonIDS[$target_taxonID]['taxonID'];
+                $e['targetTaxonName'] = $this->taxonIDS[$target_taxonID]['sciname'];
+                $e['targetTaxonRank'] = $this->taxonIDS[$target_taxonID]['taxonRank'];
+                $e['targetTaxonKingdomName'] = $this->taxonIDS[$target_taxonID]['kingdom'];
+                /* DATA-1862 start */
+                $e['refuted:targetOccurrenceId'] = $targetOccurrenceID;
+                $e['refuted:targetTaxonId'] = $target_taxonID;
+                $e['refuted:targetTaxonName'] = $this->taxonIDS[$target_taxonID]['sciname'];
+                $e['refuted:targetTaxonRank'] = $this->taxonIDS[$target_taxonID]['taxonRank'];
+                $e['refuted:targetTaxonGenusName'] = $this->taxonIDS[$target_taxonID]['genus'];
+                $e['refuted:targetTaxonFamilyName'] = $this->taxonIDS[$target_taxonID]['family'];
+                $e['refuted:targetTaxonOrderName'] = $this->taxonIDS[$target_taxonID]['order'];
+                $e['refuted:targetTaxonClassName'] = $this->taxonIDS[$target_taxonID]['class'];
+                $e['refuted:targetTaxonPhylumName'] = $this->taxonIDS[$target_taxonID]['phylum'];
+                $e['refuted:targetTaxonKingdomName'] = @$this->taxonIDS[$target_taxonID]['orig kingdom'];
+                if($target_taxonID != $e['targetTaxonId']) exit("\nThey should be the same 02\n"); //for checking only    
+            }
         }
         else {
             print_r($rec);

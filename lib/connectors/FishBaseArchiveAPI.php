@@ -79,7 +79,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
     function get_all_taxa($resource_id)
     {
         // /* contributor map
-        $options = array('cache' => 1, 'download_wait_time' => 500000, 'timeout' => 10800, 'expire_seconds' => 60);
+        $options = array('cache' => 1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'expire_seconds' => 60);
         $this->contributor_mappings = $this->get_contributor_mappings($resource_id, $options);
         // print_r($this->contributor_mappings);
         echo "\n contributor_mappings: ".count($this->contributor_mappings)."\n";

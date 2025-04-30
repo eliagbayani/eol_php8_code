@@ -7,6 +7,14 @@ They then zip these files and host it in their server.
 The connector in this page then reads this zip file, extracts, assembles the information and generate the EOL DWCA.
 FishBase contacts are: Skit Barile <j.barile@fin.ph> and Emily Capuli <e.capuli@fin.ph>
 */
+
+/* Replacement for utf8_encode() utf8_decode()
+https://php.watch/versions/8.2/utf8_encode-utf8_decode-deprecated
+https://github.com/symfony/polyfill-php72/blob/v1.26.0/Php72.php#L24-L38
+*/
+
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class FishBaseArchiveAPI extends ContributorsMapAPI 
 {
     public function __construct($test_run = false, $folder)
@@ -16,7 +24,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
         // $this->fishbase_data = "http://localhost/cp/FishBase/fishbase_in_folder.zip";
         // $this->fishbase_data = "http://localhost/cp/FishBase/fishbase_not_in_folder.zip";
         // $this->fishbase_data = "http://localhost/cp/FishBase/fishbase.zip";
-        $this->fishbase_data = "http://www.fishbase.us/FB_data_for_EOL/fishbase.zip"; //temporarily not available, until further notice by FishBase
+        $this->fishbase_data = "https://www.fishbase.us/FB_data_for_EOL/fishbase.zip"; //temporarily not available, until further notice by FishBase
         // $this->fishbase_data = "http://editors.eol.org/other_files/FishBase/fishbase.zip"; //given directly by FishBase staff and since they don't have hosting ability atm, we're hosting it.
         if($this->test_run) $this->fishbase_data = "http://dl.dropbox.com/u/7597512/FishBase/fishbase_not_in_folder.zip";
         $this->text_path = array();
@@ -36,6 +44,37 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
         $this->download_options = array('resource_id' => 42, 'timeout' => 172800, 'expire_seconds' => 60*60*24*45, 'download_wait_time' => 2000000); // expire_seconds = every 45 days in normal operation
         // $this->download_options['expire_seconds'] = false; //doesn't expire - debug
     }
+
+    function iso8859_1_to_utf8(string $s) {
+        // echo "\n[$s]\n";
+        return $s;
+        $s .= $s;
+        $len = \strlen($s);
+        for ($i = $len >> 1, $j = 0; $i < $len; ++$i, ++$j) {
+            switch (true) {
+                case $s[$i] < "\x80": $s[$j] = $s[$i]; break;
+                case $s[$i] < "\xC0": $s[$j] = "\xC2"; $s[++$j] = $s[$i]; break;
+                default: $s[$j] = "\xC3"; $s[++$j] = \chr(\ord($s[$i]) - 64); break;
+            }
+        }
+        echo "\n[".substr($s, 0, $j)."]\n";
+        return substr($s, 0, $j);
+    }    
+    /* To do: load this in application code, so utf8_encode() can still be used.
+    public static function utf8_encode($s)
+    {
+        $s .= $s;
+        $len = \strlen($s);
+        for ($i = $len >> 1, $j = 0; $i < $len; ++$i, ++$j) {
+            switch (true) {
+                case $s[$i] < "\x80": $s[$j] = $s[$i]; break;
+                case $s[$i] < "\xC0": $s[$j] = "\xC2"; $s[++$j] = $s[$i]; break;
+                default: $s[$j] = "\xC3"; $s[++$j] = \chr(\ord($s[$i]) - 64); break;
+            }
+        }
+        return substr($s, 0, $j);
+    }
+    */
 
     function get_all_taxa($resource_id)
     {
@@ -114,12 +153,14 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
     private function get_ref_details_from_fishbase_and_create_ref($ref_id)
     {
         $url = 'http://www.fishbase.org/references/FBRefSummary.php?ID=' . $ref_id;
-        if($html = Functions::lookup_with_cache($url, $this->download_options)) {
+        $options = $this->download_options;
+        $options['download_wait_time'] = 1000000;
+        if($html = Functions::lookup_with_cache($url, $options)) {
             if(preg_match("/Citation<\/td>(.*?)<\/td>/ims", $html, $arr)) {
                 $fb_full_ref = self::clean_html(strip_tags($arr[1]));
                 
                 $reference_ids = array();
-                if(!Functions::is_utf8($fb_full_ref)) $fb_full_ref = utf8_encode($fb_full_ref);
+                if(!Functions::is_utf8($fb_full_ref)) $fb_full_ref = self::iso8859_1_to_utf8($fb_full_ref);
                 
                 $r = new \eol_schema\Reference();
                 $r->full_reference = $fb_full_ref;
@@ -257,7 +298,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                 foreach($s as $key => $value) $s[$key] = str_replace("\N", "", $value);
                 $taxon = new \eol_schema\Taxon();
                 $taxon->taxonID             = md5($s['synonym']);
-                $taxon->scientificName      = utf8_encode($s['synonym']);
+                $taxon->scientificName      = self::iso8859_1_to_utf8($s['synonym']);
                 if($val = @$this->taxa_ids[$taxon_id]) $taxon->acceptedNameUsageID = $val;
                 else continue;
                 if($s['relationship'] == 'valid name') $s['relationship'] = 'synonym';
@@ -330,7 +371,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
         $reference_ids = array();
         foreach($refs as $ref) {
             foreach($ref as $key => $value) $ref[$key] = str_replace("\N", "", $value);
-            if(!Functions::is_utf8($ref['reference'])) $ref['reference'] = utf8_encode($ref['reference']);
+            if(!Functions::is_utf8($ref['reference'])) $ref['reference'] = self::iso8859_1_to_utf8($ref['reference']);
             $r = new \eol_schema\Reference();
             $r->full_reference = $ref['reference'];
             $r->identifier = md5($r->full_reference);
@@ -393,7 +434,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                 foreach($o as $key => $value) $o[$key] = str_replace("\N", "", $value);
                 if($val = @$this->taxa_ids[$taxon_id]) $taxonID = $val;
                 else continue;
-                $description = utf8_encode($o['dc_description']);
+                $description = self::iso8859_1_to_utf8($o['dc_description']);
                 
                 //for TraitBank
                 $rec = array();
@@ -568,7 +609,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                     $mr->title          = $o['dc_title'];
                     $mr->UsageTerms     = $o['license'];
                     // $mr->audience       = 'Everyone';
-                    $mr->description    = utf8_encode($o['dc_description']);
+                    $mr->description    = self::iso8859_1_to_utf8($o['dc_description']);
                     if(!Functions::is_utf8($mr->description)) continue;
                     $mr->LocationCreated = $o['location'];
                     $mr->bibliographicCitation = $o['dcterms_bibliographicCitation'];
@@ -764,7 +805,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
             $this->taxa_ids[$t['int_id']] = $t['dc_identifier'];
             $taxon = new \eol_schema\Taxon();
             $taxon->taxonID         = $t['dc_identifier'];
-            $taxon->scientificName  = utf8_encode($t['dwc_ScientificName']);
+            $taxon->scientificName  = self::iso8859_1_to_utf8($t['dwc_ScientificName']);
             $taxon->kingdom         = $t['dwc_Kingdom'];
             $taxon->phylum          = $t['dwc_Phylum'];
             $taxon->class           = $t['dwc_Class'];
@@ -842,14 +883,14 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
     function get_references($references)
     {
         // might need or not need this...
-        $ref = utf8_encode($reference['reference']);
+        $ref = self::iso8859_1_to_utf8($reference['reference']);
         if(Functions::is_utf8($ref)) $refs[] = array("url" => $reference['url'], "fullReference" => Functions::import_decode($ref));
     }
 
     function get_common_names($names)
     {
         // might need or not need this...
-        $common = utf8_encode($name['commonName']);
+        $common = self::iso8859_1_to_utf8($name['commonName']);
         if(Functions::is_utf8($common)) $arr_names[] = array("name" => Functions::import_decode($common), "language" => $name['xml_lang']);
     }
 

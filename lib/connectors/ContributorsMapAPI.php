@@ -40,7 +40,7 @@ class ContributorsMapAPI
                 if(!$line[0]) break;
                 $rec = array(); $k = 0;
                 foreach($fields as $fld) {
-                    $rec[$fld] = $line[$k]; $k++;
+                    $rec[$fld] = @$line[$k]; $k++;
                 }
                 $rec = array_map('trim', $rec);
                 // print_r($rec); exit;

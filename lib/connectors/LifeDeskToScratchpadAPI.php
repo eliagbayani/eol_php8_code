@@ -872,7 +872,7 @@ class LifeDeskToScratchpadAPI
         $agent_names = array();
         foreach($agents as $agent)
         {
-            if(is_numeric(stripos($agent{"role"}, $agent_type))) $agent_names[(string) $agent] = '';
+            if(is_numeric(stripos($agent["role"], $agent_type))) $agent_names[(string) $agent] = '';
         }
         return array_keys($agent_names);
     }

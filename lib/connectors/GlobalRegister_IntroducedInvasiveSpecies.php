@@ -7,6 +7,8 @@ wget -q http://api.gbif.org/v1/occurrence/download/request/0010139-1909181424343
 http://ipt.ala.org.au/
 http://ipt.ala.org.au/rss.do
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class GlobalRegister_IntroducedInvasiveSpecies
 {
     function __construct($resource_id, $makeDwCA = true)

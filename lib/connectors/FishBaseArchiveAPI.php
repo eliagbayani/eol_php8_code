@@ -155,6 +155,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
         $url = 'http://www.fishbase.org/references/FBRefSummary.php?ID=' . $ref_id;
         $options = $this->download_options;
         $options['download_wait_time'] = 1000000;
+        $options['expire_seconds'] = 60*60*24*30; //1 month
         if($html = Functions::lookup_with_cache($url, $options)) {
             if(preg_match("/Citation<\/td>(.*?)<\/td>/ims", $html, $arr)) {
                 $fb_full_ref = self::clean_html(strip_tags($arr[1]));
@@ -1016,7 +1017,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                     if($rec['value'] == "non-migratory")    $r['measurement'] = "http://www.owl-ontologies.com/unnamed.owl#MigratoryStatus";
                     else                                    $r['measurement'] = $this->uris['habitat'];
                     $measurement = $rec['value'];
-                    $r['value'] = $this->uris[$measurement];
+                    $r['value'] = @$this->uris[$measurement];
                     
                     if($r['value'] == "EXCLUDE") continue;
                     
@@ -1070,9 +1071,12 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
     
     private function get_range_unit($string)
     {
-        $arr = explode(" ", $string);
-        $char = $arr[count($arr)-1];
-        if(!is_numeric(substr($char,0,1)) && !in_array($char, array("?"))) return $char;
+        if($string) {
+            $arr = explode(" ", $string);
+            $char = $arr[count($arr)-1];
+            if(!is_numeric(substr($char,0,1)) && !in_array($char, array("?"))) return $char;
+            else return false;    
+        }
         else return false;
     }
     

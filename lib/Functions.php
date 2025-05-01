@@ -2607,7 +2607,12 @@ class Functions
             fwrite($WRITE, $topic."\n");
             if(is_array($arr)) {
                 foreach($arr as $subtopic => $arr2) {
-                    fwrite($WRITE, "----- ".$subtopic."  total: ".count($arr2)."\n");
+                    // /* new 2025
+                    $count_arr2 = 0;
+                    if($arr2 && is_array($arr2)) $count_arr2 = count($arr2);
+                    // if(!is_array($arr2)) echo "\narr2 not array: [$arr2]\n"; //good debug
+                    // */
+                    fwrite($WRITE, "----- ".$subtopic."  total: ".$count_arr2."\n");
                     if(is_array($arr2)) {
                         $arr2 = array_keys($arr2);
                         asort($arr2);

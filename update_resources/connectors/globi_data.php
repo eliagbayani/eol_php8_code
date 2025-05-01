@@ -420,9 +420,9 @@ else { //old - manually picked the URL
 }
 // */
 
-/* if u want to overwrite and run locally: only during dev
+/* dev only: if u want to overwrite and run locally: only during dev
 $dwca = 'http://localhost/cp/GloBI_2019/eol-globi-datasets-1.0-SNAPSHOT-darwin-core-aggregated.zip';
-$dwca = 'http://localhost/cp/GloBI_2019/eol-globi-datasets-1.1-SNAPSHOT-darwin-core-aggregated.zip';
+$dwca = 'http://host.docker.internal:81/cp/GloBI_2019/eol-globi-datasets-1.1-SNAPSHOT-darwin-core-aggregated.zip';
 */
 
 echo ("\nWill eventually proceed with this file: [$dwca]\n");
@@ -453,10 +453,11 @@ echo "\n-Eli stop muna-\n"; return;
 // /*
 $ret = run_utility($resource_id); //exit('stopx goes here...');
 recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH.$resource_id."/"); //we can now delete folder after run_utility() - DWCADiagnoseAPI
-if($ret['undefined source occurrence'] || $ret['undefined target occurrence']) { echo "\nStart fixing Associations...\n";
+if(@$ret['undefined source occurrence'] || @$ret['undefined target occurrence']) { echo "\nStart fixing Associations...\n";
 // */
     $resource_id = "globi_associations_final"; //DwCA with fixed Associations tab
-    $dwca = "https://editors.eol.org/eol_php_code/applications/content_server/resources/globi_associations.tar.gz";
+    if(Functions::is_production()) $dwca = "https://editors.eol.org/eol_php_code/applications/content_server/resources/globi_associations.tar.gz";
+    else                           $dwca = WEB_ROOT."/applications/content_server/resources_3/globi_associations.tar.gz";
     $func = new DwCA_Utility($resource_id, $dwca);
     $preferred_rowtypes = array();
     $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/occurrence', 'http://eol.org/schema/reference/reference');
@@ -481,8 +482,9 @@ function run_utility($resource_id)
     require_library('connectors/DWCADiagnoseAPI');
     $func = new DWCADiagnoseAPI();
     $ret = $func->check_if_source_and_taxon_in_associations_exist($resource_id, false, 'occurrence_specific.tab');
-    echo "\nundefined source occurrence [$resource_id]:" . count(@$ret['undefined source occurrence'])."\n";
-    echo "\nundefined target occurrence [$resource_id]:" . count(@$ret['undefined target occurrence'])."\n";
+    print_r($ret);
+    if($val = @$ret['undefined source occurrence']) echo "\nundefined source occurrence [$resource_id]:" . count($val)."\n";
+    if($val = @$ret['undefined target occurrence']) echo "\nundefined target occurrence [$resource_id]:" . count($val)."\n";
     return $ret;
     // ===================================== */
 }

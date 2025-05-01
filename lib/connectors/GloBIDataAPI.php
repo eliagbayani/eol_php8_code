@@ -184,11 +184,18 @@ class GloBIDataAPI extends Globi_Refuted_Records
     }
     private function process_association($meta, $what)
     {   //print_r($meta);
-        echo "\nprocess_association [$what]\n";
+        echo "\nprocess_association AA [$what]\n";
         $OR = self::get_orig_reverse_uri();
         $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
-            $i++; if(($i % 500000) == 0) echo "\n".number_format($i);
+            if($what == 'create extension') {
+                // $i++; if(($i % 200) == 0) echo "\n".number_format($i); //debug only
+                $i++; if(($i % 500000) == 0) echo "\n".number_format($i);
+            }
+            else {
+                $i++; if(($i % 500000) == 0) echo "\n".number_format($i);
+            }
+
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
             $row = Functions::conv_to_utf8($row); //possibly to fix special chars
@@ -265,6 +272,9 @@ class GloBIDataAPI extends Globi_Refuted_Records
                 }
             }
             elseif($what == 'create extension') { //process_association()
+
+                // if($i >= 5000) break; //debug only dev only continue;
+
                 /* first change request */
                 if(in_array($associationType, array('http://purl.obolibrary.org/obo/RO_0002437', 'http://purl.obolibrary.org/obo/RO_0002220', 
                                                     'http://purl.obolibrary.org/obo/RO_0002321', 'http://purl.obolibrary.org/obo/RO_0008506',
@@ -744,7 +754,7 @@ class GloBIDataAPI extends Globi_Refuted_Records
                 $this->taxonIDhasOccurrence[$taxonID] = ''; //so we can only create taxon with occurrence.
 
                 if(isset($this->toDeleteOccurrenceIDS_Jen[$occurrenceID])) continue; //Deliberately placed here so those taxa with the specified ranks can still be created in taxon.tab
-
+                
                 $o = new \eol_schema\Occurrence_specific();
                 $uris = array_keys($rec);
                 foreach($uris as $uri) {
@@ -753,7 +763,6 @@ class GloBIDataAPI extends Globi_Refuted_Records
                 }
                 $this->archive_builder->write_object_to_file($o);
             }
-            
             // if($i >= 10) break; //debug only
         }
     }

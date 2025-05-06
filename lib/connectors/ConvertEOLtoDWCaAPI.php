@@ -355,14 +355,14 @@ class ConvertEOLtoDWCaAPI
             if(!(string) $o) continue;
             /* orig
             $records[] = array("term_name"      => strip_tags((string) $o), 
-                               "agentRole"      => (string) $o{"role"}, 
+                               "agentRole"      => (string) $o["role"], 
                                "agentID"        => md5((string) $o), 
-                               "term_homepage"  => (string) @$o{"homepage"});
+                               "term_homepage"  => (string) @$o["homepage"]);
             */
             // /* NEW: Feb 21, 2022
             $arr = array("term_name"      => strip_tags((string) $o), 
-                         "agentRole"      => (string) $o{"role"}, 
-                         "term_homepage"  => (string) @$o{"homepage"});
+                         "agentRole"      => (string) $o["role"], 
+                         "term_homepage"  => (string) @$o["homepage"]);
             $agentID = md5($arr['term_name'].$arr['agentRole'].$arr['term_homepage']);
             $arr["agentID"] = $agentID;
             $records[] = $arr;
@@ -380,14 +380,14 @@ class ConvertEOLtoDWCaAPI
             
             $identifier = ''; $uri = '';
             if($params["dataset"] == "EOL China") {
-                $uri = (string) $o{"url"};
+                $uri = (string) $o["url"];
                 if(preg_match("/\{(.*?)\}/ims", $uri, $arr)) $identifier = $arr[1];
                 else echo("\n -- find or create your own ref identifier -- \n");
             }
             // elseif(in_array($params["dataset"], array("Pensoft XML files", "Amphibiaweb", "NMNH XML files"))) 
             else {
-                if($val = $o{'doi'}) $identifier = (string) $val;
-                if($val = $o{'uri'}) $uri = $val;
+                if($val = $o['doi']) $identifier = (string) $val;
+                if($val = $o['uri']) $uri = $val;
             }
 
             if(!$identifier) $identifier = md5($full_reference);
@@ -408,7 +408,7 @@ class ConvertEOLtoDWCaAPI
         foreach($objects as $o) {
             if(trim((string) $o)) { //needed validation for IUCN 211.php and NMNH XML resources
                 // print_r($o); //debug
-                $status = (string) @$o{"relationship"};
+                $status = (string) @$o["relationship"];
                 if(!$status) $status = 'synonym';
                 $records[] = array("scientificName" => (string) $o, "taxonomicStatus" => $status, 
                                    "taxonID" => str_replace(" ", "_", $o) ,"acceptedNameUsageID" => (string) $taxon_id);
@@ -425,7 +425,7 @@ class ConvertEOLtoDWCaAPI
         
         $records = array();
         foreach($objects as $o) {
-            $lang = trim((string) $o{"xml_lang"}); //not used anymore
+            $lang = trim((string) $o["xml_lang"]); //not used anymore
             $lang = @$o->attributes('xml', TRUE)->lang; //works OK
             
             // /* customize

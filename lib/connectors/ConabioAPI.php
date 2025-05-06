@@ -20,7 +20,11 @@ class ConabioAPI
     {
         if($resource_id == 100) $species_urls = self::get_CONABIO_species_urls();
         if($resource_id == 106) $species_urls = self::get_Tamborine_species_urls();
-        if(!$species_urls) return;
+        if(!$species_urls) {
+            echo "\nNo species URLs found.\n";
+            return;
+        }
+        else echo "\nSpecies URLs: [".count($species_urls)."]\n";
         debug("\n\n Start compiling all XML...");
         $old_resource_path = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".xml";
         if(!($OUT = Functions::file_open($old_resource_path, "w+"))) return;
@@ -37,34 +41,29 @@ class ConabioAPI
         fwrite($OUT, $str);
         $i = 0;
         $total = sizeof($species_urls);
-        foreach($species_urls as $filename)
-        {
+        foreach($species_urls as $filename) {
             $i++;
             if(($i % 500) == 0) print "\n $i of $total ";
-            if($contents = Functions::lookup_with_cache($filename, $this->download_options))
-            {
+            if($contents = Functions::lookup_with_cache($filename, $this->download_options)) {
                 // manual adjustments
                 $contents = str_ireplace("text/plain", "text/html", $contents); //for Conabio (resource_id = 100)
                 if($resource_id == 106) $contents = str_ireplace(array("*"), "", $contents); // tamborine mt.
                 if($resource_id == 100) $contents = str_ireplace("http://creativecommons.org/licenses/by-nc-sa/2.5/mx/", "http://creativecommons.org/licenses/by-nc-sa/2.5/", $contents); // conabio.
 
-                if($xml = simplexml_load_string($contents))
-                {
-                    if($contents)
-                    {
+                if($xml = simplexml_load_string($contents)) {
+                    if($contents) {
                         $pos1 = stripos($contents, "<taxon>");
                         $pos2 = stripos($contents, "</response>");
                         $str  = substr($contents, $pos1, $pos2-$pos1);
                         fwrite($OUT, $str);
                     }
                 }
-                else
-                {
+                else {
                     print "\n\n [$filename] - invalid XML \n\n";
                     continue;
                 }
             }
-            // if($i >= 5) break; //debug
+            if($i >= 5) break; //debug
         }
         fwrite($OUT, "</response>");
         fclose($OUT);

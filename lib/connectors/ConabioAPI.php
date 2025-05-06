@@ -7,7 +7,6 @@ Connector loops through the list XML and combines all individual taxon XML to ge
 */
 define("CONABIO_SPECIES_LIST", "http://conabioweb.conabio.gob.mx/xmleol/EolList.xml");
 define("TAMBORINE_SPECIES_LIST", "http://www.biodiversity.com.au/eol_xml/");
-
 class ConabioAPI
 {
     function __construct()
@@ -15,7 +14,6 @@ class ConabioAPI
         $this->download_options = array("download_wait_time" => 1000000, "timeout" => 3600, "delay_in_minutes" => 2);
         $this->download_options['expire_seconds'] = 60*60*24*30; //ideal is 1 month expiration //false - does not expire;
     }
-
     function combine_all_xmls($resource_id)
     {
         if($resource_id == 100) $species_urls = self::get_CONABIO_species_urls();
@@ -63,33 +61,27 @@ class ConabioAPI
                     continue;
                 }
             }
-            if($i >= 5) break; //debug
+            // if($i >= 5) break; //debug
         }
         fwrite($OUT, "</response>");
         fclose($OUT);
         print "\n All XML compiled\n -end-of-process- \n";
     }
-
     private function get_Tamborine_species_urls()
     {
         $species_urls = array();
-        if($contents = Functions::lookup_with_cache(TAMBORINE_SPECIES_LIST . "list.xml", $this->download_options))
-        {
-            if($xml = simplexml_load_string($contents))
-            {
+        if($contents = Functions::lookup_with_cache(TAMBORINE_SPECIES_LIST . "list.xml", $this->download_options)) {
+            if($xml = simplexml_load_string($contents)) {
                 foreach($xml->files->file as $file) $species_urls[] = TAMBORINE_SPECIES_LIST . $file;
             }
         }
         return $species_urls;
     }
-
     private function get_CONABIO_species_urls()
     {
         $species_urls = array();
-        if($contents = Functions::lookup_with_cache(CONABIO_SPECIES_LIST, $this->download_options))
-        {
-            if($xml = simplexml_load_string($contents))
-            {
+        if($contents = Functions::lookup_with_cache(CONABIO_SPECIES_LIST, $this->download_options)) {
+            if($xml = simplexml_load_string($contents)) {
                 foreach($xml->id as $url) $species_urls[] = $url;
             }
         }

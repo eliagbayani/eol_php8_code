@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 // connector: [lifedesk_export]
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class LifeDeskToScratchpadAPI
 {
     function __construct()

@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 // connector: [pbdb_fresh_harvest.php]
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class PaleoDBAPI_v2
 {
     function __construct($folder)
@@ -19,8 +21,9 @@ class PaleoDBAPI_v2
             $this->spreadsheet_mappings = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/PaleoDB/pbdb_mappings.xlsx";
         }
         else {
-            $this->service["taxon"] = "http://localhost/cp/PaleoDB/TRAM-746/alltaxa.json";
-            $this->spreadsheet_mappings = "http://localhost/cp_new/PaleoDB/pbdb_mappings.xlsx";
+            $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
+            $this->service["taxon"] = $localhost."/cp/PaleoDB/TRAM-746/alltaxa.json";
+            $this->spreadsheet_mappings = $localhost."/cp_new/PaleoDB/pbdb_mappings.xlsx";
         }
         
         $this->spreadsheet_options = array('resource_id' => $folder, 'cache' => 1, 'timeout' => 3600, 'file_extension' => "xlsx", 'download_attempts' => 2, 'delay_in_minutes' => 2); //set 'cache' to 0 if you don't want to cache spreadsheet
@@ -731,7 +734,10 @@ class PaleoDBAPI_v2
         $taxon->taxonomicStatus          = self::compute_taxonomicStatus($a);
         $this->debug['taxonomicStatus'][$taxon->taxonomicStatus] = '';
         $taxon->taxonID                  = self::compute_taxonID($a, $taxon->taxonomicStatus);
-        $taxon->scientificName           = $a[$this->map['scientificName']];
+        
+        if($val = @$this->map['scientificName']) $taxon->scientificName = $a[$val];
+        else return false;
+
         if(!$taxon->scientificName) return false;
         $taxon->scientificNameAuthorship = @$a[$this->map['scientificNameAuthorship']];
         $taxon->taxonRank                = self::compute_taxonRank($a);
@@ -808,7 +814,7 @@ class PaleoDBAPI_v2
     {
         if(!$var) return "";
         $temp = explode(":", $var);
-        return $temp[1];
+        return @$temp[1];
     }
     private function compute_taxonRank($a)
     {

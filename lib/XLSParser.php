@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class XLSParser
 {
     const SUBJECTS = "Associations,Behaviour,Biology,Conservation,ConservationStatus,Cyclicity,Cytology,Description,DiagnosticDescription,
@@ -413,10 +415,12 @@ class XLSParser
     
     function is_formula($cell)
     {
-        if(substr($cell, 0, 1) == "=")
-        {
-            /* to trap problems in a cell, display $cell here then exit */
-            return true;
+        if($cell) {
+            if(substr($cell, 0, 1) == "=") {
+                /* to trap problems in a cell, display $cell here then exit */
+                return true;
+            }
+            else return false;    
         }
         else return false;
     }
@@ -435,11 +439,11 @@ class XLSParser
     function fix_chars($s)
     {
         /*
-        $s = str_ireplace(utf8_decode('“'), "'", $s);
-        $s = str_ireplace(utf8_decode('”'), "'", $s);
-        $s = str_ireplace(utf8_decode('–'), "-", $s);
-        $s = str_ireplace(utf8_decode('’'), "'", $s);
-        $s = str_ireplace(utf8_decode('µ'), utf8_encode("&#181;"), $s);
+        $s = str_ireplace(utf8_decode('ï¿½'), "'", $s);
+        $s = str_ireplace(utf8_decode('ï¿½'), "'", $s);
+        $s = str_ireplace(utf8_decode('ï¿½'), "-", $s);
+        $s = str_ireplace(utf8_decode('ï¿½'), "'", $s);
+        $s = str_ireplace(utf8_decode('ï¿½'), utf8_encode("&#181;"), $s);
         */
         
         static $entities_to_decode = array("&nbsp;", "&iexcl;", "&cent;", "&pound;", "&curren;", "&yen;", "&brvbar;", "&sect;",

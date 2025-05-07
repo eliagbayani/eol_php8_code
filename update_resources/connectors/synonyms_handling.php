@@ -36,12 +36,12 @@ if(Functions::is_production()) {
     $info['368_final'] = array('dwca_file' => 'https://editors.eol.org/eol_php_code/applications/content_server/resources/368_removed_aves.tar.gz');
 }
 else {
-    $info[$resource_id] = array('dwca_file' => "http://localhost/eol_php_code/applications/content_server/resources/".$resource_id.".tar.gz");
+    $info[$resource_id] = array('dwca_file' => WEB_ROOT."/applications/content_server/resources_3/".$resource_id.".tar.gz");
     // -> above line is default, should go first
-    $info['itis_2019-08-28'] = array('dwca_file' => 'http://localhost/eol_php_code/applications/content_server/resources_2/itis_2019-08-28.tar.gz');
-    $info['itis_2020-07-28'] = array('dwca_file' => 'http://localhost/eol_php_code/applications/content_server/resources/itis_2020-07-28.tar.gz');
-    $info['itis_2020-12-01'] = array('dwca_file' => 'http://localhost/eol_php_code/applications/content_server/resources/itis_2020-12-01.tar.gz');
-    $info['368_final'] = array('dwca_file' => 'http://localhost/eol_php_code/applications/content_server/resources_2/368_removed_aves.tar.gz');
+    $info['itis_2019-08-28'] = array('dwca_file' => WEB_ROOT.'/applications/content_server/resources_3/itis_2019-08-28.tar.gz');
+    $info['itis_2020-07-28'] = array('dwca_file' => WEB_ROOT.'/applications/content_server/resources_3/itis_2020-07-28.tar.gz');
+    $info['itis_2020-12-01'] = array('dwca_file' => WEB_ROOT.'/applications/content_server/resources_3/itis_2020-12-01.tar.gz');
+    $info['368_final'] = array('dwca_file' => WEB_ROOT.'/applications/content_server/resources_3/368_removed_aves.tar.gz');
 }
 
 // /* customize here:

@@ -735,8 +735,8 @@ class PaleoDBAPI_v2
         $this->debug['taxonomicStatus'][$taxon->taxonomicStatus] = '';
         $taxon->taxonID                  = self::compute_taxonID($a, $taxon->taxonomicStatus);
         
-        if($val = @$this->map['scientificName']) $taxon->scientificName = $a[$val];
-        else return false;
+        $offset = @$this->map['scientificName'];
+        $taxon->scientificName = $a[$offset] ?? false;
 
         if(!$taxon->scientificName) return false;
         $taxon->scientificNameAuthorship = @$a[$this->map['scientificNameAuthorship']];
@@ -778,6 +778,11 @@ class PaleoDBAPI_v2
         // return $taxon->taxonID; //orig
         return array('taxonID' => $taxon->taxonID, 'phylum' => @$taxon->phylum);
     }
+    private function is_array_and_not_null($arr, $offset)
+    {
+        if(!is_null($arr) && is_array($arr) && isset($arr[$offset])) return $arr[$offset];
+        else return false; //"The given variable is not an array and contains a null value."
+    }
     private function compute_taxonID($a, $taxon_status)
     {
         /* ver 1 obsolete
@@ -800,7 +805,8 @@ class PaleoDBAPI_v2
 
         if($taxon_status == 'accepted') {
             if($acc = @$a['acc']) exit("\nShould not go here!\n");
-            return self::numerical_part($a['oid']);
+            if($val = @$a['oid']) return self::numerical_part($val);
+            return "";
         }
         if($acc = @$a['acc']) {
             $taxon_id = self::numerical_part($a['oid']);

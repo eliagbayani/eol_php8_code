@@ -18,8 +18,13 @@ $GLOBALS['ENV_DEBUG'] = true;
 $timestart = time_elapsed();
 $resource_id = 267;
 
-$xml_resource = "http://calphotos.berkeley.edu/eol.xml.gz";
-// $xml_resource = "http://localhost/cp/CalPhotos/eol.xml.gz"; //local debug only
+$xml_resource = "http://calphotos.berkeley.edu/eol.xml.gz"; //recently not accessible. Informed partner already.
+
+/* local only dev only --- works OK
+// $xml_resource = "http://localhost/cp/CalPhotos/eol.xml.gz"; //obsolete
+$localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
+$xml_resource = $localhost."/cp/CalPhotos/eol.xml.gz";
+*/
 
 $func = new INBioAPI();
 $info = $func->extract_archive_file($xml_resource, "eol.xml", array('timeout' => 172800, 'expire_seconds' => 60*60*24*5)); //expires in 5 days 432000

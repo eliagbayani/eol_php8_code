@@ -150,7 +150,7 @@ class SynonymsHandlingAPI //https://eol-jira.bibalex.org/browse/DATA-1822
                 }
             }
             elseif($rec['taxonRank'] == '') { //for rules 3 & 4
-                if($info = $this->taxonID_info[$rec['acceptedNameUsageID']]) {
+                if($info = @$this->taxonID_info[@$rec['acceptedNameUsageID']]) {
                     $ranks = array_merge(array('genus','subgenus'), $this->species_ranks);
                     if(in_array($info['r'], $ranks)) return $rec; //Ok
                     else return false;

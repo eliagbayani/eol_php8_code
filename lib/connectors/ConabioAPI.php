@@ -41,6 +41,9 @@ class ConabioAPI
         $total = sizeof($species_urls);
         foreach($species_urls as $filename) {
             $i++;
+            /* not found anymore. We can check everynow and then if needed.
+            if($filename == 'http://conabioweb.conabio.gob.mx/xmleol/XML_Habromys_simulatus.xml') continue;
+            */
             if(($i % 500) == 0) print "\n $i of $total ";
             if($contents = Functions::lookup_with_cache($filename, $this->download_options)) {
                 // manual adjustments

@@ -148,7 +148,9 @@ class NMNHTypeRecordAPI_v2
         // remove temp dir
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
-        echo "\n no taxonID for this occurrence: ".count(@$this->debug['no taxonID for this occurrence'])."\n";
+        if($val = @$this->debug['no taxonID for this occurrence']) $count = count($val);
+        else $count = 0;
+        echo "\n no taxonID for this occurrence: ".$count."\n";
         echo "\n".@$this->debug['no taxonID for this occurrence'][0];
         echo "\n".@$this->debug['no taxonID for this occurrence'][1];
         echo "\n".@$this->debug['no taxonID for this occurrence'][2]."\n";

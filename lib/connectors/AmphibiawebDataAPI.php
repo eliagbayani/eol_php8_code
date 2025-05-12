@@ -8,8 +8,7 @@ class AmphibiawebDataAPI
         $this->resource_id = $folder;
         $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
         $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));
-        $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
-        $this->strings_to_search = $localhost."/cp/Amphibiaweb/region strings for queries.txt";
+        $this->strings_to_search = LOCAL_HOST."/cp/Amphibiaweb/region strings for queries.txt";
         $this->strings_to_search = "http://opendata.eol.org/dataset/35d46a45-a330-4f09-810f-02d197a7d9fe/resource/1f3dad5e-3990-4e3c-a986-ef5e4062875d/download/region-strings-for-queries.txt";
         $this->pages['country records'] = 'http://amphibiaweb.org/cgi/amphib_query?rel-isocc=like&where-isocc=';                                            //e.g. China
         $this->pages['US state records'] = 'http://amphibiaweb.org/cgi/amphib_query?rel-state_code=like&where-state_code=';                                 //e.g. OK

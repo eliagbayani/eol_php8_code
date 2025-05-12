@@ -21,8 +21,7 @@ class AdwAPI
         $this->adw_page["contributor_galleries"] = $this->domain . "/collections/contributors/";
         $this->ranks = array("kingdom", "phylum", "class", "order", "family", "genus");
         $this->valid_licenses = array("http://creativecommons.org/licenses/by-nc-sa/3.0/", "http://creativecommons.org/licenses/by-sa/3.0/", "http://creativecommons.org/licenses/by-nc/3.0/", "http://creativecommons.org/licenses/by/3.0/", "http://creativecommons.org/licenses/publicdomain/", "http://creativecommons.org/licenses/by-nc/2.5/", "http://creativecommons.org/licenses/by-sa/2.5/");
-        $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
-        $this->uri_list = $localhost."/cp/ADW/for connector/ADW_measurements_values_list temp.txt";
+        $this->uri_list = LOCAL_HOST."/cp/ADW/for connector/ADW_measurements_values_list temp.txt";
         $this->object_ids = array();
         $this->dump_file = DOC_ROOT . "temp/adw_wrong_urls.txt";
         $this->debug = array();

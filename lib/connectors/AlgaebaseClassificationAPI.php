@@ -14,8 +14,7 @@ class AlgaebaseClassificationAPI
         $this->taxon_ids = array();
         $this->object_ids = array();
         $this->text_path = array();
-        $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
-        $this->zip_path = $localhost."/cp/AlgaeBase/AlgaebaseClassification.zip";
+        $this->zip_path = LOCAL_HOST."/cp/AlgaeBase/AlgaebaseClassification.zip";
         $this->zip_path = "http://opendata.eol.org/dataset/d810e6b8-60b7-4405-8351-8bb20f2ed0a0/resource/a18eadd3-5846-4c21-830f-8f6dd0560a0b/download/algaebaseclassification.zip";
         $this->taxon_link["genus"] = "http://www.algaebase.org/search/genus/detail/?genus_id=";
         $this->taxon_link["species"] = "http://www.algaebase.org/search/species/detail/?species_id=";

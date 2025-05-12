@@ -21,9 +21,8 @@ class PaleoDBAPI_v2
             $this->spreadsheet_mappings = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/PaleoDB/pbdb_mappings.xlsx";
         }
         else {
-            $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
-            $this->service["taxon"] = $localhost."/cp/PaleoDB/TRAM-746/alltaxa.json";
-            $this->spreadsheet_mappings = $localhost."/cp_new/PaleoDB/pbdb_mappings.xlsx";
+            $this->service["taxon"] = LOCAL_HOST."/cp/PaleoDB/TRAM-746/alltaxa.json";
+            $this->spreadsheet_mappings = LOCAL_HOST."/cp_new/PaleoDB/pbdb_mappings.xlsx";
         }
         
         $this->spreadsheet_options = array('resource_id' => $folder, 'cache' => 1, 'timeout' => 3600, 'file_extension' => "xlsx", 'download_attempts' => 2, 'delay_in_minutes' => 2); //set 'cache' to 0 if you don't want to cache spreadsheet

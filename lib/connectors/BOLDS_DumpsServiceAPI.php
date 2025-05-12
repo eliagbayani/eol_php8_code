@@ -39,9 +39,8 @@ class BOLDS_DumpsServiceAPI
         $this->temp_path = CONTENT_RESOURCE_LOCAL_PATH . "BOLDS_temp/";
         $this->cnt = 0;
         $this->with_parent_id = true; //true - will make it a point that every taxon has a parentNameUsageID
-        $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
         if(Functions::is_production()) $this->BOLDS_new_path = "https://editors.eol.org/eol_connector_data_files/BOLDS_new/";
-        else                           $this->BOLDS_new_path = $localhost."/cp/BOLDS_new/";
+        else                           $this->BOLDS_new_path = LOCAL_HOST."/cp/BOLDS_new/";
         $this->parents_without_entries_file	 = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/BOLDSystems/parents_without_entries.tsv";
     }
     function get_parents_without_entries()

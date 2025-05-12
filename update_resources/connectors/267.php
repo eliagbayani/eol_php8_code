@@ -22,8 +22,7 @@ $xml_resource = "http://calphotos.berkeley.edu/eol.xml.gz"; //recently not acces
 
 /* local only dev only --- works OK
 // $xml_resource = LOCAL_HOST."/cp/CalPhotos/eol.xml.gz"; //obsolete
-$localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
-$xml_resource = $localhost."/cp/CalPhotos/eol.xml.gz";
+$xml_resource = LOCAL_HOST."/cp/CalPhotos/eol.xml.gz";
 */
 
 $func = new INBioAPI();

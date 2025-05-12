@@ -77,11 +77,10 @@ if(Functions::is_production()) {
     $params["uri_file"]     = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/NMNH/type_specimen_resource/nmnh-mappings.xlsx";
 }
 else {
-    $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
-    $params["dwca_file"]    = $localhost."/cp_new/NMNH/type_specimen_resource/dwca-nmnhdwca.zip"; //obsolete
-    $params["dwca_file"]    = $localhost."/cp_new/NMNH/type_specimen_resource/dwca-nmnh_extant_dwc-a-v1.8.zip"; //latest as of 25-Oct-2017
-    $params["dwca_file"]    = $localhost."/cp_new/NMNH/type_specimen_resource/dwca-nmnh_extant_dwc-a-v1.10.zip"; //latest as of 03-Nov-2017
-    $params["uri_file"]     = $localhost."/cp_new/NMNH/type_specimen_resource/nmnh-mappings.xlsx"; //renamed; originally [nmnh mappings.xlsx]
+    $params["dwca_file"]    = LOCAL_HOST."/cp_new/NMNH/type_specimen_resource/dwca-nmnhdwca.zip"; //obsolete
+    $params["dwca_file"]    = LOCAL_HOST."/cp_new/NMNH/type_specimen_resource/dwca-nmnh_extant_dwc-a-v1.8.zip"; //latest as of 25-Oct-2017
+    $params["dwca_file"]    = LOCAL_HOST."/cp_new/NMNH/type_specimen_resource/dwca-nmnh_extant_dwc-a-v1.10.zip"; //latest as of 03-Nov-2017
+    $params["uri_file"]     = LOCAL_HOST."/cp_new/NMNH/type_specimen_resource/nmnh-mappings.xlsx"; //renamed; originally [nmnh mappings.xlsx]
 }
 
 $params["row_type"]     = "http://rs.tdwg.org/dwc/terms/occurrence";

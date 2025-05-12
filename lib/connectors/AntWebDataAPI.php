@@ -3,6 +3,8 @@ namespace php_active_record;
 /*  connector: [dwca_utility.php _ 24 | first run took: 4 hrs 57 mins] 
 This is run after 24.php
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class AntWebDataAPI
 {
     function __construct($taxon_ids, $archive_builder, $resource_id)

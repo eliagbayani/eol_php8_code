@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [24_new] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class AntWebAPI
 {
     public function __construct($folder)

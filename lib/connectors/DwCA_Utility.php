@@ -556,7 +556,7 @@ class DwCA_Utility
         foreach($lifedesks as $ld) //e.g. $ld = "LD_afrotropicalbirds" or "LD_afrotropicalbirds_multimedia"
         {
             $dwca_file = CONTENT_RESOURCE_LOCAL_PATH.$ld.".tar.gz";
-            // $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources/".$ld.".tar.gz";
+            // $dwca_file = WEB_ROOT."/applications/content_server/resources/".$ld.".tar.gz";
             echo "\nConverting multiple DwCA files [$ld] into one final DwCA...\n";
             $info = self::start($dwca_file);
             $temp_dir = $info['temp_dir'];

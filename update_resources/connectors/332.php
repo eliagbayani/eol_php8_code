@@ -19,7 +19,7 @@ $timestart = time_elapsed();
 $params["resource_id"] = 332;
 
 $params["process occurrence"] = false;
-$params["dwca_file"] = "http://localhost/cp/3IInteractive/DwCArchive_Cicadellinae.zip";
+$params["dwca_file"] = LOCAL_HOST."/cp/3IInteractive/DwCArchive_Cicadellinae.zip";
 $params["dwca_file"] = "http://dmitriev.speciesfile.org/Export/DwCArchive_Cicadellinae.zip";
 
 $func = new I3InteractiveAPI($params);

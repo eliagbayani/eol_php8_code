@@ -22,7 +22,7 @@ $used_taxa = array();
 $GLOBALS['cited_taxa_prefix'] = "http://invertebrates.si.edu/antiz/taxon_view.cfm?mode=bibliography&citation=";
 
 /*
-$reference_html = "http://localhost/eol_php_code/update_resources/connectors/files/AntarcticInvertebrates/bibliography.cfm.html";                       
+$reference_html = WEB_ROOT."/update_resources/connectors/files/AntarcticInvertebrates/bibliography.cfm.html";                       
 */
 $reference_html = "http://pandanus.eol.org/public/content_partners/AntarcticInvertebrates/bibliography.cfm.html";
 $arr = get_references($reference_html);

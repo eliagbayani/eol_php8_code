@@ -35,7 +35,7 @@ $lifedesks = array("echinoderms");                                              
 foreach($final as $ld) {
     $params[$ld]["remote"]["lifedesk"]      = "http://" . $ld . ".lifedesks.org/eol-partnership.xml.gz";
     $params[$ld]["remote"]["name"]          = $ld;
-    $params[$ld]["local"]["lifedesk"]       = "http://localhost/cp_new/LD2EOL/" . $ld . "/eol-partnership.xml.gz";
+    $params[$ld]["local"]["lifedesk"]       = LOCAL_HOST."/cp_new/LD2EOL/" . $ld . "/eol-partnership.xml.gz";
     $params[$ld]["local"]["lifedesk"]       = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/LD2EOL/$ld/eol-partnership.xml.gz";
     $params[$ld]["local"]["name"]           = $ld;
 }
@@ -80,7 +80,7 @@ echo "\nDone processing.\n";
 
 function convert_xml_2_dwca($resource_id)
 {
-    $params["eol_xml_file"] = "http://localhost/eol_php_code/applications/content_server/resources/".$resource_id.".xml"; //e.g. LD_afrotropicalbirds
+    $params["eol_xml_file"] = WEB_ROOT."/applications/content_server/resources/".$resource_id.".xml"; //e.g. LD_afrotropicalbirds
     $params["filename"]     = "no need to mention here.xml";
     $params["dataset"]      = "LifeDesk XML files";
     $params["resource_id"]  = $resource_id;

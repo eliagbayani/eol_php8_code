@@ -16,7 +16,7 @@ class FemoraleAPI
         $this->object_ids = array();
         $this->download_options = array('resource_id' => $this->resource_id, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'cache' => 1);
         $this->download_options['expire_seconds'] = false; //seems one-time harvest but it depends.
-        $this->url_path = "http://localhost/~eolit/cp_new/Femorale/";
+        $this->url_path = LOCAL_HOST."/cp_new/Femorale/";
         // $this->url_path = "https://dl.dropboxusercontent.com/u/7597512/Femorale/"; //obsolete
         $this->url_path = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Femorale/";
         $this->images_path = "http://www.femorale.com/shellphotos/detmore.asp?&localidade=&url=";

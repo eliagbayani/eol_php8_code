@@ -12,7 +12,7 @@ $resource_id = 39;
 require_library('ResourceDataObjectElementsSetting');
 // $resource_path = "http://project.macs.ualberta.ca/services/eol/data.xml.gz";
 // $resource_path = "https://dl.dropboxusercontent.com/u/7597512/UnivAlberta/data.xml.gz";
-// $resource_path = "http://localhost/cp/UnivAlberta/data.xml.gz";
+// $resource_path = LOCAL_HOST."/cp/UnivAlberta/data.xml.gz";
 $resource_path = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/UnivAlberta/data.xml.gz";
 
 /*

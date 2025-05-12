@@ -22,11 +22,11 @@ $timestart = time_elapsed();
 
 $resource_id = 856;
 /* history:
-$params["dwca_file"] = "http://localhost/~eolit/cp/MexicanAmphibians/Mex_Amph.zip";                     // raw from Anne Thessen
-$params["dwca_file"] = "http://localhost/~eolit/cp/MexicanAmphibians/Mex_Amph/Archive.zip";             // adjusted meta XML
+$params["dwca_file"] = LOCAL_HOST."/cp/MexicanAmphibians/Mex_Amph.zip";                     // raw from Anne Thessen
+$params["dwca_file"] = LOCAL_HOST."/cp/MexicanAmphibians/Mex_Amph/Archive.zip";             // adjusted meta XML
 $params["dwca_file"] = "https://dl.dropboxusercontent.com/u/7597512/MexicanAmphibians/Archive.zip";
 */
-$params["dwca_file"] = "http://localhost/~eolit/cp/MexicanAmphibians/877.zip";                          //new resource from Anne
+$params["dwca_file"] = LOCAL_HOST."/cp/MexicanAmphibians/877.zip";                          //new resource from Anne
 $params["dwca_file"] = "https://dl.dropboxusercontent.com/u/7597512/MexicanAmphibians/877.zip";
 
 $func = new MexicanAmphibiansAPI($resource_id, $params);

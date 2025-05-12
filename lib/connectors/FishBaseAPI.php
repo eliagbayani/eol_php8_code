@@ -14,10 +14,10 @@ class FishBaseAPI
     public function __construct($test_run = false)
     {
         $this->test_run = $test_run;
-        // $this->fishbase_data = "http://localhost/~eolit/cp/FishBase/fishbase_in_folder.zip";
-        // $this->fishbase_data = "http://localhost/~eolit/cp/FishBase/fishbase_not_in_folder.zip";
-        // $this->fishbase_data = "http://localhost/~eolit/mtce2/GenerateEOLdata_from_stacy/GenerateEOLdata/txt/Archive.zip";
-        // $this->fishbase_data = "http://localhost/~eolit/cp/FishBase/fishbase.zip";
+        // $this->fishbase_data = LOCAL_HOST."/cp/FishBase/fishbase_in_folder.zip";
+        // $this->fishbase_data = LOCAL_HOST."/cp/FishBase/fishbase_not_in_folder.zip";
+        // $this->fishbase_data = LOCAL_HOST."/mtce2/GenerateEOLdata_from_stacy/GenerateEOLdata/txt/Archive.zip";
+        // $this->fishbase_data = LOCAL_HOST."/cp/FishBase/fishbase.zip";
         $this->fishbase_data = "http://www.fishbase.us/FB_data_for_EOL/fishbase.zip";
         if($this->test_run) $this->fishbase_data = "http://dl.dropbox.com/u/7597512/FishBase/fishbase_not_in_folder.zip";
         $this->TAXON_PATH                       = "";

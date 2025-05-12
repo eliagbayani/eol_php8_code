@@ -19,8 +19,8 @@ class MCZHarvardArchiveAPI
         $this->first40k = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/MCZ/First40k.txt";
 
         /* 
-        $this->dwca_file = "http://localhost/cp_new/MCZ/dwca-mcz_for_eol.zip";
-        $this->first40k  = "http://localhost/cp_new/MCZ/First40k.txt";
+        $this->dwca_file = LOCAL_HOST."/cp_new/MCZ/dwca-mcz_for_eol.zip";
+        $this->first40k  = LOCAL_HOST."/cp_new/MCZ/First40k.txt";
         */
         $this->occurrence_ids = array();
         $this->types = array(); // for stats
@@ -233,7 +233,7 @@ class MCZHarvardArchiveAPI
     private function get_uris()
     {
         /*
-        $spreadsheet = "http://localhost/cp_new/NMNH/type_specimen_resource/nmnh-mappings.xlsx"; //a good source of typeStatus URI's
+        $spreadsheet = LOCAL_HOST."/cp_new/NMNH/type_specimen_resource/nmnh-mappings.xlsx"; //a good source of typeStatus URI's
         $spreadsheet = "https://dl.dropboxusercontent.com/u/7597512/NMNH/type_specimen_resource/nmnh mappings.xlsx";
         */
         $spreadsheet  = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/NMNH/type_specimen_resource/nmnh-mappings.xlsx";
@@ -320,7 +320,7 @@ class MCZHarvardArchiveAPI
     {
         require_library('connectors/BOLDSysAPI');
         $func = new BOLDSysAPI();
-        $source = "http://localhost/eol_php_code/update_resources/connectors/files/MCZ_Harvard/MCZimages_still40k.tsv";
+        $source = WEB_ROOT."/update_resources/connectors/files/MCZ_Harvard/MCZimages_still40k.tsv";
         $destination = DOC_ROOT .                         "/update_resources/connectors/files/MCZ_Harvard/First40k.txt";
         if($temp_filepath = Functions::save_remote_file_to_local($source, array('timeout' => 4800, 'download_attempts' => 2))) {
             $records = array();

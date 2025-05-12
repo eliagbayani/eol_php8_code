@@ -17,14 +17,14 @@ class RotifersTypeSpecimenAPI
         $this->occurrence_ids = array();
         $this->specimen_page_by_guid = "http://rotifera.hausdernatur.at/Specimen/Index/";
         $this->species_page_by_guid  = "http://rotifera.hausdernatur.at/Species/Index/";
-        $this->zip_path = "http://localhost/cp_new/Rotifers/type_specimen.zip";
+        $this->zip_path = LOCAL_HOST."/cp_new/Rotifers/type_specimen.zip";
         $this->zip_path = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Rotifers/type_specimen.zip";
         $this->text_path = array();
         $this->identified_by = array();
         $this->habitats = array();
         $this->institution_codes = array();
         $this->download_options = array('download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 2); //5 mins timeout
-        $this->institutions_xls = "http://localhost/cp_new/Rotifers/World_Rotifer_institutionsURIS.xls";
+        $this->institutions_xls = LOCAL_HOST."/cp_new/Rotifers/World_Rotifer_institutionsURIS.xls";
         $this->institutions_xls = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Rotifers/World_Rotifer_institutionsURIS.xls";
     }
     function get_all_taxa()

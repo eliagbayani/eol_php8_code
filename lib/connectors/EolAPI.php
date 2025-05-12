@@ -132,7 +132,7 @@ class EolAPI
         // */
         //---------------------------------------------------------------------------------------------------------------------------------------------
         /* has not run yet in eol-archive Jenkins
-        $doc = "http://localhost/eol_php_code/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx";
+        $doc = WEB_ROOT."/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx";
         self::process_hotlist_spreadsheet($doc); return;             //make use of hot list spreadsheet from SPG
         */
         //---------------------------------------------------------------------------------------------------------------------------------------------

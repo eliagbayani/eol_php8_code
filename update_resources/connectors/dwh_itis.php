@@ -86,10 +86,10 @@ $allNodesYN = $param['allNodesYN'];
 
 if(Functions::is_production()) $dwca_file = "https://www.itis.gov/downloads/itisMySQLTables.tar.gz";
 else { // to be manually filled on-demand
-    $dwca_file = "http://localhost/cp/ITIS_DWH/2019-02-25/itisMySQLTables.tar.gz";
-    $dwca_file = "http://localhost/cp/ITIS_DWH/2020-07-28/itisMySQLTables.tar.gz";
-    $dwca_file = "http://localhost/cp/ITIS_DWH/2020-12-01/itisMySQLTables.tar.gz";
-    $dwca_file = "http://localhost/cp/ITIS_DWH/2022-02-28/itisMySQLTables.tar.gz";
+    $dwca_file = LOCAL_HOST."/cp/ITIS_DWH/2019-02-25/itisMySQLTables.tar.gz";
+    $dwca_file = LOCAL_HOST."/cp/ITIS_DWH/2020-07-28/itisMySQLTables.tar.gz";
+    $dwca_file = LOCAL_HOST."/cp/ITIS_DWH/2020-12-01/itisMySQLTables.tar.gz";
+    $dwca_file = LOCAL_HOST."/cp/ITIS_DWH/2022-02-28/itisMySQLTables.tar.gz";
 }
 /* old implementation
 $resource_id = "itis_2019-02-25";

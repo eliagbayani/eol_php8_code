@@ -242,7 +242,7 @@ elseif($task == 'add_canonical_in_taxa') {
     if($resource_id == 'WoRMS2EoL_zip') {
         if(Functions::is_production())  $dwca_file = "https://editors.eol.org/other_files/WoRMS/WoRMS2EoL.zip";
                                         // $dwca_file = "http://www.marinespecies.org/export/eol/WoRMS2EoL.zip";
-        else                            $dwca_file = "http://localhost/cp/WORMS/WoRMS2EoL.zip";
+        else                            $dwca_file = LOCAL_HOST."/cp/WORMS/WoRMS2EoL.zip";
     }
     else exit("\nERROR: [$task] resource_id not yet initialized. Will terminate.\n");
 }

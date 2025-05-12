@@ -73,7 +73,7 @@ class NCBIGGIqueryAPI
 
         /* obsolete, no longer used
         // local
-        $this->families_list = "http://localhost/cp/NCBIGGI/falo2.in";
+        $this->families_list = LOCAL_HOST."/cp/NCBIGGI/falo2.in";
         $this->families_list = "https://dl.dropboxusercontent.com/u/7597512/NCBI_GGI/falo2.in";
         */
 
@@ -1084,7 +1084,7 @@ however, journal publishers or authors may. NLM provides no legal advice concern
         require_library('XLSParser');
         $parser = new XLSParser();
         $families = array();
-        $dropbox_xlsx[] = "http://localhost/cp/NCBIGGI/missing from GBIF.xlsx";
+        $dropbox_xlsx[] = LOCAL_HOST."/cp/NCBIGGI/missing from GBIF.xlsx";
         foreach($dropbox_xlsx as $doc) {
             echo "\n processing [$doc]...\n";
             if($path = Functions::save_remote_file_to_local($doc, array("timeout" => 3600, "file_extension" => "xlsx", 'download_attempts' => 2, 'delay_in_minutes' => 2))) {
@@ -1191,7 +1191,7 @@ however, journal publishers or authors may. NLM provides no legal advice concern
         require_library('XLSParser');
         $parser = new XLSParser();
         $families = array();
-        $excel = "http://localhost/cp/GGI/FamNamesForEli.xlsx";
+        $excel = LOCAL_HOST."/cp/GGI/FamNamesForEli.xlsx";
         echo "\n processing [$excel]...\n";
         if($path = Functions::save_remote_file_to_local($excel, array("timeout" => 3600, "file_extension" => "xlsx", 'download_attempts' => 2, 'delay_in_minutes' => 2, 'cache' => 1))) {
             $arr = $parser->convert_sheet_to_array($path);
@@ -1213,8 +1213,8 @@ however, journal publishers or authors may. NLM provides no legal advice concern
         $fields = array("SpK", "K", "SbK", "IK", "SpP", "P", "SbP", "IP", "PvP", "SpC", "C", "SbC", "IC", "SpO", "O");
 
         // $dropbox_xlsx[] = "http://tiny.cc/FALO"; // from Cyndy's Dropbox
-        // $dropbox_xlsx[] = "http://localhost/cp/NCBIGGI/FALO.xlsx"; // local
-        // $dropbox_xlsx[] = "http://localhost/cp/NCBIGGI/ALF2015.xlsx"; // local
+        // $dropbox_xlsx[] = LOCAL_HOST."/cp/NCBIGGI/FALO.xlsx"; // local
+        // $dropbox_xlsx[] = LOCAL_HOST."/cp/NCBIGGI/ALF2015.xlsx"; // local
         $dropbox_xlsx[] = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/NCBIGGI/ALF2015.xlsx"; //used in normal operation
 
         foreach($dropbox_xlsx as $doc) {

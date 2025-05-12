@@ -59,7 +59,7 @@ if( ($val = $cmdline_params['resource_id']) && ($cmdline_params['resource_id'] !
     elseif($resource_id == 1023) $params['spreadsheet'] = "http://opendata.eol.org/dataset/d339b8df-a57f-4612-9dc5-c7963b50f4f4/resource/71d952ec-af42-40b2-b1a8-b4f8d56f6ad6/download/eastern-export.xlsx"; //Eastern US old fields plant traits
     elseif($resource_id == 985) $params['spreadsheet'] = "http://opendata.eol.org/dataset/f49ee7e9-65d4-4d00-af86-29ca98f83739/resource/c36f8fdb-750b-4301-ac3b-30c2e93a90b2/download/toxic-set-done.xlsx"; //Toxic
     //----------------------- start new below
-    elseif($resource_id == "x") $params['spreadsheet'] = "http://localhost/tests/aBrose%20et%20al.xlsx"; //Brose et al -- undefined columns, not working
+    elseif($resource_id == "x") $params['spreadsheet'] = LOCAL_HOST."/tests/aBrose%20et%20al.xlsx"; //Brose et al -- undefined columns, not working
 
     elseif($resource_id == 'NMNHPlantGrowthFormData') $params['spreadsheet'] = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/spreadsheet_resources/NMNHPlantGrowthFormData.xlsx"; //from Katja
     
@@ -71,7 +71,7 @@ if( ($val = $cmdline_params['resource_id']) && ($cmdline_params['resource_id'] !
 }
 else //no resource_id
 {
-    $params['spreadsheet'] = "http://localhost/cp/spreadsheets/Arctic spreadsheets/alaskanarthropoda.xls";
+    $params['spreadsheet'] = LOCAL_HOST."/cp/spreadsheets/Arctic spreadsheets/alaskanarthropoda.xls";
     $resource_id = get_base_filename($params['spreadsheet']);
 
     if($val = $cmdline_params['spreadsheet']) {

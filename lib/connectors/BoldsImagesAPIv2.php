@@ -10,8 +10,8 @@ class BoldsImagesAPIv2
     {
         $this->max_images_per_taxon = 10;
         // $this->data_dump_url = "http://www.boldsystems.org/export/boldrecords.xml.gz"; --- obsolete, no longer being offered by partner.
-        $this->data_dump_url = "http://localhost/cp/BOLDS/boldrecords.xml.gz"; // debug
-        // $this->data_dump_url = "http://localhost/~eolit/cp/BOLDS/bolds_sample_data.xml.gz"; // debug
+        $this->data_dump_url = LOCAL_HOST."/cp/BOLDS/boldrecords.xml.gz"; // debug
+        // $this->data_dump_url = LOCAL_HOST."/cp/BOLDS/bolds_sample_data.xml.gz"; // debug
 
         $this->sourceURL = "http://www.boldsystems.org/index.php/Taxbrowser_Taxonpage?taxid=";
         $this->taxa = array();
@@ -24,7 +24,8 @@ class BoldsImagesAPIv2
         $this->do_ids = array();
 
         $this->old_bolds_image_ids_path = "http://opendata.eol.org/dataset/965c35fa-2a4a-487d-a92c-da86febbe6c0/resource/538d0ec1-ad74-4c92-9468-b71eee633e57/download/oldboldsimageids.txt"; // image IDs of the 1st BOLDS image resource
-        $this->old_bolds_image_ids_path = "http://localhost/cp/BOLDS/old_BOLDS_image_ids.txt"; // debug
+
+        $this->old_bolds_image_ids_path = LOCAL_HOST."/cp/BOLDS/old_BOLDS_image_ids.txt"; // debug
         $this->old_bolds_image_ids = array();
         $this->old_bolds_image_ids_count = 0;
         $this->info = array();

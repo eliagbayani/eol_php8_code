@@ -146,7 +146,7 @@ class NHMDataPortalAPI
 
     private function get_uris()
     {
-        $spreadsheet = "http://localhost/~eolit/cp/NMNH/type_specimen_resource/nmnh mappings.xlsx"; //a good source of typeStatus URI's
+        $spreadsheet = LOCAL_HOST."/cp/NMNH/type_specimen_resource/nmnh mappings.xlsx"; //a good source of typeStatus URI's
         $params["uri_file"] = $spreadsheet;
         $params["dataset"]  = "GBIF";
         require_library('connectors/GBIFCountryTypeRecordAPI');

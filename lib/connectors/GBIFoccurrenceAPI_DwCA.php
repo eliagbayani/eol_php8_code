@@ -1801,8 +1801,8 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
     {   require_library('XLSParser');
         $parser = new XLSParser();
         $families = array();
-        $doc = "http://localhost/eol_php_code/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx";
-        // $doc = "http://localhost/~eolit/eli/eol_php_code/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx"; //for MacBook
+        $doc = WEB_ROOT."/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx";
+        // $doc = LOCAL_HOST."/eli/eol_php_code/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx"; //for MacBook
         echo "\n processing [$doc]...\n";
         if($path = Functions::save_remote_file_to_local($doc, array("timeout" => 3600, "file_extension" => "xlsx", 'download_attempts' => 2, 'delay_in_minutes' => 2))) {
             $arr = $parser->convert_sheet_to_array($path);

@@ -11,10 +11,10 @@ class CephBaseAPI
         $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));
         $this->download_options = array('resource_id' => 'cephbase', 'timeout' => 60*5, 'expire_seconds' => false, 'download_wait_time' => 2000000);
 
-        $this->main_text_ver1 = "http://localhost/cp/CephBase/taxa_html.txt";
+        $this->main_text_ver1 = LOCAL_HOST."/cp/CephBase/taxa_html.txt";
         $this->main_text_ver1 = "https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/CephBase/taxa_html.txt";
         
-        $this->main_text_ver2 = "http://localhost/cp/CephBase/html/CephBase Classification | CephBase.html";
+        $this->main_text_ver2 = LOCAL_HOST."/cp/CephBase/html/CephBase Classification | CephBase.html";
         $this->main_text_ver2 = "https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/CephBase/CephBase Classification | CephBase.html";
         
         $this->page['Photos & Videos'] = "http://cephbase.eol.org/gallery?f[0]=tid%3A1";
@@ -22,7 +22,7 @@ class CephBaseAPI
         $this->page['image_page'] = "http://cephbase.eol.org/file-colorboxed/";                //add the file OR image no.
         $this->page['taxon_page'] = "http://cephbase.eol.org/taxonomy/term/";
         
-        $this->page['taxa_refs'] = "http://localhost/cp/CephBase/html/Literature References | CephBase.html";
+        $this->page['taxa_refs'] = LOCAL_HOST."/cp/CephBase/html/Literature References | CephBase.html";
         $this->page['taxa_refs'] = "https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/CephBase/Literature References | CephBase.html";
         
         $this->page['taxon_refs'] = "http://cephbase.eol.org/biblio?page=page_no&f[0]=im_field_taxonomic_name:"; //replace 'page_no' with actual page no. and add taxon_id

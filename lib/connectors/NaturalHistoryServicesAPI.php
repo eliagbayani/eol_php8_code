@@ -153,7 +153,7 @@ class NaturalHistoryServicesAPI
         require_library('XLSParser');
         $parser = new XLSParser();
 
-        // $spreadsheet = "http://localhost/cp_new/NaturalHistoryServices/Acknowledgments.xls";
+        // $spreadsheet = LOCAL_HOST."/cp_new/NaturalHistoryServices/Acknowledgments.xls";
         $spreadsheet = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/NaturalHistoryServices/Acknowledgments.xls";
         $temp = Functions::save_remote_file_to_local($spreadsheet, array('cache' => 1, 'download_wait_time' => 1000000, 'timeout' => 600, 'download_attempts' => 1, 'file_extension' => 'xls', 'expire_seconds' => false));
         $arr = $parser->convert_sheet_to_array($temp);

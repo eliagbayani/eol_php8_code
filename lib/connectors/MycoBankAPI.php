@@ -14,7 +14,7 @@ class MycoBankAPI
         $this->download_options = array('resource_id' => 671, 'download_wait_time' => 1000000, 'timeout' => 60*2, 'delay_in_minutes' => 1, 'expire_seconds' => 60*60*24*30*2); // 2 months expire_seconds
         // $this->download_options['expire_seconds'] = 0;
         
-        $this->zip_path = "http://localhost/cp/MycoBank/latest/MBList.zip"; //spreadsheet .xlsx in zip
+        $this->zip_path = LOCAL_HOST."/cp/MycoBank/latest/MBList.zip"; //spreadsheet .xlsx in zip
         $this->api['_id'] = "http://www.mycobank.org/Services/Generic/SearchService.svc/rest/xml?layout=14682616000000161&filter=_id=";
         $this->debug = array();
         /*

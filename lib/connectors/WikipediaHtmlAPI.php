@@ -70,7 +70,7 @@ class WikipediaHtmlAPI
             )*/
 
             if(Functions::is_production())  $path = "https://editors.eol.org/eol_php_code/applications/content_server/resources/reports/wikipedia_html/";
-            else                            $path = "http://localhost/eol_php_code/applications/content_server/resources_3/reports/wikipedia_html/";
+            else                            $path = WEB_ROOT."/applications/content_server/resources_3/reports/wikipedia_html/";
 
             $main_html = $dir."main.html";
 

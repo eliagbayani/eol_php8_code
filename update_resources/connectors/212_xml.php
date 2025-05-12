@@ -40,8 +40,8 @@ echo "\n elapsed time = " . $elapsed_time_sec/60/60 . " hours";
 echo "\n Done processing. \n";
 
 /* Stats yearly for Nathan W. and Gary B.
-$xml = "http://localhost/eol_php_code/applications/content_server/resources/212 copy.xml";
-$xml = "http://localhost/eol_php_code/applications/content_server/resources/212.xml";
+$xml = WEB_ROOT."/applications/content_server/resources/212 copy.xml";
+$xml = WEB_ROOT."/applications/content_server/resources/212.xml";
 $bolds->run_stats($xml);
 */
 

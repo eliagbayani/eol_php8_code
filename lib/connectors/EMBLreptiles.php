@@ -25,15 +25,15 @@ class EMBLreptiles
         $taxon_ref   = DOC_ROOT . "update_resources/connectors/files/EMBL/taxon_references.xls";
         */
         
-        $temp = "http://localhost/cp/EMBL/reptile_DB_small.xls"; // use this when testing
-        $temp = "http://localhost/cp/EMBL/reptile_DB.xls";       // use this in normal operation
+        $temp = LOCAL_HOST."/cp/EMBL/reptile_DB_small.xls"; // use this when testing
+        $temp = LOCAL_HOST."/cp/EMBL/reptile_DB.xls";       // use this in normal operation
         // $temp = "https://dl.dropboxusercontent.com/u/5763406/resources/306/reptile_DB.xls";
         $source_data = Functions::save_remote_file_to_local($temp, array("file_extension" => "xls", "cache" => 1, "expire_seconds" => false, "timeout" => 60*60)); //1hr timeout
 
         /* seems not being used at the moment
-        $temp = "http://localhost/cp/EMBL/references.xls";
+        $temp = LOCAL_HOST."/cp/EMBL/references.xls";
         $references = Functions::save_remote_file_to_local($temp, array("file_extension" => "xls", "cache" => 1));
-        $temp = "http://localhost/cp/EMBL/taxon_references.xls";
+        $temp = LOCAL_HOST."/cp/EMBL/taxon_references.xls";
         $taxon_ref_xls = Functions::save_remote_file_to_local($temp, array("file_extension" => "xls", "cache" => 1));
         */
         

@@ -12,8 +12,8 @@ $timestart = time_elapsed();
 
 /*
 //local - during development
-$params['Global reef fish dataset'] = "http://localhost/cp/FreshData/ReefLifeSurvey/M1_DATA.csv";
-$params['Invertebrates']            = "http://localhost/cp/FreshData/ReefLifeSurvey/M2_INVERT_DATA.csv";
+$params['Global reef fish dataset'] = LOCAL_HOST."/cp/FreshData/ReefLifeSurvey/M1_DATA.csv";
+$params['Invertebrates']            = LOCAL_HOST."/cp/FreshData/ReefLifeSurvey/M2_INVERT_DATA.csv";
 */
 
 // /*

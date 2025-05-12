@@ -20,11 +20,11 @@ class EOL_DH_API
 {
     function __construct()
     {   // for the longest time
-        $this->EOL_DH = "http://localhost/cp/summary%20data%20resources/DH/eoldynamichierarchywithlandmarks.zip";
+        $this->EOL_DH = LOCAL_HOST."/cp/summary%20data%20resources/DH/eoldynamichierarchywithlandmarks.zip";
 
         // as of Oct 16, 2024 from Katja:
         $this->EOL_DH = "https://editors.eol.org/uploaded_resources/1c3/b5f/dhv21.zip"; //works OK //main operation
-        // $this->EOL_DH = "http://localhost/other_files2/DH_working_2024/dhv21.zip";   //works OK //dev only
+        // $this->EOL_DH = LOCAL_HOST."/other_files2/DH_working_2024/dhv21.zip";   //works OK //dev only
     }
     private function extract_DH($filename)
     {

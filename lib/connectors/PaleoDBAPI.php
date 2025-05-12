@@ -22,13 +22,13 @@ class PaleoDBAPI
 
         /* paleobiodb.csv - old version, with just 32 cols
         // $this->service["taxon"] = "https://dl.dropboxusercontent.com/u/7597512/PaleoDB/paleobiodb.csv";
-        // $this->service["taxon"] = "http://localhost/cp/PaleoDB/paleobiodb_small.csv";
+        // $this->service["taxon"] = LOCAL_HOST."/cp/PaleoDB/paleobiodb_small.csv";
         */
         
         /* pbdb_taxa.csv - new version with 33 cols - working as of 11-Jul-2016
         // $this->service["taxon"] = "https://dl.dropboxusercontent.com/u/5763406/resources/PaleoDB/pbdb_taxa.csv";
-        $this->service["taxon"] = "http://localhost/cp/PaleoDB/pbdb_taxa.csv";
-        // $this->service["taxon"] = "http://localhost/cp/PaleoDB/pbdb_taxa_small.csv";
+        $this->service["taxon"] = LOCAL_HOST."/cp/PaleoDB/pbdb_taxa.csv";
+        // $this->service["taxon"] = LOCAL_HOST."/cp/PaleoDB/pbdb_taxa_small.csv";
         */
 
         $this->service["collection"] = "http://paleobiodb.org/data1.1/colls/list.csv?vocab=pbdb&limit=10&show=bin,attr,ref,loc,paleoloc,prot,time,strat,stratext,lith,lithext,geo,rem,ent,entname,crmod&taxon_name=";

@@ -19,7 +19,7 @@ class InvasiveSpeciesDataConnector
         $this->download_options = array('resource_id' => $folder, 'download_wait_time' => 1000000, 'timeout' => 60*2, 'download_attempts' => 1, 'cache' => 1); // 'expire_seconds' => 0
         $this->debug = array();
         // Global Invasive Species Database (GISD)
-        $this->taxa_list['GISD'] = "http://localhost/cp_new/GISD/export_gisd.csv";
+        $this->taxa_list['GISD'] = LOCAL_HOST."/cp_new/GISD/export_gisd.csv";
         $this->taxa_list['GISD'] = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/GISD/export_gisd.csv";
         $this->taxon_page['GISD'] = "http://www.iucngisd.org/gisd/speciesname/";
     }

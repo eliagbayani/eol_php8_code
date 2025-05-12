@@ -3,7 +3,7 @@ namespace php_active_record;
 // connector: [383]
 class ITISConnector
 {
-    // const DUMP_URL = "http://localhost/cp/ITIS/itisInformix.tar.gz";
+    // const DUMP_URL = LOCAL_HOST."/cp/ITIS/itisInformix.tar.gz";
     const DUMP_URL = "http://www.itis.gov/downloads/itisInformix.tar.gz";
     const ITIS_TAXON_PAGE = "http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=";
 

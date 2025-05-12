@@ -21,8 +21,8 @@ class ClementsAPIv2
     function get_all_taxa($data_dump_url = false)
     {
         $this->data_dump_url = self::get_dump_url();
-        // $this->data_dump_url = "http://localhost/~eolit/cp/Clements/Clements-Checklists-6.9-2014-fixed small.xlsx"; //debug
-        // $this->data_dump_url = "http://localhost/~eolit/cp/Clements/Clements-Checklists-6.9-2014-fixed.xlsx"; //debug
+        // $this->data_dump_url = LOCAL_HOST."/cp/Clements/Clements-Checklists-6.9-2014-fixed small.xlsx"; //debug
+        // $this->data_dump_url = LOCAL_HOST."/cp/Clements/Clements-Checklists-6.9-2014-fixed.xlsx"; //debug
 
         $records = self::parse_xls();
         $i = 0;

@@ -29,9 +29,9 @@ require_library('connectors/GBIFCountryTypeRecordAPI');
 $timestart = time_elapsed();
 
 /* local
-$params["citation_file"] = "http://localhost/cp_new/GBIF_dwca/countries/Sweden/Citation mapping Sweden.xlsx";
-$params["dwca_file"]    = "http://localhost/cp_new/GBIF_dwca/countries/Sweden/Sweden_0010142-190918142434337.zip";
-$params["uri_file"]     = "http://localhost/cp_new/GBIF_dwca/countries/Sweden/GBIF Sweden mapping.xlsx";
+$params["citation_file"] = LOCAL_HOST."/cp_new/GBIF_dwca/countries/Sweden/Citation mapping Sweden.xlsx";
+$params["dwca_file"]    = LOCAL_HOST."/cp_new/GBIF_dwca/countries/Sweden/Sweden_0010142-190918142434337.zip";
+$params["uri_file"]     = LOCAL_HOST."/cp_new/GBIF_dwca/countries/Sweden/GBIF Sweden mapping.xlsx";
 */
 
 //remote

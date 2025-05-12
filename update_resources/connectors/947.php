@@ -19,17 +19,17 @@ require_library('connectors/NMNHTypeRecordAPI');
 $timestart = time_elapsed();
 
 // /* - local source
-$params["dwca_file"]    = "http://localhost/cp/NHM/gbif_dwca.zip"; //OLD data
+$params["dwca_file"]    = LOCAL_HOST."/cp/NHM/gbif_dwca.zip"; //OLD data
 // measurement_or_fact.tab : [2,421,904]
 // occurrence.tab          : [291,843]
 // taxon.tab               : [154,682]
 
-$params["dwca_file"]    = "http://localhost/cp/NHM/2016 04 21/gbif_dwca.zip"; //NEW data
+$params["dwca_file"]    = LOCAL_HOST."/cp/NHM/2016 04 21/gbif_dwca.zip"; //NEW data
 // measurement_or_fact.tab : [2,478,939]
 // occurrence.tab          : [299,325]
 // taxon.tab               : [159,245]
 
-$params["uri_file"]     = "http://localhost/cp/NMNH/type_specimen_resource/nmnh-mappings.xlsx"; //renamed; originally [nmnh mappings.xlsx]
+$params["uri_file"]     = LOCAL_HOST."/cp/NMNH/type_specimen_resource/nmnh-mappings.xlsx"; //renamed; originally [nmnh mappings.xlsx]
 // */
 
 /* - remote source

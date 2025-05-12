@@ -22,7 +22,7 @@ This script searches GBIF API occurrence data via taxon (taxon_key)
 class GBIFoccurrenceAPI
 {
     // const DL_MAP_SPECIES_LIST   = "http://www.discoverlife.org/export/species_map.txt";
-    const DL_MAP_SPECIES_LIST   = "http://localhost/cp/DiscoverLife/species_map.txt";
+    const DL_MAP_SPECIES_LIST   = LOCAL_HOST."/cp/DiscoverLife/species_map.txt";
     
     function __construct($folder = null, $query = null)
     {
@@ -1007,8 +1007,8 @@ class GBIFoccurrenceAPI
         require_library('XLSParser');
         $parser = new XLSParser();
         $families = array();
-        $doc = "http://localhost/eol_php_code/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx";
-        // $doc = "http://localhost/~eolit/eli/eol_php_code/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx"; //for MacBook
+        $doc = WEB_ROOT."/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx";
+        // $doc = LOCAL_HOST."/eli/eol_php_code/public/tmp/spreadsheets/SPG Hotlist Official Version.xlsx"; //for MacBook
         echo "\n processing [$doc]...\n";
         if($path = Functions::save_remote_file_to_local($doc, array("timeout" => 3600, "file_extension" => "xlsx", 'download_attempts' => 2, 'delay_in_minutes' => 2)))
         {

@@ -11,8 +11,8 @@ require_library('connectors/GBIFdwcaAPI');
 $timestart = time_elapsed();
 $resource_id = 1;
 
-$params["dwca_file"] = "http://localhost/cp/GBIF_dwca/birds.zip";
-$params["dwca_file"] = "http://localhost/cp/GBIF_dwca/countries/Germany.zip";
+$params["dwca_file"] = LOCAL_HOST."/cp/GBIF_dwca/birds.zip";
+$params["dwca_file"] = LOCAL_HOST."/cp/GBIF_dwca/countries/Germany.zip";
 $params["dataset"] = "All audio for birds";
 
 $func = new GBIFdwcaAPI($resource_id);

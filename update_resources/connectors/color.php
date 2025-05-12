@@ -10,7 +10,7 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/FlowerColorAPI');
 $timestart = time_elapsed();
 $params["resource_id"] = 1;
-$params["spreadsheet_file"] = "http://localhost/~eolit/cp/FlowerColor/master analysis color with PATO values.xlsx";
+$params["spreadsheet_file"] = LOCAL_HOST."/cp/FlowerColor/master analysis color with PATO values.xlsx";
 $params["spreadsheet_file"] = "https://dl.dropboxusercontent.com/u/7597512/FlowerColor/master analysis color with PATO values.xlsx";
 $func = new FlowerColorAPI($params);
 $func->get_all_taxa();

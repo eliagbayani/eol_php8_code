@@ -18,8 +18,8 @@ class MycoBankAPI
 		$this->download_options['expire_seconds'] = false;
         // $this->download_options['cache_path'] = "/Volumes/Eli blue/eol_cache/"; -- no longer used
         // /*
-        $this->mycobank_taxa_list              = "http://localhost/cp/MycoBank/mycobank_taxon.tab";
-        $this->not_found_from_previous_harvest = "http://localhost/cp/MycoBank/not_found_from_previous_harvest.txt"; // alias names_not_yet_entered.txt
+        $this->mycobank_taxa_list              = LOCAL_HOST."/cp/MycoBank/mycobank_taxon.tab";
+        $this->not_found_from_previous_harvest = LOCAL_HOST."/cp/MycoBank/not_found_from_previous_harvest.txt"; // alias names_not_yet_entered.txt
         // */
         // $this->mycobank_taxa_list              = "https://dl.dropboxusercontent.com/u/7597512/MycoBank/mycobank_taxon.tab";
         // $this->not_found_from_previous_harvest = "https://dl.dropboxusercontent.com/u/7597512/MycoBank/not_found_from_previous_harvest.txt";

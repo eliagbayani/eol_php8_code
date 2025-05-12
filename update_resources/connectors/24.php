@@ -53,7 +53,7 @@ $params["eol_xml_file"] = Functions::get_accesspoint_url_if_available($resource_
 $params["eol_xml_file"] = Functions::get_accesspoint_url_if_available($resource_id, "http://antweb.org/web/eol/eol.xml");
 */
 
-// $params["eol_xml_file"] = "http://localhost/cp/OpenData/EOLxml_2_DWCA/AntWeb/eol.xml";
+// $params["eol_xml_file"] = LOCAL_HOST."/cp/OpenData/EOLxml_2_DWCA/AntWeb/eol.xml";
 $params["eol_xml_file"] = "http://antweb.org/web/eol/eol.xml";
 $params["filename"]     = "no need to mention here.xml";
 $params["dataset"]      = "EOL XML files";

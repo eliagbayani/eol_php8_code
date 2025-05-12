@@ -51,9 +51,9 @@ $cmdline_params['classificationYesNo'] = @$argv[2]; //useful here
 // print_r($c); exit;
 
 /*
-$params["dwca_file"] = "http://localhost/~eolit/cp/GBIF_dwca/atlantic_cod.zip";
+$params["dwca_file"] = LOCAL_HOST."/cp/GBIF_dwca/atlantic_cod.zip";
 $params["dataset"] = "Gadus morhua";
-$params["dwca_file"] = "http://localhost/~eolit/cp/GBIF_dwca/birds.zip";
+$params["dwca_file"] = LOCAL_HOST."/cp/GBIF_dwca/birds.zip";
 $params["dataset"] = "All audio for birds";
 */
 

@@ -32,7 +32,7 @@ class IUCNRedlistDataConnector extends ContributorsMapAPI
         $this->debug = array();
 
         $this->export_basename = "export-74550"; //previously "export-47427"
-        // $this->species_list_export = "http://localhost/cp_new/IUCN/" . $this->export_basename . ".csv.zip";
+        // $this->species_list_export = LOCAL_HOST."/cp_new/IUCN/" . $this->export_basename . ".csv.zip";
         $this->species_list_export = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/IUCN/" . $this->export_basename . ".csv.zip";
         
         /* direct download from IUCN server does not work:

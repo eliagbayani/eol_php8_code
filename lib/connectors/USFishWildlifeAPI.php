@@ -31,8 +31,8 @@ class USFishWildlifeAPI
     const ANIMAL_LIST           = "http://ecos.fws.gov/tess_public/pub/listedAnimals.jsp";
     const PLANT_LIST            = "http://ecos.fws.gov/tess_public/pub/listedPlants.jsp";
     /* local HTML copies
-    const ANIMAL_LIST           = "http://localhost/~eolit/cp/USFWS/listedAnimals.jsp.html";
-    const PLANT_LIST            = "http://localhost/~eolit/cp/USFWS/listedPlants.jsp.html";
+    const ANIMAL_LIST           = LOCAL_HOST."/cp/USFWS/listedAnimals.jsp.html";
+    const PLANT_LIST            = LOCAL_HOST."/cp/USFWS/listedPlants.jsp.html";
     */
     const SPECIES_PROFILE_PAGE = "http://ecos.fws.gov/speciesProfile/profile/speciesProfile.action?spcode=";
 

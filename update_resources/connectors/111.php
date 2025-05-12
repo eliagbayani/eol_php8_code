@@ -15,7 +15,7 @@ $image_url        = "http://emuweb.fieldmuseum.org/web/objects/common/webmedia.p
 
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 
-//$file = "http://localhost/eol_php_code/applications/content_server/resources/FMNH_2010_03_23.xml";
+//$file = WEB_ROOT."/applications/content_server/resources/FMNH_2010_03_23.xml";
 //$file = "files/FieldMuseumLichen/FMNH_2010_03_23.xml"; //don't use relative path
 
 $file = dirname(__FILE__) . "/files/FieldMuseumLichen/FMNH_2010_03_23.xml";//always use absolute path

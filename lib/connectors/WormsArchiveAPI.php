@@ -42,7 +42,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             else                         $this->dwca_file = "https://editors.eol.org/other_files/WoRMS/WoRMS2EoL.zip";
         }
         else                            $this->dwca_file = "http://host.docker.internal:81/cp/WORMS/WoRMS2EoL.zip";                            //local - when developing only
-        //                              $this->dwca_file = "http://localhost/cp/WORMS/Archive.zip";                              //local subset copy
+        //                              $this->dwca_file = LOCAL_HOST."/cp/WORMS/Archive.zip";                              //local subset copy
         
         $this->occurrence_ids = array();
         $this->taxon_page = "http://www.marinespecies.org/aphia.php?p=taxdetails&id=";

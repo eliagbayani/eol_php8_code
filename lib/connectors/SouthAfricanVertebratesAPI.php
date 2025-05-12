@@ -11,8 +11,8 @@ class SouthAfricanVertebratesAPI
         $this->rank_order = array_reverse(array("Kingdom", "Phylum", "Sub Phylum", "Class", "Infraclass", "Super Cohort", "Cohort", "Super Order", "Order", "Suborder", "Infraorder", "Superfamily", "Family", "Subfamily", "Tribe", "Genus", "Species", "Infraspecies"));
         $this->taxa_all = array();
         /* local
-        $this->vernacular_path = "http://localhost/cp_new/SouthAfricanVertebrates/common names.txt";
-        $this->taxa_path = "http://localhost/cp_new/SouthAfricanVertebrates/taxa.txt";
+        $this->vernacular_path = LOCAL_HOST."/cp_new/SouthAfricanVertebrates/common names.txt";
+        $this->taxa_path = LOCAL_HOST."/cp_new/SouthAfricanVertebrates/taxa.txt";
         */
         // /* remote
         $this->taxa_path = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/SouthAfricanVertebrates/taxa.txt";

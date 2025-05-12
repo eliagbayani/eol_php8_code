@@ -40,7 +40,7 @@ class SummaryDataResourcesAllAPI
         )*/
         /* not used at the moment:
         $this->file['parent child']['path'] = "https://opendata.eol.org/dataset/237b69b7-8aba-4cc4-8223-c433d700a1cc/resource/f8036c30-f4ab-4796-8705-f3ccd20eb7e9/download/parent-child-aug-16-2.csv";
-        $this->file['parent child']['path'] = "http://localhost/cp/summary data resources/parent-child-aug-16-2.csv";
+        $this->file['parent child']['path'] = LOCAL_HOST."/cp/summary data resources/parent-child-aug-16-2.csv";
         */
         $this->file['parent child']['fields'] = array('parent', 'child'); //used more simple words instead of: array('parent_term_URI', 'subclass_term_URI');
         
@@ -51,8 +51,8 @@ class SummaryDataResourcesAllAPI
         $this->file['parent child']['path_geoterms'] = $opendata_paths['terms relationships for geographic values'];
         
         /* not being used ATM. Will be used in production environment.
-        // $this->dwca_file = "http://localhost/cp/summary data resources/carnivora_sample.tgz";
-        $this->dwca_file = "http://localhost/cp/summary_data_resources/traits_all_201905.zip";
+        // $this->dwca_file = LOCAL_HOST."/cp/summary data resources/carnivora_sample.tgz";
+        $this->dwca_file = LOCAL_HOST."/cp/summary_data_resources/traits_all_201905.zip";
         */
         
         $this->report_file = CONTENT_RESOURCE_LOCAL_PATH . '/sample.txt';
@@ -102,8 +102,8 @@ class SummaryDataResourcesAllAPI
             $this->EOL_DH = 'https://editors.eol.org/other_files/DWH/TRAM-809/DH_v1_1.tar.gz';
         }
         else {
-            // $this->EOL_DH = "http://localhost/cp/summary data resources/eoldynamichierarchyv1.zip";
-            // $this->EOL_DH = "http://localhost/cp/summary data resources/DH/eoldynamichierarchywithlandmarks.zip";
+            // $this->EOL_DH = LOCAL_HOST."/cp/summary data resources/eoldynamichierarchyv1.zip";
+            // $this->EOL_DH = LOCAL_HOST."/cp/summary data resources/DH/eoldynamichierarchywithlandmarks.zip";
             $this->EOL_DH = 'http://localhost/other_files/host/EOL%20Dynamic%20Hierarchy%20Active%20Version/DH_v1_1.tar.gz';
         }
         $this->lifeState_statMeth_resource_file = CONTENT_RESOURCE_LOCAL_PATH . '/lifeStage_statMeth_resource.txt';

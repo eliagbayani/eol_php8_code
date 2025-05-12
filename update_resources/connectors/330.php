@@ -26,7 +26,7 @@ require_library('connectors/INBioAPI');
 $resource_id = '330_pre';
 
 $xml_resource = "http://calphotos.berkeley.edu/eol_biocode.xml.gz";
-// $xml_resource = "http://localhost/cp/CalPhotos/eol_biocode.xml.gz"; //local debug only
+// $xml_resource = LOCAL_HOST."/cp/CalPhotos/eol_biocode.xml.gz"; //local debug only
 
 $func = new INBioAPI();
 $info = $func->extract_archive_file($xml_resource, "eol_biocode.xml", array('timeout' => 172800, 'expire_seconds' => 60*60*24*5)); //expires in 5 days

@@ -18,7 +18,7 @@ print_r($param);
 // /* ---------- customize here ----------
 if($resource_id == 'WoRMS2EoL_zip') {
     if(Functions::is_production())  $dwca_file = "http://www.marinespecies.org/export/eol/WoRMS2EoL.zip";
-    else                            $dwca_file = "http://localhost/cp/WORMS/WoRMS2EoL.zip";
+    else                            $dwca_file = LOCAL_HOST."/cp/WORMS/WoRMS2EoL.zip";
 }
 else exit("\nERROR: File not yet initialized. Will terminate\n");
 // ----------------------------------------*/

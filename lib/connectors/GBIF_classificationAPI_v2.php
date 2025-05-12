@@ -31,8 +31,8 @@ class GBIF_classificationAPI_v2
             $this->service['DH0.9 EOL pageID mappings'] = 'https://editors.eol.org/other_files/GBIF_Classification/eolpageids.csv.gz';
         }
         else {
-            $this->service["backbone_dwca"] = "http://localhost/cp/GBIF_Backbone_Archive/backbone-current.zip";
-            $this->service["gbif_classification_pre"] = "http://localhost/eol_php_code/applications/content_server/resources/gbif_classification_pre.tar.gz";
+            $this->service["backbone_dwca"] = LOCAL_HOST."/cp/GBIF_Backbone_Archive/backbone-current.zip";
+            $this->service["gbif_classification_pre"] = WEB_ROOT."/applications/content_server/resources/gbif_classification_pre.tar.gz";
             $this->service['DH0.9'] = 'http://localhost/cp/DATA-1826 GBIF class/eoldynamichierarchywithlandmarks.zip';
             $this->service['DH0.9 EOL pageID mappings'] = 'http://localhost/cp/DATA-1826 GBIF class/eolpageids.csv.gz';
         }

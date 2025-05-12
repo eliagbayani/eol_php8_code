@@ -23,7 +23,7 @@ $timestart = time_elapsed();
 echo "\nUsed lifedesk_combine.php instead.\n";
 return;
 
-$params["eol_xml_file"] = "http://localhost/~eolit/cp/STRI/35_orig.xml.zip";
+$params["eol_xml_file"] = LOCAL_HOST."/cp/STRI/35_orig.xml.zip";
 // $params["eol_xml_file"] = "https://dl.dropboxusercontent.com.zip";
 $params["filename"]     = "35_orig.xml";
 $params["dataset"]      = "STRI";

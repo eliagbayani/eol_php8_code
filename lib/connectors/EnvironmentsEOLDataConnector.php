@@ -30,7 +30,7 @@ class EnvironmentsEOLDataConnector
             $this->download_options['cache_path'] = $path;
         }
         else {
-            $this->species_list_export = "http://localhost/cp/Environments/eol_env_annotations_noParentTerms.tar.gz";   //local
+            $this->species_list_export = LOCAL_HOST."/cp/Environments/eol_env_annotations_noParentTerms.tar.gz";   //local
             $this->download_options['cache_path'] = '/Volumes/Crucial_2TB/eol_cache/'; //used in Functions.php for all general cache
         }
         

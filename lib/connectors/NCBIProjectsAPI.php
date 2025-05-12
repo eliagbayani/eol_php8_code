@@ -9,7 +9,7 @@ class NCBIProjectsAPI
     {
         $this->max_images_per_taxon = 10;
         $this->data_dump_url = "ftp://ftp.ncbi.nlm.nih.gov/bioproject/bioproject.xml";
-        $this->data_dump_url = "http://localhost/~eolit/xml_parser/bioproject.xml"; // debug
+        $this->data_dump_url = LOCAL_HOST."/xml_parser/bioproject.xml"; // debug
 
         $this->sourceURL = "http://www.boldsystems.org/index.php/Taxbrowser_Taxonpage?taxid=";
         $this->taxa = array();
@@ -33,7 +33,7 @@ class NCBIProjectsAPI
         echo "\n xml file: [$path] \n";
         */
         
-        $path = "http://localhost/~eolit/xml_parser/bioproject.xml"; // debug
+        $path = LOCAL_HOST."/xml_parser/bioproject.xml"; // debug
         
         $reader = new \XMLReader();
         $reader->open($path);

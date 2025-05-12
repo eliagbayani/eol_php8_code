@@ -23,7 +23,7 @@ class DWH_WoRMS_API
         $this->dwca['iterator_options'] = array('row_terminator' => "\n");
         /* OLD
         if(Functions::is_production())  $this->dwca_file = "http://www.marinespecies.org/export/eol/WoRMS2EoL.zip";
-        else                            $this->dwca_file = "http://localhost/cp/WORMS/WoRMS2EoL.zip";
+        else                            $this->dwca_file = LOCAL_HOST."/cp/WORMS/WoRMS2EoL.zip";
         */
         // /* NEW
         $this->dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "WoRMS2EoL_zip.tar.gz";

@@ -18,7 +18,7 @@ echo "\n\n Done processing.";
 
 function eol_xml_stats()
 {
-    $path = "http://localhost/eol_php_code/applications/content_server/resources/218.xml";
+    $path = WEB_ROOT."/applications/content_server/resources/218.xml";
     $reader = new \XMLReader();
     $reader->open($path);
     $i = 0;
@@ -60,7 +60,7 @@ function remove_dataObject()
 {
     require_library('ResourceDataObjectElementsSetting');
     $resource_id = 346; 
-    $resource_path = "http://localhost/eol_php_code/applications/content_server/resources/346.xml.gz";
+    $resource_path = WEB_ROOT."/applications/content_server/resources/346.xml.gz";
     $nmnh = new ResourceDataObjectElementsSetting($resource_id, $resource_path);
     $xml = $nmnh->load_xml_string();
     $xml = $nmnh->remove_data_object_of_certain_element_value("mimeType", "image/x-adobe-dng", $xml);

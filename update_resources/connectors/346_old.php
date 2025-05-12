@@ -13,8 +13,8 @@ exit("\nAs of last check, XML has invalid chars. Not yet fixed by partner.\n");
 $timestart = time_elapsed();
 $resource_id = 346; 
 
-// $resource_path = "http://localhost/eol_php_code/applications/content_server/resources/eli.xml";
-// $resource_path = "http://localhost/cp/OpenData/EOLxml_2_DWCA/nmnh-botany-response.xml.gz";
+// $resource_path = WEB_ROOT."/applications/content_server/resources/eli.xml";
+// $resource_path = LOCAL_HOST."/cp/OpenData/EOLxml_2_DWCA/nmnh-botany-response.xml.gz";
 $resource_path = Functions::get_accesspoint_url_if_available($resource_id, "http://collections.mnh.si.edu/services/eol/nmnh-botany-response.xml.gz"); //Botany Resource
 echo "\n processing resource:\n $resource_path \n\n";
 

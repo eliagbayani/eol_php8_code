@@ -51,7 +51,7 @@ class DataHub_NCBI_API
         */
 
         $this->dumpfile["prot.accession2taxid"] = "https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.INDEX-NUM.gz";
-        $this->dumpfile["prot.accession2taxid"] = "http://localhost/other_files2/dumps_GGI/NCBI/prot/prot.accession2taxid.FULL.INDEX-NUM.gz"; //dev only
+        $this->dumpfile["prot.accession2taxid"] = LOCAL_HOST."/other_files2/dumps_GGI/NCBI/prot/prot.accession2taxid.FULL.INDEX-NUM.gz"; //dev only
 
         /* will add this to jenkins. We need this if we want totals from dump files.
         wget -c https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.1.gz

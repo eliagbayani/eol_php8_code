@@ -31,7 +31,7 @@ require_library('connectors/CSV2DwCA_Utility');
 // ini_set('memory_limit','4096M');
 $timestart = time_elapsed();
 
-// $dwca_file = "http://localhost/cp/iNaturalist/eol_media.dwca.zip";
+// $dwca_file = LOCAL_HOST."/cp/iNaturalist/eol_media.dwca.zip";
 $dwca_file = "http://www.inaturalist.org/taxa/eol_media.dwca.zip";
 
 $resource_id = 430;

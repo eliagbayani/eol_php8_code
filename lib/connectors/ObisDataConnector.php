@@ -11,8 +11,8 @@ class ObisDataConnector
         $this->resource_id = $resource_id;
 
         /* local
-        $this->obis_csv_zip_file = "http://localhost/cp/OBIS/OBIS_ranges.zip";
-        $this->worms_taxon_tab_zip_file = "http://localhost/cp/OBIS/worms_taxon.tab.zip";
+        $this->obis_csv_zip_file = LOCAL_HOST."/cp/OBIS/OBIS_ranges.zip";
+        $this->worms_taxon_tab_zip_file = LOCAL_HOST."/cp/OBIS/worms_taxon.tab.zip";
         */
         $this->obis_csv_zip_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/OBIS/OBIS_ranges.zip";
         $this->worms_taxon_tab_zip_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/OBIS/worms_taxon.tab.zip";

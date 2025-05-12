@@ -9,7 +9,7 @@ require_library('connectors/PlaziArchiveAPI');
 $timestart = time_elapsed();
 
 $resource_id = 687;
-// $resource_path = "http://localhost/~eolit/cp/Plazi/zootaxa.zip";
+// $resource_path = LOCAL_HOST."/cp/Plazi/zootaxa.zip";
 $resource_path = "http://plazi.cs.umb.edu/GgServer/eol/zootaxa.zip";
 
 /*

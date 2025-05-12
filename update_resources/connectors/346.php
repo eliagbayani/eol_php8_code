@@ -40,7 +40,7 @@ $params["filename"]     = "eli.xml";
 ================================================================================================ */
 
 // /* ================================================ actual resource ================================================
-// $resource_path = "http://localhost/cp/OpenData/EOLxml_2_DWCA/nmnh-botany-response.xml.gz";
+// $resource_path = LOCAL_HOST."/cp/OpenData/EOLxml_2_DWCA/nmnh-botany-response.xml.gz";
 // $resource_path = Functions::get_accesspoint_url_if_available($resource_id, "http://collections.mnh.si.edu/services/eol/nmnh-botany-response.xml.gz"); //Botany Resource
 $resource_path = "http://collections.mnh.si.edu/services/eol/nmnh-botany-response.xml.gz";
 

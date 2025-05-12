@@ -15,9 +15,9 @@ class DiscoverLife_KeysAPI
     const TEXT_FILE_FOR_DL  = "/update_resources/connectors/files/DiscoverLife/names_without_pages_in_eol"; //report back to DiscoverLife
     const TEMP_FILE_PATH    = "/update_resources/connectors/files/DiscoverLife/";
     /*
-    const ID_KEYS_FILE = "http://localhost/cp_new/DiscoverLife/ID keys spreadsheet 30March2011_small.txt"; //working OK
-    const ID_KEYS_FILE = "http://localhost/cp_new/DiscoverLife/ID keys spreadsheet 30March2011.txt"; //improper text file, \n is somewhat corrupted. Thus will use .xlsx instead.
-    const ID_KEYS_FILE_xlsx = "http://localhost/cp_new/DiscoverLife/ID keys spreadsheet 30March2011.xlsx";
+    const ID_KEYS_FILE = LOCAL_HOST."/cp_new/DiscoverLife/ID keys spreadsheet 30March2011_small.txt"; //working OK
+    const ID_KEYS_FILE = LOCAL_HOST."/cp_new/DiscoverLife/ID keys spreadsheet 30March2011.txt"; //improper text file, \n is somewhat corrupted. Thus will use .xlsx instead.
+    const ID_KEYS_FILE_xlsx = LOCAL_HOST."/cp_new/DiscoverLife/ID keys spreadsheet 30March2011.xlsx";
     */
     const ID_KEYS_FILE_xlsx = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/DiscoverLife/ID keys spreadsheet 30March2011.xlsx";
 

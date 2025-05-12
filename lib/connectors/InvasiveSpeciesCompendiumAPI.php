@@ -19,7 +19,7 @@ class InvasiveSpeciesCompendiumAPI
         $this->download_options['expire_seconds'] = false;
         $this->debug = array();
         
-        $this->taxa_list['ISC'] = "http://localhost/cp_new/Invasive%20Species%20Compendium/ExportedRecords.csv";
+        $this->taxa_list['ISC'] = LOCAL_HOST."/cp_new/Invasive%20Species%20Compendium/ExportedRecords.csv";
         $this->taxa_list['ISC'] = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Invasive%20Species%20Compendium/ExportedRecords.csv";
         $this->domain['ISC'] = "https://www.cabi.org";
         

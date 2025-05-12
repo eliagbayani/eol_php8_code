@@ -25,9 +25,9 @@ require_library('connectors/GBIFCountryTypeRecordAPI');
 $timestart = time_elapsed();
 
 /* local
-$params["citation_file"] = "http://localhost/cp_new/GBIF_dwca/countries/France/Citation Mapping France.xlsx";
-$params["dwca_file"]     = "http://localhost/cp_new/GBIF_dwca/countries/France/France.zip";
-$params["uri_file"]      = "http://localhost/cp_new/GBIF_dwca/countries/France/french GBIF mapping.xlsx";
+$params["citation_file"] = LOCAL_HOST."/cp_new/GBIF_dwca/countries/France/Citation Mapping France.xlsx";
+$params["dwca_file"]     = LOCAL_HOST."/cp_new/GBIF_dwca/countries/France/France.zip";
+$params["uri_file"]      = LOCAL_HOST."/cp_new/GBIF_dwca/countries/France/french GBIF mapping.xlsx";
 */
 
 // remote

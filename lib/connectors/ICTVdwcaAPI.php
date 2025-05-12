@@ -23,8 +23,8 @@ class ICTVdwcaAPI
     {
         $this->data_dump_url = self::get_dump_url();
         echo("\n[$this->data_dump_url]\n"); //exit("\nstop muna\n");
-        // $this->data_dump_url = "http://localhost/cp/ICTV/ICTV Master Species List 2016 v1.3.xlsx"; //debug
-        // $this->data_dump_url = "http://localhost/cp/ICTV/ICTV Master Species List 2017 v1.0.xlsx"; //debug
+        // $this->data_dump_url = LOCAL_HOST."/cp/ICTV/ICTV Master Species List 2016 v1.3.xlsx"; //debug
+        // $this->data_dump_url = LOCAL_HOST."/cp/ICTV/ICTV Master Species List 2017 v1.0.xlsx"; //debug
 
         $records = self::parse_xls();
         // print_r($records);

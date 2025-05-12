@@ -10,7 +10,7 @@ $new_resource_path = DOC_ROOT . "temp/22.xml.gz";
 
 $download_options = array('cache' => 1, 'expire_seconds' => false, 'timeout' => 60*60); //doesn't expire since partner no longer hosts the file
 // $xml = "http://animaldiversity.ummz.umich.edu/XML/adw_eol.xml.gz";
-// $xml = "http://localhost/cp/ADW/resource_id_22/adw_eol.xml.gz";
+// $xml = LOCAL_HOST."/cp/ADW/resource_id_22/adw_eol.xml.gz";
 $xml = "https://opendata.eol.org/dataset/99da8344-22a4-4d9d-890d-44ac3fc34a33/resource/12f27411-1aeb-4d49-987e-f868de033da1/download/adweol.xml.gz";
 $new_resource = Functions::get_remote_file($xml, $download_options);
 

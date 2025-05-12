@@ -18,7 +18,7 @@ class RotifersAPI
         $this->EOL = 'http://www.eol.org/voc/table_of_contents';
         $this->text_path = array();
 
-        // $this->zip_path = "http://localhost/cp/Rotifers/rotifers.zip";
+        // $this->zip_path = LOCAL_HOST."/cp/Rotifers/rotifers.zip";
         $this->zip_path = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Rotifers/rotifers.zip";
         
         // $this->image_path = "http://www.rotifera.hausdernatur.at/TestRWC/Rotifer_data/images";   // old

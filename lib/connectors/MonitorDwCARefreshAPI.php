@@ -14,7 +14,7 @@ class MonitorDwCARefreshAPI
         $this->api_package_list = "https://opendata.eol.org/api/3/action/package_list";
         $this->api_package_show = "https://opendata.eol.org/api/3/action/package_show?id=";
         if(Functions::is_production()) $this->lookup_url = "https://editors.eol.org/eol_php_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
-        else                           $this->lookup_url = "http://localhost/eol_php_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
+        else                           $this->lookup_url = WEB_ROOT."/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
         $this->prev_date = "";
         $this->color = 'lightyellow';
     }

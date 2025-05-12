@@ -16,7 +16,7 @@ class FAOSpeciesAPI
         $this->species_list    = "http://www.fao.org/figis/ws/factsheets/domain/species/"; //obsolete
         $this->species_list_v2 = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/FAO_species_catalog/www.fao.org/fishery/FAO_species_list_from_EOL.tab";
         $this->factsheet_page  = "http://www.fao.org/fishery/species/the_id/en";
-        // $this->local_species_page = "http://localhost/cp_new/FAO_species_catalog/www.fao.org/fishery/species/the_id/en.html";
+        // $this->local_species_page = LOCAL_HOST."/cp_new/FAO_species_catalog/www.fao.org/fishery/species/the_id/en.html";
         $this->local_species_page = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/FAO_species_catalog/www.fao.org/fishery/species/the_id/en.html";
     }
     

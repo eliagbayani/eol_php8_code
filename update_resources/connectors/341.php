@@ -22,7 +22,7 @@ require_library('ResourceDataObjectElementsSetting');
 $timestart = time_elapsed();
 $resource_id = 341; 
 
-// $resource_path = "http://localhost/cp/NMNH/resources/nmnh-birds-response.xml.gz"; //local copy
+// $resource_path = LOCAL_HOST."/cp/NMNH/resources/nmnh-birds-response.xml.gz"; //local copy
 $resource_path = Functions::get_accesspoint_url_if_available($resource_id, "http://collections.mnh.si.edu/services/eol/nmnh-birds-response.xml.gz"); //Birds resource
 echo "\n processing resource:\n $resource_path \n\n";
 

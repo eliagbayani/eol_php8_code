@@ -21,7 +21,7 @@ class BotanicalEuropeanaAPI
         $this->object_ids = array();
         
         $this->zip_path = "http://opendata.eol.org/dataset/85d351ea-53bf-4cd9-8f6b-7ee4bfc07152/resource/02b89b97-21c1-46ac-99b7-8f16ab0fbb11/download/europeanaberlin.zip";
-        $this->zip_path = "http://localhost/~eolit/cp/BotanicalEuropeana/europeana_berlin.zip";
+        $this->zip_path = LOCAL_HOST."/cp/BotanicalEuropeana/europeana_berlin.zip";
 
         $this->local_destination = "/Volumes/Eli blue/BotanicalEuropeana";
         $this->text_path = array();

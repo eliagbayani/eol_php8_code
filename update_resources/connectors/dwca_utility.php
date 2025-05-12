@@ -39,7 +39,7 @@ if(($val = $cmdline_params['resource_id']) && ($cmdline_params['resource_id'] !=
     {
         ini_set('memory_limit','7096M'); //required
         $dwc_file = "http://www.inaturalist.org/taxa/eol_media.dwca.zip";
-        $dwca_file = "http://localhost/cp/iNaturalist/eol_media.dwca.zip";
+        $dwca_file = LOCAL_HOST."/cp/iNaturalist/eol_media.dwca.zip";
     }
     */
     elseif($resource_id == "whatever") $dwca_file = "";
@@ -58,20 +58,20 @@ if(($val = $cmdline_params['resource_id']) && ($cmdline_params['resource_id'] !=
 }
 else //no resource_id --- used only for testing... not a real scheduled resource yet
 {
-    // $dwca_file = "http://localhost/cp/WORMS/WoRMS2EoL.zip";
-    // $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources/ioc-birdlist.tar.gz";
-    // $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources/ICTV-virus_taxonomy.tar.gz";
-    // $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources/26.tar.gz";
-    // $dwca_file = "http://localhost/cp/dynamic_hierarchy/amphibia.zip";
-    // $dwca_file = "http://localhost/cp/dynamic_hierarchy/dwca-phasmida-v10.6.zip";
-    // $dwca_file = "http://localhost/cp/dynamic_hierarchy/dwh_try3.zip"; //very big one
+    // $dwca_file = LOCAL_HOST."/cp/WORMS/WoRMS2EoL.zip";
+    // $dwca_file = WEB_ROOT."/applications/content_server/resources/ioc-birdlist.tar.gz";
+    // $dwca_file = WEB_ROOT."/applications/content_server/resources/ICTV-virus_taxonomy.tar.gz";
+    // $dwca_file = WEB_ROOT."/applications/content_server/resources/26.tar.gz";
+    // $dwca_file = LOCAL_HOST."/cp/dynamic_hierarchy/amphibia.zip";
+    // $dwca_file = LOCAL_HOST."/cp/dynamic_hierarchy/dwca-phasmida-v10.6.zip";
+    // $dwca_file = LOCAL_HOST."/cp/dynamic_hierarchy/dwh_try3.zip"; //very big one
     
     /* WIP - waiting for feedback...
-    $dwca_file = "http://localhost/cp/dynamic_hierarchy/z/eoldynamichierarchydraftaug2017.zip"; //needs to be fixed first: https://eol-jira.bibalex.org/browse/DATA-1709
-    $dwca_file = "http://localhost/cp/dynamic_hierarchy/z/dynamic.tar.gz"; //this is the fixed version
+    $dwca_file = LOCAL_HOST."/cp/dynamic_hierarchy/z/eoldynamichierarchydraftaug2017.zip"; //needs to be fixed first: https://eol-jira.bibalex.org/browse/DATA-1709
+    $dwca_file = LOCAL_HOST."/cp/dynamic_hierarchy/z/dynamic.tar.gz"; //this is the fixed version
     */
 
-    $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources/americaninsects.zip"; //this is ghostly weird...
+    $dwca_file = WEB_ROOT."/applications/content_server/resources/americaninsects.zip"; //this is ghostly weird...
 
     $resource_id = get_base_filename($dwca_file, $cmdline_params['generate_higherClassification_YN']);
 }
@@ -89,7 +89,7 @@ unset($func);
 // */
 
 /* //utility - useful when generating higherClassification
-// $dwca_file = "http://localhost/eol_php_code/applications/content_server/resources/dwca-phasmida-v10-with-higherClassification.tar.gz"; //debug -> if you want to supply a diff. dwca
+// $dwca_file = WEB_ROOT."/applications/content_server/resources/dwca-phasmida-v10-with-higherClassification.tar.gz"; //debug -> if you want to supply a diff. dwca
 $func = new DwCA_Utility(NULL, $dwca_file);
 $func->count_records_in_dwca();
 unset($func);

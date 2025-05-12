@@ -23,7 +23,7 @@ continue providing us with the Access MDB.
 */
 
 $remote_file = "https://dl.dropboxusercontent.com/u/7597512/NorthAmericanMammals/data_from_sql_export.txt"; //no longer publicly accessible
-$remote_file = "http://localhost/cp/North American Mammals/data_from_sql_export.txt";
+$remote_file = LOCAL_HOST."/cp/North American Mammals/data_from_sql_export.txt";
 $text_file = Functions::save_remote_file_to_local($remote_file, array('download_wait_time' => 1000000, 'timeout' => 600));
 
 require_library('connectors/FishBaseAPI');

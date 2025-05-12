@@ -15,7 +15,7 @@ class I3InteractiveAPI
         $this->object_ids = array();
         $this->dwca_file = $params["dwca_file"];
         $this->occurrence_ids = array();
-        $this->uri_mappings_spreadsheet = "http://localhost/~eolit/cp/NMNH/type_specimen_resource/nmnh mappings.xlsx";
+        $this->uri_mappings_spreadsheet = LOCAL_HOST."/cp/NMNH/type_specimen_resource/nmnh mappings.xlsx";
         $this->uri_mappings_spreadsheet = "https://dl.dropboxusercontent.com/u/7597512/NMNH/type_specimen_resource/nmnh mappings.xlsx";
         $this->debug = array();
     }

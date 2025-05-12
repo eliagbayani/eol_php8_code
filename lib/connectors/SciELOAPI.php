@@ -5,7 +5,7 @@ class SciELOAPI
 {
     function __construct($folder)
     {
-        // $this->data_dump_url = "http://localhost/cp_new/SciELO/Anacardiaceae XML v5 correcao.xml";
+        // $this->data_dump_url = LOCAL_HOST."/cp_new/SciELO/Anacardiaceae XML v5 correcao.xml";
         $this->data_dump_url =                                            "http://localhost/cp_new/SciELO/Anacardiaceae V6-parentID.xml";
         $this->data_dump_url = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/SciELO/Anacardiaceae V6-parentID.xml";
         $this->taxa = array();

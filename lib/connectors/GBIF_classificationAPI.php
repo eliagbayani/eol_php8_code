@@ -27,8 +27,8 @@ class GBIF_classificationAPI
             $this->service["gbif_classification_pre"] = "https://editors.eol.org/eol_php_code/applications/content_server/resources/gbif_classification_pre.tar.gz";
         }
         else {
-            $this->service["backbone_dwca"] = "http://localhost/cp/GBIF_Backbone_Archive/backbone-current.zip";
-            $this->service["gbif_classification_pre"] = "http://localhost/eol_php_code/applications/content_server/resources_2/gbif_classification_pre.tar.gz";
+            $this->service["backbone_dwca"] = LOCAL_HOST."/cp/GBIF_Backbone_Archive/backbone-current.zip";
+            $this->service["gbif_classification_pre"] = WEB_ROOT."/applications/content_server/resources_2/gbif_classification_pre.tar.gz";
         }
         $this->log_file = CONTENT_RESOURCE_LOCAL_PATH.'gbif_names_not_found_in_eol.txt';
 

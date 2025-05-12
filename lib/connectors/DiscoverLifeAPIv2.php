@@ -13,8 +13,8 @@ If no, then this name will be added to a text file that will be reported back to
 class DiscoverLifeAPIv2
 {
     const DL_MAP_SPECIES_LIST   = "http://www.discoverlife.org/export/species_map.txt";
-    // const DL_MAP_SPECIES_LIST   = "http://localhost/cp/DiscoverLife/species_map.txt";
-    // const DL_MAP_SPECIES_LIST   = "http://localhost/cp/DiscoverLife/species_map_small.txt";
+    // const DL_MAP_SPECIES_LIST   = LOCAL_HOST."/cp/DiscoverLife/species_map.txt";
+    // const DL_MAP_SPECIES_LIST   = LOCAL_HOST."/cp/DiscoverLife/species_map_small.txt";
 
     // this is temporary until DL fixes their list
     // const DL_MAP_SPECIES_LIST   = "http://opendata.eol.org/u/7597512/DiscoverLife/species_map 2012 06 26.txt";

@@ -139,7 +139,7 @@ Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
 function remove_bhl_images_already_existing_in_eol_group($resource_id)
 {
     echo "\nStart: remove_bhl_images_already_existing_in_eol_group...\n";
-    // $file = "http://localhost/cp_new/BHL/BHL_images/BHL_images_in_EOLGroup.txt";
+    // $file = LOCAL_HOST."/cp_new/BHL/BHL_images/BHL_images_in_EOLGroup.txt";
     // $file = "http://dl.dropbox.com/u/7597512/BHL_images/BHL_images_in_EOLGroup.txt"; //can no longer be accessed publicly. But file is still there in dropbox.
     $file = "https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/BHL/BHL_images/BHL_images_in_EOLGroup.txt";
     $contents = Functions::get_remote_file($file, array('cache' => 0, 'timeout' => 600, 'download_attempts' => 5));
@@ -201,8 +201,8 @@ function remove_bhl_images_already_existing_in_eol_group($resource_id)
 
 function bhl_image_count() // just for stats
 {
-    $path = "http://localhost/eol_php_code/applications/content_server/resources/544.xml";
-    $path = "http://localhost/eol_php_code/applications/content_server/resources/544%20BHL%20in%20EOL%20Flickr%20Group.xml";
+    $path = WEB_ROOT."/applications/content_server/resources/544.xml";
+    $path = WEB_ROOT."/applications/content_server/resources/544%20BHL%20in%20EOL%20Flickr%20Group.xml";
     print "\n xml file: [$path] \n";
     $reader = new \XMLReader();
     $reader->open($path);

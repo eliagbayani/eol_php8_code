@@ -264,7 +264,7 @@ $info['41']['xml_path'] = "https://github.com/eliagbayani/EOL-connector-data-fil
 $info['41']['data_types'] = array('images'); //possible values array('images', 'video', 'sounds', 'text') - get objects of this data_type from Collections
 
 $info['19'] = array('id'=>180, 'LD_domain' => 'http://eol.org/content_partners/5/resources/19', 'OpenData_title' => 'micro*scope', 'resource_id' => 19, 'prefix' => "EOL_");
-$info['19']['xml_path'] = "http://localhost/cp_new/OpenData/EOLxml_2_DWCA/microscope/microscope.xml.gz";
+$info['19']['xml_path'] = LOCAL_HOST."/cp_new/OpenData/EOLxml_2_DWCA/microscope/microscope.xml.gz";
 $info['19']['xml_path'] = "https://opendata.eol.org/dataset/4a668cee-f1da-4e95-9ed1-cb755a9aca4f/resource/55ad629d-dd89-4bac-8fff-96f219f4b323/download/microscope.xml.gz";
 $info['19']['data_types'] = array('images'); //possible values array('images', 'video', 'sounds', 'text')
 // */
@@ -366,7 +366,7 @@ foreach($final as $ld) {
     $params[$ld]["remote"]["lifedesk"]      = "http://" . $ld . ".lifedesks.org/eol-partnership.xml.gz";
     $params[$ld]["remote"]["name"]          = $ld;
     */
-    $params[$ld]["local"]["lifedesk"]                 = "http://localhost/cp_new/LD2EOL/" . $ld . "/eol-partnership.xml.gz";
+    $params[$ld]["local"]["lifedesk"]                 = LOCAL_HOST."/cp_new/LD2EOL/" . $ld . "/eol-partnership.xml.gz";
     $params[$ld]["local"]["lifedesk"]                 = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/LD2EOL/"            .$ld. "/eol-partnership.xml.gz";
     if($scratchpad) $params[$ld]["local"]["lifedesk"] = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/LD2Scratchpad_EOL/" .$ld. "/eol-partnership.xml.gz";
 
@@ -449,7 +449,7 @@ echo "\nDone processing.\n";
 function convert_xml_2_dwca($resource_id)
 {
     if(Functions::is_production()) $params["eol_xml_file"] = "http://editors.eol.org/eol_php_code/applications/content_server/resources/".$resource_id.".xml"; //e.g. LD_afrotropicalbirds
-    else                           $params["eol_xml_file"] = "http://localhost/eol_php_code/applications/content_server/resources/".$resource_id.".xml"; //e.g. LD_afrotropicalbirds
+    else                           $params["eol_xml_file"] = WEB_ROOT."/applications/content_server/resources/".$resource_id.".xml"; //e.g. LD_afrotropicalbirds
     
     
     $params["filename"]     = "no need to mention here.xml";

@@ -11,7 +11,7 @@ class CollectionsScrapeAPI
         $this->taxon_ids = array();
         $this->object_ids = array();
         
-        // $this->dwca_file = "http://localhost/~eolit/cp/India Biodiversity Portal/520.tar.gz";
+        // $this->dwca_file = LOCAL_HOST."/cp/India Biodiversity Portal/520.tar.gz";
         // $this->dwca_file = "https://dl.dropboxusercontent.com/u/7597512/India Biodiversity Portal/520.tar.gz";
         // $this->taxon_page = "http://www.marinespecies.org/aphia.php?p=taxdetails&id=";
         // $this->accessURI = array();

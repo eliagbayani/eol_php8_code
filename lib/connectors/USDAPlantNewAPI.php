@@ -75,7 +75,7 @@ class USDAPlantNewAPI
         /* copied template
         $this->temp_path = CONTENT_RESOURCE_LOCAL_PATH . "BOLDS_temp/";
         if(Functions::is_production()) $this->BOLDS_new_path = "https://editors.eol.org/eol_connector_data_files/BOLDS_new/";
-        else                           $this->BOLDS_new_path = "http://localhost/cp/BOLDS_new/";
+        else                           $this->BOLDS_new_path = LOCAL_HOST."/cp/BOLDS_new/";
         */
     }
     function initialize()

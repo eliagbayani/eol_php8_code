@@ -31,11 +31,11 @@ foreach($desks as $desk) {
     $params[$desk]["dropbox"]["scratchpad_images"] = "";
     $params[$desk]["dropbox"]["name"]              = $desk;
     //local
-    $params[$desk]["local"]["lifedesk"]           = "http://localhost/cp/LD2Scratchpad/" . $desk . "/eol-partnership.xml.gz";
+    $params[$desk]["local"]["lifedesk"]           = LOCAL_HOST."/cp/LD2Scratchpad/" . $desk . "/eol-partnership.xml.gz";
     $params[$desk]["local"]["bibtex_file"]        = "";
-    $params[$desk]["local"]["scratchpad_images"]  = "http://localhost/cp/LD2Scratchpad/" . $desk . "/file_importer_image_xls.xls";
+    $params[$desk]["local"]["scratchpad_images"]  = LOCAL_HOST."/cp/LD2Scratchpad/" . $desk . "/file_importer_image_xls.xls";
     $params[$desk]["local"]["name"]               = $desk;
-    $params[$desk]["local"]["scratchpad_biblio"]  = "http://localhost/cp/LD2Scratchpad/" . $desk . "/node_importer_biblio_xls.xls";
+    $params[$desk]["local"]["scratchpad_biblio"]  = LOCAL_HOST."/cp/LD2Scratchpad/" . $desk . "/node_importer_biblio_xls.xls";
     if($desk == "africanamphibians") $params[$desk]["local"]["scratchpad_taxonomy"]= "http://localhost/cp/LD2Scratchpad/" . $desk . "/taxonomy_importer_xls.xls";
     
     $func = new LifeDeskToScratchpadAPI();
@@ -48,7 +48,7 @@ $lifedesk = 'neotropicalfishes';
 $lifedesk = 'echinoderms';
 
 $params = array();
-$params[$lifedesk]["local"]["lifedesk"]   = "http://localhost/cp/LD2Scratchpad/" . $lifedesk . "/eol-partnership.xml.gz";
+$params[$lifedesk]["local"]["lifedesk"]   = LOCAL_HOST."/cp/LD2Scratchpad/" . $lifedesk . "/eol-partnership.xml.gz";
 $params[$lifedesk]["local"]["name"]       = $lifedesk;
 $parameters = $params[$lifedesk]["local"];
 $func = new LifeDeskToScratchpadAPI();

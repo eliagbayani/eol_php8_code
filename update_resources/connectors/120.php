@@ -59,7 +59,7 @@ require_library('ResourceDataObjectElementsSetting');
 $timestart = time_elapsed();
 $resource_id = 120;
 
-// $resource_path = "http://localhost/cp/OpenData/EOLxml_2_DWCA/nmnh-iz-response.xml.gz"; //local copy
+// $resource_path = LOCAL_HOST."/cp/OpenData/EOLxml_2_DWCA/nmnh-iz-response.xml.gz"; //local copy
 $resource_path = Functions::get_accesspoint_url_if_available($resource_id, "http://collections.mnh.si.edu/services/eol/nmnh-iz-response.xml.gz"); //NMNH Invertebrate Zoology resource
 echo "\n processing resource:\n $resource_path \n\n";
 

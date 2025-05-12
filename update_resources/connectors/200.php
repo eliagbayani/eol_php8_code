@@ -12,7 +12,7 @@ require_library('connectors/ConvertEOLtoDWCaAPI');
 $timestart = time_elapsed();
 
 $resource_id = 200;
-// $params["eol_xml_file"] = "http://localhost/cp/Bioimages_Vanderbilt/eol-harvest.xml";
+// $params["eol_xml_file"] = LOCAL_HOST."/cp/Bioimages_Vanderbilt/eol-harvest.xml";
 $params["eol_xml_file"] = "http://bioimages.vanderbilt.edu/eol-harvest.xml";
 $params["filename"]     = "no need to mention here.xml";
 $params["dataset"]      = "";

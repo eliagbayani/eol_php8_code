@@ -19,8 +19,8 @@ class WikipediaMycologicalAPI
         $this->mushroom_observer_eol    = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Wikipedia/mushroom_observer_eol.xml";
         $this->triple_uris_spreadsheet  = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Wikipedia/wikimushrooms.xlsx";
         /*
-        $this->mushroom_observer_eol    = "http://localhost/cp/Wikipedia/mushroom_observer_eol.xml";
-        $this->triple_uris_spreadsheet  = "http://localhost/cp/Wikipedia/wikimushrooms.xlsx";
+        $this->mushroom_observer_eol    = LOCAL_HOST."/cp/Wikipedia/mushroom_observer_eol.xml";
+        $this->triple_uris_spreadsheet  = LOCAL_HOST."/cp/Wikipedia/wikimushrooms.xlsx";
         */
         
         $this->dump_file = DOC_ROOT . "temp/wikipedia_wrong_urls.txt";

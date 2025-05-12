@@ -680,7 +680,7 @@ class Functions
         if(!$download_options) $download_options = array('resource_id' => 'URIs', 'download_wait_time' => 1000000, 'timeout' => 900, 'expire_seconds' => 60*60*24, 'download_attempts' => 1); //expires in 24 hours
         for($i=1; $i<=17; $i++) {
             $urls = array();
-            // $urls[] = "http://localhost/cp/TraitRequest/measurements/URIs for Data on EOL - Encyclopedia of Life" . $i . ".html";
+            // $urls[] = LOCAL_HOST."/cp/TraitRequest/measurements/URIs for Data on EOL - Encyclopedia of Life" . $i . ".html";
             $urls[] = "https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/TraitRequest/measurements/URIs for Data on EOL - Encyclopedia of Life" . $i . ".html";
             foreach($urls as $url) {
                 if($html = Functions::lookup_with_cache($url, $download_options)) {

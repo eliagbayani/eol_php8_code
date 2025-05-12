@@ -113,7 +113,7 @@ class GBIFtaxaAPI
     private function get_ids_2prune_using_tsv() //later on used get_ids_2prune_using_google_sheet() instead.
     {
         $final = array();
-        $spreadsheet = "http://localhost/cp/GBIF/from_Google_spreadsheet/Branches to prune from GBIF - Sheet1.tsv";
+        $spreadsheet = LOCAL_HOST."/cp/GBIF/from_Google_spreadsheet/Branches to prune from GBIF - Sheet1.tsv";
         if($filename = Functions::save_remote_file_to_local($spreadsheet, $this->download_options)) {}
         $i = 0;
         $m = 1834; //total divided by 6
@@ -378,7 +378,7 @@ class GBIFtaxaAPI
         }
         {   //will create the text file
             $fn = fopen($text_file, "w");
-            $spreadsheet = "http://localhost/eol_php_code/applications/content_server/resources/GBIF_Taxa_accepted_pruned_undefined_parent_ids.txt";
+            $spreadsheet = WEB_ROOT."/applications/content_server/resources/GBIF_Taxa_accepted_pruned_undefined_parent_ids.txt";
             if($filename = Functions::save_remote_file_to_local($spreadsheet, $this->download_options)) {}
             $i = 0;
             $m = 1216; //total (12,160) divided by 5 = 2432 | by 10 = 1,216

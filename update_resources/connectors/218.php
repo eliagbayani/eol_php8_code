@@ -11,7 +11,7 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/TropicosArchiveAPI');
 $GLOBALS['ENV_DEBUG'] = true;
 
-// $url = "http://localhost/eol_php_code/applications/content_server/resources/1.xml";
+// $url = WEB_ROOT."/applications/content_server/resources/1.xml";
 // $xml = Functions::get_remote_file($url);
 // $xml = simplexml_load_string($xml);
 // print_r($xml); exit("\n\n");

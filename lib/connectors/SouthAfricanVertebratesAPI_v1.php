@@ -12,8 +12,8 @@ class SouthAfricanVertebratesAPI
         $this->taxa_all = array();
 
         // /* local
-        $this->vernacular_path = "http://localhost/cp_new/SouthAfricanVertebrates/common names.txt";
-        $this->taxa_path = "http://localhost/cp_new/SouthAfricanVertebrates/taxa.txt";
+        $this->vernacular_path = LOCAL_HOST."/cp_new/SouthAfricanVertebrates/common names.txt";
+        $this->taxa_path = LOCAL_HOST."/cp_new/SouthAfricanVertebrates/taxa.txt";
         // */
         
         /* remote

@@ -20,7 +20,7 @@ require_library('connectors/IrmngAPI');
 $zip_path = DOC_ROOT . "../other_files/IRMNG/IRMNG_DWC.zip";  //eol-archive
 
 // gives the 503 Service Unavailable if hosted in eol-archive (editors.eol.org OR opendata.eol.org)
-// $zip_path = "http://localhost/cp/IRMNG/IRMNG_DWC.zip";
+// $zip_path = LOCAL_HOST."/cp/IRMNG/IRMNG_DWC.zip";
 // $zip_path = "https://opendata.eol.org/dataset/4e93fcec-fb78-4df9-be1b-90ac3f3a524a/resource/62e4bdfb-d6b5-4880-88ef-959195a1f638/download/irmngdwc.zip";
 // $zip_path = "https://editors.eol.org/other_files/IRMNG/IRMNG_DWC.zip";
 // $zip_path = "http://www.cmar.csiro.au/datacentre/downloads/IRMNG_DWC.zip"; //no longer available from partner

@@ -54,8 +54,8 @@ $timestart = time_elapsed();
 
 /*
 //local
-$params["dwca_file"]    = "http://localhost/cp/iDigBio/iDigBioTypes.zip";
-$params["uri_file"]     = "http://localhost/cp/iDigBio/idigbio mappings.xlsx";
+$params["dwca_file"]    = LOCAL_HOST."/cp/iDigBio/iDigBioTypes.zip";
+$params["uri_file"]     = LOCAL_HOST."/cp/iDigBio/idigbio mappings.xlsx";
 */
 
 // /*

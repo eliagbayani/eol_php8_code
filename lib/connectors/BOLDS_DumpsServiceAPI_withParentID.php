@@ -57,7 +57,8 @@ class BOLDS_DumpsServiceAPI
 
         // $phylums = array('Annelida', 'Chordata', 'Rhodophyta', 'Basidiomycota', 'Heterokontophyta');
         
-        foreach($phylums as $phylum) $this->dump[$phylum] = "http://localhost/cp/BOLDS_new/bold_".$phylum.".txt.zip"; //assign respective source .txt.zip file
+        $localhost = pathinfo(WEB_ROOT, PATHINFO_DIRNAME); //http://host.docker.internal:81/
+        foreach($phylums as $phylum) $this->dump[$phylum] = $localhost."/cp/BOLDS_new/bold_".$phylum.".txt.zip"; //assign respective source .txt.zip file
 
         foreach($phylums as $phylum) {
             if(!$phylum) continue;

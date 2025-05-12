@@ -217,7 +217,7 @@ class ZenodoAPI extends ZenodoConnectorAPI
         // $url = 'https://opendata.eol.org/api/3/action/organization_show?id=wikidata-trait-reports&include_datasets=true';
 
         // $url = 'http://localhost/other_files2/Zenodo_files/json/encyclopedia_of_life.json'; //an organization: Aggregate Datasets
-        // $url = "http://localhost/other_files2/Zenodo_files/json/".$organization_id.".json";
+        // $url = LOCAL_HOST."/other_files2/Zenodo_files/json/".$organization_id.".json";
 
         // $url = "https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/Zenodo/json/".$organization_id.".json"; //main operation
 
@@ -1424,8 +1424,8 @@ class ZenodoAPI extends ZenodoConnectorAPI
                 // echo "\n" . $organization_id;
 
                 $url = str_replace('ORGANIZATION_ID', $organization_id, $this->ckan['organization_show']);
-                // $url = "http://localhost/other_files2/Zenodo_files/json/encyclopedia_of_life.json";
-                $url = "http://localhost/other_files2/Zenodo_files/json/".$organization_id.".json";
+                // $url = LOCAL_HOST."/other_files2/Zenodo_files/json/encyclopedia_of_life.json";
+                $url = LOCAL_HOST."/other_files2/Zenodo_files/json/".$organization_id.".json";
                 $url = "https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/Zenodo/json/".$organization_id.".json";
 
                 if($json = Functions::lookup_with_cache($url, $this->download_options)) {

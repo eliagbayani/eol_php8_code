@@ -49,7 +49,7 @@ start($resource_id); // this generates the 21.xml in CONTENT_RESOURCE_LOCAL_PATH
 require_library('connectors/ConvertEOLtoDWCaAPI');
 $timestart = time_elapsed();
 
-// $params["eol_xml_file"] = "http://localhost/eol_php_code/applications/content_server/resources/21.xml";
+// $params["eol_xml_file"] = WEB_ROOT."/applications/content_server/resources/21.xml";
 $params["eol_xml_file"] = CONTENT_RESOURCE_LOCAL_PATH . "21.xml";
 $params["filename"]     = "21.xml";
 $params["dataset"]      = "Amphibiaweb";

@@ -16,7 +16,7 @@ exit;
 */
 
 // /* //normal operation
-$params["uri_file"]     = "http://localhost/~eolit/cp/NMNH/type_specimen_resource/nmnh mappings.xlsx";
+$params["uri_file"]     = LOCAL_HOST."/cp/NMNH/type_specimen_resource/nmnh mappings.xlsx";
 // $params["uri_file"]     = "https://dl.dropboxusercontent.com/u/7597512/NMNH/type_specimen_resource/nmnh mappings.xlsx";
 
 $params["dataset"]      = "NMNH";

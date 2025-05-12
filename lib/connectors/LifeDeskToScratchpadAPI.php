@@ -12,8 +12,8 @@ class LifeDeskToScratchpadAPI
         /* Just set to false Feb 7, 2018 since there is no more Scratchpad conversion going on. and load_zip_contents() is being used elsewhere. e.g. LifeDeskToEOLAPI.php */
         
         /*
-        $this->file_importer_xls["image"] = "http://localhost/cp/LD2Scratchpad/templates/file_importer_image_xls.xls";
-        $this->file_importer_xls["text"] = "http://localhost/cp/LD2Scratchpad/templates/TEMPLATE-import_into_taxon_description_xls.xls";
+        $this->file_importer_xls["image"] = LOCAL_HOST."/cp/LD2Scratchpad/templates/file_importer_image_xls.xls";
+        $this->file_importer_xls["text"] = LOCAL_HOST."/cp/LD2Scratchpad/templates/TEMPLATE-import_into_taxon_description_xls.xls";
         $this->file_importer_xls["parent_child"]= "http://localhost/cp/LD2Scratchpad/templates/template_parent_child.xls";
         */
         $this->file_importer_xls["image"] = "https://dl.dropboxusercontent.com/u/7597512/LifeDesk_exports/templates/file_importer_image_xls.xls";

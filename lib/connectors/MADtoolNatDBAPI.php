@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [mad_natdb.php] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class MADtoolNatDBAPI
 {
     function __construct($folder = NULL, $dwca_file = NULL)
@@ -164,8 +166,8 @@ class MADtoolNatDBAPI
                     $rek['referenceID'] = self::generate_reference($dataset);
                     $rek = self::further_adjustments($rek, $mValue);
                     $ret_MoT_true = $this->func->pre_add_string_types($rek, $mValue, $mType, $mOfTaxon); //1
-                    $occurrenceID = $ret_MoT_true['occurrenceID'];
-                    $measurementID = $ret_MoT_true['measurementID'];
+                    $occurrenceID = @$ret_MoT_true['occurrenceID'];
+                    $measurementID = @$ret_MoT_true['measurementID'];
 
                     // /* add child to MoF: SampleSize
                     $rek = array();

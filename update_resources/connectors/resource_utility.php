@@ -363,7 +363,8 @@ elseif($task == 'metadata_recoding') {
         $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/168.tar.gz";
     }
     elseif($resource_id == '200_meta_recoded') { //task_200: contributor, creator, publisher from Document to Agents
-        $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/200.tar.gz";
+        if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/200.tar.gz";
+        else                            $dwca_file = WEB_ROOT."/applications/content_server/resources_3/200.tar.gz";
     }
     elseif($resource_id == 'Braconids_meta_recoded') { //task_200: contributor, creator, publisher from Document to Agents
         $dwca_file = "https://opendata.eol.org/dataset/1838b614-4d4e-4c57-a0c0-4ac18c825f5f/resource/3c38b485-e5dc-44de-af7a-88d2f74e616c/download/archive.zip";

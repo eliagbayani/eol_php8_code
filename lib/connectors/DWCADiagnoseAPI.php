@@ -339,7 +339,7 @@ class DWCADiagnoseAPI
         if($arr = @$var[$what['field']]) $parent_ids = array_keys($arr);
         else                             $parent_ids = array();
         $parent_ids = array_map('trim', $parent_ids);
-        $taxon_ids = $var[$compared_field];
+        $taxon_ids = @$var[$compared_field];
         unset($var);
 
         $undefined = array();

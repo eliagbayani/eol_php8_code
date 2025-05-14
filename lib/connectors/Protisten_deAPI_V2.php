@@ -933,7 +933,8 @@ class Protisten_deAPI_V2
     }
     private function image_exists_YN($image_url)
     {   
-        return true; //debug only dev only
+        // return true; //debug only dev only
+
         /* curl didn't work
         // Initialize cURL
         $ch = curl_init($image_url);
@@ -946,13 +947,13 @@ class Protisten_deAPI_V2
         else                     return false; //echo 'File not found';
         */
 
-        // /* fopen worked spledidly OK
+        // /* ----- fopen worked spledidly OK
         // Open file
         $handle = @fopen($image_url, 'r');
         // Check if file exists
         if(!$handle) return false; //echo 'File not found';
         else         return true; //echo 'File exists';
-        // */
+        // ----- */
     }
     private function format_furtherInfoURL($source_url, $accessURI, $mr) //3rd param for debug only
     {

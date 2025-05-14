@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 // connector: [664]
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class HymenopteraAPI
 {
     function __construct($folder)

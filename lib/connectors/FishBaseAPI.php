@@ -9,6 +9,8 @@ FishBase contacts are: Stacy and Skit
 "Christian Stacy Militante" <fin.csd.militante@gmail.com>
 "Josephine Skit Barile" <j.barile@fin.ph>
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class FishBaseAPI
 {
     public function __construct($test_run = false)

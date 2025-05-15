@@ -34,7 +34,10 @@ $timestart = time_elapsed();
 // $GLOBALS['ENV_DEBUG'] = true;
 
 $resource_id = 'BF'; //'brazilian_flora';
-$dwca_file = "https://editors.eol.org/other_files/GBIF_DwCA/lista_especies_flora_brasil.zip";
+
+$dwca_file = "https://editors.eol.org/other_files/GBIF_DwCA/lista_especies_flora_brasil.zip"; //interestingly not available in eol-archive anymore.
+$dwca_file = LOCAL_HOST."/other_files/GBIF_DwCA/lista_especies_flora_brasil.zip"; //still available locally Mac Studio
+
 process_resource_url($dwca_file, $resource_id, $timestart);
 
 // $elapsed_time_sec = time_elapsed() - $timestart;

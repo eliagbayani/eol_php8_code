@@ -9,8 +9,8 @@ require_library('connectors/PlaziArchiveAPI');
 $timestart = time_elapsed();
 
 $resource_id = 687;
-// $resource_path = LOCAL_HOST."/cp/Plazi/zootaxa.zip";
 $resource_path = "http://plazi.cs.umb.edu/GgServer/eol/zootaxa.zip";
+if(!Functions::ping($resource_path)) $resource_path = LOCAL_HOST."/cp/Plazi/zootaxa.zip";
 
 /*
 // get resource path from database
@@ -23,6 +23,10 @@ echo "\n processing resource:\n $resource_path \n\n";
 
 $func = new PlaziArchiveAPI();
 $func->clean_media_extension($resource_id, $resource_path);
+
+// /* new: 2025: this removes the folder that is left hanging...: /resources/687/
+if(is_dir(CONTENT_RESOURCE_LOCAL_PATH . $resource_id)) recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH . $resource_id);
+// */
 
 $elapsed_time_sec = time_elapsed() - $timestart;
 echo "\n\n";

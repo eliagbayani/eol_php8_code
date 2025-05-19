@@ -3,6 +3,8 @@ namespace php_active_record;
 /* Darwin core branch extractor - TRAM-583
 Processes any DwCA taxon extension (taxon.tab/txt/tsv).
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DwCA_Branch_Extractor
 {
     function __construct($folder = NULL, $dwca_file = NULL)

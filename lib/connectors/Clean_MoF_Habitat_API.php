@@ -83,7 +83,9 @@ class Clean_MoF_Habitat_API
             just remove the contradicting MoF habitat records
         */
         self::process_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'log_habitat_use'); //gen $this->marine_and_terrestrial
-        echo "\ntaxonIDs with both marine and terrestrial habitats: ".count(@$this->marine_and_terrestrial)."\n"; // print_r($this->marine_and_terrestrial);
+        $count = 0;
+        if($val = @$this->marine_and_terrestrial) $count = count($val);
+        echo "\ntaxonIDs with both marine and terrestrial habitats: ".$count."\n"; // print_r($this->marine_and_terrestrial);
 
 
         if(in_array($this->resource_id, array('wikipedia_en_traits_tmp3'))) { //orig - Wikipedia En traits

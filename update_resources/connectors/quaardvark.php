@@ -48,7 +48,7 @@ $timestart = time_elapsed();
 $resource_id = '22';
 $func = new QuaardvarkAPI($resource_id);
 $func->start();
-Functions::finalize_dwca_resource($resource_id);
+Functions::finalize_dwca_resource($resource_id, false, true); //3rd param true means delete working folder
 $elapsed_time_sec = time_elapsed() - $timestart;
 echo "\n\n";
 echo "\n elapsed time = " . $elapsed_time_sec . " seconds";

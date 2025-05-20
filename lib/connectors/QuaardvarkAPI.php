@@ -4,6 +4,8 @@ namespace php_active_record;
 http://content.eol.org/resources/640
 http://content.eol.org/resources/30
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class QuaardvarkAPI
 {
     function __construct($folder = null)
@@ -163,7 +165,7 @@ class QuaardvarkAPI
         }
         if(isset($this->debug['Geographic Range'])) {
             ksort($this->debug['Geographic Range']['Biogeographic Regions']);
-            ksort($this->debug['Geographic Range']['Other Geographic Terms']);
+            if(!is_null(@$this->debug['Geographic Range']['Other Geographic Terms'])) ksort($this->debug['Geographic Range']['Other Geographic Terms']);
         }
         if(isset($this->debug['Physical Description'])) {
             ksort($this->debug['Physical Description']['Other Physical Features']);
@@ -193,8 +195,8 @@ class QuaardvarkAPI
             ksort($this->debug['Food Habits']['Primary Diet']);
             ksort($this->debug['Food Habits']['Animal Foods']);
             ksort($this->debug['Food Habits']['Plant Foods']);
-            ksort($this->debug['Food Habits']['Other Foods']);
-            ksort($this->debug['Food Habits']['Foraging Behavior']);
+            if(!is_null(@$this->debug['Food Habits']['Other Foods'])) ksort($this->debug['Food Habits']['Other Foods']);
+            if(!is_null(@$this->debug['Food Habits']['Foraging Behavior'])) ksort($this->debug['Food Habits']['Foraging Behavior']);
         }
         // exit("\n-end-\n");
     }
@@ -219,7 +221,8 @@ class QuaardvarkAPI
 
             if(preg_match_all("/<tr>(.*?)<\/tr>/ims", $main_block, $a2)) { //exit("\nbbb\n");
                 $rows201 = $a2[1];
-                foreach($rows201 as $row) {
+                $k = 0; //debug only
+                foreach($rows201 as $row) { $k++;
                     /*IMPORTANT MANUAL change...*/
                     $row = str_replace('<td type="sequence"/>', '<td type="sequence"></td>', $row);
                     $row = str_replace('<td type="text"/>', '<td type="text"></td>', $row);
@@ -326,6 +329,7 @@ class QuaardvarkAPI
                         }
                         fwrite($f, implode("\t", $rek)."\n");
                     }
+                    // if($k >= 4) break; //debug only
                 }
             }
             fclose($f);
@@ -885,7 +889,8 @@ class QuaardvarkAPI
         $arr = explode("|", $val);
         
         // print_r($arr); exit("\n---\n");
-        foreach($arr as $url) {
+        $k = 0; //for debug only
+        foreach($arr as $url) { $k++;
             $pathinfo = pathinfo($url);
             // print_r($pathinfo); exit;
             /*Array(
@@ -913,6 +918,7 @@ class QuaardvarkAPI
                 [dataType] => http://purl.org/dc/dcmitype/StillImage
             )*/
             if(in_array(@$img_rec['license'], $this->accepted_licenses)) self::write_media_objects($img_rec);
+            // if($k >= 4) break; //debug only
         }
         // exit("\nstop munax\n");
     }

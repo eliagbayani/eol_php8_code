@@ -67,6 +67,8 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     /* $excluded_rowtypes will be processed in Clean_MoF_Habitat_API.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     Functions::finalize_dwca_resource($resource_id, false, false, $timestart); //3rd param false means don't delete working folder yet
+
+    echo "\nresource_id: [$resource_id]\n";
     
     // /* New: important to check if all parents have entries.
     require_library('connectors/DWCADiagnoseAPI');

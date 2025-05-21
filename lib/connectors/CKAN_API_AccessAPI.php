@@ -6,9 +6,11 @@ This class is client for:
     ckan_api_access.php
     ckan_api_acccess_using_resourceID.php
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class CKAN_API_AccessAPI
 {
-    function __construct($file_type = "EOL resource", $forced_date)
+    function __construct($file_type = "EOL resource", $forced_date = false)
     {
         $this->file_label = self::format_file_label($file_type);
         if($forced_date) {

@@ -19,9 +19,8 @@ class BioImagesAPI
         // $this->data_dump_url = "http://pick14.pick.uga.edu/users/s/Storey,_Malcolm/Malcolm_Storey_images.TXT"; obsolete
         
         if(Functions::is_production()) $this->data_dump_url = "http://www.discoverlife.org/users/s/Storey,_Malcolm/Malcolm_Storey_images.txt";
-        else {
-            $this->data_dump_url = WEB_ROOT."/tmp2/Malcolm_Storey_images.txt";
-        }
+        else                           $this->data_dump_url =    LOCAL_HOST."/other_files/Bioimages/Malcolm_Storey/Malcolm_Storey_images.txt";
+
         $this->original_resource = "http://opendata.eol.org/dataset/b0846bb0-7b81-40c7-8878-fb71f830ed17/resource/4444b435-c5e9-4d9e-b9ac-e6da8fd3fc55/download/168nov2010.xml.gz";
         $this->original_resource = "https://opendata.eol.org/dataset/a39f10aa-409f-42cd-a0df-8a5cd225cc51/resource/3092817a-1b5c-4922-820a-a8263ea38769/download/168nov2010.xml.gz";
         $this->taxa = array();
@@ -78,9 +77,9 @@ class BioImagesAPI
             fclose($FILE);
             //end - remove bom --------------
         
-            $col = array();
+            $col = array(); $k = 0;
             foreach(new FileIterator($temp_filepath, true) as $line_num => $line) // 'true' will auto delete temp_filepath
-            {
+            { $k++;
                 $line = trim($line);
                 $row = explode("\t", $line);
                 if($line_num == 0) {
@@ -95,6 +94,7 @@ class BioImagesAPI
                         self::parse_record_element($row, $col);
                     }
                 }
+                // if($k >= 10) break; //debug only
             }
             //get text objects from the original resource (168.xml in Nov 2010)
             self::get_texts();

@@ -559,7 +559,7 @@ class PolytraitsNewAPI extends ContributorsMapAPI
     }
     private function write_ancestry($ancestry)
     {
-        $ancestry = array_reverse($ancestry);
+        if($ancestry) $ancestry = array_reverse($ancestry);
         // print_r($ancestry); //exit("\nxxx\n");
         /*Array(
             [0] => Array(

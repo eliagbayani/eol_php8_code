@@ -78,7 +78,7 @@ function start($resource_id)
         */
         $file = 'https://editors.eol.org/other_files/Amphibiaweb/amphib_dump.xml';
     }
-    else $file = 'http://localhost/cp/Amphibiaweb/amphib_dump.xml';
+    else $file = LOCAL_HOST . '/cp/Amphibiaweb/amphib_dump.xml';
     if(!$new_resource_xml = Functions::lookup_with_cache($file, array('timeout' => 1200, 'download_attempts' => 5, 'expire_seconds' => 60*60*24*1))) { //cache expires in 25 days
         exit("\n\n Content partner's server is down, connector will now terminate.\n");
     }
@@ -153,7 +153,8 @@ function start($resource_id)
                 // M.S.Khan, (updated by Michelle Koo)
                 $parts = preg_split("/(, | and | and | & )/",$submittedBy);
                 // */
-                while(list($key,$val)=each($parts)) {
+                // while(list($key,$val)=each($parts)) { //obsolete. replace by foreach() in PHP 8.2
+                foreach($parts as $key => $val) { //for PHP 8.2                
                     // /* new
                     $val = str_ireplace("modified by", "", $val);
                     $val = str_ireplace("updated by", "", $val);

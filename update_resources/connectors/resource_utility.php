@@ -16,7 +16,7 @@ php update_resources/connectors/resource_utility.php _ '{"resource_id": "692_met
 
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "201_meta_recoded", "task": "metadata_recoding"}'
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "201_meta_recoded_2", "task": "metadata_recoding"}'
-
+770
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "726_meta_recoded", "task": "metadata_recoding"}'
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "griis_meta_recoded", "task": "metadata_recoding"}'
 
@@ -275,8 +275,9 @@ elseif($task == 'metadata_recoding') {
         else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/griis.tar.gz";
     }
     elseif($resource_id == '770_meta_recoded') {
-        if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/770.tar.gz";
-        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/770.tar.gz";
+        //770.tar.gz is obsolete. Source is already offline. Will use legacy file: 770_2020_Sep15.tar.gz
+        if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/770_2020_Sep15.tar.gz";
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/770_2020_Sep15.tar.gz";
     }
 
     elseif($resource_id == 'natdb_meta_recoded_1') {

@@ -1544,6 +1544,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             /* based here:
             $this->DwCA_URLs['AmphibiaWeb text'] = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/21.tar.gz';
             */
+            echo "\ndwca_url is: [$dwca_url]\n";
             $this->DwCA_URLs[$resource_name] = $dwca_url;
             print_r($this->DwCA_URLs);
         }

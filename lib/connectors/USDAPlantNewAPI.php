@@ -88,7 +88,7 @@ class USDAPlantNewAPI
         self::initialize();
         self::main();
         $this->archive_builder->finalize(true);
-        // Functions::start_print_debug();
+        Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function main()
     {
@@ -189,7 +189,10 @@ class USDAPlantNewAPI
                 // print_r($profile); exit("\nhas no images!\n");
             }
         }
-        else exit("\ncannot lookup\n");
+        else {
+            echo "\ncannot lookup: ".$rec['Symbol']."\n";
+            $this->debug['cannot lookup'][$rec['Symbol']] = '';
+        }
     }
     private function get_images($obj)
     {

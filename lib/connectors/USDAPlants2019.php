@@ -71,6 +71,10 @@ class USDAPlants2019
         https://plants.usda.gov/assets/docs/PLANTS_Help_Document.pdf#page=8 --> Source of codes and acronyms.
         https://plantsservices.sc.egov.usda.gov/api/StateSearch --> XML of list know states and territories. But not used ATM.
         */
+
+        $this->save_path = "/extra/other_files/USDA_StatesAndTerritories/";
+        if(!is_dir($this->save_path)) mkdir($this->save_path);
+
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -343,13 +347,34 @@ class USDAPlants2019
     {   echo "\nStates and Territories total: ".count($aliases)."\n";
         $i = 0;
         foreach($aliases as $alias) { $i++;
-            echo "\nDownloading CSV ".$alias."..."."$i of ".count($aliases);
+            echo "\nDownloading CSV ".$alias."..."."$i of ".count($aliases); //Downloading CSV Arizona...4 of 52
             // continue; //debug only
             $options = $this->download_options;
+            $options['expire_seconds'] = false; //the .txt files from partner is now offline
+            $options['cache'] = 1;
             $url = str_replace("STATE_NAME", str_replace(" ", "", $alias), $this->service['per_location']);
             if($local = Functions::save_remote_file_to_local($url, $options)) {
                 self::parse_state_list($local, $alias);
-                if(file_exists($local)) unlink($local);
+                if(file_exists($local)) {
+
+                    // /* will try to download the text files since they are now offline
+                    $destination = $this->save_path . "/$alias".".txt";
+                    echo "\nsource: $local\ndestination: $destination\n";
+                    if(!is_file($destination)) {
+                        echo "\nFile does not exist: [$destination]\n";
+                        if(copy($local, $destination)) echo "\nFile copied $i: [$destination]\n";
+                        else echo "\nERROR: File not copied $i: [$destination]\n";
+                    }
+                    else echo "\nFile already exists: [$destination]\n";
+                    // */
+                    
+                    unlink($local);
+                }
+                else echo "\nERROR: Source does not exist: [$local]\n";
+            }
+            else {
+                $local = $this->save_path . "/$alias".".txt"; //this was generated above
+                self::parse_state_list($local, $alias);
             }
             // break; //debug - process just 1 alias
         }

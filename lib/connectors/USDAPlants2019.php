@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from 727.php for DATA-1819] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class USDAPlants2019
 {
     function __construct($archive_builder, $resource_id)
@@ -72,7 +74,8 @@ class USDAPlants2019
         https://plantsservices.sc.egov.usda.gov/api/StateSearch --> XML of list know states and territories. But not used ATM.
         */
 
-        $this->save_path = "/extra/other_files/USDA_StatesAndTerritories/";
+        if(Functions::is_production()) $this->save_path = "/extra/other_files/USDA_StatesAndTerritories/";
+        else                           $this->save_path = "/Volumes/AKiTiO4/other_files/USDA_StatesAndTerritories/";
         if(!is_dir($this->save_path)) mkdir($this->save_path);
 
     }
@@ -357,7 +360,7 @@ class USDAPlants2019
                 self::parse_state_list($local, $alias);
                 if(file_exists($local)) {
 
-                    // /* will try to download the text files since they are now offline
+                    // /* will try to save the text files locally since they are now offline: succeeded OK last 3Jun2025
                     $destination = $this->save_path . "/$alias".".txt";
                     echo "\nsource: $local\ndestination: $destination\n";
                     if(!is_file($destination)) {
@@ -376,7 +379,7 @@ class USDAPlants2019
                 $local = $this->save_path . "/$alias".".txt"; //this was generated above
                 self::parse_state_list($local, $alias);
             }
-            // break; //debug - process just 1 alias
+            // break; //debug only - process just 1 alias
         }
     }
     private function get_state_territory_names()
@@ -543,7 +546,7 @@ class USDAPlants2019
                     //---------------------------------------------------
                 }
             }
-            // if($i >= 5) break; //debug --- get 5 rows from CSV only
+            // if($i >= 5) break; //debug only --- get 5 rows from CSV only
         }//end loop
     }
     private function get_string_uri($string)

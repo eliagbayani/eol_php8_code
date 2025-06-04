@@ -268,6 +268,28 @@ class PHPExcel_Shared_OLE
 	* @param  integer  the block id of the first block
 	* @return mixed true on success, PEAR_Error on failure
 	*/
+	private function switch_type($type) //By Eli
+	{
+		switch ($type) {
+			case self::OLE_PPS_TYPE_ROOT:
+				$pps = new PHPExcel_Shared_OLE_PPS_Root(null, null, array());
+				$this->root = $pps;
+				// break;
+				return array('pps' => $pps, 'action' => 'break');
+			case self::OLE_PPS_TYPE_DIR:
+				$pps = new PHPExcel_Shared_OLE_PPS(null, null, null, null, null,
+								null, null, null, null, array());
+				// break;
+				return array('pps' => $pps, 'action' => 'break');
+			case self::OLE_PPS_TYPE_FILE:
+				$pps = new PHPExcel_Shared_OLE_PPS_File($name);
+				// break;
+				return array('pps' => $pps, 'action' => 'break');
+			default:
+				// continue;
+				return array('pps' => $pps, 'action' => 'continue');
+		}
+	}
 	public function _readPpsWks($blockId)
 	{
 		$fh = $this->getStream($blockId);
@@ -279,21 +301,33 @@ class PHPExcel_Shared_OLE
 			// Simple conversion from UTF-16LE to ISO-8859-1
 			$name = str_replace("\x00", "", $nameUtf16);
 			$type = self::_readInt1($fh);
+
+			/* orig
 			switch ($type) {
-			case self::OLE_PPS_TYPE_ROOT:
-				$pps = new PHPExcel_Shared_OLE_PPS_Root(null, null, array());
-				$this->root = $pps;
-				break;
-			case self::OLE_PPS_TYPE_DIR:
-				$pps = new PHPExcel_Shared_OLE_PPS(null, null, null, null, null,
-								   null, null, null, null, array());
-				break;
-			case self::OLE_PPS_TYPE_FILE:
-				$pps = new PHPExcel_Shared_OLE_PPS_File($name);
-				break;
-			default:
-				continue;
+				case self::OLE_PPS_TYPE_ROOT:
+					$pps = new PHPExcel_Shared_OLE_PPS_Root(null, null, array());
+					$this->root = $pps;
+					break;
+				case self::OLE_PPS_TYPE_DIR:
+					$pps = new PHPExcel_Shared_OLE_PPS(null, null, null, null, null,
+									null, null, null, null, array());
+					break;
+				case self::OLE_PPS_TYPE_FILE:
+					$pps = new PHPExcel_Shared_OLE_PPS_File($name);
+					break;
+				default:
+					continue;
 			}
+			*/
+
+			// /* By Eli
+			$ret = self::switch_type($type);
+			$pps = @$ret['pps'];
+     			if(@$ret['action'] == 'break') break;
+			elseif(@$ret['action'] == 'continue') continue;
+			exit("\nCan it still go here...investigate...\n");
+			// */
+			
 			fseek($fh, 1, SEEK_CUR);
 			$pps->Type    = $type;
 			$pps->Name    = $name;
@@ -452,7 +486,7 @@ class PHPExcel_Shared_OLE
 	{
 		$rawname = '';
 		for ($i = 0; $i < strlen($ascii); ++$i) {
-			$rawname .= $ascii{$i} . "\x00";
+			$rawname .= $ascii[$i] . "\x00";
 		}
 		return $rawname;
 	}

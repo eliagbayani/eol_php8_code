@@ -33,7 +33,7 @@ if($resource_id == "TRY_temp2") {
 
 // /*
 if(Functions::is_production()) $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . $extension; //".tar.gz";
-else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$resource_id.$extension;  //'.tar.gz';
+else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources_3/'.$resource_id.$extension;  //'.tar.gz';
 // */
 
 // /* ---------- customize here ----------

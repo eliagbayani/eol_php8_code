@@ -169,7 +169,8 @@ class MooreaBiocodeAPI
                 self::write_taxon($taxon_rec);
                 self::write_object($rec);
             }
-        }
+            // if($i >= 10) break; //debug only
+        } //end foreach()
     }
     private function write_taxon($taxon_rec)
     {

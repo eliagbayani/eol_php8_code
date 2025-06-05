@@ -45,7 +45,9 @@ fclose($WRITE);
 if($temp_dir) shell_exec("rm -fr $temp_dir");
 
 // Functions::gzip_resource_xml($resource_id); //no longer needed as it will be converted to DwC-A
+/* obsolete
 Functions::set_resource_status_to_harvest_requested($resource_id);
+*/
 
 //start convert EOL XML to EOL DwCA
 require_library('ResourceDataObjectElementsSetting');
@@ -53,7 +55,7 @@ $nmnh = new ResourceDataObjectElementsSetting($resource_id);
 $nmnh->call_xml_2_dwca($resource_id, "Moorea Biocode", false); //false means not NMNH resource
 // */
 /*=========================end 1st part of the connector==================================*/
-
+// exit("\nstop muna...2\n");
 /*=========================start 2nd part of the connector================================
 this constitues to the 'step 2' part of the DATA-1810:
 Step 2 is a mapping:

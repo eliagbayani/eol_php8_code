@@ -105,7 +105,7 @@ class FlickrAPI
                         else $all_taxa[] = $t;
                     }
                 }
-                // if($i > 2) break; //debug - process just a subset and check the resource file...
+                // if($i > 10) break; //debug only - process just a subset and check the resource file...
             }
         }
         else {
@@ -120,7 +120,18 @@ class FlickrAPI
         $response = self::pools_get_photos(FLICKR_EOL_GROUP_ID, "", $per_page, $page, $auth_token, $user_id, $start_date, $end_date);
         if(isset($response->photos->photo)) {
             echo "\n page " . $response->photos->page . " of " . $response->photos->pages . " | total taxa =  " . $response->photos->total . " | ".$GLOBALS['resource_id']." \n";
-            echo "\n -- response count: " . count($response);
+            // print_r($response);
+            /*
+            stdClass Object(
+                [photos] => stdClass Object(
+                        [page] => 1
+                        [pages] => 843
+                        [perpage] => 500
+                        [total] => 421055
+                        [photo] => Array(
+                                [0] => stdClass Object(
+                                        [id] => 51883449059            
+            */            
             echo "\n -- response photos count per page: " . count($response->photos->photo) . "\n";
         }
         else {
@@ -514,7 +525,7 @@ class FlickrAPI
             if($val = @$photo->bhl_addtl['longitude'])   $data_object_parameters["additionalInformation"] .= "<longitude>$val</longitude>";    //http://www.w3.org/2003/01/geo/wgs84_pos#long
         }
 
-        if(@$photo->geoperms->ispublic = 1) {
+        if(@$photo->geoperms->ispublic == 1) {
             $geo_point_parameters = array();
             if(isset($photo->location->latitude)) $geo_point_parameters["latitude"] = $photo->location->latitude;
             if(isset($photo->location->longitude)) $geo_point_parameters["longitude"] = $photo->location->longitude;
@@ -663,7 +674,16 @@ class FlickrAPI
     public static function encode_parameters($parameters)
     {
         $encoded_paramameters = array();
-        foreach($parameters as $k => $v) $encoded_paramameters[] = urlencode($k).'='.urlencode($v);
+        foreach($parameters as $k => $v) {
+            if($k) $k_val = urlencode($k);
+            else   $k_val = "";
+            if($v) $v_val = urlencode($v);
+            else   $v_val = "";
+
+            $encoded_paramameters[] = $k_val.'='.$v_val;
+
+            // $encoded_paramameters[] = urlencode($k).'='.urlencode($v); //orig
+        }
         return $encoded_paramameters;
     }
     public static function request_parameters($method)
@@ -781,7 +801,7 @@ class FlickrAPI
             }
             */
             $all_taxa = array_merge($all_taxa, $taxa);
-            // if($i > 5) break; //debug - process just a subset and check the resource file...
+            // if($i > 10) break; //debug only - process just a subset and check the resource file...
         }
 
         ksort($GLOBALS['taxa']);

@@ -8,6 +8,8 @@ namespace php_active_record;
     829     Zookeys
     
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class ConvertEOLtoDWCaAPI
 {
     const SPM = "http://rs.tdwg.org/ontology/voc/SPMInfoItems#";
@@ -81,7 +83,7 @@ class ConvertEOLtoDWCaAPI
                     else $i = self::process_t($t, $i, $params);
                 }
             }
-            // if($i >= 5) break; //good debug --- if you want to limit the no. of taxa
+            // if($i >= 10) break; //good debug only --- if you want to limit the no. of taxa
         }
     }
     /* not used anymore...

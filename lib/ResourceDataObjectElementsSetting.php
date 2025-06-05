@@ -1,5 +1,7 @@
 <?php
 namespace php_active_record;
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class ResourceDataObjectElementsSetting
 {
     public function __construct($resource_id = null, $xml_path = null, $data_object_type = null, $rating = null)

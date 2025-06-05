@@ -1,5 +1,6 @@
 <?php
-
+// use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class SchemaDataObject
 {
     public $identifier;

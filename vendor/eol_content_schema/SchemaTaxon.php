@@ -1,5 +1,6 @@
 <?php
-
+// use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class SchemaTaxon
 {
     public $identifier;
@@ -63,7 +64,9 @@ class SchemaTaxon
     public function __toXML()
     {
         $xml = "<taxon>\n";
-        $xml .= "  <dc:identifier>".htmlspecialchars($this->identifier)."</dc:identifier>\n";
+        if(!is_null($this->identifier)) $tmp = htmlspecialchars($this->identifier);
+        else                            $tmp = md5($this->scientificName);
+        $xml .= "  <dc:identifier>".$tmp."</dc:identifier>\n";
         if($this->source) $xml .= "  <dc:source>".htmlspecialchars($this->source)."</dc:source>\n";
         if($this->kingdom) $xml .= "  <dwc:Kingdom>".htmlspecialchars($this->kingdom)."</dwc:Kingdom>\n";
         if($this->phylum) $xml .= "  <dwc:Phylum>".htmlspecialchars($this->phylum)."</dwc:Phylum>\n";

@@ -4,6 +4,8 @@ namespace php_active_record;
 This template is for DATA-1843: Andreas Kay resource
 Future clients, can just copy this template and edit accordingly
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class CachingTemplateAPI_AndreasKay
 {
     function __construct($resource_id)
@@ -186,8 +188,16 @@ class CachingTemplateAPI_AndreasKay
             else continue;
         }
         // print_r($final); exit("\n111\n");
-        $final = array_map('trim', $final);
-        return $final;
+
+        $final = array_filter($final); //remove null arrays
+        // $final = array_unique($final); //make unique
+        $final = array_values($final); //reindex key
+
+        if(is_null($final) || !$final) return array();
+        else { // print_r($final);
+            $final = array_map('trim', $final);
+            return $final;            
+        }
     }
     /* ======================================== end Andreas Kay functions ======================================== */
     private function check_name_in_GlobalNamesRecognitionDiscovery($str, $pseudoBinomialsYN)

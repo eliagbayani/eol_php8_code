@@ -32,7 +32,7 @@ class SchemaAgent
         if($this->homepage) $xml .= " homepage=\"".htmlspecialchars($this->homepage)."\"";
         if($this->logoURL) $xml .= " logoURL=\"".htmlspecialchars($this->logoURL)."\"";
         if($this->role) $xml .= " role=\"".htmlspecialchars($this->role)."\"";
-        $xml .= ">".htmlspecialchars($this->fullName)."</agent>\n";
+        $xml .= ">".htmlspecialchars($this->fullName ? $this->fullName: '')."</agent>\n";
         return $xml;
     }
 }

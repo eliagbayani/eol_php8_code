@@ -105,7 +105,7 @@ class FlickrAPI
                         else $all_taxa[] = $t;
                     }
                 }
-                // if($i > 10) break; //debug only - process just a subset and check the resource file...
+                // if($i > 2) break; //debug only - process just a subset and check the resource file...
             }
         }
         else {
@@ -187,7 +187,7 @@ class FlickrAPI
                 }
 
                 $used_image_ids[$photo->id] = '';
-                // if($count_taxa >= 5) break; //debug - process just a subset and check the resource file...
+                // if($count_taxa >= 2) break; //debug only - process just a subset and check the resource file...
             }
         }
         else {
@@ -228,8 +228,9 @@ class FlickrAPI
         }
         ---- end */
         
-        if($user_id == FLICKR_BHL_ID) $photo->bhl_addtl = self::add_additional_BHL_meta($photo); // https://eol-jira.bibalex.org/browse/DATA-1703
-        
+        if($user_id == FLICKR_BHL_ID) {
+            if($val = self::add_additional_BHL_meta($photo)) $photo->bhl_addtl = $val; // https://eol-jira.bibalex.org/browse/DATA-1703
+        }
         if(@$photo->visibility->ispublic != 1) return false;
         if($photo->usage->candownload != 1) return false;
         
@@ -317,6 +318,9 @@ class FlickrAPI
                 
                 // echo "\nNO sciname\n";
                 $parameters = $GLOBALS['func']->AndreasKay_addtl_taxon_assignment($photo->tags->tag, false); //2nd params is $allowsQuestionMarksYN
+
+                // print_r($parameters);
+                if(!$parameters) return false;
                 if(!$parameters['scientificName']) $parameters = $GLOBALS['func']->AndreasKay_addtl_taxon_assignment($photo->tags->tag, true); //2nd params is $allowsQuestionMarksYN
 
                 // echo "\nFrom Andreas...\n";
@@ -801,7 +805,7 @@ class FlickrAPI
             }
             */
             $all_taxa = array_merge($all_taxa, $taxa);
-            // if($i > 10) break; //debug only - process just a subset and check the resource file...
+            // if($i > 40) break; //debug only - process just a subset and check the resource file...
         }
 
         ksort($GLOBALS['taxa']);

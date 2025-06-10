@@ -83,7 +83,7 @@ class ConvertEOLtoDWCaAPI
                     else $i = self::process_t($t, $i, $params);
                 }
             }
-            // if($i >= 10) break; //good debug only --- if you want to limit the no. of taxa
+            // if($i >= 40) break; //debug only --- if you want to limit the no. of taxa
         }
     }
     /* not used anymore...

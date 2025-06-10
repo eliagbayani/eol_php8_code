@@ -203,6 +203,7 @@ function bhl_image_count() // just for stats
 {
     $path = WEB_ROOT."/applications/content_server/resources/544.xml";
     $path = WEB_ROOT."/applications/content_server/resources/544%20BHL%20in%20EOL%20Flickr%20Group.xml";
+    echo "\npath: [$path]\n";
     print "\n xml file: [$path] \n";
     $reader = new \XMLReader();
     $reader->open($path);

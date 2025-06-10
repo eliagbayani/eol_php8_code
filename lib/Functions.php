@@ -837,7 +837,7 @@ class Functions
         self::sci_parts();
         self::author_parts();
         self::junk_parts();
-
+        if(is_null($string)) return "";
         $string = str_replace('&times;', '×', $string);
         if(preg_match("/^X (.*)$/i",$string,$arr)) $string = $arr[1];
         $string = str_ireplace(" tipo veneto","",$string);

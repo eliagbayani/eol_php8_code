@@ -250,7 +250,10 @@ class NationalChecklistsAPI
                         if($val == 'United States') $dwca_filename = 'SC_unitedstates';
                         else {
                             if($dwca_filename = self::get_dwca_filename($val)) echo "\ndwca_filename: [$dwca_filename]\n"; //SC_andorra.tar.gz
-                            else exit("\nTerminated: should not go here 01.\n");
+                            else {
+                                exit("\nTerminated: should not go here 01.\n"); //part of main operation
+                                // break; //debug only
+                            }
                         }
                         $ret['dwca'] = $dwca_filename;
                     }    
@@ -272,8 +275,10 @@ class NationalChecklistsAPI
             // break; //debug only | process just 1 record
             // if($i > 5) break; //debug only
         } //end foreach()
-        fclose($f);
-        fclose($f2);
+        // /* added the if(isset()) during dev and working with limited no. of records. May not need it in production.
+        if(isset($f)) fclose($f);
+        if(isset($f2)) fclose($f2);
+        // */
         print_r($this->debug);
     }
 
@@ -283,8 +288,8 @@ class NationalChecklistsAPI
         $file = '/Volumes/Crucial_4TB/other_files/GBIF_occurrence/Country_checklists/countries/CH.tsv'; //Switzerland force assign dev only
         */
         $ret = self::get_country_name_from_file($file); //e.g. $file "/Volumes/Crucial_4TB/other_files/GBIF_occurrence/Country_checklists/countries/AD.tsv"
-        $country_name_lower = $ret['lower_case'];
-        $this->country_name = $ret['orig'];
+        $country_name_lower = @$ret['lower_case'] ? $ret['lower_case']: "";
+        $this->country_name = @$ret['orig'] ? $ret['orig']: "";
         // print_r($ret); exit;
         if(!in_array($this->country_name, $this->AnneT_natl_checklists)) {
             if($val = @$this->ctry_map[$this->country_name]) {
@@ -365,7 +370,10 @@ class NationalChecklistsAPI
                     if($val == 'United States') $dwca_filename = 'SC_unitedstates';
                     else {
                         if($dwca_filename = self::get_dwca_filename($val)) {}
-                        else exit("\nTerminated: should not go here 02.\n");
+                        else {
+                            exit("\nTerminated: should not go here 02.\n"); //part of main operation
+                            // break; //debug only
+                        }
                     }
                     echo "\ndwca_filename: [$dwca_filename]\n"; //SC_andorra
                     // /* ---------- major file deletion
@@ -834,6 +842,12 @@ class NationalChecklistsAPI
         $q = '+title:"'.$str.'" +title:2019 +title:National +title:Checklists'; //obsolete
         $q = '+title:"'.$str.'" -title:2019 -title:2017 +title:National +title:Checklists'; //latest
         if($obj = $this->zenodo->get_depositions_by_part_title($q)) { //print_r($obj[0]); 
+
+            // /* added during dev, when moving to PHP 8.2 and limited no. of records being processed.
+            if($val = @$obj[0]) {}
+            return false;
+            // */
+
             $f1 = $obj[0]['files'][0]['filename'];
             $path = $obj[0]['metadata']['related_identifiers'][0]['identifier'];
             $f2 = pathinfo($path, PATHINFO_BASENAME);

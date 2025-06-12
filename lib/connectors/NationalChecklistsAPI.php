@@ -333,6 +333,7 @@ class NationalChecklistsAPI
             // */
 
             if($ret = self::evaluate_country_file($file)) { //print_r($ret);
+                // echo "\n[this is $i]\n";
                 $country_name_lower = $ret['lower_case'];
                 $this->country_name = $ret['orig'];
 
@@ -386,7 +387,10 @@ class NationalChecklistsAPI
             }
             
             // /* during major file deletion
-            if($task == 'major_deletion') continue;
+            if($task == 'major_deletion') {
+                // if($i >= 2) break; //debug only
+                continue;
+            }
             // */
 
             // /* ----------- initialize country archive ----------- e.g. DwCA "SC_philippines.tar.gz"
@@ -408,7 +412,7 @@ class NationalChecklistsAPI
             if(!$folder) exit("\nfolder not defined [$folder]\n");
             self::proc_country($folder, $file);
             // break; //debug only | process just 1 country
-            // if($i >= 3) break; //dev only
+            // if($i >= 2) break; //debug only
         }
     }
     private function proc_country($folder, $file)
@@ -453,7 +457,7 @@ class NationalChecklistsAPI
                     // break; //debug only | process just 1 species
                 }
             }
-            // if($i > 1000) break; //debug only
+            // if($i > 20) break; //debug only
         }
     }
     private function process_country_file($rec)
@@ -566,9 +570,9 @@ class NationalChecklistsAPI
                 if($json = Functions::lookup_with_cache($this->service['species'].$rec['specieskey'], $options)) {
                     // print_r(json_decode($json, true));
                 }
-                // break;
+                // break; //debug only
             }
-            // if($i >= 25) break;
+            // if($i >= 25) break; //debug only
         }
     }
     private function download_extract_gbif_zip_file()

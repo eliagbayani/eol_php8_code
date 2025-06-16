@@ -7,6 +7,8 @@ wget https://editors.eol.org/other_files/GBIF_occurrence/Country_checklists/Coun
 wget https://editors.eol.org/other_files/GBIF_occurrence/WaterBody_checklists/WaterBody_checklists_DwCA.zip
 wget https://editors.eol.org/other_files/GBIF_occurrence/Continent_checklists/Continent_checklists_DwCA.zip
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class NationalChecklistsAPI
 {
     public function __construct($what) //typically param $folder is passed here.
@@ -309,7 +311,7 @@ class NationalChecklistsAPI
         $ret['orig'] = $this->country_name;
         return $ret;
     }
-    private function create_individual_country_checklist_resource($counter = false, $task, $sought_ctry = false)
+    private function create_individual_country_checklist_resource($counter = false, $task = "cannot be blank", $sought_ctry = false)
     {
         // /* caching
         $m = 252/6; //252 countries

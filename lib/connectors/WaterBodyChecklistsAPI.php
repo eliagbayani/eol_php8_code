@@ -398,7 +398,7 @@ class WaterBodyChecklistsAPI
             if(!$folder) exit("\nfolder not defined [$folder]\n");
             self::proc_waterbody($folder, $file);
             // break; //debug only | process just 1 country
-            // if($i >= 3) break; //dev only
+            // if($i >= 3) break; //debug only
         }
     }
     private function proc_waterbody($folder, $file)
@@ -448,11 +448,17 @@ class WaterBodyChecklistsAPI
             if(($i % $mod) == 0) echo "\n $i ";
             if($i == 1) $fields = explode("\t", $row);
             else {
+
+                /* debug only
+                if($i >= 200 && $i <= 210) {}
+                else continue;
+                */
+
                 if(!$row) continue;
                 $tmp = explode("\t", $row);
                 $rec = array(); $k = 0;
                 foreach($fields as $field) { $rec[$field] = @$tmp[$k]; $k++; }
-                $rec = array_map('trim', $rec); //print_r($rec); exit("\nstop muna\n");
+                $rec = array_map('trim', $rec); //print_r($rec); continue; //exit("\nstop muna\n");
                 // ---------------------------------------start
                 if($task == "divide_into_waterbody_files") {
                     /*Array(
@@ -462,12 +468,12 @@ class WaterBodyChecklistsAPI
                     )*/
                     self::save_to_different_waterbody_files_v1($rec); //for stats only
                     self::save_to_different_waterbody_files($rec);
-
                 }
                 // ---------------------------------------end
                 if($task == "process_waterbody_file") { //print_r($rec); //exit("\nelix 1\n");
                     self::process_waterbody_file($rec);
                     // break; //debug only | process just 1 species
+                    // if($i > 5) break; //debug only
                 }
             }
             // if($i > 1000) break; //debug only
@@ -498,6 +504,7 @@ class WaterBodyChecklistsAPI
     {
         $options = $this->download_options;
         $options['expire_seconds'] = false; //should not expire; false is the right value.
+        // echo "-100-";
         if($json = Functions::lookup_with_cache($this->service['species'].$rec['specieskey'], $options)) {
             $rek = json_decode($json, true); //print_r($rek); exit;
             
@@ -543,7 +550,8 @@ class WaterBodyChecklistsAPI
         $exclude = Array('Lincoln Sea', 'Gulf of Riga', 'Sea of Okhostk');
         foreach($this->AnneT_water_bodies as $waterbody) {
             if(in_array($waterbody, $exclude)) continue;
-            foreach($this->save[$waterbody] as $specieskey => $count) { // echo "\n[$waterbody] [$specieskey] [$count]";
+            $i = 0; //debug only
+            foreach($this->save[$waterbody] as $specieskey => $count) { $i++; // echo "\n[$waterbody] [$specieskey] [$count]";
                 // /* start writing OK
                 $waterbody_code = str_replace(" ", "_", strtolower($waterbody));
                 $file = $this->waterbody_path.'/'.$waterbody_code.'.tsv';
@@ -578,7 +586,7 @@ class WaterBodyChecklistsAPI
                 fclose($f);
                 // */
             } //foreach()
-            // break; //dev only | process just 1 waterbody
+            // break; //debug only | process just 1 waterbody
         } //foreach()
         fclose($f2);
     }
@@ -687,12 +695,13 @@ class WaterBodyChecklistsAPI
                 )*/
                 $options = $this->download_options;
                 $options['expire_seconds'] = false; //false is the right value
+                // echo "-200-";
                 if($json = Functions::lookup_with_cache($this->service['species'].$rec['specieskey'], $options)) {
                     // print_r(json_decode($json, true));
                 }
-                // break;
+                // break; //debug only
             }
-            // if($i >= 25) break;
+            // if($i >= 25) break; //debug only
         }
     }
     private function download_extract_gbif_zip_file()

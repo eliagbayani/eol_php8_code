@@ -54,17 +54,9 @@ class DwCA_Parse_Taxa_and_MoF_API
             } //print_r($rec); exit;
             /**/
             //===========================================================================================================================================================
-            $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-            $phylum = $rec['http://rs.tdwg.org/dwc/terms/phylum'];
-            $class = $rec['http://rs.tdwg.org/dwc/terms/class'];
-            $order = $rec['http://rs.tdwg.org/dwc/terms/order'];
-            $kingdom = $rec['http://rs.tdwg.org/dwc/terms/kingdom'];
-
-            if($what == 'info') {
-            } //end what == 'info'
+            if($what == 'info') {} //end what == 'info'
             //===========================================================================================================================================================
             if($what == 'write_taxa') {
-                //-----------------------------------------------------------
                 /* start write */
                 $o = new \eol_schema\Taxon();
                 $uris = array_keys($rec);
@@ -96,15 +88,14 @@ class DwCA_Parse_Taxa_and_MoF_API
             } //print_r($rec); exit;
             /**/
             //===========================================================================================================================================================
-            $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
-            if(isset($this->occurrenceIDs_to_delete[$occurrenceID])) continue;
             
+            /* for writing OK - copied template
             $o = new \eol_schema\MeasurementOrFact_specific();
             $uris = array_keys($rec);
             foreach($uris as $uri) {
                 $field = pathinfo($uri, PATHINFO_BASENAME);
                 $o->$field = $rec[$uri];
-            }
+            }*/
     
             // if($i >= 10) break; //debug only
         }
@@ -127,9 +118,7 @@ class DwCA_Parse_Taxa_and_MoF_API
             // print_r($rec); exit("\ndebug...\n");
             /**/
             
-            $taxonID      = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-            $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
-                        
+            /* for writing OK - copied template
             $uris = array_keys($rec);
             $o = new \eol_schema\Occurrence_specific();
             foreach($uris as $uri) {
@@ -137,6 +126,8 @@ class DwCA_Parse_Taxa_and_MoF_API
                 $o->$field = $rec[$uri];
             }
             $this->archive_builder->write_object_to_file($o);
+            */
+
             // if($i >= 10) break; //debug only
         }
     }

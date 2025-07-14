@@ -324,21 +324,53 @@ class ResourceUtility
         while(true) { $file_cnt++;
             $destination = $this->gnparsed_scinames."_".$file_cnt;
             if(file_exists($destination)) {
-                foreach(new FileIterator($destination) as $line => $row) {
+                $i = 0;
+                foreach(new FileIterator($destination) as $line => $row) { $i++;
                     if(!$row) continue;
                     // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
-                    $rec = explode("\t", $row);
-                    // print_r($rec); //exit("\ndebug1...\n");
-                    /*Array(
-                        [0] => d0f24211-8123-5397-8685-485dac20542c
-                        [1] => Saccamminopsis camelopardalis Schallreuter, 1985
-                        [2] => Saccamminopsis camelopardalis
-                        [3] => Saccamminopsis camelopardalis
-                        [4] => Schallreuter 1985
-                        [5] => 1985
-                        [6] => 1
-                    )*/
+
+                    /* works for old gnparser (version: v1.7.2) or even older like the old zip from Dima
+                    $rec = explode("\t", $row); // print_r($rec); //exit("\ndebug1...\n");
+                    // Array(
+                    //     [0] => d0f24211-8123-5397-8685-485dac20542c
+                    //     [1] => Saccamminopsis camelopardalis Schallreuter, 1985
+                    //     [2] => Saccamminopsis camelopardalis
+                    //     [3] => Saccamminopsis camelopardalis
+                    //     [4] => Schallreuter 1985
+                    //     [5] => 1985
+                    //     [6] => 1
+                    // )
                     $this->sciname_canonical_info[trim($rec[1])] = trim($rec[3]);
+                    */
+
+                    // /* --------------- for latest gnparser (version: v1.11.6)
+                    // header:      Id,Verbatim,Cardinality,CanonicalStem,CanonicalSimple,CanonicalFull,Authorship,Year,Quality
+                    // sample row:  b20ff438-7991-5419-8ba6-d901dc135e17,Biota,1,Biota,Biota,Biota,,,1
+                    $rec = explode("\t", $row); // print_r($rec); //exit("\ndebug1...\n");
+                    /*Array(
+                        [0] => Id
+                        [1] => Verbatim
+                        [2] => Cardinality
+                        [3] => CanonicalStem
+                        [4] => CanonicalSimple
+                        [5] => CanonicalFull
+                        [6] => Authorship
+                        [7] => Year
+                        [8] => Quality
+                    )                    
+                    Array(
+                        [0] => c56a3852-9625-5e93-945a-310f68a12363
+                        [1] => Musculus nigra (J. E. Gray, 1824)
+                        [2] => 2
+                        [3] => Musculus nigr
+                        [4] => Musculus nigra
+                        [5] => Musculus nigra
+                        [6] => (J. E. Gray, 1824)
+                        [7] => 1824
+                        [8] => 1
+                    )*/
+                    $this->sciname_canonical_info[trim($rec[1])] = trim($rec[4]);
+                    // --------------- */
                 }
             }
             else break;
@@ -352,6 +384,7 @@ class ResourceUtility
         self::carry_over_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'measurementorfact');
         */
         echo "\nTotal scinames no canonical generated: ".count($this->debug['sciname no canonical generated']);
+        print_r($this->debug);
     }
     function gen_canonical_list_from_taxa($info) //Func2
     {
@@ -366,11 +399,29 @@ class ResourceUtility
             $source = $this->extracted_scinames."_".$file_cnt;
             $destination = $this->gnparsed_scinames."_".$file_cnt;
             if(file_exists($source)) {
+                /* worked for the longest time: old gnparser version
                 $cmd = "gnparser file -f simple --input $source --output $destination"; //'simple' or 'json-compact'
+                */
+
+                // /* for latest gnparser (version: v1.11.6)
+                $flags = "-f pretty";
+                $flags = "-f simple";
+                $flags = "-f tsv";
+                $cmd = "gnparser $source $flags > $destination";
+                // */
+
+                echo "\ncmd: [$cmd]\n";
                 $out = shell_exec($cmd); echo "\n$out\n";
             }
             else break;
         }
+    }
+    private function format_sciname($str)
+    {   // “Montereina”
+        $str = str_replace('“', "", $str);
+        $str = str_replace('”', "", $str);
+        $str = str_replace('"', "", $str);
+        return $str;
     }
     private function process_taxon_Func2($meta, $task)
     {   //print_r($meta);
@@ -407,8 +458,11 @@ class ResourceUtility
                     $WRITE = fopen($this->extracted_scinames."_".$file_cnt, "w");
                 }
                 // /* for scientificName
-                if($scientificName = trim($rec['http://rs.tdwg.org/dwc/terms/scientificName'])){}
-                else $eli++;
+                if($scientificName = trim($rec['http://rs.tdwg.org/dwc/terms/scientificName'])) $scientificName = self::format_sciname($scientificName);
+                else {
+                    $eli++;
+                    continue;
+                }
                 fwrite($WRITE, $scientificName . "\n");
                 // */
                 
@@ -425,8 +479,11 @@ class ResourceUtility
             elseif($task == 'write taxa') {
                 // /* for scientificName
                 $scientificName = trim($rec['http://rs.tdwg.org/dwc/terms/scientificName']);
+                $scientificName = self::format_sciname($scientificName);
+
                 if($canonical = $this->sciname_canonical_info[$scientificName]) {
                     $rec['http://rs.tdwg.org/dwc/terms/vernacularName'] = $canonical; //deliberately used vernacularName for canonical values
+                    $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = $canonical;
                 }
                 else {
                     // print_r($rec); exit("\nsciname no canonical generated\n");

@@ -7,7 +7,11 @@ first client: https://jenkins.eol.org/job/EOL%20Connectors/job/Environmental%20t
 
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "617_final", "task": "remove_taxa_without_MoF"}'
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "wiki_en_report", "task": "report_4_Wikipedia_EN_traits"}'
-php update_resources/connectors/resource_utility.php _ '{"resource_id": "WoRMS2EoL_zip", "task": "add_canonical_in_taxa"}'
+
+php update_resources/connectors/resource_utility.php _ '{"resource_id": "WoRMS2EoL_zip",            "task": "add_canonical_in_taxa"}'
+php update_resources/connectors/resource_utility.php _ '{"resource_id": "globi_assoc_2025_05_17",   "task": "add_canonical_in_taxa"}'
+
+\
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "26_ENV_final", "task": "change_measurementIDs"}'
 
  -------------------------- START of metadata_recoding  --------------------------
@@ -215,6 +219,8 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 $timestart = time_elapsed();
 // $GLOBALS['ENV_DEBUG'] = true;
 
+// print_r(pathinfo('http://rs.tdwg.org/dwc/terms/measurementorfact')); exit;
+
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true);
@@ -244,7 +250,11 @@ elseif($task == 'add_canonical_in_taxa') {
                                         // $dwca_file = "http://www.marinespecies.org/export/eol/WoRMS2EoL.zip";
         else                            $dwca_file = LOCAL_HOST."/cp/WORMS/WoRMS2EoL.zip";
     }
-    else exit("\nERROR: [$task] resource_id not yet initialized. Will terminate.\n");
+    else { # I guess here for the rest of neo4j purposes. e.g. "globi_assoc_2025_05_17.tar.gz"
+        if(Functions::is_production())  $dwca_file = "https://editors.eol.org/other_files/for_Neo4j/xxx.tar.gz";
+        else                            $dwca_file = LOCAL_HOST."/cp/for_Neo4j/".$resource_id.".tar.gz";
+        $resource_id .= "_neo4j_1";
+    }    
 }
 elseif($task == 'change_measurementIDs') {
     if($resource_id == '26_ENV_final') {
@@ -442,8 +452,30 @@ if($task == 'fix_MoF_child_records') {
 function process_resource_url($dwca_file, $resource_id, $task, $timestart)
 {
     require_library('connectors/DwCA_Utility');
-    $func = new DwCA_Utility($resource_id, $dwca_file);
+    $params = array();
     
+    if($task == 'add_canonical_in_taxa') {
+        if($resource_id == 'WoRMS2EoL_zip') {} #for DH purposes
+        else {
+            $params['resource'] = "add_canonical_4_neo4j"; #the rest goes here...
+        }
+    }
+
+    $func = new DwCA_Utility($resource_id, $dwca_file, $params);
+
+    if($task == 'add_canonical_in_taxa') {
+        if($resource_id == 'WoRMS2EoL_zip') { #for DH purposes
+            $preferred_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
+            $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
+        }
+        else {
+            $preferred_rowtypes = array();
+            $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon', 'http://rs.tdwg.org/dwc/terms/occurrence', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 
+                'http://eol.org/schema/reference/reference', 'http://eol.org/schema/association');
+        }
+    }
+
+
     if($task == 'remove_taxa_without_MoF') {
         if(in_array($resource_id, array('wikipedia_en_traits'))) {
             $preferred_rowtypes = array();
@@ -465,14 +497,6 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
     elseif($task == 'report_4_Wikipedia_EN_traits') {
         $preferred_rowtypes = array('http://rs.tdwg.org/dwc/terms/measurementorfact'); //best to set this to array() and just set $excluded_rowtypes to taxon
         $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/measurementorfact');
-    }
-    elseif($task == 'add_canonical_in_taxa') {
-        /* working but not needed for DH purposes
-        $preferred_rowtypes = array();
-        $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon', 'http://eol.org/schema/media/document', 'http://rs.tdwg.org/dwc/terms/measurementorfact');
-        */
-        $preferred_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
-        $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
     }
 
     elseif($task == 'fix_MoF_child_records') {

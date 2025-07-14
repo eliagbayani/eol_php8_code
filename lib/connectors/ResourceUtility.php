@@ -379,12 +379,30 @@ class ResourceUtility
         $tables = $info['harvester']->tables;
         self::process_taxon_Func2($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'write taxa');
         //step 3: write document extension - just copy
-        /* working but not needed for DH purposes
-        self::carry_over_extension($tables['http://eol.org/schema/media/document'][0], 'document');
-        self::carry_over_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'measurementorfact');
-        */
-        echo "\nTotal scinames no canonical generated: ".count($this->debug['sciname no canonical generated']);
-        print_r($this->debug);
+        if($this->resource_id == 'WoRMS2EoL_zip') {} # nothing to carry over. Not needed for DH purposes.
+        // /*
+
+        if(stripos($this->resource_id, "_neo4j_1") !== false) {
+            $extensions = array_keys($tables); // print_r($extensions);
+            /*Array(
+                [0] => http://eol.org/schema/reference/reference
+                [1] => http://rs.tdwg.org/dwc/terms/occurrence
+                [2] => http://eol.org/schema/association
+                [3] => http://rs.tdwg.org/dwc/terms/taxon
+            )*/
+            foreach($extensions as $extension) {
+                $alias = pathinfo($extension, PATHINFO_FILENAME);
+                if($alias != 'taxon') self::carry_over_extension($tables[$extension][0], $alias);
+            }
+
+            // self::carry_over_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'measurementorfact');
+            // self::carry_over_extension($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'occurrence');
+            // self::carry_over_extension($tables['http://eol.org/schema/association'][0], 'association');
+            // self::carry_over_extension($tables['http://eol.org/schema/reference/reference'][0], 'reference');
+        }
+        // */
+        echo "\nTotal scinames no canonical generated: ".count($this->debug['sciname no canonical generated'])."\n";
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     function gen_canonical_list_from_taxa($info) //Func2
     {
@@ -831,7 +849,7 @@ class ResourceUtility
     {   //print_r($meta);
         echo "\nResourceUtility...carry_over_extension ($class)...\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
-            $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
+            $i++; if(($i % 300000) == 0) echo "\n".number_format($i);
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template

@@ -469,6 +469,13 @@ class DwCA_Utility
             $func->gen_canonical_list_from_taxa($info);
             $func->add_canonical_in_taxa($info);
         }
+        if(@$this->params['resource'] == "add_canonical_4_neo4j") {
+            require_library('connectors/ResourceUtility');
+            $func = new ResourceUtility($this->archive_builder, $this->resource_id);
+            $func->gen_canonical_list_from_taxa($info);
+            $func->add_canonical_in_taxa($info);
+        }
+
         if($this->resource_id == 'wiki_en_report') { //just a report, not creating a resource
             require_library('connectors/ResourceUtility');
             $func = new ResourceUtility($this->archive_builder, $this->resource_id);

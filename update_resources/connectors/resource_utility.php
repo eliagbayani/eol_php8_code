@@ -251,8 +251,11 @@ elseif($task == 'add_canonical_in_taxa') {
         else                            $dwca_file = LOCAL_HOST."/cp/WORMS/WoRMS2EoL.zip";
     }
     else { # I guess here for the rest of neo4j purposes. e.g. "globi_assoc_2025_05_17.tar.gz"
-        if(Functions::is_production())  $dwca_file = "https://editors.eol.org/other_files/for_Neo4j/xxx.tar.gz";
-        else                            $dwca_file = LOCAL_HOST."/cp/for_Neo4j/".$resource_id.".tar.gz";
+        // if(Functions::is_production())  $dwca_file = "https://editors.eol.org/other_files/for_Neo4j/xxx.tar.gz";
+        // else                            $dwca_file = LOCAL_HOST."/cp/for_Neo4j/".$resource_id.".tar.gz";
+
+        if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/".$resource_id.".tar.gz";
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$resource_id.".tar.gz";
         $resource_id .= "_neo4j_1";
     }    
 }

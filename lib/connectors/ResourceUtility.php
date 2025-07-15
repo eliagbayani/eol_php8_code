@@ -500,13 +500,13 @@ class ResourceUtility
                 $scientificName = self::format_sciname($scientificName);
 
                 if($canonical = $this->sciname_canonical_info[$scientificName]) {
-                    $rec['http://rs.tdwg.org/dwc/terms/vernacularName'] = $canonical; //deliberately used vernacularName for canonical values
+                    // $rec['http://rs.tdwg.org/dwc/terms/vernacularName'] = $canonical; //deliberately used vernacularName for canonical values
                     $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = $canonical;
                 }
                 else {
                     // print_r($rec); exit("\nsciname no canonical generated\n");
                     $this->debug['sciname no canonical generated'][$scientificName] = '';
-                    $rec['http://rs.tdwg.org/dwc/terms/vernacularName'] = $scientificName;
+                    // $rec['http://rs.tdwg.org/dwc/terms/vernacularName'] = $scientificName;
                 }
                 // */
 

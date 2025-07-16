@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from assign_EOLid.php] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DwCA_RunGNParser
 {
     function __construct($archive_builder, $resource_id, $archive_path)
@@ -20,6 +22,12 @@ class DwCA_RunGNParser
         gnparser name -f simple 'Ceroputo pilosellae Šulc, 1898'
         gnparser name -f simple 'The Myxobacteria'
         */
+        /* Name matching process using rank information https://github.com/EOL/ContentImport/issues/33 */
+        /* It's best to use the simple canonicals for all taxa except for those of rank subgenera, sections, and subsections. 
+        For taxa with these ranks, we want to use the full canonicals.
+        */
+        $this->ranks_to_use_full_canonicals = array("subgenera", "subgenus", "sections", "section", "subsections", "subsection");
+
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -83,10 +91,11 @@ class DwCA_RunGNParser
                 // /* assign canonical name
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
                 $scientificName = $rec['http://rs.tdwg.org/dwc/terms/scientificName'];
-
+                $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+                
                 // $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::lookup_canonical_name($scientificName, 'simple'); //working but too many calls
-                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::run_gnparser($scientificName, 'simple'); //working but too many calls
-
+                $gnparser_type = self::evaluate_name_and_rank($scientificName, $taxonRank);
+                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::run_gnparser($scientificName, $gnparser_type); //faster running in command line
                 // */
 
                 // print_r($rec); exit;
@@ -101,10 +110,40 @@ class DwCA_RunGNParser
             // if($i >= 5) break;
         }
     }
+    private function evaluate_name_and_rank($scientificName, $taxonRank)
+    {
+        $gnparser_type = "simple";
+        if(in_array($taxonRank, $this->ranks_to_use_full_canonicals)) $gnparser_type = "full";
+        else {  
+            /* names like these should get the full canonicals
+                "Oscillatoria sect. Prolificae"
+                "Heuchera flabellifolia var. subsecta Rosend., Butters & Lakela"
+                "Acetobacter (subgen. Acetobacter) aceti"
+                "Ochthebius (Subgenus) queenslandicus Hansen, M., 1998"
+            */
+            // ("subgenera", "subgenus", "sections", "section", "subsections", "subsection");
+            $words = array("sect.", " section ", "subsect", "subgen.", "(subgenus)", " subgenus ");
+            foreach($words as $word) {
+                if(stripos($scientificName, $word) !== false) $gnparser_type = "full"; //string is found
+            }
+        }
+        return $gnparser_type;
+    }
+    private function format_sciname($str)
+    {
+        // $str = str_replace('“', "", $str);
+        // $str = str_replace('”', "", $str);
+        // $str = str_replace('"', "", $str);
+
+        $str = str_replace("`", "'", $str);
+        return $str;
+    }
     function run_gnparser($sciname, $type)
     {   // e.g. gnparser -f pretty "Quadrella steyermarkii (Standl.) Iltis &amp; Cornejo"
+        $sciname = self::format_sciname($sciname);
         if($sciname = trim($sciname)) {
             $cmd = 'gnparser -f pretty "'.$sciname.'"';
+            // echo "\n[$cmd]\n";
             if($json = shell_exec($cmd)) { //echo "\n$json\n"; //good debug
                 if($obj = json_decode($json)) { //print_r($obj); //exit("\nstop muna\n"); //good debug
                     if(@$obj->canonical) {

@@ -43,7 +43,7 @@ $param                     = json_decode(@$argv[2], true); // print_r($param); e
 $resource_id = $param['resource_id'];
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-// $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$resource_id.'.tar.gz'; //during dev only
+$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$resource_id.".tar.gz"; //during dev only
 
 if($resource_id == "Brazilian_Flora") $resource_id = "Brazilian_Flora_with_canonical";
 else exit("\nresource_id [$resource_id] not yet initialized. \n");

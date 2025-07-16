@@ -169,6 +169,7 @@ class DwCA_Utility
 
             if(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") break; //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "neo4j_prep") break;                            //all extensions will be processed elsewhere.
+            if(@$this->params['resource'] == "add_canonical_Katja") break;                   //all extensions will be processed elsewhere.
 
             if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
             elseif(in_array($this->resource_id, array("BF", "gbif_classification", "gbif_classification_without_ancestry", "gbif_classification_final", 
@@ -543,7 +544,7 @@ class DwCA_Utility
             $func = new DwCA_AssignEOLidAPI($this->archive_builder, $this->resource_id, $this->archive_path);
             $func->start($info);
         }
-        if(in_array($this->resource_id, array("Brazilian_Flora_with_canonical"))) { //1st client is: Brazilian_Flora_with_canonical
+        if(in_array($this->resource_id, array("Brazilian_Flora_with_canonical")) || @$this->params['resource'] == "add_canonical_Katja") { //1st client is: Brazilian_Flora_with_canonical
             require_library('connectors/DwCA_RunGNParser');
             $func = new DwCA_RunGNParser($this->archive_builder, $this->resource_id, $this->archive_path);
             $func->start($info);

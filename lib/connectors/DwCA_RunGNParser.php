@@ -39,6 +39,7 @@ class DwCA_RunGNParser
         )*/
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
         self::process_table($tables[$tbl][0], 'write_archive');
+        if($this->debug) print_r($this->debug);
     }
     private function process_table($meta, $what)
     {   //print_r($meta);
@@ -94,8 +95,8 @@ class DwCA_RunGNParser
                 $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
                 
                 // $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::lookup_canonical_name($scientificName, 'simple'); //working but too many calls
-                $gnparser_type = self::evaluate_name_and_rank($scientificName, $taxonRank);
-                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::run_gnparser($scientificName, $gnparser_type); //faster running in command line
+                
+                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec);
                 // */
 
                 // print_r($rec); exit;
@@ -110,7 +111,7 @@ class DwCA_RunGNParser
             // if($i >= 5) break;
         }
     }
-    private function evaluate_name_and_rank($scientificName, $taxonRank)
+    private function evaluate_name_and_rank($scientificName, $taxonRank $rec)
     {
         $gnparser_type = "simple";
         if(in_array($taxonRank, $this->ranks_to_use_full_canonicals)) $gnparser_type = "full";
@@ -127,7 +128,45 @@ class DwCA_RunGNParser
                 if(stripos($scientificName, $word) !== false) $gnparser_type = "full"; //string is found
             }
         }
-        return $gnparser_type;
+
+        $canonical = self::run_gnparser($scientificName, $gnparser_type);
+        if(!$canonical) {
+            $this->debug["investigate 2: blank canonical"]["$scientificName|$taxonRank|$canonical"] = '';
+            return "";
+        }
+        $canonical = trim($canonical);
+        /* 2. If the full canonical for a subgenus, section (aka section botany or section zoology), 
+        or subsection (aka subsection botany or subsection zoology) is of the form (A subgen. B | A sect. B | A subsect. B) respectively, 
+        we have the right canonical for the taxon, and we can stop there.
+        */
+        if(in_array($taxonRank, array("subgenus", "section", "subsection"))) {
+            if(stripos($canonical, " ") !== false) {} //not 1 word //string is found
+            else {
+
+                /* option 1:
+                However, if the full canonical is just a simple one-part name, we are missing information. 
+                If possible, we should get this information from the parent taxon. 
+                For our purposes, the proper canonical for a subgenus, section, or subsection 
+                is usually of the form: Canonical of the parent taxa subgen.| sect. |subsect. simple canonical of the subgenus/section/subsection.
+                */
+                if($taxonRank == 'subgenus') {
+                    if($genus = $rec['http://rs.tdwg.org/dwc/terms/genus']) {
+                        $canonical_of_parent = self::run_gnparser($genus, 'simple');
+                        $canonical_of_subgenus = self::run_gnparser($scientificName, 'simple');
+                        $canonical = "$canonical_of_parent subgen. $canonical_of_subgenus";
+                    }
+                }
+                else {
+                    $this->debug["investigate 1: wrong canonical for trio"]["$scientificName|$taxonRank|$canonical"] = '';
+                }
+            }
+        }
+        return $canonical;
+    }
+    private function is_one_word($str)
+    {
+        if(strpos($str, " ") !== false) return false; //not 1 word //string is found
+        return true;
     }
     private function format_sciname($str)
     {

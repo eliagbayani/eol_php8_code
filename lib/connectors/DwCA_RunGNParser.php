@@ -104,6 +104,11 @@ class DwCA_RunGNParser
             else continue;
             */
 
+            // /* Not recognized fields e.g. WoRMS2EoL.zip
+            if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
+            if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
+            // */
+
             if($what == 'write_archive') {
                 // /* assign canonical name
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
@@ -147,7 +152,7 @@ class DwCA_RunGNParser
 
         $canonical = self::run_gnparser($scientificName, $gnparser_type);
         if(!$canonical) {
-            $this->debug["investigate 2: blank canonical"]["$scientificName|$taxonRank|$canonical"] = '';
+            $this->debug["investigate 2: blank canonical"]["sn:[$scientificName] r:[$taxonRank] cn:[$canonical]"] = '';
             return "";
         }
         $canonical = trim($canonical);
@@ -181,7 +186,7 @@ class DwCA_RunGNParser
                     return $canonical;
                 }
                 else {
-                    $this->debug["investigate 1: wrong canonical for trio"]["$scientificName|$taxonRank|$canonical"] = '';
+                    $this->debug["investigate 1: wrong canonical for trio"]["sn:[$scientificName] r:[$taxonRank] cn:[$canonical]"] = '';
                 }
             }
         }

@@ -6,7 +6,7 @@ First client: Brazilian_Flora.tar.gz
 php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "Brazilian_Flora"}'
 
 2nd client: for neo4j trait resources
-php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "globi_assoc_2025_05_17"}'
+php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "globi_assoc"}'
 php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "WoRMS2EoL"}'
 
 

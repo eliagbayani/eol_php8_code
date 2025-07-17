@@ -142,7 +142,6 @@ class DwCA_RunGNParser
         if(in_array($taxonRank, array("subgenus", "section", "subsection"))) {
             if(stripos($canonical, " ") !== false) {} //not 1 word //string is found
             else {
-
                 /* option 1:
                 However, if the full canonical is just a simple one-part name, we are missing information. 
                 If possible, we should get this information from the parent taxon. 

@@ -2,6 +2,8 @@
 namespace php_active_record;
 /* This can be a generic way of adding canonical to taxa.
 
+Here gnparser converts entire file. Not one sciname at a time.
+
 php update_resources/connectors/add_canonical_in_taxa.php _ '{"resource_id": "WoRMS2EoL_zip"}'
 */
 exit("\nNo longer used. Moved to resource_utility.php\n");

@@ -5,6 +5,7 @@ First client: Brazilian_Flora.tar.gz
 php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "Brazilian_Flora"}'
 php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "globi_assoc_2025_05_17"}'
 
+php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "WoRMS2EoL"}'
 
 
 
@@ -48,6 +49,10 @@ $resource_id = $param['resource_id'];
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
 $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$resource_id.".tar.gz"; //during dev only
+
+if($resource_id == "WoRMS2EoL") {
+    $dwca_file = LOCAL_HOST."/cp/WORMS/WoRMS2EoL.zip";
+}
 
 if($resource_id == "Brazilian_Flora") $resource_id = "Brazilian_Flora_with_canonical";
 else {

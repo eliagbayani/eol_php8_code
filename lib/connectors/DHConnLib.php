@@ -1,9 +1,11 @@
 <?php
 namespace php_active_record;
 /* connector: [DHconn.php] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DHConnLib
 {
-    function __construct($folder)
+    function __construct($folder, $path_to_taxa_file = false) //implement: path_to_taxa_file
     {
         $this->resource_id = $folder;
         $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
@@ -20,9 +22,13 @@ class DHConnLib
             $this->download_options = array(
                 'cache_path'         => '/Volumes/Crucial_4TB/active_DH_cache/',
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/";  //used for the longest time
-            // $this->main_path = "/Volumes/AKiTiO4/d_w_h/history/dhv21/";                              //supposedly latest but doesn't have EOLid
+            // $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/";       //used for the longest time
+            // $this->main_path = "/Volumes/AKiTiO4/d_w_h/history/dhv21/";                                      //supposedly latest but doesn't have EOLid
+            $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/dh226/taxon.tsv";   //latest from Katja 17Jul2025
         }
+        if($val = $path_to_taxa_file) $this->main_path = $val;
+        echo "\npath_to_taxa_file: [$this->main_path]\n";
+
         if(!is_dir($this->download_options['cache_path'])) mkdir($this->download_options['cache_path']);
         $this->download_options['expire_seconds'] = 60*60*24*7; //1 week cache
         
@@ -44,7 +50,6 @@ class DHConnLib
         $this->all_ranks_['all_chordata'] = $this->all_ranks_['all'];
         $this->all_ranks_['all_arthropoda'] = $this->all_ranks_['all'];
         $this->all_ranks_['all_passeriformes'] = $this->all_ranks_['all'];
-
 
         /*Array(
         Hi Jen, looking at the actual values for taxon rank in DH.
@@ -68,8 +73,8 @@ class DHConnLib
     // ----------------------------------------------------------------- start -----------------------------------------------------------------
     function initialize_get_ancestry_func()
     {
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'initialize');
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'buildup ancestry and children');
+        self::get_taxID_nodes_info($this->main_path, 'initialize');
+        self::get_taxID_nodes_info($this->main_path, 'buildup ancestry and children');
         /* tests only - OK
         $eol_id = '46564414'; //Gadus
         if($ancestry = self::get_ancestry_of_taxID($eol_id)) print_r($ancestry); //worked OK
@@ -87,21 +92,21 @@ class DHConnLib
     }
     function generate_any_taxa_list($what)
     {
-        if($what == 'kingdom Plantae') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa plantae', 'all_plantae'); // for all Plantae taxa
-        if($what == 'phylum Chordata') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa chordata', 'all_chordata'); // for all x taxa
-        if($what == 'phylum Arthropoda') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa arthropoda', 'all_arthropoda'); // for all x taxa        
-        if($what == 'phylum Passeriformes') self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa passeriformes', 'all_passeriformes'); // for all x taxa        
+        if($what == 'kingdom Plantae') self::get_taxID_nodes_info($this->main_path, 'list of taxa plantae', 'all_plantae'); // for all Plantae taxa
+        if($what == 'phylum Chordata') self::get_taxID_nodes_info($this->main_path, 'list of taxa chordata', 'all_chordata'); // for all x taxa
+        if($what == 'phylum Arthropoda') self::get_taxID_nodes_info($this->main_path, 'list of taxa arthropoda', 'all_arthropoda'); // for all x taxa        
+        if($what == 'phylum Passeriformes') self::get_taxID_nodes_info($this->main_path, 'list of taxa passeriformes', 'all_passeriformes'); // for all x taxa        
 
     }
     function generate_children_of_taxa_from_DH() /* This generates cache of children of order, family & genus. Also generates respective list txt files. */
-    {
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'list of taxa', 'all'); //for original generation of map data - all taxa with EOLid
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'initialize');
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'buildup ancestry and children');
+    {   
+        self::get_taxID_nodes_info($this->main_path, 'list of taxa', 'all'); //for original generation of map data - all taxa with EOLid
+        self::get_taxID_nodes_info($this->main_path, 'initialize');
+        self::get_taxID_nodes_info($this->main_path, 'buildup ancestry and children');
         
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'save children of genus and family', 'order');
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'save children of genus and family', 'family');
-        self::get_taxID_nodes_info($this->main_path.'/taxon.tab', 'save children of genus and family', 'genus');
+        self::get_taxID_nodes_info($this->main_path, 'save children of genus and family', 'order');
+        self::get_taxID_nodes_info($this->main_path, 'save children of genus and family', 'family');
+        self::get_taxID_nodes_info($this->main_path, 'save children of genus and family', 'genus');
 
         /* tests only - OK
         $eol_id = '46564414'; //Gadus
@@ -114,7 +119,7 @@ class DHConnLib
     }
     public function get_taxID_nodes_info($txtfile, $purpose, $filter_rank = '', $returnYN = false)
     {
-        if(!$txtfile) $txtfile = $this->main_path.'/taxon.tab'; //default value
+        if(!$txtfile) $txtfile = $this->main_path; //default value
         echo "\nPurpose: $purpose...\n";
         if($purpose == 'initialize') $this->mint2EOLid = array();
         elseif($purpose == 'buildup ancestry and children') { $this->taxID_info = array(); $this->descendants = array(); }
@@ -162,11 +167,16 @@ class DHConnLib
                 [EOLidAnnotations] => 
                 [Landmark] => 
             )*/
-            if($purpose == 'initialize') $this->mint2EOLid[$rec['taxonID']] = $rec['EOLid'];
+            // $EOLid = $rec['EOLid']; //old DH version
+            if($EOLid = @$rec['eolID']) {} //latest DH version: 
+            elseif($EOLid = @$rec['taxonID']) {} //for any taxon extension
+            else exit("\nTaxon extension errorl.\n");
+
+            if($purpose == 'initialize') $this->mint2EOLid[$rec['taxonID']] = $EOLid;
             elseif($purpose == 'buildup ancestry and children') {
                 if($parent_id = @$this->mint2EOLid[$rec['parentNameUsageID']]) {
-                    $this->taxID_info[$rec['EOLid']] = array("pID" => $parent_id, 'r' => $rec['taxonRank'], 'n' => $rec['scientificName']); //used for ancesty and more
-                    $this->descendants[$parent_id][$rec['EOLid']] = ''; //used for descendants (children)
+                    $this->taxID_info[$EOLid] = array("pID" => $parent_id, 'r' => $rec['taxonRank'], 'n' => $rec['scientificName']); //used for ancesty and more
+                    $this->descendants[$parent_id][$EOLid] = ''; //used for descendants (children)
                 }
                 else { // nothing to be done here. nature of the beast. Since not all EOL-000000000000 has an EOLid.
                     // print_r($rec);
@@ -176,7 +186,7 @@ class DHConnLib
             elseif($purpose == 'save children of genus and family') {
                 // if($rec['taxonRank'] == $filter_rank)
                 if(in_array($rec['taxonRank'], $this->all_ranks_[$filter_rank])) {
-                    if($eol_id = $rec['EOLid']) { $found++;
+                    if($eol_id = $EOLid) { $found++;
                         $json = self::get_children_from_json_cache($eol_id);
                         // $children = json_decode($json, true); // print_r($children); //debug only
 
@@ -193,7 +203,7 @@ class DHConnLib
             }
             elseif($purpose == 'list of taxa') {
                 if(in_array($rec['taxonRank'], $this->all_ranks_['all'])) {
-                    if($eol_id = $rec['EOLid']) { $found++;
+                    if($eol_id = $EOLid) { $found++;
                         // /* text file here will be used in generating map data for all taxa
                         if($val = $rec['canonicalName']) $sciname = $val;
                         else                             $sciname = Functions::canonical_form($rec['scientificName']);
@@ -202,7 +212,7 @@ class DHConnLib
                         // */
                         // if($found >= 5) break; //debug only
                         // $debug[$rec['taxonRank']] = '';
-                        $taxID_rank_info[$rec['EOLid']] = array('r' => $rec['taxonRank'], 'n' => $rec['scientificName']); //to use in GBIF maps
+                        $taxID_rank_info[$EOLid] = array('r' => $rec['taxonRank'], 'n' => $rec['scientificName']); //to use in GBIF maps
                     }
                 }
             }
@@ -230,8 +240,13 @@ class DHConnLib
     }
     private function proceed_save_or_not($rec, $found, $FILE)
     {
+        // $EOLid = $rec['EOLid']; //old DH version
+        if($EOLid = @$rec['eolID']) {} //latest DH version: 
+        elseif($EOLid = @$rec['taxonID']) {} //for any taxon extension
+        else exit("\nTaxon extension errorl.\n");
+
         // if(in_array($rec['taxonRank'], $this->all_ranks_['all'])) { //this block was copied above; from $purpose == 'list of taxa'
-            if($eol_id = $rec['EOLid']) { $found++;
+            if($eol_id = $EOLid) { $found++;
                 // /* text file here will be used in generating map data for all Plantae taxa
                 if($val = $rec['canonicalName']) $sciname = $val;
                 else                             $sciname = Functions::canonical_form($rec['scientificName']);

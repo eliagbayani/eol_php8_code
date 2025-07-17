@@ -34,12 +34,28 @@ class DwCA_RunGNParser
     {
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); //print_r($extensions); exit;
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
+        $meta = $tables[$tbl][0];
+
+        // /* ---------- Initialize so ancestry look-up is possible
+        require_library('connectors/DHConnLib');
+        $this->func = new DHConnLib(1, $meta->file_uri);
+        $this->func->initialize_get_ancestry_func();
+        echo "\nmeta file uri: [meta->file_uri]\n";
+        // for testing... worked OK
+        // if($ancestry = $this->func->get_ancestry_of_taxID("urn:lsid:marinespecies.org:taxname:420831")) {
+        //     print_r($ancestry); //worked OK
+        //     foreach($ancestry as $id) print_r(@$this->func->taxID_info[$id]);
+        // }
+        // else echo "\nNo ancestry\n";
+        // exit("\nstop muna...\n");
+        // ---------- */
+        
         /*Array(
             [0] => http://rs.tdwg.org/dwc/terms/taxon
         )*/
-        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
-        self::process_table($tables[$tbl][0], 'write_archive');
-        if($this->debug) print_r($this->debug);
+        self::process_table($meta, 'write_archive');
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function process_table($meta, $what)
     {   //print_r($meta);

@@ -111,7 +111,7 @@ class DwCA_RunGNParser
             // if($i >= 5) break;
         }
     }
-    private function evaluate_name_and_rank($scientificName, $taxonRank $rec)
+    private function evaluate_name_and_rank($scientificName, $taxonRank, $rec)
     {
         $gnparser_type = "simple";
         if(in_array($taxonRank, $this->ranks_to_use_full_canonicals)) $gnparser_type = "full";

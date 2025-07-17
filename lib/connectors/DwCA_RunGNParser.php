@@ -41,7 +41,7 @@ class DwCA_RunGNParser
         require_library('connectors/DHConnLib');
         $this->func = new DHConnLib(1, $meta->file_uri);
         $this->func->initialize_get_ancestry_func();
-        echo "\nmeta file uri: [meta->file_uri]\n";
+        echo "\nmeta file uri: [$meta->file_uri]\n";
         // for testing... worked OK
         // if($ancestry = $this->func->get_ancestry_of_taxID("urn:lsid:marinespecies.org:taxname:420831")) {
         //     print_r($ancestry); //worked OK
@@ -50,7 +50,7 @@ class DwCA_RunGNParser
         // else echo "\nNo ancestry\n";
         // exit("\nstop muna...\n");
         // ---------- */
-        
+
         /*Array(
             [0] => http://rs.tdwg.org/dwc/terms/taxon
         )*/
@@ -169,7 +169,16 @@ class DwCA_RunGNParser
                         $canonical_of_parent = self::run_gnparser($genus, 'simple');
                         $canonical_of_subgenus = self::run_gnparser($scientificName, 'simple');
                         $canonical = "$canonical_of_parent subgen. $canonical_of_subgenus";
+                        $this->debug["trio_1"]["[$scientificName][$taxonRank][$canonical]"] = '';
+                        return $canonical;
                     }
+                }
+                if($canonical_of_parent = self::get_canonical_of_parent($scientificName, $taxonRank, $rec)) {
+                    $canonical_of_subgenus_or_section_or_subsection = self::run_gnparser($scientificName, 'simple');
+                    $middle = self::get_middle_part($taxonRank); //either "subgen." or "sect." or "subsect."
+                    $canonical = "$canonical_of_parent $middle $canonical_of_subgenus_or_section_or_subsection";
+                    $this->debug["trio_2"]["[$scientificName][$taxonRank][$canonical]"] = '';
+                    return $canonical;
                 }
                 else {
                     $this->debug["investigate 1: wrong canonical for trio"]["$scientificName|$taxonRank|$canonical"] = '';
@@ -177,6 +186,39 @@ class DwCA_RunGNParser
             }
         }
         return $canonical;
+    }
+    private function get_canonical_of_parent($scientificName, $taxonRank, $rec)
+    {
+        if($taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID']) {
+            if($parent_id = self::get_parent_id_given_taxonID($taxonID)) {
+                if($rek = @$this->func->taxID_info[$parent_id]) { // print_r($rek);
+                    /*Array(
+                        [pID] => urn:lsid:marinespecies.org:taxname:156852
+                        [r] => species
+                        [n] => Ensitellops protextus (Conrad, 1841)
+                    )*/
+                    if($parent_sciname = @$rek['n']) {
+                        $canonical_of_parent = self::run_gnparser($parent_sciname, 'simple');
+                        return $canonical_of_parent;
+                    }
+                    echo("\n-=-=-=-=-=-=-=-=-=-=\nCheck muna, at this point:[$scientificName] [$taxonRank]\n");
+                    print_r($rec); exit("\n");
+                }
+            }
+        }
+    }
+    private function get_parent_id_given_taxonID($taxonID)
+    {
+        if($ancestry = $this->func->get_ancestry_of_taxID($taxonID)) {
+            if($parent_id = @$ancestry[1]) return $parent_id; //gets the 2nd record, index 1. The first record index 0 is the taxon in question.
+        }
+        return false;
+    }
+    private function get_middle_part($rank)
+    {
+        if($rank == 'subgenus')     return "subgen.";
+        if($rank == 'section')      return "sect.";
+        if($rank == 'subsection')   return "subsect.";
     }
     private function is_one_word($str)
     {

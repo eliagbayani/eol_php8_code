@@ -3,7 +3,7 @@ namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from match_taxa_2DH.php] */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class DwCA_RunGNParser
+class DwCA_MatchTaxa2DH
 {
     function __construct($archive_builder, $resource_id, $archive_path)
     {
@@ -12,7 +12,6 @@ class DwCA_RunGNParser
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         // $this->paths['wikidata_hierarchy'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/wikidata/wikidataEOLidMappings.txt';
-        $this->service['GNParser'] = 'https://parser.globalnames.org/api/v1/';
 
     }
     /*================================================================= STARTS HERE ======================================================================*/

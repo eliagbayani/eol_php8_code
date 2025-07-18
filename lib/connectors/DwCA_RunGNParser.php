@@ -27,7 +27,6 @@ class DwCA_RunGNParser
         For taxa with these ranks, we want to use the full canonicals.
         */
         $this->ranks_to_use_full_canonicals = array("subgenera", "subgenus", "sections", "section", "subsections", "subsection");
-
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -174,7 +173,7 @@ class DwCA_RunGNParser
                         $canonical_of_parent = self::run_gnparser($genus, 'simple');
                         $canonical_of_subgenus = self::run_gnparser($scientificName, 'simple');
                         $canonical = "$canonical_of_parent subgen. $canonical_of_subgenus";
-                        $this->debug["trio_1"]["[$scientificName][$taxonRank][$canonical]"] = '';
+                        $this->debug["trio_1: got parent genus; rank = subgenus"]["[$scientificName][$taxonRank][$canonical]"] = '';
                         return $canonical;
                     }
                 }
@@ -186,7 +185,7 @@ class DwCA_RunGNParser
                     return $canonical;
                 }
                 else {
-                    $this->debug["investigate 1: wrong canonical for trio"]["sn:[$scientificName] r:[$taxonRank] cn:[$canonical]"] = '';
+                    $this->debug["investigate 1: wrong canonical for trio. Cannot get its parent."]["sn:[$scientificName] r:[$taxonRank] cn:[$canonical]"] = '';
                 }
             }
         }

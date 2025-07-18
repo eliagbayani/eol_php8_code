@@ -1,6 +1,6 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from assign_EOLid.php] */
+/* connector: [called from DwCA_Utility.php, which is called from run_gnparser_dwca.php] */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_RunGNParser
@@ -93,18 +93,6 @@ class DwCA_RunGNParser
                 [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
                 [http://purl.org/dc/terms/modified] => 2018-08-10 11:58:06.954
             )*/
-
-            /* caching           122658/6=20443
-            $m = 20443; // divided by 6
-            $m = 30665; // divided by 4
-            // if($i >= 1 && $i <= $m) {}
-            // if($i >= $m && $i <= $m*2) {}
-            // if($i >= $m*2 && $i <= $m*3) {}
-            if($i >= $m*3 && $i <= $m*4) {}
-            // if($i >= $m*4 && $i <= $m*5) {} 
-            // if($i >= $m*5 && $i <= $m*6) {} 
-            else continue;
-            */
 
             // /* Not recognized fields e.g. WoRMS2EoL.zip
             if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
@@ -236,11 +224,11 @@ class DwCA_RunGNParser
     {
         $str = str_replace('“', '"\""', $str);
         $str = str_replace('”', '"\""', $str);
-
         $str = str_replace('"', '"\""', $str);
-
         $str = str_replace("'", "'\''", $str);
         $str = str_replace("`", "'\''", $str);
+        $str = str_replace("\n", " ", $str);
+        $str = Functions::remove_whitespace($str);
         return $str;
         // echo 'This is how it'\''s done'.
     }
@@ -248,8 +236,7 @@ class DwCA_RunGNParser
     {   // e.g. gnparser -f pretty "Quadrella steyermarkii (Standl.) Iltis &amp; Cornejo"
         $sciname = self::format_sciname($sciname);
         if($sciname = trim($sciname)) {
-            $cmd = 'gnparser -f pretty "'.$sciname.'"';
-            // echo "\n[$cmd]\n";
+            $cmd = 'gnparser -f pretty "'.$sciname.'"'; // echo "\n[$cmd]\n";
             if($json = shell_exec($cmd)) { //echo "\n$json\n"; //good debug
                 if($obj = json_decode($json)) { //print_r($obj); //exit("\nstop muna\n"); //good debug
                     if(@$obj->canonical) {

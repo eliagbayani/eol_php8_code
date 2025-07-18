@@ -55,7 +55,7 @@ class DwCA_MatchTaxa2DH
 
 
             // /* Not recognized fields e.g. WoRMS2EoL.zip
-            if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
+            if(isset($rec['http://purl.org/dc/terms/rights']))       unset($rec['http://purl.org/dc/terms/rights']);
             if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
             // */
 

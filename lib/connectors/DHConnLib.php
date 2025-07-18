@@ -94,9 +94,8 @@ class DHConnLib
     {
         if($what == 'kingdom Plantae') self::get_taxID_nodes_info($this->main_path, 'list of taxa plantae', 'all_plantae'); // for all Plantae taxa
         if($what == 'phylum Chordata') self::get_taxID_nodes_info($this->main_path, 'list of taxa chordata', 'all_chordata'); // for all x taxa
-        if($what == 'phylum Arthropoda') self::get_taxID_nodes_info($this->main_path, 'list of taxa arthropoda', 'all_arthropoda'); // for all x taxa        
-        if($what == 'phylum Passeriformes') self::get_taxID_nodes_info($this->main_path, 'list of taxa passeriformes', 'all_passeriformes'); // for all x taxa        
-
+        if($what == 'phylum Arthropoda') self::get_taxID_nodes_info($this->main_path, 'list of taxa arthropoda', 'all_arthropoda'); // for all x taxa
+        if($what == 'phylum Passeriformes') self::get_taxID_nodes_info($this->main_path, 'list of taxa passeriformes', 'all_passeriformes'); // for all x taxa
     }
     function generate_children_of_taxa_from_DH() /* This generates cache of children of order, family & genus. Also generates respective list txt files. */
     {   
@@ -122,7 +121,10 @@ class DHConnLib
         if(!$txtfile) $txtfile = $this->main_path; //default value
         echo "\nPurpose: $purpose...\n";
         if($purpose == 'initialize') $this->mint2EOLid = array();
-        elseif($purpose == 'buildup ancestry and children') { $this->taxID_info = array(); $this->descendants = array(); }
+        elseif($purpose == 'buildup ancestry and children') { 
+            $this->taxID_info = array(); 
+            $this->descendants = array();
+        }
 
         if(in_array($purpose, array('list of taxa', 'list of taxa plantae', 'list of taxa chordata', 'list of taxa arthropoda', 'list of taxa passeriformes',  
             'save children of genus and family'))) {
@@ -170,7 +172,7 @@ class DHConnLib
             // $EOLid = $rec['EOLid']; //old DH version
             if($EOLid = @$rec['eolID']) {} //latest DH version: 
             elseif($EOLid = @$rec['taxonID']) {} //for any taxon extension
-            else exit("\nTaxon extension errorl.\n");
+            else exit("\nTaxon extension error.\n");
 
             if($purpose == 'initialize') $this->mint2EOLid[$rec['taxonID']] = $EOLid;
             elseif($purpose == 'buildup ancestry and children') {

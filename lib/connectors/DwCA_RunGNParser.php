@@ -231,12 +231,15 @@ class DwCA_RunGNParser
     }
     private function format_sciname($str)
     {
-        // $str = str_replace('“', "", $str);
-        // $str = str_replace('”', "", $str);
-        // $str = str_replace('"', "", $str);
+        $str = str_replace('“', '"\""', $str);
+        $str = str_replace('”', '"\""', $str);
 
-        $str = str_replace("`", "'", $str);
+        $str = str_replace('"', '"\""', $str);
+
+        $str = str_replace("'", "'\''", $str);
+        $str = str_replace("`", "'\''", $str);
         return $str;
+        // echo 'This is how it'\''s done'.
     }
     function run_gnparser($sciname, $type)
     {   // e.g. gnparser -f pretty "Quadrella steyermarkii (Standl.) Iltis &amp; Cornejo"

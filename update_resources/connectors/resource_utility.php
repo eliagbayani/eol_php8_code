@@ -8,6 +8,7 @@ first client: https://jenkins.eol.org/job/EOL%20Connectors/job/Environmental%20t
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "617_final", "task": "remove_taxa_without_MoF"}'
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "wiki_en_report", "task": "report_4_Wikipedia_EN_traits"}'
 
+Here gnparser converts entire file. Not one name at a time.
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "WoRMS2EoL_zip",            "task": "add_canonical_in_taxa"}'
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "globi_assoc_2025_05_17",   "task": "add_canonical_in_taxa"}'
 

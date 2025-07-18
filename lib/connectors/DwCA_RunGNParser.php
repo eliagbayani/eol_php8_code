@@ -15,6 +15,9 @@ class DwCA_RunGNParser
         $this->service['GNParser'] = 'https://parser.globalnames.org/api/v1/';
 
         /*
+        --------------------------------------------------- Used latest gnparser (as of 18Jul2025) from:
+        https://github.com/gnames/gnparser/releases/tag/v1.11.6
+        ---------------------------------------------------
         Install gnparser in command line: https://github.com/gnames/gnparser/blob/master/README.md#installation
 
         gnparser file -f json-compact --input step3_scinames.txt --output step3_gnparsed.txt

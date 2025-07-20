@@ -203,7 +203,7 @@ class DHConnLib
                     }
                 }
             }
-            elseif($purpose == 'list of taxa') {
+            elseif($purpose == 'list of taxa') { //for GBIF map data
                 if(in_array($rec['taxonRank'], $this->all_ranks_['all'])) {
                     if($eol_id = $EOLid) { $found++;
                         // /* text file here will be used in generating map data for all taxa
@@ -218,20 +218,20 @@ class DHConnLib
                     }
                 }
             }
-            elseif($purpose == 'list of taxa plantae') { //2025
+            elseif($purpose == 'list of taxa plantae') { //2025 - //for GBIF map data
                 if(self::rec_is_Plantae_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
             }
-            elseif($purpose == 'list of taxa chordata') { //2025
+            elseif($purpose == 'list of taxa chordata') { //2025 - //for GBIF map data
                 if(self::rec_is_Chordata_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
             }
-            elseif($purpose == 'list of taxa arthropoda') { //2025
+            elseif($purpose == 'list of taxa arthropoda') { //2025 - //for GBIF map data
                 if(self::rec_is_Arthropoda_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
             }
-            elseif($purpose == 'list of taxa passeriformes') { //2025
+            elseif($purpose == 'list of taxa passeriformes') { //2025 - //for GBIF map data
                 if(self::rec_is_Passeriformes_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
             }
 
-        }
+        } //end foreach()
         if(in_array($purpose, array('list of taxa', 'list of taxa plantae', 'list of taxa chordata', 'list of taxa arthropoda', 
         'list of taxa passeriformes', 'save children of genus and family'))) fclose($FILE);
         // print_r($debug);

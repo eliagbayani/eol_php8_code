@@ -17,17 +17,25 @@ class DwCA_MatchTaxa2DH
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
     {
+        // step 1: read info from DH
+        require_library('connectors/DHConnLib');
+        $func = new DHConnLib(1);
+        
+
+
+        /* COPIED TEMPLATE
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); //print_r($extensions); exit;
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
         $meta = $tables[$tbl][0];
+        */
 
-        // /* ---------- Initialize so ancestry look-up is possible
-        require_library('connectors/DHConnLib');
+        /* ---------- Initialize so ancestry look-up is possible - COPIED TEMPLATE
+        require_library('connectors/DHConnLib'); 
         $this->func = new DHConnLib(1, $meta->file_uri);
         $this->func->initialize_get_ancestry_func();
         echo "\nmeta file uri: [$meta->file_uri]\n";
-        // ---------- */
+        ---------- */
 
         /*Array(
             [0] => http://rs.tdwg.org/dwc/terms/taxon

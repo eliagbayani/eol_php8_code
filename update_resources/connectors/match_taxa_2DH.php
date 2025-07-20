@@ -4,9 +4,9 @@ namespace php_active_record;
 https://github.com/EOL/ContentImport/issues/33
 
 clients: for neo4j trait resources
-php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "Brazilian_Flora"}'
-php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "globi_assoc"}'
-php update_resources/connectors/run_gnparser_dwca.php _ '{"resource_id": "WoRMS2EoL"}'
+php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "Brazilian_Flora"}'
+php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "globi_assoc"}'
+php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "WoRMS2EoL"}'
 
 ====================================================================
 */
@@ -24,11 +24,13 @@ $timestart = time_elapsed();
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
+$tmp_id = $param['resource_id'];
+$tmp_id .= "_neo4j_1";
 
-$dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$resource_id.".tar.gz"; //during dev only
+$dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$tmp_id.'.tar.gz';
+$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz"; //during dev only
 
-$resource_id .= "_neo4j_1"; //latest implementation
+$resource_id .= "_neo4j_2"; //the DwCA with the new column eolID from DH
 
 process_resource_url($dwca_file, $resource_id, $timestart);
 

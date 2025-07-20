@@ -50,7 +50,7 @@ class DwCA_MatchTaxa2DH
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
-        exit("\nstop muna\n"); //dev only
+        // exit("\nstop muna\n"); //dev only
     }
     private function process_table($meta, $what)
     {   //print_r($meta);
@@ -91,19 +91,30 @@ class DwCA_MatchTaxa2DH
             // /*
             $rec = self::not_recongized_fields($rec);
             // */
+            $rec['http://eol.org/schema/EOLid'] = 'elix';
 
+            $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
             if($canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName'])) {}
             else continue;
 
             if($what == 'match_canonical') {
-                if($rek = $this->DHCanonical_info[$canonicalName]) {
-                    $rec = self::main_matching_routine($rec, $rek);
+                if($rek = @$this->DHCanonical_info[$canonicalName]) {
+                    if($taxonRank) $rec = self::main_matching_routine($rec, $rek, $taxonRank);
                 }
                 else {
                     $this->debug['No canonical match'][$canonicalName] = '';
                 }
-
             }
+
+            // /* start writing:
+            $o = new \eol_schema\Taxon();
+            $uris = array_keys($rec); // print_r($uris); //exit;
+            foreach($uris as $uri) {
+                $field = self::get_field_from_uri($uri);
+                $o->$field = $rec[$uri];
+            }
+            $this->archive_builder->write_object_to_file($o);
+            // */
 
             /* copied template
             if($what == 'write_archive') {
@@ -120,12 +131,18 @@ class DwCA_MatchTaxa2DH
             if($i >= 100) break; //dev only
         }
     }
-    private function main_matching_routine($rec, $rek)
+    private function main_matching_routine($rec, $rek, $taxonRank)
     {
         // print_r($rec); //DwCA in question
         // print_r($rek); //DH
+        /*Array(
+            [r] => order
+            [n] => Agaricales
+            [e] => 5676
+        )*/
         $DH_rank = $rek['r'];
-
+        if($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        return $rec;
     }
     private function format_canonical($canonicalName)
     {
@@ -141,6 +158,15 @@ class DwCA_MatchTaxa2DH
         // */
         return $rec;
     }
+    private function get_field_from_uri($uri)
+    {
+        $field = pathinfo($uri, PATHINFO_BASENAME);
+        $parts = explode("#", $field);
+        if($parts[0]) $field = $parts[0];
+        if(@$parts[1]) $field = $parts[1];
+        return $field;
+    }
+
     /* copied template
     private function get_taxonID_EOLid_list()
     {

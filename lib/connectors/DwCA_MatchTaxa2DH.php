@@ -12,23 +12,32 @@ class DwCA_MatchTaxa2DH
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         // $this->paths['wikidata_hierarchy'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/wikidata/wikidataEOLidMappings.txt';
+        $this->debug = array();
+
+        // In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
+        $this->ok_match_higher_ranks = array('phylum', 'class', 'order');
+        // It's also ok to match taxa with different ranks if both taxa have a subspecific rank, 
+        // e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
+        $this->ok_match_subspecific_ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
 
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
     {
-        // step 1: read info from DH
+        // /* step 1: read info from DH
         require_library('connectors/DHConnLib');
         $func = new DHConnLib(1);
-        
+        $this->DHCanonical_info = $func->build_up_taxa_info();
+        echo "\nDHCanonical_info: ".count($this->DHCanonical_info)."\n";
+        // $this->debug['DHCanonical_info'] = $this->DHCanonical_info; //dev only
+        // */
 
-
-        /* COPIED TEMPLATE
+        // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); //print_r($extensions); exit;
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
         $meta = $tables[$tbl][0];
-        */
+        // */
 
         /* ---------- Initialize so ancestry look-up is possible - COPIED TEMPLATE
         require_library('connectors/DHConnLib'); 
@@ -37,11 +46,11 @@ class DwCA_MatchTaxa2DH
         echo "\nmeta file uri: [$meta->file_uri]\n";
         ---------- */
 
-        /*Array(
-            [0] => http://rs.tdwg.org/dwc/terms/taxon
-        )*/
-        self::process_table($meta, 'write_archive');
+
+        self::process_table($meta, 'match_canonical');
+        // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+        exit("\nstop muna\n"); //dev only
     }
     private function process_table($meta, $what)
     {   //print_r($meta);
@@ -59,22 +68,45 @@ class DwCA_MatchTaxa2DH
                 $k++;
             }
             // print_r($rec); exit;
-            /**/
-
-
-            // /* Not recognized fields e.g. WoRMS2EoL.zip
-            if(isset($rec['http://purl.org/dc/terms/rights']))       unset($rec['http://purl.org/dc/terms/rights']);
-            if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
+            /* e.g. Brazilian_flora
+            Array(
+                [http://rs.tdwg.org/dwc/terms/taxonID] => 12
+                [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
+                [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
+                [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 120181
+                [http://rs.tdwg.org/dwc/terms/scientificName] => Agaricales
+                [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
+                [http://rs.tdwg.org/dwc/terms/kingdom] => Fungi
+                [http://rs.tdwg.org/dwc/terms/phylum] => Basidiomycota
+                [http://rs.tdwg.org/dwc/terms/class] => 
+                [http://rs.tdwg.org/dwc/terms/order] => Agaricales
+                [http://rs.tdwg.org/dwc/terms/family] => 
+                [http://rs.tdwg.org/dwc/terms/genus] => 
+                [http://rs.tdwg.org/dwc/terms/taxonRank] => order
+                [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => 
+                [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
+                [http://purl.org/dc/terms/modified] => 2018-08-10 11:58:06.954
+                [http://rs.gbif.org/terms/1.0/canonicalName] => Agaricales
+            )*/
+            // /*
+            $rec = self::not_recongized_fields($rec);
             // */
 
-            if($what == 'write_archive') {
-                // /* assign canonical name
-                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-                $scientificName = $rec['http://rs.tdwg.org/dwc/terms/scientificName'];
-                $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];                
-                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec);
-                // */
+            if($canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName'])) {}
+            else continue;
 
+            if($what == 'match_canonical') {
+                if($rek = $this->DHCanonical_info[$canonicalName]) {
+                    $rec = self::main_matching_routine($rec, $rek);
+                }
+                else {
+                    $this->debug['No canonical match'][$canonicalName] = '';
+                }
+
+            }
+
+            /* copied template
+            if($what == 'write_archive') {
                 // print_r($rec); exit;
                 $o = new \eol_schema\Taxon();
                 $uris = array_keys($rec); // print_r($uris); //exit;
@@ -84,8 +116,30 @@ class DwCA_MatchTaxa2DH
                 }
                 $this->archive_builder->write_object_to_file($o);
             }
-            // if($i >= 5) break;
+            */
+            if($i >= 100) break; //dev only
         }
+    }
+    private function main_matching_routine($rec, $rek)
+    {
+        // print_r($rec); //DwCA in question
+        // print_r($rek); //DH
+        $DH_rank = $rek['r'];
+
+    }
+    private function format_canonical($canonicalName)
+    {
+        if($canonicalName == '""') return false;
+        if(!$canonicalName) return false;
+        return $canonicalName;
+    }
+    private function not_recongized_fields($rec)
+    {
+        // /* Not recognized fields e.g. WoRMS2EoL.zip
+        if(isset($rec['http://purl.org/dc/terms/rights']))       unset($rec['http://purl.org/dc/terms/rights']);
+        if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
+        // */
+        return $rec;
     }
     /* copied template
     private function get_taxonID_EOLid_list()

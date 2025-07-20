@@ -69,7 +69,16 @@ class DHConnLib
             [paraphyletic group] => 
         Please confirm. Thanks.
         )*/
+        // ---------------- this point start of taxa matching:
+
     }
+    // -------------------------------------------- START taxa matching
+    function build_up_taxa_info()
+    {
+        self::get_taxID_nodes_info($this->main_path, 'taxa_info_4name_matching'); //generates $this->DHCanonical_info
+        return $this->DHCanonical_info;
+    }
+    // -------------------------------------------- END taxa matching
     // ----------------------------------------------------------------- start -----------------------------------------------------------------
     function initialize_get_ancestry_func()
     {
@@ -126,11 +135,13 @@ class DHConnLib
             $this->descendants = array();
         }
 
+        // /* for GBIF map data
         if(in_array($purpose, array('list of taxa', 'list of taxa plantae', 'list of taxa chordata', 'list of taxa arthropoda', 'list of taxa passeriformes',  
             'save children of genus and family'))) {
             $FILE = Functions::file_open($this->listOf_taxa[$filter_rank], 'w'); //this file will be used DATA-1818
             fwrite($FILE, implode("\t", array('canonicalName', 'EOLid', 'taxonRank', 'taxonomicStatus'))."\n");
         }
+        // */
         
         $i = 0; $found = 0;
         foreach(new FileIterator($txtfile) as $line_number => $line) {
@@ -151,7 +162,7 @@ class DHConnLib
                 }
             }
             $rec = array_map('trim', $rec);
-            // print_r($rec); //exit("\nstopx\n");
+            // print_r($rec); exit("\nstopx\n");
             /*Array(
                 [taxonID] => EOL-000000285725
                 [source] => COL:9aaa4a27dfd2a6bedfb6f58f737de541
@@ -173,6 +184,28 @@ class DHConnLib
             if($EOLid = @$rec['eolID']) {} //latest DH version: 
             elseif($EOLid = @$rec['taxonID']) {} //for any taxon extension
             else exit("\nTaxon extension error.\n");
+
+            if($purpose == 'taxa_info_4name_matching') {
+                /*Array(
+                    [taxonID] => EOL-000000000001
+                    [acceptedNameUsageID] => 
+                    [parentNameUsageID] => 
+                    [scientificName] => Life
+                    [canonicalName] => Life
+                    [scientificNameAuthorship] => 
+                    [taxonRank] => 
+                    [taxonomicStatus] => accepted
+                    [datasetID] => patch2.2.6
+                    [source] => patch2.2.6:000000000001
+                    [furtherInformationURL] => https://doi.org/10.5281/zenodo.15398562
+                    [eolID] => 2913056
+                    [Landmark] => 3
+                    [higherClassification] => 
+                )*/
+                if($canonicalName = $rec['canonicalName']) {
+                    $this->DHCanonical_info[$canonicalName] = array('r' => $rec['taxonRank'], 'n' => $rec['scientificName'], 'e' => $rec['eolID']);
+                }
+            }
 
             if($purpose == 'initialize') $this->mint2EOLid[$rec['taxonID']] = $EOLid;
             elseif($purpose == 'buildup ancestry and children') {

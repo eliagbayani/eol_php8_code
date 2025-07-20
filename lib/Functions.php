@@ -2614,10 +2614,11 @@ class Functions
                     // */
                     fwrite($WRITE, "----- ".$subtopic."  total: ".$count_arr2."\n");
                     if(is_array($arr2)) {
+                        $arr3 = $arr2;
                         $arr2 = array_keys($arr2);
                         asort($arr2);
                         foreach($arr2 as $item) {
-                            if($item) fwrite($WRITE, $item."\n");
+                            if($item) fwrite($WRITE, "$item=".@$arr3[$item]."\n");
                         }
                     }
                     else {

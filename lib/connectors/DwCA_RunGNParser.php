@@ -225,7 +225,7 @@ class DwCA_RunGNParser
         $str = str_replace('“', '"\""', $str);
         $str = str_replace('”', '"\""', $str);
         $str = str_replace('"', '"\""', $str);
-        $str = str_replace("'", "'\''", $str);
+        // $str = str_replace("'", "'\''", $str); //better to exclude this bec. of the use of apostrophe: e.g. "Stylosanthes bahiensis 't Mannetje & G.P.Lewis"
         $str = str_replace("`", "'\''", $str);
         $str = str_replace("\n", " ", $str);
         $str = Functions::remove_whitespace($str);

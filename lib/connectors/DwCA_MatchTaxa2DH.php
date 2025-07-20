@@ -91,7 +91,7 @@ class DwCA_MatchTaxa2DH
             // /*
             $rec = self::not_recongized_fields($rec);
             // */
-            $rec['http://eol.org/schema/EOLid'] = 'elix';
+            $rec['http://eol.org/schema/EOLid'] = '';
 
             $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
             if($canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName'])) {}
@@ -128,7 +128,7 @@ class DwCA_MatchTaxa2DH
                 $this->archive_builder->write_object_to_file($o);
             }
             */
-            if($i >= 100) break; //dev only
+            // if($i >= 100) break; //dev only
         }
     }
     private function main_matching_routine($rec, $rek, $taxonRank)
@@ -142,8 +142,13 @@ class DwCA_MatchTaxa2DH
         )*/
         $DH_rank = $rek['r'];
         if($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if(in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if(in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if($rec['http://eol.org/schema/EOLid']) @$this->debug['Total eolID assignments']++;
         return $rec;
     }
+
+
     private function format_canonical($canonicalName)
     {
         if($canonicalName == '""') return false;

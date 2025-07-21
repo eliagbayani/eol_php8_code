@@ -49,6 +49,9 @@ class DwCA_MatchTaxa2DH
 
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
+
+        echo "\nHas canonical match: [".number_format(@$this->debug['Has canonical match'])."]";
+        echo "\nWith eolID assignments: [".number_format(@$this->debug['With eolID assignments'])."]\n";
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna\n"); //dev only
     }
@@ -144,7 +147,9 @@ class DwCA_MatchTaxa2DH
         if($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         if(in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         if(in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
-        if($rec['http://eol.org/schema/EOLid']) @$this->debug['Total eolID assignments']++;
+        
+        @$this->debug['Has canonical match']++;
+        if($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
         return $rec;
     }
 

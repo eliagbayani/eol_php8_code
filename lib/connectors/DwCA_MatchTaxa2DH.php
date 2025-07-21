@@ -225,8 +225,56 @@ class DwCA_MatchTaxa2DH
     }
 
     private function which_rek_to_use($rec, $reks, $taxonRank)
+    {   /*e.g. $reks Array(
+            [EOL-000000020456] => Array(
+                    [r] => genus
+                    [e] => 47182486
+                    [h] => Life|Cellular Organisms|Bacteria|Proteobacteria|Gammaproteobacteria|Enterobacterales|Hafniaceae
+                )
+            [EOL-000000547422] => Array(
+                    [r] => genus
+                    [e] => 54411
+                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Cnidaria|Anthozoa|Hexacorallia|Actiniaria|Anenthemonae|Edwardsioidea|Edwardsiidae
+                )
+        )*/
+        // OPTION 1: DwCA ancestry
+        // step 1: get strings to search from DwCA taxa
+        $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
+        $DwCA_names_2search = array();
+        foreach($ranks as $rank) {
+            if($val = @$rec[$rank]) $DwCA_names_2search[] = $val;
+        }
+        // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
+        foreach($reks as $DH_taxonID => $rek) {
+            if($temp = @$rek['h']) {
+                $DH_higherClassification = explode("|", $temp);
+                $DH_higherClassification = array_map('trim', $DH_higherClassification);
+                foreach($DwCA_names_2search as $name) {
+                    if(in_array($name, $DH_higherClassification)) return $rek;
+                }
+            }
+        }
+        // OPTION 2: DwCA higherClassification
+        $DwCA_names_2search = array();
+        if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
+            if($separator = self::get_separator_in_higherClassification($hc) {
+                if($separator == 'is_1_word') $DwCA_names_2search = array($hc);
+                else {
+                    $DwCA_names_2search = explode($separator, $hc);
+                    $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
+                    foreach($DwCA_names_2search as $name) {
+                        if(in_array($name, $DH_higherClassification)) return $rek;
+                    }
+                }
+            }
+        }
+    }
+    private function get_separator_in_higherClassification($hc)
     {
-
+        if(stripos($hc, "|") !== false) return "|" //string is found
+        if(stripos($hc, ";") !== false) return ";" //string is found
+        if($hc) return 'is_1_word';
+        return false;
     }
     private function format_canonical($canonicalName)
     {

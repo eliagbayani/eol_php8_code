@@ -52,6 +52,9 @@ class DwCA_MatchTaxa2DH
 
         echo "\nHas canonical match: [".number_format(@$this->debug['Has canonical match'])."]";
         echo "\nWith eolID assignments: [".number_format(@$this->debug['With eolID assignments'])."]\n";
+        echo "\ncanonical match: genus - subgenus: [".number_format(@$this->debug['canonical match: genus - subgenus'])."]\n";
+        echo "\ncanonical match: species - any subspecific ranks: [".number_format(@$this->debug['canonical match: species - any subspecific ranks'])."]\n";
+
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna\n"); //dev only
     }
@@ -142,11 +145,27 @@ class DwCA_MatchTaxa2DH
             [r] => order
             [n] => Agaricales
             [e] => 5676
-        )*/
+        )
+        Matching taxa across ranks. Sometimes taxa have different ranks but they share the same canonical name.
+        1, 2, 
+        3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
+        */
         $DH_rank = $rek['r'];
         if($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        // 1. In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
         if(in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        // 2. It's also ok to match taxa with different ranks if both taxa have a subspecific rank, e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
         if(in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        // 4. In particular, we never want to match a genus with a taxon of any other rank except a subgenus. 
+        // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the genus and subgenus.
+        if($taxonRank == 'genus' && $DH_rank == 'subgenus') {
+            @$this->debug['canonical match: genus - subgenus']++;
+        }
+        // 5. Similarly, we never want to match a species with a taxon of any other rank except one of the subspecific ranks (see above). 
+        // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the species and the subspecific name.
+        if($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
+            @$this->debug['canonical match: species - any subspecific ranks']++;
+        }
         
         @$this->debug['Has canonical match']++;
         if($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;

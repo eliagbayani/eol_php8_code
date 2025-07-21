@@ -1,6 +1,8 @@
 <?php
+
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from match_taxa_2DH.php] */
+
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_MatchTaxa2DH
@@ -10,7 +12,7 @@ class DwCA_MatchTaxa2DH
         $this->resource_id = $resource_id;
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
-        $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
+        $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60 * 60 * 24 * 1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         // $this->paths['wikidata_hierarchy'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/wikidata/wikidataEOLidMappings.txt';
         $this->debug = array();
 
@@ -19,7 +21,6 @@ class DwCA_MatchTaxa2DH
         // It's also ok to match taxa with different ranks if both taxa have a subspecific rank, 
         // e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
         $this->ok_match_subspecific_ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
-
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -28,7 +29,7 @@ class DwCA_MatchTaxa2DH
         require_library('connectors/DHConnLib');
         $func = new DHConnLib(1);
         $this->DHCanonical_info = $func->build_up_taxa_info();
-        echo "\nDHCanonical_info: ".count($this->DHCanonical_info)."\n";
+        echo "\nDHCanonical_info: " . count($this->DHCanonical_info) . "\n";
         // $this->debug['DHCanonical_info'] = $this->DHCanonical_info; //dev only
         // */
 
@@ -46,30 +47,42 @@ class DwCA_MatchTaxa2DH
         echo "\nmeta file uri: [$meta->file_uri]\n";
         ---------- */
 
-
+        self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
 
-        echo "\nHas canonical match: [".number_format(@$this->debug['Has canonical match'])."]";
-        echo "\nWith eolID assignments: [".number_format(@$this->debug['With eolID assignments'])."]\n";
-        echo "\ncanonical match: genus - subgenus: [".number_format(@$this->debug['canonical match: genus - subgenus'])."]\n";
-        echo "\ncanonical match: species - any subspecific ranks: [".number_format(@$this->debug['canonical match: species - any subspecific ranks'])."]\n";
 
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+        echo "\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]\n";
+
+        echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
+        echo "\ncanonical match: subgenus - genus: [" . number_format(@$this->debug['canonical match: subgenus - genus'] ?? 0) . "]\n";
+
+        echo "\ncanonical match: species - any subspecific ranks: [" . number_format(@$this->debug['canonical match: species - any subspecific ranks'] ?? 0) . "]";
+        echo "\ncanonical match: any subspecific ranks - species: [" . number_format(@$this->debug['canonical match: any subspecific ranks - species'] ?? 0) . "]\n";
+
+        print_r(@$this->debug['taxonomicStatus']);
+        echo "\ntotal acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
+
+
+        if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna\n"); //dev only
     }
     private function process_table($meta, $what)
     {   //print_r($meta);
-        echo "\nprocess_table: [$what] [$meta->file_uri]...\n"; $i = 0;
-        foreach(new FileIterator($meta->file_uri) as $line => $row) { $i++;
-            if(($i % 10000) == 0) echo "\n".number_format($i)." - ";
-            if($meta->ignore_header_lines && $i == 1) continue;
-            if(!$row) continue;
+        echo "\nprocess_table: [$what] [$meta->file_uri]...\n";
+        $i = 0;
+        foreach (new FileIterator($meta->file_uri) as $line => $row) {
+            $i++;
+            if (($i % 100000) == 0) echo "\n" . number_format($i) . " - "; //10k orig
+            if ($meta->ignore_header_lines && $i == 1) continue;
+            if (!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
             $tmp = explode("\t", $row);
-            $rec = array(); $k = 0;
-            foreach($meta->fields as $field) {
-                if(!$field['term']) continue;
+            $rec = array();
+            $k = 0;
+            foreach ($meta->fields as $field) {
+                if (!$field['term']) continue;
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
@@ -99,28 +112,43 @@ class DwCA_MatchTaxa2DH
             // */
             $rec['http://eol.org/schema/EOLid'] = '';
 
+            $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
             $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
-            if($canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName'])) {}
-            else continue;
+            $taxonomicStatus = $rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
+            $acceptedNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'];
+            $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
 
-            if($what == 'match_canonical') {
-                if($rek = @$this->DHCanonical_info[$canonicalName]) {
-                    if($taxonRank) $rec = self::main_matching_routine($rec, $rek, $taxonRank);
-                }
-                else {
+            if ($what == 'match_canonical') {
+                if (!$canonicalName) continue;
+                if ($reks = @$this->DHCanonical_info[$canonicalName]) {
+                    if ($taxonRank) $rec = self::main_matching_routine($rec, $reks, $taxonRank);
+                } else {
                     $this->debug['No canonical match'][$canonicalName] = '';
                 }
+                // /* start writing:
+                $o = new \eol_schema\Taxon();
+                $uris = array_keys($rec); // print_r($uris); //exit;
+                foreach ($uris as $uri) {
+                    $field = self::get_field_from_uri($uri);
+                    $o->$field = $rec[$uri];
+                }
+                $this->archive_builder->write_object_to_file($o);
+                // */
+            }
+            elseif($what == 'generate_synonyms_info') {
+
+                $this->DWCA[$taxonID] = $canonicalName; //get all records, should be no filter here
+                @$this->debug['taxonomicStatus'][$taxonomicStatus]++;
+
+                if($acceptedNameUsageID) {
+                    @$this->debug['total acceptedNameUsageID']++;
+                    if(stripos($taxonomicStatus, "synonym") !== false) { //string is found
+                        $this->synonyms[$taxonID] = $acceptedNameUsageID;
+                    }
+
+                }
             }
 
-            // /* start writing:
-            $o = new \eol_schema\Taxon();
-            $uris = array_keys($rec); // print_r($uris); //exit;
-            foreach($uris as $uri) {
-                $field = self::get_field_from_uri($uri);
-                $o->$field = $rec[$uri];
-            }
-            $this->archive_builder->write_object_to_file($o);
-            // */
 
             /* copied template
             if($what == 'write_archive') {
@@ -137,53 +165,80 @@ class DwCA_MatchTaxa2DH
             // if($i >= 100) break; //dev only
         }
     }
-    private function main_matching_routine($rec, $rek, $taxonRank)
+    private function main_matching_routine($rec, $reks, $taxonRank)
     {
         // print_r($rec); //DwCA in question
-        // print_r($rek); //DH
+        // print_r($reks); //DH
         /*Array(
-            [r] => order
-            [n] => Agaricales
-            [e] => 5676
+            [EOL-000000020456] => Array(
+                    [r] => genus
+                    [e] => 47182486
+                    [h] => Life|Cellular Organisms|Bacteria|Proteobacteria|Gammaproteobacteria|Enterobacterales|Hafniaceae
+                )
+            [EOL-000000547422] => Array(
+                    [r] => genus
+                    [e] => 54411
+                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Cnidaria|Anthozoa|Hexacorallia|Actiniaria|Anenthemonae|Edwardsioidea|Edwardsiidae
+                )
         )
         Matching taxa across ranks. Sometimes taxa have different ranks but they share the same canonical name.
         1, 2, 
         3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
         */
+        $rek = self::_which_rek_to_use($rec, $reks, $taxonRank); //important step!
+
         $DH_rank = $rek['r'];
-        if($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if ($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 1. In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
-        if(in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 2. It's also ok to match taxa with different ranks if both taxa have a subspecific rank, e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
-        if(in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if (in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        
+        
+        $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+        // $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+        // $taxonomicStatus = $rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
+        // $acceptedNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'];
+        // $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
+
+        /*
         // 4. In particular, we never want to match a genus with a taxon of any other rank except a subgenus. 
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the genus and subgenus.
-        if($taxonRank == 'genus' && $DH_rank == 'subgenus') {
+        if ($taxonRank == 'genus' && $DH_rank == 'subgenus') {
             @$this->debug['canonical match: genus - subgenus']++;
+        } elseif ($taxonRank == 'subgenus' && $DH_rank == 'genus') {
+            @$this->debug['canonical match: subgenus - genus']++;
         }
         // 5. Similarly, we never want to match a species with a taxon of any other rank except one of the subspecific ranks (see above). 
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the species and the subspecific name.
-        if($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
+        if ($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: species - any subspecific ranks']++;
+
+        } elseif ($DH_rank == 'species' && in_array($taxonRank, $this->ok_match_subspecific_ranks)) {
+            @$this->debug['canonical match: any subspecific ranks - species']++;
         }
-        
+        */
+
         @$this->debug['Has canonical match']++;
-        if($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
+        if ($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
         return $rec;
     }
 
+    private function which_rek_to_use($rec, $reks, $taxonRank)
+    {
 
+    }
     private function format_canonical($canonicalName)
     {
-        if($canonicalName == '""') return false;
-        if(!$canonicalName) return false;
+        if ($canonicalName == '""') return false;
+        if (!$canonicalName) return false;
         return $canonicalName;
     }
     private function not_recongized_fields($rec)
     {
         // /* Not recognized fields e.g. WoRMS2EoL.zip
-        if(isset($rec['http://purl.org/dc/terms/rights']))       unset($rec['http://purl.org/dc/terms/rights']);
-        if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
+        if (isset($rec['http://purl.org/dc/terms/rights']))       unset($rec['http://purl.org/dc/terms/rights']);
+        if (isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
         // */
         return $rec;
     }
@@ -191,8 +246,8 @@ class DwCA_MatchTaxa2DH
     {
         $field = pathinfo($uri, PATHINFO_BASENAME);
         $parts = explode("#", $field);
-        if($parts[0]) $field = $parts[0];
-        if(@$parts[1]) $field = $parts[1];
+        if ($parts[0]) $field = $parts[0];
+        if (@$parts[1]) $field = $parts[1];
         return $field;
     }
 
@@ -224,4 +279,3 @@ class DwCA_MatchTaxa2DH
     }
     */
 }
-?>

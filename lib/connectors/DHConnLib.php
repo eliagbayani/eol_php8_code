@@ -87,19 +87,20 @@ class DHConnLib
     function build_up_taxa_info()
     {
         self::get_taxID_nodes_info($this->main_path, 'taxa_info_4name_matching'); //generates $this->DHCanonical_info
+        /*
         $arr = @$this->debug['breakdown'];
-        // asort($arr);
         // Functions::start_print_debug($arr, 'elix');
         foreach($arr as $key => $value) {
             if($value > 1) echo "\n[$key][$value]";
         }
+        */
         print_r(@$this->debug['status']);
 
         print_r($this->DHCanonical_info['Edwardsiella']);
         print_r($this->DHCanonical_info['Morganella']);
         print_r($this->DHCanonical_info['Proteus']);
 
-        exit("\n-end-\n");
+        // exit("\n-end-\n");
         return $this->DHCanonical_info;
     }
     // -------------------------------------------- END taxa matching
@@ -240,10 +241,10 @@ class DHConnLib
                 $taxonID = $rec['taxonID'];
                 @$this->debug['status'][$taxonomicStatus]++;
                 if ($canonicalName = $rec['canonicalName']) {
-                    if($taxonomicStatus == 'accepted') {
+                    // if($taxonomicStatus == 'accepted') {
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']);
                         @$this->debug['breakdown'][$canonicalName]++;
-                    }
+                    // }
                 }
             }
 

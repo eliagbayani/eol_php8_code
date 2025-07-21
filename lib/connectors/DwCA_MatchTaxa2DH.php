@@ -64,6 +64,9 @@ class DwCA_MatchTaxa2DH
         print_r(@$this->debug['taxonomicStatus']);
         echo "\ntotal acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
 
+        echo "\nmatched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
+        echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]\n";
+
 
         if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna\n"); //dev only
@@ -185,7 +188,7 @@ class DwCA_MatchTaxa2DH
         1, 2, 
         3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
         */
-        $rek = self::_which_rek_to_use($rec, $reks, $taxonRank); //important step!
+        $rek = self::which_rek_to_use($rec, $reks, $taxonRank); //important step!
 
         $DH_rank = $rek['r'];
         if ($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
@@ -201,7 +204,7 @@ class DwCA_MatchTaxa2DH
         // $acceptedNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'];
         // $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
 
-        /*
+        // /*
         // 4. In particular, we never want to match a genus with a taxon of any other rank except a subgenus. 
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the genus and subgenus.
         if ($taxonRank == 'genus' && $DH_rank == 'subgenus') {
@@ -217,7 +220,7 @@ class DwCA_MatchTaxa2DH
         } elseif ($DH_rank == 'species' && in_array($taxonRank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: any subspecific ranks - species']++;
         }
-        */
+        // */
 
         @$this->debug['Has canonical match']++;
         if ($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
@@ -236,15 +239,69 @@ class DwCA_MatchTaxa2DH
                     [e] => 54411
                     [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Cnidaria|Anthozoa|Hexacorallia|Actiniaria|Anenthemonae|Edwardsioidea|Edwardsiidae
                 )
+        )
+        Array( e.g. Brazilian Flora
+            [http://rs.tdwg.org/dwc/terms/taxonID] => 12
+            [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
+            [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
+            [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 120181
+            [http://rs.tdwg.org/dwc/terms/scientificName] => Agaricales
+            [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
+            [http://rs.tdwg.org/dwc/terms/kingdom] => Fungi
+            [http://rs.tdwg.org/dwc/terms/phylum] => Basidiomycota
+            [http://rs.tdwg.org/dwc/terms/class] => 
+            [http://rs.tdwg.org/dwc/terms/order] => Agaricales
+            [http://rs.tdwg.org/dwc/terms/family] => 
+            [http://rs.tdwg.org/dwc/terms/genus] => 
+            [http://rs.tdwg.org/dwc/terms/taxonRank] => order
+            [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => 
+            [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
+            [http://purl.org/dc/terms/modified] => 2018-08-10 11:58:06.954
+            [http://rs.gbif.org/terms/1.0/canonicalName] => Agaricales
+            [http://eol.org/schema/EOLid] => 
         )*/
+
+
+
         // OPTION 1: DwCA ancestry
         // step 1: get strings to search from DwCA taxa
         $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
         $DwCA_names_2search = array();
         foreach($ranks as $rank) {
-            if($val = @$rec[$rank]) $DwCA_names_2search[] = $val;
+            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) $DwCA_names_2search[] = $val;
         }
         // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
+        if($rek = self::get_rek_from_reks($reks, $DwCA_names_2search)) {
+            @$this->debug['matched ancestry']++;
+            return $rek;
+        }
+
+        // OPTION 2: DwCA higherClassification
+        $DwCA_names_2search = array();
+        if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
+            if($separator = self::get_separator_in_higherClassification($hc)) {
+                if($separator == 'is_1_word') $DwCA_names_2search = array($hc);
+                else {
+                    $DwCA_names_2search = explode($separator, $hc);
+                    $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
+                }
+            }
+        }
+        // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
+        if($rek = self::get_rek_from_reks($reks, $DwCA_names_2search)) {
+            @$this->debug['matched higherClassification']++;
+            return $rek;
+        }
+
+        
+        // OPTION 3: get the 1st rek from reks
+        foreach($reks as $DH_taxonID => $rek) return $rek;
+
+        exit("\nShould not go here\n");
+    }
+    private function get_rek_from_reks($reks, $DwCA_names_2search)
+    {
+        if(!$DwCA_names_2search) return false;
         foreach($reks as $DH_taxonID => $rek) {
             if($temp = @$rek['h']) {
                 $DH_higherClassification = explode("|", $temp);
@@ -254,25 +311,11 @@ class DwCA_MatchTaxa2DH
                 }
             }
         }
-        // OPTION 2: DwCA higherClassification
-        $DwCA_names_2search = array();
-        if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
-            if($separator = self::get_separator_in_higherClassification($hc) {
-                if($separator == 'is_1_word') $DwCA_names_2search = array($hc);
-                else {
-                    $DwCA_names_2search = explode($separator, $hc);
-                    $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
-                    foreach($DwCA_names_2search as $name) {
-                        if(in_array($name, $DH_higherClassification)) return $rek;
-                    }
-                }
-            }
-        }
     }
     private function get_separator_in_higherClassification($hc)
     {
-        if(stripos($hc, "|") !== false) return "|" //string is found
-        if(stripos($hc, ";") !== false) return ";" //string is found
+        if(stripos($hc, "|") !== false) return "|"; //string is found
+        if(stripos($hc, ";") !== false) return ";"; //string is found
         if($hc) return 'is_1_word';
         return false;
     }

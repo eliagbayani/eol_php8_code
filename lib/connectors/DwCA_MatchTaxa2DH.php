@@ -65,7 +65,10 @@ class DwCA_MatchTaxa2DH
         echo "\ntotal acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
 
         echo "\nmatched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
-        echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]\n";
+        echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
+        echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]\n";
+
+
 
 
         if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
@@ -189,7 +192,7 @@ class DwCA_MatchTaxa2DH
         3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
         */
         $rek = self::which_rek_to_use($rec, $reks, $taxonRank); //important step!
-
+        // print_r($rek); exit("\nstopx\n");
         $DH_rank = $rek['r'];
         if ($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 1. In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
@@ -264,12 +267,14 @@ class DwCA_MatchTaxa2DH
 
 
         // OPTION 1: DwCA ancestry
-        // step 1: get strings to search from DwCA taxa
+        // step 1: get ancestry scinames to search from DwCA taxa
         $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
         $DwCA_names_2search = array();
         foreach($ranks as $rank) {
-            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) $DwCA_names_2search[] = $val;
+            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) $DwCA_names_2search[] = $val;       //all the ancestry scinames
         }
+        if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
+
         // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
         if($rek = self::get_rek_from_reks($reks, $DwCA_names_2search)) {
             @$this->debug['matched ancestry']++;
@@ -283,10 +288,11 @@ class DwCA_MatchTaxa2DH
                 if($separator == 'is_1_word') $DwCA_names_2search = array($hc);
                 else {
                     $DwCA_names_2search = explode($separator, $hc);
-                    $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
                 }
             }
         }
+        if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
+
         // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
         if($rek = self::get_rek_from_reks($reks, $DwCA_names_2search)) {
             @$this->debug['matched higherClassification']++;
@@ -295,12 +301,16 @@ class DwCA_MatchTaxa2DH
 
         
         // OPTION 3: get the 1st rek from reks
-        foreach($reks as $DH_taxonID => $rek) return $rek;
+        foreach($reks as $DH_taxonID => $rek) {
+           @$this->debug['matched 1st rek']++;
+           return $rek;
+        }
 
         exit("\nShould not go here\n");
     }
     private function get_rek_from_reks($reks, $DwCA_names_2search)
     {
+        $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
         if(!$DwCA_names_2search) return false;
         foreach($reks as $DH_taxonID => $rek) {
             if($temp = @$rek['h']) {

@@ -76,7 +76,7 @@ class DwCA_MatchTaxa2DH
             echo "\n[$totals][$count]";
             $sum += $count;
         } 
-        echo "\nSum: [$sum] -> should be equal to: [matched 1st rek]";
+        echo "\nSum: [$sum] -> should be equal to: [matched 1st rek]\n";
 
         if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna\n"); //dev only

@@ -242,7 +242,8 @@ class DHConnLib
                 @$this->debug['status'][$taxonomicStatus]++;
                 if ($canonicalName = $rec['canonicalName']) {
                     // if($taxonomicStatus == 'accepted') {
-                        $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']);
+                        $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
+                            , 'c' => $rec['canonicalName']); //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
                         @$this->debug['breakdown'][$canonicalName]++;
                     // }
                 }

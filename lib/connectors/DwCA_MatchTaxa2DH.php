@@ -152,14 +152,14 @@ class DwCA_MatchTaxa2DH
             elseif($what == 'generate_synonyms_info') {
 
                 $this->DWCA[$taxonID] = $canonicalName; //get all records, should be no filter here
-                @$this->debug['taxonomicStatus'][$taxonomicStatus]++;
+                @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
 
                 if($acceptedNameUsageID) {
-                    @$this->debug['total acceptedNameUsageID']++;
+                    @$this->debug['total acceptedNameUsageID']++; //stats only
                     if(stripos($taxonomicStatus, "synonym") !== false) { //string is found
                         $this->synonyms[$taxonID] = $acceptedNameUsageID;
+                        $this->acceptedNames[$acceptedNameUsageID] = $taxonID;
                     }
-
                 }
             }
 
@@ -170,17 +170,19 @@ class DwCA_MatchTaxa2DH
     private function main_matching_routine($rec, $reks, $taxonRank)
     {
         // print_r($rec); //DwCA in question
-        // print_r($reks); //DH
+        print_r($reks); exit("\nfrom DH\n"); //DH
         /*Array(
             [EOL-000000020456] => Array(
                     [r] => genus
                     [e] => 47182486
                     [h] => Life|Cellular Organisms|Bacteria|Proteobacteria|Gammaproteobacteria|Enterobacterales|Hafniaceae
+                    [c] => Edwardsiella
                 )
             [EOL-000000547422] => Array(
                     [r] => genus
                     [e] => 54411
                     [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Cnidaria|Anthozoa|Hexacorallia|Actiniaria|Anenthemonae|Edwardsioidea|Edwardsiidae
+                    [c] => Edwardsiella
                 )
         )
         Matching taxa across ranks. Sometimes taxa have different ranks but they share the same canonical name.
@@ -190,6 +192,7 @@ class DwCA_MatchTaxa2DH
         $rek = self::which_rek_to_use($rec, $reks, $taxonRank); //important step!
         // print_r($rek); exit("\nstopx\n");
         $DH_rank = $rek['r'];
+        $DH_canonical = $rek['c'];
         if ($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 1. In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
         if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
@@ -208,8 +211,16 @@ class DwCA_MatchTaxa2DH
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the genus and subgenus.
         if ($taxonRank == 'genus' && $DH_rank == 'subgenus') {
             @$this->debug['canonical match: genus - subgenus']++;
+            if(self::are_these_synonyms($taxonID, $DH_canonical)) {
+                $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+                @$this->debug['canonical match: genus - subgenus OK']++;
+            }
         } elseif ($taxonRank == 'subgenus' && $DH_rank == 'genus') {
             @$this->debug['canonical match: subgenus - genus']++;
+            if(self::are_these_synonyms($taxonID, $DH_canonical)) {
+                $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+                @$this->debug['canonical match: subgenus - genus OK']++;
+            }
         }
         // 5. Similarly, we never want to match a species with a taxon of any other rank except one of the subspecific ranks (see above). 
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the species and the subspecific name.
@@ -320,6 +331,10 @@ class DwCA_MatchTaxa2DH
                 }
             }
         }
+    }
+    private are_these_synonyms($taxonID, $DH_canonical)
+    {
+        synonyms
     }
     private function get_separator_in_higherClassification($hc)
     {

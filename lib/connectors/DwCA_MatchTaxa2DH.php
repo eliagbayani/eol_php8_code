@@ -164,18 +164,6 @@ class DwCA_MatchTaxa2DH
             }
 
 
-            /* copied template
-            if($what == 'write_archive') {
-                // print_r($rec); exit;
-                $o = new \eol_schema\Taxon();
-                $uris = array_keys($rec); // print_r($uris); //exit;
-                foreach($uris as $uri) {
-                    $field = self::get_field_from_uri($uri);
-                    $o->$field = $rec[$uri];
-                }
-                $this->archive_builder->write_object_to_file($o);
-            }
-            */
             // if($i >= 100) break; //dev only
         }
     }

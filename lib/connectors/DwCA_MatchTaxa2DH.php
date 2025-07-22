@@ -56,7 +56,12 @@ class DwCA_MatchTaxa2DH
         echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]\n";
 
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
-        echo "\ncanonical match: subgenus - genus: [" . number_format(@$this->debug['canonical match: subgenus - genus'] ?? 0) . "]\n";
+        echo "\nOK:                                [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
+
+        echo "\ncanonical match: subgenus - genus: [" . number_format(@$this->debug['canonical match: subgenus - genus'] ?? 0) . "]";
+        echo "\nOK:                                [" . number_format(@$this->debug['canonical match: subgenus - genus OK'] ?? 0) . "]\n";
+
+
 
         echo "\ncanonical match: species - any subspecific ranks: [" . number_format(@$this->debug['canonical match: species - any subspecific ranks'] ?? 0) . "]";
         echo "\ncanonical match: any subspecific ranks - species: [" . number_format(@$this->debug['canonical match: any subspecific ranks - species'] ?? 0) . "]\n";
@@ -151,7 +156,7 @@ class DwCA_MatchTaxa2DH
             }
             elseif($what == 'generate_synonyms_info') {
 
-                $this->DWCA[$taxonID] = $canonicalName; //get all records, should be no filter here
+                $this->DWCA[$taxonID] = array("c" => $canonicalName); //get all records, should be no filter here
                 @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
 
                 if($acceptedNameUsageID) {
@@ -170,7 +175,7 @@ class DwCA_MatchTaxa2DH
     private function main_matching_routine($rec, $reks, $taxonRank)
     {
         // print_r($rec); //DwCA in question
-        print_r($reks); exit("\nfrom DH\n"); //DH
+        // print_r($reks); exit("\nfrom DH\n"); //DH
         /*Array(
             [EOL-000000020456] => Array(
                     [r] => genus
@@ -222,6 +227,7 @@ class DwCA_MatchTaxa2DH
                 @$this->debug['canonical match: subgenus - genus OK']++;
             }
         }
+
         // 5. Similarly, we never want to match a species with a taxon of any other rank except one of the subspecific ranks (see above). 
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the species and the subspecific name.
         if ($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
@@ -332,9 +338,31 @@ class DwCA_MatchTaxa2DH
             }
         }
     }
-    private are_these_synonyms($taxonID, $DH_canonical)
+    private function are_these_synonyms($taxonID, $DH_canonical)
     {
-        synonyms
+        /* reference only
+        $this->synonyms[$taxonID] = $acceptedNameUsageID;
+        $this->acceptedNames[$acceptedNameUsageID] = $taxonID;
+        */
+        if($accepted_id = $this->synonyms[$taxonID]) {
+            /* reference only            
+            $this->DWCA[$taxonID] = array("c" => $canonicalName);
+            */
+            if($rec = $this->DWCA[$accepted_id]) {
+                if($rec['c'] == $DH_canonical && in_array($rec['r'], array('genus', 'subgenus'))) return true;
+            }
+        }
+
+        if($taxon_id = $this->acceptedNames[$taxonID]) {
+            /* reference only            
+            $this->DWCA[$taxonID] = array("c" => $canonicalName);
+            */
+            if($rec = $this->DWCA[$taxon_id]) {
+                if($rec['c'] == $DH_canonical && in_array($rec['r'], array('genus', 'subgenus'))) return true;
+            }
+        }
+
+        return false;
     }
     private function get_separator_in_higherClassification($hc)
     {

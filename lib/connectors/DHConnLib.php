@@ -97,8 +97,8 @@ class DHConnLib
         print_r(@$this->debug['status']);
 
         print_r($this->DHCanonical_info['Edwardsiella']);
-        print_r($this->DHCanonical_info['Morganella']);
-        print_r($this->DHCanonical_info['Proteus']);
+        // print_r($this->DHCanonical_info['Morganella']);
+        // print_r($this->DHCanonical_info['Proteus']);
 
         // exit("\n-end-\n");
         return $this->DHCanonical_info;

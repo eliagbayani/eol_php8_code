@@ -71,7 +71,7 @@ class DwCA_MatchTaxa2DH
         echo "\nTotal 3 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match]\n";
 
         asort($this->debug['counts of reks at this point']);
-        echo "\n[# of recs in $rek][total count]";
+        echo "\n[# of rek in reks][total count]";
         $sum = 0;
         foreach($this->debug['counts of reks at this point'] as $totals => $count) {
             echo "\n[$totals][$count]";

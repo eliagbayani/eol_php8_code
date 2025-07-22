@@ -66,12 +66,17 @@ class DwCA_MatchTaxa2DH
 
         echo "\nmatched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
         echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
-        echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]\n";
+        echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
         $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] + @$this->debug['matched 1st rek'];
-        echo "\nTotal: [" . number_format($total) . "] -> should be equal to: [Has canonical match]\n";
+        echo "\nTotal 3 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match]\n";
 
         asort($this->debug['counts of reks at this point']);
-        print_r($this->debug['counts of reks at this point']);
+        $sum = 0;
+        foreach($this->debug['counts of reks at this point'] as $totals => $count) {
+            echo "\n[$totals][$count]";
+            $sum += $count;
+        } 
+        echo "\nSum: [$sum] -> should be equal to: [matched 1st rek]";
 
         if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna\n"); //dev only

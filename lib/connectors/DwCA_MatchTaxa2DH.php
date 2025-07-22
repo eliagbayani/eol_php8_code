@@ -57,14 +57,13 @@ class DwCA_MatchTaxa2DH
 
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
         echo "\nOK:                                [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
-
         echo "\ncanonical match: subgenus - genus: [" . number_format(@$this->debug['canonical match: subgenus - genus'] ?? 0) . "]";
         echo "\nOK:                                [" . number_format(@$this->debug['canonical match: subgenus - genus OK'] ?? 0) . "]\n";
 
-
-
         echo "\ncanonical match: species - any subspecific ranks: [" . number_format(@$this->debug['canonical match: species - any subspecific ranks'] ?? 0) . "]";
-        echo "\ncanonical match: any subspecific ranks - species: [" . number_format(@$this->debug['canonical match: any subspecific ranks - species'] ?? 0) . "]\n";
+        echo "\nOK: [" . number_format(@$this->debug['canonical match: species - any subspecific ranks OK'] ?? 0) . "]";
+        echo "\ncanonical match: any subspecific ranks - species: [" . number_format(@$this->debug['canonical match: any subspecific ranks - species'] ?? 0) . "]";
+        echo "\nOK: [" . number_format(@$this->debug['canonical match: any subspecific ranks - species OK'] ?? 0) . "]\n";
 
         print_r(@$this->debug['taxonomicStatus']);
         echo "\ntotal acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
@@ -84,7 +83,9 @@ class DwCA_MatchTaxa2DH
         } 
         echo "\nSum: [$sum] -> should be equal to: [matched 1st rek]\n";
 
-        if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+        print_r($this->debug['eli']);
+
+        // if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
         // exit("\nstop muna\n"); //dev only
     }
     private function process_table($meta, $what)
@@ -156,7 +157,7 @@ class DwCA_MatchTaxa2DH
             }
             elseif($what == 'generate_synonyms_info') {
 
-                $this->DWCA[$taxonID] = array("c" => $canonicalName); //get all records, should be no filter here
+                $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
                 @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
 
                 if($acceptedNameUsageID) {
@@ -216,13 +217,13 @@ class DwCA_MatchTaxa2DH
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the genus and subgenus.
         if ($taxonRank == 'genus' && $DH_rank == 'subgenus') {
             @$this->debug['canonical match: genus - subgenus']++;
-            if(self::are_these_synonyms($taxonID, $DH_canonical)) {
+            if(self::are_these_synonyms($taxonID, $DH_canonical, 1)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: genus - subgenus OK']++;
             }
         } elseif ($taxonRank == 'subgenus' && $DH_rank == 'genus') {
             @$this->debug['canonical match: subgenus - genus']++;
-            if(self::are_these_synonyms($taxonID, $DH_canonical)) {
+            if(self::are_these_synonyms($taxonID, $DH_canonical, 1)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: subgenus - genus OK']++;
             }
@@ -232,9 +233,17 @@ class DwCA_MatchTaxa2DH
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the species and the subspecific name.
         if ($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: species - any subspecific ranks']++;
-
+            $this->debug['eli']['canonical match: species - any subspecific ranks'][] = array('DH' => $rek, 'DwCA' => $rec);
+            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) {
+                $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+                @$this->debug['canonical match: species - any subspecific ranks OK']++;
+            }
         } elseif ($DH_rank == 'species' && in_array($taxonRank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: any subspecific ranks - species']++;
+            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) {
+                $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+                @$this->debug['canonical match: any subspecific ranks - species OK']++;
+            }
         }
         // */
 
@@ -338,27 +347,30 @@ class DwCA_MatchTaxa2DH
             }
         }
     }
-    private function are_these_synonyms($taxonID, $DH_canonical)
+    private function are_these_synonyms($taxonID, $DH_canonical, $type)
     {
+        if($type == 1) $choices = array('genus', 'subgenus');
+        elseif($type == 2) $choices = array_merge(array('species'), $this->ok_match_subspecific_ranks);
+
         /* reference only
         $this->synonyms[$taxonID] = $acceptedNameUsageID;
         $this->acceptedNames[$acceptedNameUsageID] = $taxonID;
         */
-        if($accepted_id = $this->synonyms[$taxonID]) {
+        if($accepted_id = @$this->synonyms[$taxonID]) {
             /* reference only            
             $this->DWCA[$taxonID] = array("c" => $canonicalName);
             */
             if($rec = $this->DWCA[$accepted_id]) {
-                if($rec['c'] == $DH_canonical && in_array($rec['r'], array('genus', 'subgenus'))) return true;
+                if($rec['c'] == $DH_canonical && in_array($rec['r'], $choices)) return true;
             }
         }
 
-        if($taxon_id = $this->acceptedNames[$taxonID]) {
+        if($taxon_id = @$this->acceptedNames[$taxonID]) {
             /* reference only            
             $this->DWCA[$taxonID] = array("c" => $canonicalName);
             */
             if($rec = $this->DWCA[$taxon_id]) {
-                if($rec['c'] == $DH_canonical && in_array($rec['r'], array('genus', 'subgenus'))) return true;
+                if($rec['c'] == $DH_canonical && in_array($rec['r'], $choices)) return true;
             }
         }
 

@@ -52,7 +52,7 @@ class DwCA_MatchTaxa2DH
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
 
 
-        echo "\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]\n";
 
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
@@ -67,9 +67,11 @@ class DwCA_MatchTaxa2DH
         echo "\nmatched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
         echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
         echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]\n";
+        $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] + @$this->debug['matched 1st rek'];
+        echo "\nTotal: [" . number_format($total) . "] -> should be equal to: [Has canonical match]\n";
 
-
-
+        asort($this->debug['counts of reks at this point']);
+        print_r($this->debug['counts of reks at this point']);
 
         if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna\n"); //dev only
@@ -299,6 +301,9 @@ class DwCA_MatchTaxa2DH
             return $rek;
         }
 
+        // /* for stats only
+        @$this->debug['counts of reks at this point'][count($reks)]++;
+        // */
         
         // OPTION 3: get the 1st rek from reks
         foreach($reks as $DH_taxonID => $rek) {

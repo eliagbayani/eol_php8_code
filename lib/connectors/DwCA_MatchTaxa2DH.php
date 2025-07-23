@@ -21,6 +21,8 @@ class DwCA_MatchTaxa2DH
         // It's also ok to match taxa with different ranks if both taxa have a subspecific rank, 
         // e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
         $this->ok_match_subspecific_ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
+        
+        // tar -czf Brazilian_Flora_Eli_neo4j_1.tar.gz Brazilian_Flora_Eli_neo4j_1/ -> generate .tar.gz
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -234,13 +236,13 @@ class DwCA_MatchTaxa2DH
         if ($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: species - any subspecific ranks']++;
             $this->debug['eli']['canonical match: species - any subspecific ranks'][] = array('DH' => $rek, 'DwCA' => $rec);
-            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) {
+            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) { print_r($rek); echo("\n111\n");
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: species - any subspecific ranks OK']++;
             }
         } elseif ($DH_rank == 'species' && in_array($taxonRank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: any subspecific ranks - species']++;
-            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) {
+            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) { print_r($rek); echo("\n222\n");
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: any subspecific ranks - species OK']++;
             }
@@ -285,8 +287,6 @@ class DwCA_MatchTaxa2DH
             [http://rs.gbif.org/terms/1.0/canonicalName] => Agaricales
             [http://eol.org/schema/EOLid] => 
         )*/
-
-
 
         // OPTION 1: DwCA ancestry
         // step 1: get ancestry scinames to search from DwCA taxa

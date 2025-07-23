@@ -162,10 +162,20 @@ class DwCA_MatchTaxa2DH
                 // */
             }
             elseif($what == 'generate_synonyms_info') {
-
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
                 @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
 
+                if($acceptedNameUsageID) {
+                    $this->acceptedNames[$acceptedNameUsageID][$taxonID] = '';
+                    @$this->debug['total acceptedNameUsageID']++; //stats only
+                    if(stripos($taxonomicStatus, "synonym") !== false) { //string is found
+                        $this->synonyms[$taxonID] = $acceptedNameUsageID;
+                    }
+                }
+
+                /* ver 1
+                $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
+                @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
                 if($acceptedNameUsageID) {
                     @$this->debug['total acceptedNameUsageID']++; //stats only
                     if(stripos($taxonomicStatus, "synonym") !== false) { //string is found
@@ -173,6 +183,7 @@ class DwCA_MatchTaxa2DH
                         $this->acceptedNames[$acceptedNameUsageID] = $taxonID;
                     }
                 }
+                */
             }
 
 
@@ -388,12 +399,14 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-        if($taxon_id = @$this->acceptedNames[$taxonID]) {
+        if($SYN_ids = @$this->acceptedNames[$taxonID]) {
             /* reference only            
             $this->DWCA[$taxonID] = array("c" => $canonicalName);
             */
-            if($rec = $this->DWCA[$taxon_id]) {
-                if($rec['c'] == $DH_canonical && in_array($rec['r'], $choices)) return true;
+            foreach(array_keys($SYN_ids) as $SYN_id) {
+                if($rec = $this->DWCA[$SYN_id]) {
+                    if($rec['c'] == $DH_canonical && in_array($rec['r'], $choices)) return true;
+                }
             }
         }
         return false;

@@ -78,11 +78,13 @@ class DwCA_MatchTaxa2DH
 
         echo "\nmatched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
         echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
+
+        echo "\nmatched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
         echo "\nmatched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
         echo "\nmatched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
-
         echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
         $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
+                + @$this->debug['matched just 1 record']
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
                 + @$this->debug['matched 1st rek'];
@@ -96,7 +98,8 @@ class DwCA_MatchTaxa2DH
             echo "\n[$totals][$count]";
             $sum += $count;
         } 
-        $diff = $sum - @$this->debug['matched same rank and status accepted'] - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
+        $diff = $sum - @$this->debug['matched just 1 record'] - @$this->debug['matched same rank and status accepted'] 
+                     - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
         echo "\nSum: [$sum] -> should be equal to: [sum of last 3 matches] [$diff]\n";
 
         if(@$this->debug['eli']) print_r($this->debug['eli']);
@@ -489,6 +492,15 @@ class DwCA_MatchTaxa2DH
         )*/
         $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
         $taxonomicStatus = $rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
+
+
+        // if reks is juse 1 record then no choice use it
+        if(count($reks) == 1) {
+            foreach($reks as $DH_taxonIDx => $rek) {
+                @$this->debug['matched just 1 record']++;
+                return $rek;
+            }
+        }
         // 1st loop
         foreach($reks as $DH_taxonIDx => $rek) {
             if($taxonomicStatus == 'accepted' && $taxonRank == $rek['r']) {

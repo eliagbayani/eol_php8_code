@@ -78,8 +78,14 @@ class DwCA_MatchTaxa2DH
 
         echo "\nmatched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
         echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
+        echo "\nmatched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
+        echo "\nmatched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
+
         echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
-        $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] + @$this->debug['matched 1st rek'];
+        $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
+                + @$this->debug['matched same rank and status accepted']
+                + @$this->debug['matched same rank'] 
+                + @$this->debug['matched 1st rek'];
         $diff = $total - @$this->debug['Has canonical match'];
         echo "\nTotal 3 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
 
@@ -90,8 +96,8 @@ class DwCA_MatchTaxa2DH
             echo "\n[$totals][$count]";
             $sum += $count;
         } 
-        $diff = $sum - @$this->debug['matched 1st rek'];
-        echo "\nSum: [$sum] -> should be equal to: [matched 1st rek] [$diff]\n";
+        $diff = $sum - @$this->debug['matched same rank and status accepted'] - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
+        echo "\nSum: [$sum] -> should be equal to: [sum of last 3 matches] [$diff]\n";
 
         if(@$this->debug['eli']) print_r($this->debug['eli']);
 
@@ -360,10 +366,15 @@ class DwCA_MatchTaxa2DH
         @$this->debug['counts of reks at this point'][count($reks)]++;
         // */
         
-        // OPTION 3: get the 1st rek from reks
-        foreach($reks as $DH_taxonIDx => $rek) {
-           @$this->debug['matched 1st rek']++;
-           return $rek;
+        // OPTION 3: choose rek from multiple reks
+        if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
+            return $rek;
+        }
+
+        if(count($reks) > 2) {
+            print_r($reks);
+            print_r($rec);
+            exit("\nInvestigate muna\n");
         }
 
         exit("\nShould not go here\n");
@@ -412,7 +423,6 @@ class DwCA_MatchTaxa2DH
         }
         return false;
     }
-
     private function are_these_synonyms_in_DH($taxonID, $DH_canonical, $type)
     {
             if($type == 1) $choices = array('genus', 'subgenus');
@@ -446,7 +456,61 @@ class DwCA_MatchTaxa2DH
         }
         return false;
     }
+    private function choose_rek_from_multiple_reks($reks, $rec)
+    {
+        /*
+        [EOL-000000090932] => Array(
+                    [r] => genus
+                    [e] => 47081311
+                    [h] => Life|Cellular Organisms|Eukaryota|SAR (Stramenopiles, Alveolates, Rhizaria)|Stramenopiles|Ochrophyta|Bacillariophyta|Fragilariophyceae|Fragilariophycidae|Licmophorales|Ulnariaceae
+                    [c] => Ctenophora
+                    [t] => EOL-000000090932
+                )
+        Array(
+            [http://rs.tdwg.org/dwc/terms/taxonID] => urn:lsid:marinespecies.org:taxname:1248
+            [http://rs.tdwg.org/ac/terms/furtherInformationURL] => https://www.marinespecies.org/aphia.php?p=taxdetails&id=1248
+            [http://eol.org/schema/reference/referenceID] => WoRMS:citation:1248
+            [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => urn:lsid:marinespecies.org:taxname:1248
+            [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => urn:lsid:marinespecies.org:taxname:2
+            [http://rs.tdwg.org/dwc/terms/scientificName] => Ctenophora Eschscholtz, 1829
+            [http://rs.tdwg.org/dwc/terms/namePublishedIn] => Eschscholtz, F. (1829). System der Acalephen. Eine ausführliche Beschreibung aller medusenartigen Strahltiere. Ferdinand Dümmler, Berlin, pp. 1-190, 116 pls.
+            [http://rs.tdwg.org/dwc/terms/kingdom] => Animalia
+            [http://rs.tdwg.org/dwc/terms/phylum] => Ctenophora
+            [http://rs.tdwg.org/dwc/terms/class] => 
+            [http://rs.tdwg.org/dwc/terms/order] => 
+            [http://rs.tdwg.org/dwc/terms/family] => 
+            [http://rs.tdwg.org/dwc/terms/genus] => 
+            [http://rs.tdwg.org/dwc/terms/taxonRank] => phylum
+            [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
+            [http://rs.tdwg.org/dwc/terms/taxonRemarks] => 
+            [http://rs.tdwg.org/dwc/terms/datasetName] => 
+            [http://rs.gbif.org/terms/1.0/canonicalName] => Ctenophora
+            [http://eol.org/schema/EOLid] => 
+        )*/
+        $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+        $taxonomicStatus = $rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
+        // 1st loop
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if($taxonomicStatus == 'accepted' && $taxonRank == $rek['r']) {
+                @$this->debug['matched same rank and status accepted']++;
+                return $rek;
+            }
+        }
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if($taxonRank == $rek['r']) {
+                @$this->debug['matched same rank']++;
+                return $rek;
+            }
+        }
 
+        // last loop: get the 1st rek from reks
+        foreach($reks as $DH_taxonIDx => $rek) {
+           @$this->debug['matched 1st rek']++;
+           return $rek;
+        }
+
+
+    }
 
 
     private function get_separator_in_higherClassification($hc)

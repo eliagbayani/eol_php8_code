@@ -107,10 +107,8 @@ class DwCA_MatchTaxa2DH
                 if (!$field['term']) continue;
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
-            }
-            // print_r($rec); exit;
-            /* e.g. Brazilian_flora
-            Array(
+            } // print_r($rec); exit;
+            /* Array( e.g. Brazilian_flora
                 [http://rs.tdwg.org/dwc/terms/taxonID] => 12
                 [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
                 [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
@@ -219,13 +217,13 @@ class DwCA_MatchTaxa2DH
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the genus and subgenus.
         if ($taxonRank == 'genus' && $DH_rank == 'subgenus') {
             @$this->debug['canonical match: genus - subgenus']++;
-            if(self::are_these_synonyms($taxonID, $DH_canonical, 1)) {
+            if(self::are_these_synonyms_in_DwCA($taxonID, $DH_canonical, 1)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: genus - subgenus OK']++;
             }
         } elseif ($taxonRank == 'subgenus' && $DH_rank == 'genus') {
             @$this->debug['canonical match: subgenus - genus']++;
-            if(self::are_these_synonyms($taxonID, $DH_canonical, 1)) {
+            if(self::are_these_synonyms_in_DwCA($taxonID, $DH_canonical, 1)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: subgenus - genus OK']++;
             }
@@ -236,13 +234,13 @@ class DwCA_MatchTaxa2DH
         if ($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: species - any subspecific ranks']++;
             $this->debug['eli']['canonical match: species - any subspecific ranks'][] = array('DH' => $rek, 'DwCA' => $rec);
-            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) { print_r($rek); echo("\n111\n");
+            if(self::are_these_synonyms_in_DwCA($taxonID, $DH_canonical, 2)) { //print_r($rek); echo("\n111\n");
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: species - any subspecific ranks OK']++;
             }
         } elseif ($DH_rank == 'species' && in_array($taxonRank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: any subspecific ranks - species']++;
-            if(self::are_these_synonyms($taxonID, $DH_canonical, 2)) { print_r($rek); echo("\n222\n");
+            if(self::are_these_synonyms_in_DwCA($taxonID, $DH_canonical, 2)) { //print_r($rek); echo("\n222\n");
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: any subspecific ranks - species OK']++;
             }
@@ -347,7 +345,7 @@ class DwCA_MatchTaxa2DH
             }
         }
     }
-    private function are_these_synonyms($taxonID, $DH_canonical, $type)
+    private function are_these_synonyms_in_DwCA($taxonID, $DH_canonical, $type)
     {
         if($type == 1) $choices = array('genus', 'subgenus');
         elseif($type == 2) $choices = array_merge(array('species'), $this->ok_match_subspecific_ranks);

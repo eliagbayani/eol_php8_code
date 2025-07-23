@@ -273,7 +273,11 @@ class DHConnLib
 // SYN-000000207590	EOL-000000462763		Cassia pendula E.Agbayani	Senna pendula	E.Agbayani	variety	not accepted	COL-15	COL:a423c550b4fd0b0feefa2477637935ff	http://www.catalogueoflife.org/annual-checklist/2019/details/species/id/19f057e06cfc7dbd915c90b6bb2e5f70/synonym/a423c550b4fd0b0feefa2477637935ff			
                 $acceptedNameUsageID = $rec['acceptedNameUsageID'];
                 $taxonRank = $rec['taxonRank'];
-                $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank, "t" => $taxonID); //get all records, should be no filter here
+                
+                // $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank, "t" => $taxonID); //get all records, should be no filter here
+                $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
+
+
                 if($acceptedNameUsageID) {
                     $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
                 }

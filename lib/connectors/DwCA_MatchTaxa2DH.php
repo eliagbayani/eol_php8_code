@@ -80,7 +80,8 @@ class DwCA_MatchTaxa2DH
         echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
         echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
         $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] + @$this->debug['matched 1st rek'];
-        echo "\nTotal 3 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match]\n";
+        $diff = $total - @$this->debug['Has canonical match'];
+        echo "\nTotal 3 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
 
         asort($this->debug['counts of reks at this point']);
         echo "\n[# of rek in reks][total count]";
@@ -89,7 +90,8 @@ class DwCA_MatchTaxa2DH
             echo "\n[$totals][$count]";
             $sum += $count;
         } 
-        echo "\nSum: [$sum] -> should be equal to: [matched 1st rek]\n";
+        $diff = $sum - @$this->debug['matched 1st rek'];
+        echo "\nSum: [$sum] -> should be equal to: [matched 1st rek] [$diff]\n";
 
         if(@$this->debug['eli']) print_r($this->debug['eli']);
 
@@ -164,7 +166,6 @@ class DwCA_MatchTaxa2DH
             elseif($what == 'generate_synonyms_info') {
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
                 @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
-
                 if($acceptedNameUsageID) {
                     $this->acceptedNames[$acceptedNameUsageID][$taxonID] = '';
                     @$this->debug['total acceptedNameUsageID']++; //stats only
@@ -185,8 +186,6 @@ class DwCA_MatchTaxa2DH
                 }
                 */
             }
-
-
             // if($i >= 100) break; //dev only
         }
     }
@@ -200,12 +199,14 @@ class DwCA_MatchTaxa2DH
                     [e] => 47182486
                     [h] => Life|Cellular Organisms|Bacteria|Proteobacteria|Gammaproteobacteria|Enterobacterales|Hafniaceae
                     [c] => Edwardsiella
+                    [t] => 001 {taxonID}
                 )
             [EOL-000000547422] => Array(
                     [r] => genus
                     [e] => 54411
                     [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Cnidaria|Anthozoa|Hexacorallia|Actiniaria|Anenthemonae|Edwardsioidea|Edwardsiidae
                     [c] => Edwardsiella
+                    [t] => 002 {taxonID}
                 )
         )
         Matching taxa across ranks. Sometimes taxa have different ranks but they share the same canonical name.
@@ -360,7 +361,7 @@ class DwCA_MatchTaxa2DH
         // */
         
         // OPTION 3: get the 1st rek from reks
-        foreach($reks as $DH_taxonID => $rek) {
+        foreach($reks as $DH_taxonIDx => $rek) {
            @$this->debug['matched 1st rek']++;
            return $rek;
         }
@@ -371,7 +372,7 @@ class DwCA_MatchTaxa2DH
     {
         $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
         if(!$DwCA_names_2search) return false;
-        foreach($reks as $DH_taxonID => $rek) {
+        foreach($reks as $DH_taxonIDx => $rek) {
             if($temp = @$rek['h']) {
                 $DH_higherClassification = explode("|", $temp);
                 $DH_higherClassification = array_map('trim', $DH_higherClassification);

@@ -85,7 +85,7 @@ class DwCA_MatchTaxa2DH
         } 
         echo "\nSum: [$sum] -> should be equal to: [matched 1st rek]\n";
 
-        print_r($this->debug['eli']);
+        if(@$this->debug['eli']) print_r($this->debug['eli']);
 
         // if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
         // exit("\nstop muna\n"); //dev only
@@ -233,7 +233,7 @@ class DwCA_MatchTaxa2DH
         // However, we only want to do that if we have an explicit synonym relationship from a source hierarchy for the species and the subspecific name.
         if ($taxonRank == 'species' && in_array($DH_rank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: species - any subspecific ranks']++;
-            $this->debug['eli']['canonical match: species - any subspecific ranks'][] = array('DH' => $rek, 'DwCA' => $rec);
+            // $this->debug['eli']['canonical match: species - any subspecific ranks'][] = array('DH' => $rek, 'DwCA' => $rec); //good debug
             if(self::are_these_synonyms_in_DwCA($taxonID, $DH_canonical, 2)) { //print_r($rek); echo("\n111\n");
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: species - any subspecific ranks OK']++;

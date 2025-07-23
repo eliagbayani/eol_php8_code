@@ -1,7 +1,21 @@
 <?php
-
 namespace php_active_record;
-/* connector: [DHconn.php] */
+/* connector: [DHconn.php]
+
+As of: DH version 2.2.6 -> https://zenodo.org/records/15399237
+Array(
+    [accepted] => 2518007
+    [not accepted] => 1784715
+)
+Array(
+    [EOL-] => Array(
+            [accepted] => 2518007
+        )
+    [SYN-] => Array(
+            [not accepted] => 1784715
+        )
+)
+*/
 
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -94,7 +108,7 @@ class DHConnLib
             if($value > 1) echo "\n[$key][$value]";
         }
         */
-        print_r(@$this->debug['status']);
+        // print_r(@$this->debug['status']); print_r(@$this->debug['status2']); exit;
 
         // print_r($this->DHCanonical_info['Edwardsiella']);
         // print_r($this->DHCanonical_info['Morganella']);
@@ -237,9 +251,10 @@ class DHConnLib
                     [Landmark] => 3
                     [higherClassification] => 
                 )*/
-                $taxonomicStatus = $rec['taxonomicStatus'];
                 $taxonID = $rec['taxonID'];
-                @$this->debug['status'][$taxonomicStatus]++;
+                $taxonomicStatus = $rec['taxonomicStatus'];                
+                // @$this->debug['status'][$taxonomicStatus]++;
+                // @$this->debug['status2'][substr($taxonID,0,4)][$taxonomicStatus]++;
                 if ($canonicalName = $rec['canonicalName']) {
                     // if($taxonomicStatus == 'accepted') {
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
@@ -247,6 +262,19 @@ class DHConnLib
                         @$this->debug['breakdown'][$canonicalName]++;
                     // }
                 }
+                
+                // /* ========== generate_synonyms_info
+                $acceptedNameUsageID = $rec['acceptedNameUsageID'];
+                $taxonRank = $rec['taxonRank'];
+                $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
+                if($acceptedNameUsageID) {
+                    if(substr($taxonID,0,3) == 'SYN') {
+                        $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
+                        $this->DH_acceptedNames[$acceptedNameUsageID] = $taxonID;
+                    }
+                }
+
+                // ========== */
             }
 
             if ($purpose == 'initialize') $this->mint2EOLid[$rec['taxonID']] = $EOLid;

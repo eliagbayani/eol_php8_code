@@ -30,15 +30,11 @@ class DwCA_MatchTaxa2DH
         // /* step 1: read info from DH
         require_library('connectors/DHConnLib');
         $this->DH = new DHConnLib(1);
-        $this->DH->build_up_taxa_info();
-
+        $this->DH->build_up_taxa_info(); //generates 4 info lookups
         echo "\naaa2:".count($this->DH->DHCanonical_info)."";
         echo "\nxxx2:".count($this->DH->DH)."";
         echo "\nyyy2:".count($this->DH->DH_synonyms)."";
         echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");
-
-        echo "\nDHCanonical_info: " . count($this->DH->DHCanonical_info) . "\n";
-        // $this->debug['DHCanonical_info'] = $this->DH->DHCanonical_info; //dev only
         // */
 
         // /* Read the DwCA in question:
@@ -209,6 +205,7 @@ class DwCA_MatchTaxa2DH
         // print_r($rek); exit("\nstopx\n");
         $DH_rank = $rek['r'];
         $DH_canonical = $rek['c'];
+        $DH_taxonID = $rek['t'];
         if ($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 1. In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
         if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
@@ -231,7 +228,7 @@ class DwCA_MatchTaxa2DH
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: genus - subgenus OK']++;
             }
-            elseif(self::are_these_synonyms_in_DH($taxonID, $DH_canonical, 1)) {
+            elseif(self::are_these_synonyms_in_DH($DH_taxonID, $DH_canonical, 1)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: genus - subgenus OK DH']++;
             }
@@ -241,7 +238,7 @@ class DwCA_MatchTaxa2DH
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: subgenus - genus OK']++;
             }
-            elseif(self::are_these_synonyms_in_DH($taxonID, $DH_canonical, 1)) {
+            elseif(self::are_these_synonyms_in_DH($DH_taxonID, $DH_canonical, 1)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: subgenus - genus OK DH']++;
             }
@@ -256,17 +253,19 @@ class DwCA_MatchTaxa2DH
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: species - any subspecific ranks OK']++;
             }
-            elseif(self::are_these_synonyms_in_DH($taxonID, $DH_canonical, 2)) {
+            elseif(self::are_these_synonyms_in_DH($DH_taxonID, $DH_canonical, 2)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: species - any subspecific ranks OK DH']++;
             }
         } elseif ($DH_rank == 'species' && in_array($taxonRank, $this->ok_match_subspecific_ranks)) {
             @$this->debug['canonical match: any subspecific ranks - species']++;
+            // print_r($rec); print_r($rek); exit("\nFound a hit!\n");
+
             if(self::are_these_synonyms_in_DwCA($taxonID, $DH_canonical, 2)) { //print_r($rek); echo("\n222\n");
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: any subspecific ranks - species OK']++;
             }
-            elseif(self::are_these_synonyms_in_DH($taxonID, $DH_canonical, 2)) {
+            elseif(self::are_these_synonyms_in_DH($DH_taxonID, $DH_canonical, 2)) {
                 $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
                 @$this->debug['canonical match: any subspecific ranks - species OK DH']++;
             }
@@ -402,7 +401,7 @@ class DwCA_MatchTaxa2DH
 
     private function are_these_synonyms_in_DH($taxonID, $DH_canonical, $type)
     {
-        if($type == 1) $choices = array('genus', 'subgenus');
+            if($type == 1) $choices = array('genus', 'subgenus');
         elseif($type == 2) $choices = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
         /* reference only
@@ -417,14 +416,19 @@ class DwCA_MatchTaxa2DH
                 if($rec['c'] == $DH_canonical && in_array($rec['r'], $choices)) return true;
             }
         }
-        
-        if($taxon_id = @$this->DH->DH_acceptedNames[$taxonID]) {
+
+// SYN-000000207590	EOL-000000462763		Cassia pendula E.Agbayani	Senna pendula	E.Agbayani	variety	not accepted	COL-15	COL:a423c550b4fd0b0feefa2477637935ff	http://www.catalogueoflife.org/annual-checklist/2019/details/species/id/19f057e06cfc7dbd915c90b6bb2e5f70/synonym/a423c550b4fd0b0feefa2477637935ff			
+        if($SYN_ids = @$this->DH->DH_acceptedNames[$taxonID]) { //exit("\nhere 01\n");
             /* reference only            
             $this->DH->DH[$taxonID] = array("c" => $canonicalName);
             */
-            if($rec = $this->DH->DH[$taxon_id]) {
-                if($rec['c'] == $DH_canonical && in_array($rec['r'], $choices)) return true;
+            foreach(array_keys($SYN_ids) as $SYN_id) {
+                if($syn_rec = $this->DH->DH[$SYN_id]) {
+                    // print_r($syn_rec); print_r($choices); exit("\n[$DH_canonical]\nhere 02\n");
+                    if($syn_rec['c'] == $DH_canonical && in_array($syn_rec['r'], $choices)) return true;
+                }
             }
+
         }
         return false;
     }

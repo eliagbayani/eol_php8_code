@@ -50,6 +50,9 @@ class DHConnLib
             // $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/";       //used for the longest time
             // $this->main_path = "/Volumes/AKiTiO4/d_w_h/history/dhv21/";                                      //supposedly latest but doesn't have EOLid
             $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/dh226/taxon.tsv";   //latest from Katja 17Jul2025
+            $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/dh226_Eli/taxon.tsv";   //latest from Katja 17Jul2025
+
+
         }
         if ($val = $path_to_taxa_file) $this->main_path = $val;
         echo "\npath_to_taxa_file: [$this->main_path]\n";
@@ -118,11 +121,6 @@ class DHConnLib
         echo "\nxxx1:".count($this->DH)."";
         echo "\nyyy1:".count($this->DH_synonyms)."";
         echo "\nzzz1:".count($this->DH_acceptedNames)."\n";
-
-
-
-        // exit("\n-end-\n");
-        // return $this->DHCanonical_info;
     }
     // -------------------------------------------- END taxa matching
     // ----------------------------------------------------------------- start -----------------------------------------------------------------
@@ -265,20 +263,22 @@ class DHConnLib
                 if ($canonicalName = $rec['canonicalName']) {
                     // if($taxonomicStatus == 'accepted') {
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
-                            , 'c' => $rec['canonicalName']); //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
+                            , 'c' => $rec['canonicalName'] //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
+                            , 't' => $rec['taxonID']);     //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
                         @$this->debug['breakdown'][$canonicalName]++;
                     // }
                 }
                 
                 // /* ========== generate_synonyms_info
+// SYN-000000207590	EOL-000000462763		Cassia pendula E.Agbayani	Senna pendula	E.Agbayani	variety	not accepted	COL-15	COL:a423c550b4fd0b0feefa2477637935ff	http://www.catalogueoflife.org/annual-checklist/2019/details/species/id/19f057e06cfc7dbd915c90b6bb2e5f70/synonym/a423c550b4fd0b0feefa2477637935ff			
                 $acceptedNameUsageID = $rec['acceptedNameUsageID'];
                 $taxonRank = $rec['taxonRank'];
-                $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
+                $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank, "t" => $taxonID); //get all records, should be no filter here
                 if($acceptedNameUsageID) {
-                    if(substr($taxonID,0,3) == 'SYN') {
-                        $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
-                        $this->DH_acceptedNames[$acceptedNameUsageID] = $taxonID;
-                    }
+                    $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
+                }
+                if(substr($taxonID,0,3) == 'SYN') {
+                    $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
                 }
                 // ========== */
             }

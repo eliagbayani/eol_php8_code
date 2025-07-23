@@ -114,8 +114,15 @@ class DHConnLib
         // print_r($this->DHCanonical_info['Morganella']);
         // print_r($this->DHCanonical_info['Proteus']);
 
+        echo "\naaa1:".count($this->DHCanonical_info)."";
+        echo "\nxxx1:".count($this->DH)."";
+        echo "\nyyy1:".count($this->DH_synonyms)."";
+        echo "\nzzz1:".count($this->DH_acceptedNames)."\n";
+
+
+
         // exit("\n-end-\n");
-        return $this->DHCanonical_info;
+        // return $this->DHCanonical_info;
     }
     // -------------------------------------------- END taxa matching
     // ----------------------------------------------------------------- start -----------------------------------------------------------------
@@ -273,7 +280,6 @@ class DHConnLib
                         $this->DH_acceptedNames[$acceptedNameUsageID] = $taxonID;
                     }
                 }
-
                 // ========== */
             }
 

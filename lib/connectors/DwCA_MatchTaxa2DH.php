@@ -97,12 +97,21 @@ class DwCA_MatchTaxa2DH
         echo "\nmatched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
         echo "\nmatched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
         echo "\nmatched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
+        echo "\nmatched group rank: [" . number_format(@$this->debug['matched group rank'] ?? 0) . "]";
+        echo "\naccepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
         echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
+        echo "\nmatched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
+
+
+
         $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
                 + @$this->debug['matched just 1 record']
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
-                + @$this->debug['matched 1st rek'];
+                + @$this->debug['matched group rank']
+                + @$this->debug['accepted only']
+                + @$this->debug['matched 1st rek']
+                + @$this->debug['matched blank eolID'];
         $diff = $total - @$this->debug['Has canonical match'];
         echo "\nTotal 3 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
 
@@ -380,9 +389,9 @@ class DwCA_MatchTaxa2DH
             return $rek;
         }
 
-        // /* for stats only
-        @$this->debug['counts of reks at this point'][count($reks)]++;
-        // */
+        // // /* for stats only
+        // @$this->debug['counts of reks at this point'][count($reks)]++;
+        // // */
         
         // OPTION 3: choose rek from multiple reks
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
@@ -507,7 +516,7 @@ class DwCA_MatchTaxa2DH
         )*/
         $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
 
-        // if reks is juse 1 record then no choice use it
+        // if reks is just 1 record then no choice use it
         if(count($reks) == 1) {
             foreach($reks as $DH_taxonIDx => $rek) {
                 @$this->debug['matched just 1 record']++;
@@ -516,30 +525,67 @@ class DwCA_MatchTaxa2DH
         }
         // 1st loop
         foreach($reks as $DH_taxonIDx => $rek) {
-            if($rek['s'] == 'a' && $taxonRank == $rek['r']) {
+            if($rek['s'] == 'a' && $taxonRank == $rek['r'] && $rek['e']) {
                 @$this->debug['matched same rank and status accepted']++;
                 return $rek;
             }
         }
         foreach($reks as $DH_taxonIDx => $rek) {
-            if($taxonRank == $rek['r']) {
+            if($taxonRank == $rek['r'] && $rek['e']) {
                 @$this->debug['matched same rank']++;
                 return $rek;
             }
         }
 
-        print_r($reks); print_r($rec); exit("\nInvestigate muna\n"); //good debug
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if(in_array($taxonRank, $this->g_kingdom_domain) && in_array($rek['r'], $this->g_kingdom_domain) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_phylum) && in_array($rek['r'], $this->g_phylum) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_class) && in_array($rek['r'], $this->g_class) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_order) && in_array($rek['r'], $this->g_order) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_family) && in_array($rek['r'], $this->g_family) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_tribe) && in_array($rek['r'], $this->g_tribe) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_genus) && in_array($rek['r'], $this->g_genus) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_section) && in_array($rek['r'], $this->g_section) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+            if(in_array($taxonRank, $this->g_species) && in_array($rek['r'], $this->g_species) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+        }
+        $family_tribe = array_merge($this->g_family, $this->g_tribe);
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if(in_array($taxonRank, $family_tribe) && in_array($rek['r'], $family_tribe) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+        }
+        $genus_section = array_merge($this->g_genus, $this->g_section);
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if(in_array($taxonRank, $genus_section) && in_array($rek['r'], $genus_section) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+        }
+
+        // 'accepted' vs 'not accepted'
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if($rek['s'] == 'a' && $rek['e']) {
+                @$this->debug['accepted only']++;
+                return $rek;
+            }
+        }
 
         // last loop: get the 1st rek from reks
         foreach($reks as $DH_taxonIDx => $rek) {
-           @$this->debug['matched 1st rek']++;
-           return $rek;
+            if($rek['e']) {
+                @$this->debug['matched 1st rek']++;
+                return $rek;
+            }
         }
 
+        // /* for stats only
+        @$this->debug['counts of reks at this point'][count($reks)]++;
+        // */
 
+
+        // this has blank eolID
+        foreach($reks as $DH_taxonIDx => $rek) {
+            @$this->debug['matched blank eolID']++;
+            return $rek;
+        }
+
+        print_r($reks); print_r($rec); exit("\nInvestigate muna\n"); //good debug
     }
-
-
     private function get_separator_in_higherClassification($hc)
     {
         if(stripos($hc, "|") !== false) return "|"; //string is found

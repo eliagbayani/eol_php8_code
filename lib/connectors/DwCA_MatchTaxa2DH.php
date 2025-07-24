@@ -21,8 +21,23 @@ class DwCA_MatchTaxa2DH
         // It's also ok to match taxa with different ranks if both taxa have a subspecific rank, 
         // e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
         $this->ok_match_subspecific_ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
+        $this->ok_match_subspecific_ranks[] = 'species group';
+        $this->ok_match_subspecific_ranks[] = 'species subgroup';
         
         // tar -czf Brazilian_Flora_Eli_neo4j_1.tar.gz Brazilian_Flora_Eli_neo4j_1/ -> generate .tar.gz
+
+
+        $this->g_kingdom_domain = array('domain', 'kingdom');
+        $this->g_phylum = array('phylum', 'division', 'subphylum');
+        $this->g_class = array('class', 'subclass', 'superclass', 'infraclass', 'subterclass');
+        $this->g_order = array('order', 'suborder', 'superorder', 'infraorder', 'parvorder');
+        $this->g_family = array('family', 'subfamily', 'superfamily', 'epifamily');
+        $this->g_tribe = array('tribe', 'supertribe', 'subtribe');
+        $this->g_genus = array('genus', 'subgenus', 'genus group');
+        $this->g_section = array('section', 'subsection', 'series');
+        $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
+    
+
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -100,7 +115,7 @@ class DwCA_MatchTaxa2DH
         } 
         $diff = $sum - @$this->debug['matched just 1 record'] - @$this->debug['matched same rank and status accepted'] 
                      - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
-        echo "\nSum: [$sum] -> should be equal to: [sum of last 3 matches] [$diff]\n";
+        echo "\nSum: [$sum] -> should be equal to: [sum of last 4 matches] [$diff]\n";
 
         if(@$this->debug['eli']) print_r($this->debug['eli']);
 
@@ -491,8 +506,6 @@ class DwCA_MatchTaxa2DH
             [http://eol.org/schema/EOLid] => 
         )*/
         $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
-        $taxonomicStatus = $rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
-
 
         // if reks is juse 1 record then no choice use it
         if(count($reks) == 1) {
@@ -503,7 +516,7 @@ class DwCA_MatchTaxa2DH
         }
         // 1st loop
         foreach($reks as $DH_taxonIDx => $rek) {
-            if($taxonomicStatus == 'accepted' && $taxonRank == $rek['r']) {
+            if($rek['s'] == 'a' && $taxonRank == $rek['r']) {
                 @$this->debug['matched same rank and status accepted']++;
                 return $rek;
             }
@@ -514,6 +527,8 @@ class DwCA_MatchTaxa2DH
                 return $rek;
             }
         }
+
+        print_r($reks); print_r($rec); exit("\nInvestigate muna\n"); //good debug
 
         // last loop: get the 1st rek from reks
         foreach($reks as $DH_taxonIDx => $rek) {

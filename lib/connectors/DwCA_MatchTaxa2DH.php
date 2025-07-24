@@ -88,22 +88,18 @@ class DwCA_MatchTaxa2DH
         echo "\nOK DwCA: [" . number_format(@$this->debug['canonical match: any subspecific ranks - species OK'] ?? 0) . "]";
         echo "\nOK DH:   [" . number_format(@$this->debug['canonical match: any subspecific ranks - species OK DH'] ?? 0) . "]\n";
 
-        print_r(@$this->debug['taxonomicStatus']);
+        echo "\ntaxonomicStatus breakdown: "; print_r(@$this->debug['taxonomicStatus']);
         echo "total acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
 
-        echo "\nmatched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
-        echo "\nmatched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
-
-        echo "\nmatched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
-        echo "\nmatched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
-        echo "\nmatched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
-        echo "\nmatched group rank: [" . number_format(@$this->debug['matched group rank'] ?? 0) . "]";
-        echo "\naccepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
-        echo "\nmatched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
-        echo "\nmatched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
-
-
-
+        echo "\n1. matched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
+        echo "\n2. matched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
+        echo "\n3. matched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
+        echo "\n4. matched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
+        echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
+        echo "\n6. matched group rank: [" . number_format(@$this->debug['matched group rank'] ?? 0) . "]";
+        echo "\n7. accepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
+        echo "\n8. matched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
+        echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
         $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
                 + @$this->debug['matched just 1 record']
                 + @$this->debug['matched same rank and status accepted']
@@ -113,7 +109,7 @@ class DwCA_MatchTaxa2DH
                 + @$this->debug['matched 1st rek']
                 + @$this->debug['matched blank eolID'];
         $diff = $total - @$this->debug['Has canonical match'];
-        echo "\nTotal 3 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
+        echo "\nTotal 9 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
 
         asort($this->debug['counts of reks at this point']);
         echo "\n[# of rek in reks][total count]";
@@ -176,7 +172,7 @@ class DwCA_MatchTaxa2DH
 
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
             $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
-            $taxonomicStatus = $rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
+            $taxonomicStatus = @$rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
             $acceptedNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'];
             $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
 

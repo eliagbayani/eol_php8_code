@@ -520,8 +520,10 @@ class DwCA_MatchTaxa2DH
         // if reks is just 1 record then no choice use it
         if(count($reks) == 1) {
             foreach($reks as $DH_taxonIDx => $rek) {
-                @$this->debug['matched just 1 record']++;
-                return $rek;
+                if($rek['e']) {
+                    @$this->debug['matched just 1 record']++;
+                    return $rek;
+                }
             }
         }
         // 1st loop
@@ -537,7 +539,6 @@ class DwCA_MatchTaxa2DH
                 return $rek;
             }
         }
-
         foreach($reks as $DH_taxonIDx => $rek) {
             if(in_array($taxonRank, $this->g_kingdom_domain) && in_array($rek['r'], $this->g_kingdom_domain) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
             if(in_array($taxonRank, $this->g_phylum) && in_array($rek['r'], $this->g_phylum) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
@@ -577,7 +578,6 @@ class DwCA_MatchTaxa2DH
         // /* for stats only
         @$this->debug['counts of reks at this point'][count($reks)]++;
         // */
-
 
         // this has blank eolID
         foreach($reks as $DH_taxonIDx => $rek) {

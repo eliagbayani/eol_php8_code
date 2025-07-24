@@ -121,6 +121,9 @@ class DHConnLib
         echo "\nxxx1:".count($this->DH)."";
         echo "\nyyy1:".count($this->DH_synonyms)."";
         echo "\nzzz1:".count($this->DH_acceptedNames)."\n";
+
+        // print_r(@$this->debug['status']); exit; //stats only
+        // print_r(@$this->debug['taxonRank']); exit; //stats only
     }
     // -------------------------------------------- END taxa matching
     // ----------------------------------------------------------------- start -----------------------------------------------------------------
@@ -257,14 +260,18 @@ class DHConnLib
                     [higherClassification] => 
                 )*/
                 $taxonID = $rec['taxonID'];
-                $taxonomicStatus = $rec['taxonomicStatus'];                
-                // @$this->debug['status'][$taxonomicStatus]++;
+                $taxonomicStatus = $rec['taxonomicStatus'];
+                $taxonRank = $rec['taxonRank'];             //stats only
+                @$this->debug['taxonRank'][$taxonRank]++;   //stats only
+
+                @$this->debug['status'][$taxonomicStatus]++;
                 // @$this->debug['status2'][substr($taxonID,0,4)][$taxonomicStatus]++;
                 if ($canonicalName = $rec['canonicalName']) {
                     // if($taxonomicStatus == 'accepted') {
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
                             , 'c' => $rec['canonicalName'] //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
-                            , 't' => $rec['taxonID']);     //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
+                            , 't' => $rec['taxonID']     //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
+                            , 's' => substr($rec['taxonomicStatus'],0,1));
                         @$this->debug['breakdown'][$canonicalName]++;
                     // }
                 }

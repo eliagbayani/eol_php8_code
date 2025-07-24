@@ -160,7 +160,7 @@ class DwCA_RunGNParser
                 is usually of the form: Canonical of the parent taxa subgen.| sect. |subsect. simple canonical of the subgenus/section/subsection.
                 */
                 if($taxonRank == 'subgenus') {
-                    if($genus = $rec['http://rs.tdwg.org/dwc/terms/genus']) {
+                    if($genus = @$rec['http://rs.tdwg.org/dwc/terms/genus']) {
                         $canonical_of_parent = self::run_gnparser($genus, 'simple');
                         $canonical_of_subgenus = self::run_gnparser($scientificName, 'simple');
                         $canonical = "$canonical_of_parent subgen. $canonical_of_subgenus";

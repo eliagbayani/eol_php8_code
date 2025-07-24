@@ -122,9 +122,10 @@ class DwCA_MatchTaxa2DH
             echo "\n[$totals][$count]";
             $sum += $count;
         } 
-        $diff = $sum - @$this->debug['matched just 1 record'] - @$this->debug['matched same rank and status accepted'] 
-                     - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
-        echo "\nSum: [$sum] -> should be equal to: [sum of last 4 matches] [$diff]\n";
+        // $diff = $sum - @$this->debug['matched just 1 record'] - @$this->debug['matched same rank and status accepted'] 
+        //              - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
+        $dif = $sum - @$this->debug['matched blank eolID'];
+        echo "\nSum: [$sum] -> should be equal to: [matched blank eolID] [$diff]\n";
 
         if(@$this->debug['eli']) print_r($this->debug['eli']);
 

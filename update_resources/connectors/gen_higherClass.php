@@ -32,13 +32,9 @@ else echo "The file is not ready for processing. The file needs the minimum thre
 // */
 
 // /* utility
-$new_file = "temp/taxon.tsv"; //OR this should be the output from above
-$new_file = DOC_ROOT."applications/genHigherClass_jenkins/temp/output.txt";
-$new_file = DOC_ROOT."applications/genHigherClass_jenkins/temp/taxon_protisten_2.txt";
-
 require_library('connectors/DWCADiagnoseAPI');
 $func = new DWCADiagnoseAPI();
-$undefined_parents = $func->check_if_all_parents_have_entries(pathinfo($new_file, PATHINFO_FILENAME), true, $new_file); //true means output will write to text file
+$undefined_parents = $func->check_if_all_parents_have_entries(pathinfo($file, PATHINFO_FILENAME), true, $file); //true means output will write to text file
 echo "\nundefined parents: ".count($undefined_parents)."\n";
 // OUTPUT IS: taxon_undefined_parent_ids.txt
 // */

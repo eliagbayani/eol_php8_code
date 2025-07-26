@@ -131,7 +131,7 @@ class DwCA_Utility_cmd
                 if(isset($saved_id[$parent_id])) break;
                 else $saved_id[$parent_id] = '';
                 // */
-                $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['sN']))."|";
+                $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['sN'] ?? ''))."|";
                 $parent_id = @$this->id_name[$parent_id]['pID'];
             }
         }
@@ -268,6 +268,14 @@ class DwCA_Utility_cmd
             case "scientificNameID":            return "sNI"; break;
             case "namePublishedIn":             return "nPI"; break;
             case "Landmark":                    return "L"; break;
+            // where added for Brazilian Flora
+            case "kingdom":      return "aK"; break;
+            case "phylum":       return "aP"; break;
+            case "class":        return "aC"; break;
+            case "order":        return "aO"; break;
+            case "family":       return "aF"; break;
+            case "genus":        return "aG"; break;
+            case "modified":     return "m"; break;
             default: exit("\nUndefined field [$field]. Must be initialized before proceeding!\n");
         }
     }
@@ -292,6 +300,14 @@ class DwCA_Utility_cmd
             case "sNI": return "scientificNameID"; break;
             case "nPI": return "namePublishedIn"; break;
             case "L":   return "Landmark"; break;
+            // where added for Brazilian Flora
+            case "aK":  return "kingdom"; break;
+            case "aP":  return "phylum"; break;
+            case "aC":  return "class"; break;
+            case "aO":  return "order"; break;
+            case "aF":  return "family"; break;
+            case "aG":  return "genus"; break;
+            case "m":   return "modified"; break;
             default:
         }
     }

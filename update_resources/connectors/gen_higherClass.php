@@ -19,10 +19,8 @@ php.ini:
 */
 // exit("\n".dirname(__FILE__)."\n".DOC_ROOT."\n");
 // /* normal operation
-$file = "sample/taxon.tsv";
-$file = "sample/dwh_taxa.txt"; //original dwh_taxa.txt from the zip file was added with first row headers (https://eol-jira.bibalex.org/browse/TRAM-575)
 $file = DOC_ROOT."applications/genHigherClass_jenkins/temp/taxon_protisten.txt";
-
+$file = DOC_ROOT."applications/genHigherClass_jenkins/temp/taxon.tab.tsv";
 
 require_library('connectors/DwCA_Utility_cmd');
 $func = new DwCA_Utility_cmd();

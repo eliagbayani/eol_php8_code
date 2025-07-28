@@ -1130,7 +1130,6 @@ class DwCA_Utility
         $arr = array_reverse($arr);
         $str = trim(implode("|", $arr));
         if($str) $str .= "|";
-        // exit("\n new: [$str]\n");
         return $str;
     }
     private function can_compute_higherClassification($records)

@@ -137,8 +137,10 @@ class DwCA_Utility_cmd
         }
         $str = substr($str, 0, strlen($str)-1); // echo "\norig: [$str]";
         $arr = explode("|", $str);
+        $arr = array_map('trim', $arr);
         $arr = array_reverse($arr);
-        $str = implode("|", $arr); // echo "\n new: [$str]\n";
+        $str = trim(implode("|", $arr)); // echo "\n new: [$str]\n";
+        if($str) $str .= "|";
         return $str;
     }
 

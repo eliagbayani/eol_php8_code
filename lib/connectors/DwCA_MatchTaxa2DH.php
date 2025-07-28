@@ -33,6 +33,9 @@ class DwCA_MatchTaxa2DH
         $this->g_genus = array('genus', 'subgenus', 'genus group');
         $this->g_section = array('section', 'subsection', 'series');
         $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
+
+        $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
+        // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -211,6 +214,10 @@ class DwCA_MatchTaxa2DH
             }
             // if($i >= 100) break; //dev only
         }
+    }
+    private function matching_routine_using_HC($rec, $reks)
+    {
+        
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {

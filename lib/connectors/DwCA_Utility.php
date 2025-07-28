@@ -630,11 +630,22 @@ class DwCA_Utility
         echo "\ndoing this: convert_archive_by_adding_higherClassification()\n";
         $info = self::start();
         $temp_dir = $info['temp_dir'];
+        $index = $info['index'];
+        // print_r($index); exit;
+        /* working but for small taxa files only
         $harvester = $info['harvester'];
         $tables = $info['tables'];
-        $index = $info['index'];
-
         $records = $harvester->process_row_type('http://rs.tdwg.org/dwc/terms/Taxon');
+        */
+
+        // /* even for big taxa files
+        $tables = $info['harvester']->tables; // print_r($tables); exit;
+        $extensions = array_keys($tables); //print_r($extensions); exit;
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
+        $meta = $tables[$tbl][0];
+        $records = self::carry_over($meta, 'taxon', array('purpose' => 'return')); //purpose is either 'return' or 'write' 
+        // */
+
         if(self::can_compute_higherClassification($records)) {
             echo "\n1 of 3\n";  self::build_id_name_array($records);
             echo "\n2 of 3\n";  $records = self::generate_higherClassification_field($records);
@@ -647,10 +658,17 @@ class DwCA_Utility
             */
             echo "\n3 of 3\n";
             foreach($index as $row_type) {
+                $meta = $tables[$row_type][0];
                 if(@$this->extensions[$row_type]) { //process only defined row_types
                     if($this->extensions[$row_type] == "taxon") self::process_fields($records, $this->extensions[$row_type]);
-                    else                                        self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);
+                    else {
+                        /* old version
+                        self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);
+                        */
+                        self::carry_over($meta, $this->extensions[$row_type]);
+                    }
                 }
+                else exit("\nUndefined row_type: [$row_type]\n");
             }
             $this->archive_builder->finalize(TRUE);
         }
@@ -1015,8 +1033,9 @@ class DwCA_Utility
         } //main loop
         return $count;
     }
-    private function carry_over($meta, $class)
+    private function carry_over($meta, $class, $options = array('purpose' => 'write'))
     {   //print_r($meta);
+        $purpose = $options['purpose'];
         echo "\ncarry_over...[$class][$meta->file_uri]\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
@@ -1030,26 +1049,46 @@ class DwCA_Utility
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
-            // print_r($rec); exit("\ndebug...\n");
-            $uris = array_keys($rec);
-            
-            if    ($class == "vernacular")          $o = new \eol_schema\VernacularName();
-            elseif($class == "agent")               $o = new \eol_schema\Agent();
-            elseif($class == "reference")           $o = new \eol_schema\Reference();
-            elseif($class == "taxon")               $o = new \eol_schema\Taxon();
-            elseif($class == "document")            $o = new \eol_schema\MediaResource();
-            elseif($class == "occurrence")          $o = new \eol_schema\Occurrence();
-            elseif($class == "occurrence_specific") $o = new \eol_schema\Occurrence_specific(); //1st client is 10088_5097_ENV
-            elseif($class == "measurementorfact")   $o = new \eol_schema\MeasurementOrFact();
-            else exit("\nUndefined class [$class]. Will terminate**.\n");
-            
-            foreach($uris as $uri) {
-                $field = pathinfo($uri, PATHINFO_BASENAME);
-                $o->$field = $rec[$uri];
+            $rec = array_map('trim', $rec);
+            // print_r($rec); //exit("\ndebug...\n");
+
+// User Warning: Undefined property `bodyPart` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
+// User Warning: Undefined property `basisOfRecord` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
+// User Warning: Undefined property `physiologicalState` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /va
+
+
+            if($purpose == 'return') $records[] = $rec;
+            elseif($purpose == 'write') {
+                $uris = array_keys($rec);            
+                if    ($class == "vernacular")                  $o = new \eol_schema\VernacularName();
+                elseif($class == "agent")                       $o = new \eol_schema\Agent();
+                elseif($class == "reference")                   $o = new \eol_schema\Reference();
+                elseif($class == "taxon")                       $o = new \eol_schema\Taxon();
+                elseif($class == "document")                    $o = new \eol_schema\MediaResource();
+                // elseif($class == "occurrence")                  $o = new \eol_schema\Occurrence();
+                elseif($class == "occurrence")                  $o = new \eol_schema\Occurrence_specific();
+                elseif($class == "occurrence_specific")         $o = new \eol_schema\Occurrence_specific(); //1st client is 10088_5097_ENV
+                // elseif($class == "measurementorfact")           $o = new \eol_schema\MeasurementOrFact();
+                elseif($class == "measurementorfact")           $o = new \eol_schema\MeasurementOrFact_specific();
+                elseif($class == "measurementorfact_specific")  $o = new \eol_schema\MeasurementOrFact_specific();
+                elseif($class == "association")                 $o = new \eol_schema\Association();
+                else exit("\nUndefined class [$class]. Will terminate**.\n");                
+                foreach($uris as $uri) {
+                    $field = pathinfo($uri, PATHINFO_BASENAME);
+                    // echo "\n[$field]";
+                    // some fields have '#', e.g. "http://schemas.talis.com/2005/address/schema#localityName"
+                    $parts = explode("#", $field);
+                    if($parts[0]) $field = $parts[0];
+                    if(@$parts[1]) $field = $parts[1];
+                    // echo " - [$field]";
+
+                    $o->$field = $rec[$uri];
+                }
+                $this->archive_builder->write_object_to_file($o);
             }
-            $this->archive_builder->write_object_to_file($o);
             // if($i >= 10) break; //debug only
         }
+        if($purpose == 'return') return $records;
     }
     function build_id_name_array($records)
     {

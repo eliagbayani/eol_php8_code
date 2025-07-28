@@ -84,7 +84,7 @@ echo "\n[$resource_id] [$dwca_file] [".$cmdline_params['generate_higherClassific
 $func = new DwCA_Utility($resource_id, $dwca_file);
 if($cmdline_params['generate_higherClassification_YN'] == "Y") $func->convert_archive_by_adding_higherClassification();
 else                                                           $func->convert_archive(); //this is same as above; just doesn't generate higherClassification
-Functions::finalize_dwca_resource($resource_id);
+Functions::finalize_dwca_resource($resource_id, false, true);
 unset($func);
 // */
 

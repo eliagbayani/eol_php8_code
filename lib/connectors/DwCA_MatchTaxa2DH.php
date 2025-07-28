@@ -179,7 +179,11 @@ class DwCA_MatchTaxa2DH
             if ($what == 'match_canonical') {
                 if (!$canonicalName) continue;
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
-                    if ($taxonRank) $rec = self::main_matching_routine($rec, $reks, $taxonRank);
+                    $rec = self::matching_routine_using_HC($rec, $reks);
+                    if(@$rec['http://eol.org/schema/EOLid']) {}
+                    else {
+                        if ($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                    }
                 } else {
                     $this->debug['No canonical match'][$canonicalName] = '';
                 }
@@ -219,7 +223,7 @@ class DwCA_MatchTaxa2DH
             // if($i >= 100) break; //dev only
         }
     }
-    private function main_matching_routine($rec, $reks, $taxonRank)
+    private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
         // print_r($rec); //DwCA in question
         // print_r($reks); exit("\nfrom DH\n"); //DH
@@ -390,6 +394,7 @@ class DwCA_MatchTaxa2DH
         // @$this->debug['counts of reks at this point'][count($reks)]++;
         // // */
         
+        // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
             return $rek;
@@ -404,7 +409,7 @@ class DwCA_MatchTaxa2DH
         exit("\nShould not go here\n");
     }
     private function get_rek_from_reks($reks, $DwCA_names_2search)
-    {
+    { //check any ancestry name from DwCA to every DH higherClassification
         $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
         if(!$DwCA_names_2search) return false;
         foreach($reks as $DH_taxonIDx => $rek) {

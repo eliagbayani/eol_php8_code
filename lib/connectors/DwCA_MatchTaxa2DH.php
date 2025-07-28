@@ -1,8 +1,6 @@
 <?php
-
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from match_taxa_2DH.php] */
-
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_MatchTaxa2DH
@@ -26,7 +24,6 @@ class DwCA_MatchTaxa2DH
         
         // tar -czf Brazilian_Flora_Eli_neo4j_1.tar.gz Brazilian_Flora_Eli_neo4j_1/ -> generate .tar.gz
 
-
         $this->g_kingdom_domain = array('domain', 'kingdom');
         $this->g_phylum = array('phylum', 'division', 'subphylum');
         $this->g_class = array('class', 'subclass', 'superclass', 'infraclass', 'subterclass');
@@ -36,8 +33,6 @@ class DwCA_MatchTaxa2DH
         $this->g_genus = array('genus', 'subgenus', 'genus group');
         $this->g_section = array('section', 'subsection', 'series');
         $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
-    
-
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -188,13 +183,7 @@ class DwCA_MatchTaxa2DH
                     $this->debug['No canonical match'][$canonicalName] = '';
                 }
                 // /* start writing:
-                $o = new \eol_schema\Taxon();
-                $uris = array_keys($rec); // print_r($uris); //exit;
-                foreach ($uris as $uri) {
-                    $field = self::get_field_from_uri($uri);
-                    $o->$field = $rec[$uri];
-                }
-                $this->archive_builder->write_object_to_file($o);
+                self::write_2archive($rec);
                 // */
             }
             elseif($what == 'generate_synonyms_info') {
@@ -617,7 +606,16 @@ class DwCA_MatchTaxa2DH
         if (@$parts[1]) $field = $parts[1];
         return $field;
     }
-
+    private function write_2archive($rec)
+    {
+        $o = new \eol_schema\Taxon();
+        $uris = array_keys($rec);
+        foreach ($uris as $uri) {
+            $field = self::get_field_from_uri($uri);
+            $o->$field = $rec[$uri];
+        }
+        $this->archive_builder->write_object_to_file($o);
+    }
     /* copied template
     private function get_taxonID_EOLid_list()
     {

@@ -34,6 +34,7 @@ class DwCA_MatchTaxa2DH
         $this->g_section = array('section', 'subsection', 'series');
         $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
+        $this->download_options = array('resource_id' => 'neo4j', 'expire_seconds' => 60*60*24, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1);
         $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
     }
@@ -169,7 +170,7 @@ class DwCA_MatchTaxa2DH
             $rec['http://eol.org/schema/EOLid'] = '';
 
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-            $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+            $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
             $taxonomicStatus = @$rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
             $acceptedNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'];
             $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
@@ -217,7 +218,7 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_routine_using_HC($rec, $reks)
     {
-        
+        $ancestry_index = self::retrieve_ancestry_index();
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
@@ -622,6 +623,31 @@ class DwCA_MatchTaxa2DH
             $o->$field = $rec[$uri];
         }
         $this->archive_builder->write_object_to_file($o);
+    }
+    private function retrieve_ancestry_index()
+    {
+        if($local = Functions::save_remote_file_to_local($this->ancestry_index_file, $this->download_options)) {
+            $i = 0;
+            foreach(new FileIterator($local) as $line_number => $line) {
+                $line = explode("\t", $line); $i++; 
+                if($i == 1) $fields = $line;
+                else {
+                    if(!$line[0]) break;
+                    $rec = array(); $k = 0;
+                    foreach($fields as $fld) {
+                        $rec[$fld] = $line[$k]; $k++;
+                    }
+                    // print_r($rec); exit;
+                    /*Array(
+                        [Index] => Actinopterygii
+                        [higherClassification] => Animalia|Chordata|Actinopterygii|*
+                    )*/
+                    $ret[$rec['higherClassification']][] = $rec['Index'];
+                }
+            }
+        }      
+        unlink($local); // exit("\n".count($ret)."\n");
+        return $ret;
     }
     /* copied template
     private function get_taxonID_EOLid_list()

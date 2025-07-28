@@ -30,6 +30,7 @@ class DwCA_RunGNParser
         For taxa with these ranks, we want to use the full canonicals.
         */
         $this->ranks_to_use_full_canonicals = array("subgenera", "subgenus", "sections", "section", "subsections", "subsection");
+        $this->debug = array();
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -103,7 +104,7 @@ class DwCA_RunGNParser
                 // /* assign canonical name
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
                 $scientificName = $rec['http://rs.tdwg.org/dwc/terms/scientificName'];
-                $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+                $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
                 
                 // $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::lookup_canonical_name($scientificName, 'simple'); //working but too many calls
                 

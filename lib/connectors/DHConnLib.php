@@ -297,7 +297,7 @@ class DHConnLib
             if ($purpose == 'initialize') $this->mint2EOLid[$rec['taxonID']] = $EOLid;
             elseif ($purpose == 'buildup ancestry and children') {
                 if ($parent_id = @$this->mint2EOLid[$rec['parentNameUsageID']]) {
-                    $this->taxID_info[$EOLid] = array("pID" => $parent_id, 'r' => $rec['taxonRank'], 'n' => $rec['scientificName']); //used for ancesty and more
+                    $this->taxID_info[$EOLid] = array("pID" => $parent_id, 'r' => @$rec['taxonRank'], 'n' => $rec['scientificName']); //used for ancesty and more
                     $this->descendants[$parent_id][$EOLid] = ''; //used for descendants (children)
                 } else { // nothing to be done here. nature of the beast. Since not all EOL-000000000000 has an EOLid.
                     // print_r($rec);

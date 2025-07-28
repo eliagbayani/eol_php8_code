@@ -2,21 +2,18 @@
 namespace php_active_record;
 /* This is a library that handles active DH.
 First client is: DATA-1818: aggregate map data from descendants, and cap "size" of taxa that get maps
+
+These ff. workspaces work together:
+- DHConnLib_8.code-workspace
+- GNParserAPI_8.code-workspace
+- DwCA_MatchTaxa2DH.code-workspace
+- generate_higherClassification_8.code-workspace
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/DHConnLib');
 // ini_set('memory_limit','6096M');
 // $GLOBALS['ENV_DEBUG'] = true;
 $timestart = time_elapsed();
-
-/*
-$a[0] = array('a' => 'aa','b','c');
-$a[1] = array('d','e');
-$b[3] = array('f','g' => 'gg','h');
-$c = array_merge($a, $b);
-print_r($c);
-exit("\n-end test-\n");
-*/
 
 //############################################################ start main
 $resource_id = "1";

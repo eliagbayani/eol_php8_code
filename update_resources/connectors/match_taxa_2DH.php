@@ -8,6 +8,11 @@ php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "Brazilian
 php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "globi_assoc"}'
 php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "WoRMS2EoL"}'
 
+These ff. workspaces work together:
+- DHConnLib_8.code-workspace
+- GNParserAPI_8.code-workspace
+- DwCA_MatchTaxa2DH.code-workspace
+- generate_higherClassification_8.code-workspace
 ====================================================================
 */
 

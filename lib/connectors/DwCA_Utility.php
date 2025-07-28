@@ -1055,11 +1055,6 @@ class DwCA_Utility
             $rec = array_map('trim', $rec);
             // print_r($rec); //exit("\ndebug...\n");
 
-// User Warning: Undefined property `bodyPart` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
-// User Warning: Undefined property `basisOfRecord` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
-// User Warning: Undefined property `physiologicalState` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /va
-
-
             if($purpose == 'return') $records[] = $rec;
             elseif($purpose == 'write') {
                 $uris = array_keys($rec);            
@@ -1131,9 +1126,11 @@ class DwCA_Utility
         $str = substr($str, 0, strlen($str)-1);
         // echo "\norig: [$str]";
         $arr = explode("|", $str);
+        $arr = array_map('trim', $arr);
         $arr = array_reverse($arr);
-        $str = implode("|", $arr);
-        // echo "\n new: [$str]\n";
+        $str = trim(implode("|", $arr));
+        if($str) $str .= "|";
+        // exit("\n new: [$str]\n");
         return $str;
     }
     private function can_compute_higherClassification($records)

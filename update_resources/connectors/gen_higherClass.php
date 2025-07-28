@@ -6,22 +6,21 @@ ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 set_time_limit(0);
 ini_set("memory_limit","9000M"); // worked for the dwh_taxa.txt (https://eol-jira.bibalex.org/browse/TRAM-575)
-
-// exit("\nThis is now obsolete, instead use gen_higherClass.php in /update_resources/connectors/ \n");
-
 /* Important settings
 Apache httpd.conf:
     Timeout 1200
-    
 php.ini:
     upload_max_filesize = 10M
     post_max_size = 10M
+
+This script is working but is manually run.
+This script needs you to enter the taxon file you want to process.
+And is found in a specific folder. Same file will be the output of the process.
 */
-// exit("\n".dirname(__FILE__)."\n".DOC_ROOT."\n");
+
 // /* normal operation
 $file = DOC_ROOT."applications/genHigherClass_jenkins/temp/taxon_protisten.txt";
 $file = DOC_ROOT."applications/genHigherClass_jenkins/temp/taxon.tab.tsv";
-
 require_library('connectors/DwCA_Utility_cmd');
 $func = new DwCA_Utility_cmd();
 echo "\ninput file to lib: [$file]\n";

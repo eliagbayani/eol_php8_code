@@ -364,7 +364,7 @@ class DwCA_MatchTaxa2DH
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
 
         // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
-        if($rek = self::get_rek_from_reks($reks, $DwCA_names_2search)) {
+        if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
             @$this->debug['matched ancestry']++;
             return $rek;
         }
@@ -382,7 +382,7 @@ class DwCA_MatchTaxa2DH
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
 
         // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
-        if($rek = self::get_rek_from_reks($reks, $DwCA_names_2search)) {
+        if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
             @$this->debug['matched higherClassification']++;
             return $rek;
         }
@@ -405,7 +405,7 @@ class DwCA_MatchTaxa2DH
 
         exit("\nShould not go here\n");
     }
-    private function get_rek_from_reks($reks, $DwCA_names_2search)
+    private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; too permissive. Not strict as Katja's.
     { //check any ancestry name from DwCA to every DH higherClassification
         $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
         if(!$DwCA_names_2search) return false;
@@ -642,7 +642,9 @@ class DwCA_MatchTaxa2DH
                         [Index] => Actinopterygii
                         [higherClassification] => Animalia|Chordata|Actinopterygii|*
                     )*/
-                    $ret[$rec['higherClassification']][] = $rec['Index'];
+                    if($rec['Index'] && $rec['higherClassification']) {
+                        $ret[$rec['higherClassification']][] = $rec['Index'];
+                    }
                 }
             }
         }      

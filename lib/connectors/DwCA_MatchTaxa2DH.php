@@ -364,7 +364,7 @@ class DwCA_MatchTaxa2DH
         // exit("\nhere 3\n");
 
         $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName'];
-        echo "\n[".$canonicalName."] in question\n";
+        // echo "\n[".$canonicalName."] in question\n";
 
         // OPTION 1: DwCA ancestry
         // step 1: get ancestry scinames to search from DwCA taxa

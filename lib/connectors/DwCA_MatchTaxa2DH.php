@@ -65,6 +65,8 @@ class DwCA_MatchTaxa2DH
         echo "\nmeta file uri: [$meta->file_uri]\n";
         ---------- */
 
+        $this->ancestry_index = self::retrieve_ancestry_index(); //new from Katja
+
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
@@ -110,17 +112,19 @@ class DwCA_MatchTaxa2DH
         $diff = $total - @$this->debug['Has canonical match'];
         echo "\nTotal 9 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
 
-        asort($this->debug['counts of reks at this point']);
-        echo "\n[# of rek in reks][total count]";
-        $sum = 0;
-        foreach($this->debug['counts of reks at this point'] as $totals => $count) {
-            echo "\n[$totals][$count]";
-            $sum += $count;
-        } 
-        // $diff = $sum - @$this->debug['matched just 1 record'] - @$this->debug['matched same rank and status accepted'] 
-        //              - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
-        $dif = $sum - @$this->debug['matched blank eolID'];
-        echo "\nSum: [$sum] -> should be equal to: [matched blank eolID] [$diff]\n";
+        if($counts_of_reks = @$this->debug['counts of reks at this point']) {
+            asort($counts_of_reks);
+            echo "\n[# of rek in reks][total count]";
+            $sum = 0;
+            foreach($counts_of_reks as $totals => $count) {
+                echo "\n[$totals][$count]";
+                $sum += $count;
+            } 
+            // $diff = $sum - @$this->debug['matched just 1 record'] - @$this->debug['matched same rank and status accepted'] 
+            //              - @$this->debug['matched same rank'] - @$this->debug['matched 1st rek'];
+            $dif = $sum - @$this->debug['matched blank eolID'];
+            echo "\nSum: [$sum] -> should be equal to: [matched blank eolID] [$diff]\n";
+        }
 
         if(@$this->debug['eli']) print_r($this->debug['eli']);
 
@@ -167,7 +171,6 @@ class DwCA_MatchTaxa2DH
             // /*
             $rec = self::not_recongized_fields($rec);
             // */
-            $rec['http://eol.org/schema/EOLid'] = '';
 
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
             $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
@@ -176,19 +179,22 @@ class DwCA_MatchTaxa2DH
             $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
 
             if ($what == 'match_canonical') {
-                if (!$canonicalName) continue;
+                if (!$canonicalName)                        {self::write_2archive($rec); continue;}
+                if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;}
+                
+                $rec['http://eol.org/schema/EOLid'] = '';
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
+
                     $rec = self::matching_routine_using_HC($rec, $reks);
                     if(@$rec['http://eol.org/schema/EOLid']) {}
                     else {
                         if ($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
                     }
+
                 } else {
                     $this->debug['No canonical match'][$canonicalName] = '';
                 }
-                // /* start writing:
                 self::write_2archive($rec);
-                // */
             }
             elseif($what == 'generate_synonyms_info') {
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
@@ -218,7 +224,6 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_routine_using_HC($rec, $reks)
     {
-        $ancestry_index = self::retrieve_ancestry_index();
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
@@ -354,14 +359,28 @@ class DwCA_MatchTaxa2DH
             [http://eol.org/schema/EOLid] => 
         )*/
 
+        exit("\nhere 3\n");
+
         // OPTION 1: DwCA ancestry
         // step 1: get ancestry scinames to search from DwCA taxa
         $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
         $DwCA_names_2search = array();
         foreach($ranks as $rank) {
-            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) $DwCA_names_2search[] = $val;       //all the ancestry scinames
+            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) {       //all the ancestry scinames
+                $DwCA_names_2search[] = $val;
+                $hc_from_ancestry[] = $val;
+            }
         }
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
+
+        if($hc_from_ancestry) { exit("\nhere 1\n");
+            $hc_from_ancestry = implode("|", $hc_from_ancestry)."|";
+            if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry)) {
+                @$this->debug['matched ancestry on AncestryIndex']++;
+                return $rek;
+            }
+        }
+
 
         // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
@@ -378,6 +397,13 @@ class DwCA_MatchTaxa2DH
                     $DwCA_names_2search = explode($separator, $hc);
                 }
             }
+            // /*
+            exit("\nhere 2\n");
+            if($rek = self::get_rek_from_reks_byKatja($reks, $hc)) {
+                @$this->debug['matched HC on AncestryIndex']++;
+                return $rek;
+            }
+            // */
         }
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
 
@@ -418,6 +444,10 @@ class DwCA_MatchTaxa2DH
                 }
             }
         }
+    }
+    private function get_rek_from_reks_byKatja($reks, $hc)
+    {
+        print_r($hc); exit("\nelix 1\n");
     }
     private function are_these_synonyms_in_DwCA($taxonID, $DH_canonical, $type)
     {

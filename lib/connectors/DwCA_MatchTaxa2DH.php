@@ -92,6 +92,7 @@ class DwCA_MatchTaxa2DH
         echo "\ntaxonomicStatus breakdown: "; print_r(@$this->debug['taxonomicStatus']);
         echo "total acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
 
+        echo "\na. matched ancestry on AncestryIndex: [" . number_format(@$this->debug['matched ancestry on AncestryIndex'] ?? 0) . "]";
         echo "\n1. matched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
         echo "\n2. matched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
         echo "\n3. matched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
@@ -101,7 +102,7 @@ class DwCA_MatchTaxa2DH
         echo "\n7. accepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
         echo "\n8. matched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
-        $total = @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
+        $total = @$this->debug['matched ancestry on AncestryIndex'] + @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
                 + @$this->debug['matched just 1 record']
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
@@ -185,11 +186,11 @@ class DwCA_MatchTaxa2DH
                 $rec['http://eol.org/schema/EOLid'] = '';
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
 
-                    $rec = self::matching_routine_using_HC($rec, $reks);
-                    if(@$rec['http://eol.org/schema/EOLid']) {}
-                    else {
+                    // $rec = self::matching_routine_using_HC($rec, $reks);
+                    // if(@$rec['http://eol.org/schema/EOLid']) {}
+                    // else {
                         if ($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
-                    }
+                    // }
 
                 } else {
                     $this->debug['No canonical match'][$canonicalName] = '';
@@ -224,9 +225,11 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_routine_using_HC($rec, $reks)
     {
+        return false;
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
+        $this->rec = $rec;
         // print_r($rec); //DwCA in question
         // print_r($reks); exit("\nfrom DH\n"); //DH
         /*Array(
@@ -260,7 +263,7 @@ class DwCA_MatchTaxa2DH
         // 2. It's also ok to match taxa with different ranks if both taxa have a subspecific rank, e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
         if (in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         
-        
+        // print_r($rec);
         $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
         // $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
         // $taxonomicStatus = $rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
@@ -358,29 +361,32 @@ class DwCA_MatchTaxa2DH
             [http://rs.gbif.org/terms/1.0/canonicalName] => Agaricales
             [http://eol.org/schema/EOLid] => 
         )*/
+        // exit("\nhere 3\n");
 
-        exit("\nhere 3\n");
+        $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName'];
+        echo "\n[".$canonicalName."] in question\n";
 
         // OPTION 1: DwCA ancestry
         // step 1: get ancestry scinames to search from DwCA taxa
         $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
         $DwCA_names_2search = array();
+        $hc_from_ancestry = array();
         foreach($ranks as $rank) {
             if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) {       //all the ancestry scinames
                 $DwCA_names_2search[] = $val;
-                $hc_from_ancestry[] = $val;
+                if($val != $canonicalName) $hc_from_ancestry[] = $val;
             }
         }
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
 
-        if($hc_from_ancestry) { exit("\nhere 1\n");
+        if($hc_from_ancestry) { //exit("\nhere 1\n");
             $hc_from_ancestry = implode("|", $hc_from_ancestry)."|";
-            if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry)) {
+            // print_r($rec); echo "\ndito eli\n";
+            if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry, 'ancestry')) {
                 @$this->debug['matched ancestry on AncestryIndex']++;
                 return $rek;
             }
         }
-
 
         // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
@@ -398,8 +404,8 @@ class DwCA_MatchTaxa2DH
                 }
             }
             // /*
-            exit("\nhere 2\n");
-            if($rek = self::get_rek_from_reks_byKatja($reks, $hc)) {
+            // exit("\nhere 2\n");
+            if($rek = self::get_rek_from_reks_byKatja($reks, $hc, 'higherClassification')) {
                 @$this->debug['matched HC on AncestryIndex']++;
                 return $rek;
             }
@@ -445,9 +451,89 @@ class DwCA_MatchTaxa2DH
             }
         }
     }
-    private function get_rek_from_reks_byKatja($reks, $hc)
+    private function get_rek_from_reks_byKatja($reks, $hc, $type)
+    {   /*Array(
+            [EOL-000002278575] => Array(
+                    [r] => order
+                    [e] => 5676
+                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Nucletmycea|Fungi|Dikarya|Basidiomycota|Agaricomycetes
+                    [c] => Agaricales
+                    [t] => EOL-000002278575
+                    [s] => a
+                )
+        )
+        Fungi|Basidiomycota| -> from DwCA [ancestry]        
+        */
+        if($rek = self::more_strict_matching_byEli($reks, $hc)) {
+            // print_r($rek); exit("\nFound here.\n");
+            return $rek;
+        }
+        elseif($rek = self::matching_byKatja($reks, $hc)) { //Katja's main higherClassification guidelines
+            exit("\nditox 1\n");
+            return $rek;
+        }
+        // print_r($reks); print_r($hc); exit("\n[$type]\nhere 10\n");
+    }
+    private function matching_byKatja($reks, $hc) //https://github.com/EOL/ContentImport/issues/33#issuecomment-3115034620
     {
-        print_r($hc); exit("\nelix 1\n");
+        $dwca_hc = explode("|", $hc);
+        $dwca_hc = self::normalize_array($dwca_hc);
+        $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
+        foreach($reks as $id => $rek) {
+            $DH_hc_string = self::prepare_hc_string($rek['h']); //makes "Fungi|Ascomycota" to "Fungi|Ascomycota|"
+            // echo("\n[$dwca_hc_string][$DH_hc_string]\ninvestigate first\n");
+            $found1 = self::search_hc_string_from_AncestryIndex($dwca_hc_string);
+            $found2 = self::search_hc_string_from_AncestryIndex($DH_hc_string);
+            if(($found1 == $found2) && $found1 && $found2) { exit("\nfinally may nahuli\n");
+                return $rek;
+            }
+        }
+    }
+    private function search_hc_string_from_AncestryIndex($str)
+    {
+
+    }
+    private function prepare_hc_string($pipe_delimited) //makes "Fungi|Ascomycota" to "Fungi|Ascomycota|"
+    {
+        $arr = explode("|", $pipe_delimited);
+        $arr = self::normalize_array($arr);
+        return implode("|", $arr)."|";
+    }
+    private function more_strict_matching_byEli($reks, $hc)
+    { //loop to all reks and check each higherClassification. If ALL scinames from DwCA hc is found in DH hc then that rek is returned.
+        $hc = explode("|", $hc);
+        $hc = self::normalize_array($hc); //print_r($hc); exit("\ncha 01\n");
+        /*Array(
+            [0] => Fungi
+            [1] => Basidiomycota
+        )*/
+        $hits = array();
+        foreach($reks as $id => $rek) {
+            if($DH_hc = $rek['h']) {
+                $DH_hc = explode("|", $DH_hc);
+                $DH_hc = self::normalize_array($DH_hc); // print_r($DH_hc); exit("\ncha 02\n");
+                /*Array(
+                    [0] => Life
+                    [1] => Cellular Organisms
+                    [2] => Eukaryota
+                    [3] => Opisthokonta
+                    [4] => Nucletmycea
+                    [5] => Fungi
+                    [6] => Dikarya
+                    [7] => Basidiomycota
+                    [8] => Agaricomycetes
+                )*/
+                foreach($hc as $sciname) {
+                    if(!in_array($sciname, $DH_hc)) return false;
+                }
+                if(($this->rec['http://rs.tdwg.org/dwc/terms/taxonRank'] == $rek['r']) && $rek['r']) $hits[] = $rek;
+            }
+        }
+        if(count($hits) > 1) {
+            echo "\n--------------------------------- investigate here...\n";
+            print_r($this->rec); print_r($hc); print_r($reks); print_r($hits); exit("\n\nSo this is possible hmmm.\n");
+        }
+        if($hits) return $hits[0];
     }
     private function are_these_synonyms_in_DwCA($taxonID, $DH_canonical, $type)
     {
@@ -543,7 +629,7 @@ class DwCA_MatchTaxa2DH
             [http://rs.gbif.org/terms/1.0/canonicalName] => Ctenophora
             [http://eol.org/schema/EOLid] => 
         )*/
-        $taxonRank = $rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+        $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
 
         // if reks is just 1 record then no choice use it
         if(count($reks) == 1) {
@@ -680,6 +766,13 @@ class DwCA_MatchTaxa2DH
         }      
         unlink($local); // exit("\n".count($ret)."\n");
         return $ret;
+    }
+    private function normalize_array($arr)
+    {
+        $arr = array_filter($arr); //remove null arrays
+        $arr = array_unique($arr); //make unique
+        $arr = array_values($arr); //reindex key
+        return $arr;
     }
     /* copied template
     private function get_taxonID_EOLid_list()

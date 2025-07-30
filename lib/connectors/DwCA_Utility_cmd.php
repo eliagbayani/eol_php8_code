@@ -279,6 +279,8 @@ class DwCA_Utility_cmd
             case "family":       return "aF"; break;
             case "genus":        return "aG"; break;
             case "modified":     return "m"; break;
+            // newly added: after 30Jul2025
+            case "referenceID":   return "rID"; break;
             default: exit("\nUndefined field [$field] to shorten. Must be initialized before proceeding!\n");
         }
     }
@@ -311,6 +313,8 @@ class DwCA_Utility_cmd
             case "aF":  return "family"; break;
             case "aG":  return "genus"; break;
             case "m":   return "modified"; break;
+            // newly added: after 30Jul2025
+            case "rID":   return "referenceID"; break;
             default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n");
         }
     }

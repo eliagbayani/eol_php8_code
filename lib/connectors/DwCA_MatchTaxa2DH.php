@@ -66,6 +66,12 @@ class DwCA_MatchTaxa2DH
         ---------- */
 
         $this->ancestry_index = self::retrieve_ancestry_index(); //new from Katja
+        foreach($this->ancestry_index as $hc => $indexes) { //checking integrity
+            if(count($indexes) > 1) { //maybe it doesn't go here at all.
+                print_r($indexes);
+                exit("\n[$hc] Non-unique higherClassification in AncestryIndex.\n");
+            }
+        }
 
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
@@ -93,6 +99,12 @@ class DwCA_MatchTaxa2DH
         echo "total acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
 
         echo "\na. matched ancestry on AncestryIndex: [" . number_format(@$this->debug['matched ancestry on AncestryIndex'] ?? 0) . "]";
+        echo "\nb. matched HC on AncestryIndex: [" . number_format(@$this->debug['matched HC on AncestryIndex'] ?? 0) . "]";
+
+        echo "\n ----- AncestryIndex Katja: [" . number_format(@$this->debug['AncestryIndex Katja'] ?? 0) . "]";
+        echo "\n ----- AncestryIndex Eli: [" . number_format(@$this->debug['AncestryIndex Eli'] ?? 0) . "]";
+
+
         echo "\n1. matched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
         echo "\n2. matched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
         echo "\n3. matched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
@@ -102,7 +114,8 @@ class DwCA_MatchTaxa2DH
         echo "\n7. accepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
         echo "\n8. matched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
-        $total = @$this->debug['matched ancestry on AncestryIndex'] + @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
+        $total = @$this->debug['matched ancestry on AncestryIndex'] + @$this->debug['matched HC on AncestryIndex']
+                + @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
                 + @$this->debug['matched just 1 record']
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
@@ -464,12 +477,14 @@ class DwCA_MatchTaxa2DH
         )
         Fungi|Basidiomycota| -> from DwCA [ancestry]        
         */
-        if($rek = self::more_strict_matching_byEli($reks, $hc)) {
+        if($rek = self::matching_byKatja($reks, $hc)) { //Katja's main higherClassification guidelines
             // print_r($rek); exit("\nFound here.\n");
+            @$this->debug['AncestryIndex Katja']++;
             return $rek;
         }
-        elseif($rek = self::matching_byKatja($reks, $hc)) { //Katja's main higherClassification guidelines
-            exit("\nditox 1\n");
+        elseif($rek = self::more_strict_matching_byEli($reks, $hc)) {
+            // print_r($rek); exit("\nFound here.\n");
+            @$this->debug['AncestryIndex Eli']++;
             return $rek;
         }
         // print_r($reks); print_r($hc); exit("\n[$type]\nhere 10\n");
@@ -484,14 +499,35 @@ class DwCA_MatchTaxa2DH
             // echo("\n[$dwca_hc_string][$DH_hc_string]\ninvestigate first\n");
             $found1 = self::search_hc_string_from_AncestryIndex($dwca_hc_string);
             $found2 = self::search_hc_string_from_AncestryIndex($DH_hc_string);
-            if(($found1 == $found2) && $found1 && $found2) { exit("\nfinally may nahuli\n");
+            if(($found1 == $found2) && $found1 && $found2) {
+                echo "\n------------may na huli-----------\n";
+                echo "\nneedle: [$hc]\n"; print_r($rek);
+                echo "\n[$found1][$dwca_hc_string]\n";
+                echo "\n[$found2][$DH_hc_string]\n";
+                // exit("\nfinally may nahuli\n");
+                echo "\n------------END may na huli-----------\n";
                 return $rek;
             }
         }
     }
-    private function search_hc_string_from_AncestryIndex($str)
+    private function search_hc_string_from_AncestryIndex($hc_str)
     {
-
+        // echo "\nneedle: [$hc_str]\n"; 
+        foreach($this->ancestry_index as $hc => $indexes) {            
+            if(self::is_ending_in_asterisk($hc)) {
+                if(stripos($hc_str, substr($hc, -1)) !== false) return $indexes[0]; //string is found
+            }
+            else {
+                if($hc == $hc_str) return $indexes[0];
+            }
+        }
+        return false;
+    }
+    private function is_ending_in_asterisk($str)
+    {
+        $last_char = substr($str, -1); // exit("\n[$last_char]\n[$str]\n");
+        if($last_char == "*") return true;
+        return false;
     }
     private function prepare_hc_string($pipe_delimited) //makes "Fungi|Ascomycota" to "Fungi|Ascomycota|"
     {

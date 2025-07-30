@@ -155,7 +155,7 @@ class DwCA_Utility_cmd
     //ends here 
     
     //=====================================================================================================================
-    //start functions for the interface tool "genHigherClass"
+    //start functions for the interface tool "genHigherClass" ---> used in form submit tool
     //=====================================================================================================================
     function tool_generate_higherClassification($file)
     {

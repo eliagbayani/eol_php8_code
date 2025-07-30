@@ -280,7 +280,11 @@ class DwCA_Utility_cmd
             case "genus":        return "aG"; break;
             case "modified":     return "m"; break;
             // newly added: after 30Jul2025
-            case "referenceID":   return "rID"; break;
+            case "referenceID":           return "rID"; break;
+            case "originalNameUsageID":   return "oID"; break;
+            case "nomenclaturalStatus":   return "nS"; break;
+            // TreatmentBank_final
+            case "references":  return "ref"; break;
             default: exit("\nUndefined field [$field] to shorten. Must be initialized before proceeding!\n");
         }
     }
@@ -314,7 +318,11 @@ class DwCA_Utility_cmd
             case "aG":  return "genus"; break;
             case "m":   return "modified"; break;
             // newly added: after 30Jul2025
-            case "rID":   return "referenceID"; break;
+            case "rID": return "referenceID"; break;
+            case "oID": return "originalNameUsageID"; break;
+            case "nS":  return "nomenclaturalStatus"; break;
+            // TreatmentBank_final
+            case "ref":  return "references"; break;            
             default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n");
         }
     }

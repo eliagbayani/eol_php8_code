@@ -630,7 +630,7 @@ class DwCA_Utility
     
     function convert_archive_by_adding_higherClassification() //called by dwca_utility.php
     {
-        // require_library('connectors/RemoveHTMLTagsAPI');
+        require_library('connectors/RemoveHTMLTagsAPI');
         require_library('connectors/DwCA_Utility_cmd');
         echo "\ndoing this: convert_archive_by_adding_higherClassification()\n";
         $info = self::start();
@@ -1067,6 +1067,7 @@ class DwCA_Utility
                 $k++;
             }
             $rec = array_map('trim', $rec);
+            
             // print_r($rec); exit("\ndebug...\n");
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/taxonID] => 90698
@@ -1405,7 +1406,6 @@ class DwCA_Utility
         }
         return false;
     }
-    
     //=====================================================================================================================
     //end OTHER functions
     //=====================================================================================================================

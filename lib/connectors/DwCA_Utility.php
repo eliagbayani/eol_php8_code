@@ -627,7 +627,7 @@ class DwCA_Utility
         // if($this->debug) print_r($this->debug); //to limit lines of output
     }
     
-    function convert_archive_by_adding_higherClassification()
+    function convert_archive_by_adding_higherClassification() //called by dwca_utility.php
     {
         require_library('connectors/RemoveHTMLTagsAPI');
         echo "\ndoing this: convert_archive_by_adding_higherClassification()\n";
@@ -647,6 +647,7 @@ class DwCA_Utility
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
         $meta = $tables[$tbl][0];
         $records = self::carry_over($meta, 'taxon', array('purpose' => 'return')); //purpose is either 'return' or 'write' 
+        echo "\nrecords total: ".count($records)."\n";
         // */
 
         if(self::can_compute_higherClassification($records)) {
@@ -1152,7 +1153,7 @@ class DwCA_Utility
     //start functions for the interface tool "genHigherClass"
     //=====================================================================================================================
     function tool_generate_higherClassification($file)
-    {
+    {   exit("\nThis maybe obsolete\n");
         if($records = self::create_records_array($file)) {
             self::build_id_name_array($records);                                //echo "\n1 of 3\n";
             $records = self::generate_higherClassification_field($records);     //echo "\n2 of 3\n";

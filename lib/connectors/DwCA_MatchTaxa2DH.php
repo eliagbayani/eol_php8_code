@@ -570,12 +570,12 @@ class DwCA_MatchTaxa2DH
             if($type == 1) $choices = array('genus', 'subgenus');
         elseif($type == 2) $choices = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
-        /* reference only
+        /* for reference only
         $this->DH->DH_synonyms[$taxonID] = $acceptedNameUsageID;
         $this->DH->DH_acceptedNames[$acceptedNameUsageID] = $taxonID;
         */
         if($accepted_id = @$this->DH->DH_synonyms[$taxonID]) {
-            /* reference only            
+            /* for reference only            
             $this->DH->DH[$taxonID] = array("c" => $canonicalName);
             */
             if($rec = $this->DH->DH[$accepted_id]) {
@@ -594,7 +594,6 @@ class DwCA_MatchTaxa2DH
                     if($syn_rec['c'] == $DH_canonical && in_array($syn_rec['r'], $choices)) return true;
                 }
             }
-
         }
         return false;
     }

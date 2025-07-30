@@ -216,7 +216,7 @@ class DwCA_Utility_cmd
                     if(in_array($field, $fieldz)) $rec[$short_field] = @$cols[$k];
                     $k++;
                 }
-                if($rec) {
+                if($rec) { //print_r($rec); //exit("\nUsed by the tool. Using form submit.\n");
                     //originally from build_id_name_array()
                     $taxon_id = (string) $rec["tID"];
                     $this->id_name[$taxon_id]['sN'] = (string) $rec["sN"];

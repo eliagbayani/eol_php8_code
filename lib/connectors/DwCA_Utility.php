@@ -1039,7 +1039,7 @@ class DwCA_Utility
     private function carry_over($meta, $class, $options = array('purpose' => 'write'))
     {   //print_r($meta);
         $purpose = $options['purpose'];
-        echo "\ncarry_over...[$class][$meta->file_uri]\n"; $i = 0;
+        echo "\ncarry_over...[DwCA_Utility.php][$class][$meta->file_uri]\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
             if($meta->ignore_header_lines && $i == 1) continue;
@@ -1151,11 +1151,9 @@ class DwCA_Utility
     //=====================================================================================================================
     //start functions for the interface tool "genHigherClass"
     //=====================================================================================================================
-    
     function tool_generate_higherClassification($file)
     {
-        if($records = self::create_records_array($file))
-        {
+        if($records = self::create_records_array($file)) {
             self::build_id_name_array($records);                                //echo "\n1 of 3\n";
             $records = self::generate_higherClassification_field($records);     //echo "\n2 of 3\n";
             $fields = self::normalize_fields($records[0]);
@@ -1171,40 +1169,32 @@ class DwCA_Utility
         }
         else return false;
     }
-    
     function create_records_array($file)
     {
         $records = array();
         $i = 0;
-        foreach(new FileIterator($file) as $line => $row)
-        {
+        foreach(new FileIterator($file) as $line => $row) {
             $i++;
-            if($i == 1)
-            {
+            if($i == 1) {
                 $fields = explode("\t", $row);
                 $k = 0;
-                foreach($fields as $field) //replace it with the long field URI
-                {
+                foreach($fields as $field) { //replace it with the long field URI
                     if($field == "taxonID") $fields[$k] = "http://rs.tdwg.org/dwc/terms/taxonID";
                     elseif($field == "scientificName") $fields[$k] = "http://rs.tdwg.org/dwc/terms/scientificName";
                     elseif($field == "parentNameUsageID") $fields[$k] = "http://rs.tdwg.org/dwc/terms/parentNameUsageID";
                     $k++;
                 }
             }
-            else
-            {
+            else {
                 $rec = array();
                 $cols = explode("\t", $row);
                 $k = 0;
-                foreach($fields as $field)
-                {
+                foreach($fields as $field) {
                     $rec[$field] = @$cols[$k];
                     $k++;
                 }
-                if($rec)
-                {
-                    if($i == 3) //can check this early if we can compute for higherClassification
-                    {
+                if($rec) {
+                    if($i == 3) { //can check this early if we can compute for higherClassification
                         if(!self::can_compute_higherClassification($records)) return false;
                     }
                     $records[] = $rec;
@@ -1213,13 +1203,11 @@ class DwCA_Utility
         }
         return $records;
     }
-    
     private function normalize_fields($arr)
     {
         $fields = array_keys($arr);
         $k = 0;
-        foreach($fields as $field)
-        {
+        foreach($fields as $field) {
             $fields[$k] = pathinfo($field, PATHINFO_FILENAME);
             $k++;
         }

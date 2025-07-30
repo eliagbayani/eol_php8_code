@@ -144,7 +144,7 @@ class DwCA_Utility_cmd
         return $str;
     }
 
-    private function can_compute_higherClassification($single_rec)
+    public static function can_compute_higherClassification($single_rec)
     {
         if(!isset($single_rec["tID"])) return false;
         if(!isset($single_rec["sN"])) return false;
@@ -249,8 +249,9 @@ class DwCA_Utility_cmd
         }
         return $fields;
     }
-    private function shorten_field($field)
+    public static function shorten_field($field)
     {
+        $field = pathinfo($field, PATHINFO_FILENAME);
         switch ($field) {
             case "taxonID":             return "tID"; break;
             case "parentNameUsageID":   return "pID"; break;
@@ -278,10 +279,10 @@ class DwCA_Utility_cmd
             case "family":       return "aF"; break;
             case "genus":        return "aG"; break;
             case "modified":     return "m"; break;
-            default: exit("\nUndefined field [$field]. Must be initialized before proceeding!\n");
+            default: exit("\nUndefined field [$field] to shorten. Must be initialized before proceeding!\n");
         }
     }
-    private function lengthen_field($field)
+    public static function lengthen_field($field)
     {
         switch ($field) {
             case "tID": return "taxonID"; break;
@@ -310,7 +311,7 @@ class DwCA_Utility_cmd
             case "aF":  return "family"; break;
             case "aG":  return "genus"; break;
             case "m":   return "modified"; break;
-            default:
+            default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n");
         }
     }
     //=====================================================================================================================

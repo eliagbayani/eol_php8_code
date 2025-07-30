@@ -52,6 +52,7 @@ class DwCA_Utility
         }
         
         $this->public_domains = array("http://creativecommons.org/licenses/publicdomain/", "https://creativecommons.org/share-your-work/public-domain/", "https://creativecommons.org/share-your-work/public-domain/cc0/");
+        $this->shorten_fields = false; //used in computing higherClassification
     }
 
     private function start($dwca_file = false, $download_options = array("timeout" => 172800, 'expire_seconds' => 60*60*24*1)) //probably default expires in 1 day 60*60*24*1. Not false.
@@ -629,7 +630,8 @@ class DwCA_Utility
     
     function convert_archive_by_adding_higherClassification() //called by dwca_utility.php
     {
-        require_library('connectors/RemoveHTMLTagsAPI');
+        // require_library('connectors/RemoveHTMLTagsAPI');
+        require_library('connectors/DwCA_Utility_cmd');
         echo "\ndoing this: convert_archive_by_adding_higherClassification()\n";
         $info = self::start();
         $temp_dir = $info['temp_dir'];
@@ -646,11 +648,11 @@ class DwCA_Utility
         $extensions = array_keys($tables); //print_r($extensions); exit;
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
         $meta = $tables[$tbl][0];
-        $records = self::carry_over($meta, 'taxon', array('purpose' => 'return')); //purpose is either 'return' or 'write' 
+        $records = self::carry_over($meta, 'taxon', array('purpose' => 'return_shorten')); //purpose is either 'return' or 'write' or 'return_shorten' for shortened field names.
         echo "\nrecords total: ".count($records)."\n";
         // */
 
-        if(self::can_compute_higherClassification($records)) {
+        if(DwCA_Utility_cmd::can_compute_higherClassification($records[0])) {
             echo "\n1 of 3\n";  self::build_id_name_array($records);
             echo "\n2 of 3\n";  $records = self::generate_higherClassification_field($records);
             /*
@@ -664,7 +666,11 @@ class DwCA_Utility
             foreach($index as $row_type) {
                 $meta = $tables[$row_type][0];
                 if(@$this->extensions[$row_type]) { //process only defined row_types
-                    if($this->extensions[$row_type] == "taxon") self::process_fields($records, $this->extensions[$row_type]);
+                    if($this->extensions[$row_type] == "taxon") { //ditox
+                        $this->shorten_fields = true;
+                        self::process_fields($records, $this->extensions[$row_type]);
+                        $this->shorten_fields = false;
+                    }
                     else {
                         /* old version
                         self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);
@@ -851,6 +857,8 @@ class DwCA_Utility
                 $parts = explode("#", $field);
                 if($parts[0]) $field = $parts[0];
                 if(@$parts[1]) $field = $parts[1];
+
+                if($this->shorten_fields) $field = DwCA_Utility_cmd::lengthen_field($field);
 
                 //#################### start some validations ---------------------------- put other validations in this block, as needed ################################################
                 if($class == "reference") {
@@ -1040,7 +1048,7 @@ class DwCA_Utility
     private function carry_over($meta, $class, $options = array('purpose' => 'write'))
     {   //print_r($meta);
         $purpose = $options['purpose'];
-        echo "\ncarry_over...[DwCA_Utility.php][$class][$meta->file_uri]\n"; $i = 0;
+        echo "\ncarry_over...[DwCA_Utility.php][$class][$meta->file_uri]\n"; $i = 0; $records = array();
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
             if($meta->ignore_header_lines && $i == 1) continue;
@@ -1048,15 +1056,37 @@ class DwCA_Utility
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
             $tmp = explode("\t", $row);
             $rec = array(); $k = 0;
+
+            // print_r($meta->fields); exit;
             foreach($meta->fields as $field) {
+                if($purpose == 'return_shorten') {
+                    $field['term'] = DwCA_Utility_cmd::shorten_field($field['term']);
+                }
                 if(!$field['term']) continue;
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
             $rec = array_map('trim', $rec);
-            // print_r($rec); //exit("\ndebug...\n");
+            // print_r($rec); exit("\ndebug...\n");
+            /*Array(
+                [http://rs.tdwg.org/dwc/terms/taxonID] => 90698
+                [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 318
+                [http://rs.tdwg.org/dwc/terms/scientificName] => Achromatium
+                [http://eol.org/schema/EOLid] => 90698
+                [http://rs.tdwg.org/ac/terms/furtherInformationURL] => 
+                [http://rs.tdwg.org/dwc/terms/higherClassification] => 
+            )
+            If shorten:
+            Array(
+                [tID] => 90698
+                [pID] => 318
+                [sN] => Achromatium
+                [Ei] => 90698
+                [fIU] => 
+                [hC] => 
+            )*/
 
-            if($purpose == 'return') $records[] = $rec;
+            if(in_array($purpose, array('return', 'return_shorten'))) $records[] = $rec;
             elseif($purpose == 'write') {
                 $uris = array_keys($rec);            
                 if    ($class == "vernacular")                  $o = new \eol_schema\VernacularName();
@@ -1087,16 +1117,19 @@ class DwCA_Utility
             }
             // if($i >= 10) break; //debug only
         }
-        if($purpose == 'return') return $records;
+        if(in_array($purpose, array('return', 'return_shorten'))) return $records;
     }
     function build_id_name_array($records)
     {
         foreach($records as $rec) {
-            // [http://rs.tdwg.org/dwc/terms/taxonID] => 6de0dc42e8f4fc2610cb4287a4505764
-            // [http://rs.tdwg.org/dwc/terms/scientificName] => Accipiter cirrocephalus rosselianus Mayr, 1940
-            $taxon_id = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonID"];
-            $this->id_name[$taxon_id]['scientificName'] = (string) $rec["http://rs.tdwg.org/dwc/terms/scientificName"];
-            $this->id_name[$taxon_id]['parentNameUsageID'] = (string) $rec["http://rs.tdwg.org/dwc/terms/parentNameUsageID"];
+            //obsolete
+            // $taxon_id = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonID"];
+            // $this->id_name[$taxon_id]['scientificName'] = (string) $rec["http://rs.tdwg.org/dwc/terms/scientificName"];
+            // $this->id_name[$taxon_id]['parentNameUsageID'] = (string) $rec["http://rs.tdwg.org/dwc/terms/parentNameUsageID"];
+
+            $taxon_id = (string) $rec["tID"];
+            $this->id_name[$taxon_id]['sN'] = (string) $rec["sN"];
+            $this->id_name[$taxon_id]['pID'] = (string) $rec["pID"];
         }
     }
     private function generate_higherClassification_field($records)
@@ -1106,22 +1139,27 @@ class DwCA_Utility
             [http://rs.tdwg.org/dwc/terms/scientificName] => Passerina leclancherii leclancherii Lafresnaye, 1840
             [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 49fc924007e33cc43908fed677d5499a
         */
-        $i = 0;
-        foreach($records as $rec) {
+        $i = -1; $total = count($records);
+        foreach($records as $rec) { $i++;
+            if(($i % 10000) == 0) echo "\n".number_format($i). " of $total";
             $higherClassification = self::get_higherClassification($rec);
-            $records[$i]["higherClassification"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
-            $i++;
+            $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
+            // print_r($records[$i]); exit("\nelix 1\n");
         }
         return $records;
     }
     private function get_higherClassification($rek)
     {
-        $parent_id = $rek['http://rs.tdwg.org/dwc/terms/parentNameUsageID'];
+        $unique = array();
+        $parent_id = $rek['pID']; //$rek['http://rs.tdwg.org/dwc/terms/parentNameUsageID'];
         $str = "";
         while($parent_id) {
             if($parent_id) {
-                $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['scientificName']))."|";
-                $parent_id = @$this->id_name[$parent_id]['parentNameUsageID'];
+                // $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['scientificName']))."|";
+                $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['sN']))."|";
+                $parent_id = @$this->id_name[$parent_id]['pID']; //@$this->id_name[$parent_id]['parentNameUsageID'];
+                if(isset($unique[$parent_id])) break;
+                else $unique[$parent_id] = '';
             }
         }
         $str = substr($str, 0, strlen($str)-1);

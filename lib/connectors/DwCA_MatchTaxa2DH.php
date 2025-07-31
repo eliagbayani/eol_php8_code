@@ -196,17 +196,15 @@ class DwCA_MatchTaxa2DH
             if ($what == 'match_canonical') {
                 if (!$canonicalName)                        {self::write_2archive($rec); continue;}
                 if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;}
-                
                 $rec['http://eol.org/schema/EOLid'] = '';
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
-
                     // $rec = self::matching_routine_using_HC($rec, $reks);
                     // if(@$rec['http://eol.org/schema/EOLid']) {}
                     // else {
                         if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
                     // }
-
-                } else $this->debug['No canonical match'][$canonicalName] = '';
+                } 
+                else $this->debug['No canonical match'][$canonicalName] = '';
                 self::write_2archive($rec); continue;
             }
             elseif($what == 'generate_synonyms_info') {

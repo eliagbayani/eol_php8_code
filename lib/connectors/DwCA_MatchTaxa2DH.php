@@ -184,6 +184,7 @@ class DwCA_MatchTaxa2DH
             )*/
             // /*
             $rec = self::not_recongized_fields($rec);
+            $this->rec = $rec;
             // */
 
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
@@ -202,13 +203,11 @@ class DwCA_MatchTaxa2DH
                     // $rec = self::matching_routine_using_HC($rec, $reks);
                     // if(@$rec['http://eol.org/schema/EOLid']) {}
                     // else {
-                        if ($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                        if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
                     // }
 
-                } else {
-                    $this->debug['No canonical match'][$canonicalName] = '';
-                }
-                self::write_2archive($rec);
+                } else $this->debug['No canonical match'][$canonicalName] = '';
+                self::write_2archive($rec); continue;
             }
             elseif($what == 'generate_synonyms_info') {
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
@@ -242,7 +241,6 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
-        $this->rec = $rec;
         // print_r($rec); //DwCA in question
         // print_r($reks); exit("\nfrom DH\n"); //DH
         /*Array(

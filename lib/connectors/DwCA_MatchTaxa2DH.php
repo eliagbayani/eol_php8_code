@@ -506,11 +506,13 @@ class DwCA_MatchTaxa2DH
                 $index_hc2 = $ret[1]; //stats only
             }
             if(($found1 == $found2) && $found1 && $found2) {
+                /* good debug works OK
                 echo "\n------------may na huli-----------\n";
                 print_r($rek); echo " - rek ";
                 echo "\nDwCA: [$found1] - [$dwca_hc_string] - [$index_hc1]\n";
-                echo "\n. DH: [$found2] - [$DH_hc_string] - [$index_hc2]\n";
+                echo "\n  DH: [$found2] - [$DH_hc_string] - [$index_hc2]\n";
                 echo "\n------------END may na huli-----------\n"; //exit;
+                */
                 return $rek;
             }
         }

@@ -515,7 +515,7 @@ class DwCA_MatchTaxa2DH
         // echo "\nneedle: [$hc_str]\n"; 
         foreach($this->ancestry_index as $hc => $indexes) {            
             if(self::is_ending_in_asterisk($hc)) {
-                if(stripos($hc_str, substr($hc, -1)) !== false) return $indexes[0]; //string is found
+                if(stripos($hc_str, self::remove_last_char($hc)) !== false) return $indexes[0]; //string is found
             }
             else {
                 if($hc == $hc_str) return $indexes[0];
@@ -525,7 +525,7 @@ class DwCA_MatchTaxa2DH
     }
     private function is_ending_in_asterisk($str)
     {
-        $last_char = substr($str, -1); // exit("\n[$last_char]\n[$str]\n");
+        $last_char = substr($str, -1);
         if($last_char == "*") return true;
         return false;
     }
@@ -806,6 +806,10 @@ class DwCA_MatchTaxa2DH
         $arr = array_unique($arr); //make unique
         $arr = array_values($arr); //reindex key
         return $arr;
+    }
+    private function remove_last_char($str)
+    {
+        return substr($str, 0, -1);
     }
     /* copied template
     private function get_taxonID_EOLid_list()

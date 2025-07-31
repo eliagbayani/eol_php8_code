@@ -105,8 +105,8 @@ class DwCA_MatchTaxa2DH
         echo "\n ----- AncestryIndex Eli: [" . number_format(@$this->debug['AncestryIndex Eli'] ?? 0) . "]";
 
 
-        echo "\n1. matched ancestry: [" . number_format(@$this->debug['matched ancestry'] ?? 0) . "]";
-        echo "\n2. matched higherClassification: [" . number_format(@$this->debug['matched higherClassification'] ?? 0) . "]";
+        echo "\n1. matched ancestry: [" . number_format(@$this->debug['matched ancestry*'] ?? 0) . "]";
+        echo "\n2. matched higherClassification: [" . number_format(@$this->debug['matched higherClassification*'] ?? 0) . "]";
         echo "\n3. matched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
         echo "\n4. matched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
         echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
@@ -115,7 +115,7 @@ class DwCA_MatchTaxa2DH
         echo "\n8. matched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
         $total = @$this->debug['matched ancestry on AncestryIndex'] + @$this->debug['matched HC on AncestryIndex']
-                + @$this->debug['matched ancestry'] + @$this->debug['matched higherClassification'] 
+                + @$this->debug['matched ancestry*'] + @$this->debug['matched higherClassification*'] 
                 + @$this->debug['matched just 1 record']
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
@@ -403,7 +403,8 @@ class DwCA_MatchTaxa2DH
 
         // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
-            @$this->debug['matched ancestry']++;
+            // print_r($DwCA_names_2search); echo " - matched ancestry Eli\n";
+            @$this->debug['matched ancestry*']++;
             return $rek;
         }
 
@@ -428,7 +429,7 @@ class DwCA_MatchTaxa2DH
 
         // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
-            @$this->debug['matched higherClassification']++;
+            @$this->debug['matched higherClassification*']++;
             return $rek;
         }
         
@@ -446,7 +447,7 @@ class DwCA_MatchTaxa2DH
         exit("\nShould not go here\n");
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.
-    { //all ancestry|higherClassification names from DwCA should exist in the DH higherClassification
+    { //all ancestry|higherClassification names from DwCA should exist in the DH higherClassification AND rank matches
         $hits = array();
         $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
         if(!$DwCA_names_2search) return false;
@@ -457,7 +458,9 @@ class DwCA_MatchTaxa2DH
                 // echo "\nxxxxxxxxxxxx\n"; print_r($DH_higherClassification); exit("\nstop muna\n");
                 $matches = 0;
                 foreach($DwCA_names_2search as $name) {
-                    if(in_array($name, $DH_higherClassification)) $matches++;
+                    if(in_array($name, $DH_higherClassification)) {
+                        if(($this->rec['http://rs.tdwg.org/dwc/terms/taxonRank'] == $rek['r']) && $rek['r']) $matches++;
+                    }
                 }
                 if($matches == count($DwCA_names_2search)) $hits[] = $rek; //all ancestry names exist in DH higherClassification
             }

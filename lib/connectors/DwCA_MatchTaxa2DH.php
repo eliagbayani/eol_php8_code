@@ -401,7 +401,7 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-        // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
+        // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
             @$this->debug['matched ancestry']++;
             return $rek;
@@ -426,14 +426,14 @@ class DwCA_MatchTaxa2DH
         }
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
 
-        // step 2: search in DH reks which higherClassification matches with any of the DwCA_names_2search
+        // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
             @$this->debug['matched higherClassification']++;
             return $rek;
         }
         
         // where OPTION2 1 and 2 fail...
-        // OPTION 3: choose rek from multiple reks
+        // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
             return $rek;
         }
@@ -445,19 +445,28 @@ class DwCA_MatchTaxa2DH
         }
         exit("\nShould not go here\n");
     }
-    private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; too permissive. Not strict as Katja's.
-    { //check any ancestry name from DwCA to every DH higherClassification
+    private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.
+    { //all ancestry|higherClassification names from DwCA should exist in the DH higherClassification
+        $hits = array();
         $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
         if(!$DwCA_names_2search) return false;
         foreach($reks as $DH_taxonIDx => $rek) {
             if($temp = @$rek['h']) {
                 $DH_higherClassification = explode("|", $temp);
                 $DH_higherClassification = array_map('trim', $DH_higherClassification);
+                // echo "\nxxxxxxxxxxxx\n"; print_r($DH_higherClassification); exit("\nstop muna\n");
+                $matches = 0;
                 foreach($DwCA_names_2search as $name) {
-                    if(in_array($name, $DH_higherClassification)) return $rek;
+                    if(in_array($name, $DH_higherClassification)) $matches++;
                 }
+                if($matches == count($DwCA_names_2search)) $hits[] = $rek; //all ancestry names exist in DH higherClassification
             }
         }
+        if(count($hits) == 1) return $hits[0];
+        elseif(count($hits) > 1) {
+            print_r($hits); exit("\nSo multiple hits is possible. Need to accomodate this scenario.\n");
+        }
+        else return false;
     }
     private function get_rek_from_reks_byKatja($reks, $hc, $type)
     {   /*Array(
@@ -640,9 +649,7 @@ class DwCA_MatchTaxa2DH
         return false;
     }
     private function choose_rek_from_multiple_reks($reks, $rec)
-    {
-        /*
-        [EOL-000000090932] => Array(
+    {   /* [EOL-000000090932] => Array(
                     [r] => genus
                     [e] => 47081311
                     [h] => Life|Cellular Organisms|Eukaryota|SAR (Stramenopiles, Alveolates, Rhizaria)|Stramenopiles|Ochrophyta|Bacillariophyta|Fragilariophyceae|Fragilariophycidae|Licmophorales|Ulnariaceae

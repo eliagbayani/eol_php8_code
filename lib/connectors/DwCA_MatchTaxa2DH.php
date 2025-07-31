@@ -431,10 +431,6 @@ class DwCA_MatchTaxa2DH
             @$this->debug['matched higherClassification']++;
             return $rek;
         }
-
-        // // /* for stats only
-        // @$this->debug['counts of reks at this point'][count($reks)]++;
-        // // */
         
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks
@@ -445,9 +441,8 @@ class DwCA_MatchTaxa2DH
         if(count($reks) > 2) {
             print_r($reks);
             print_r($rec);
-            exit("\nInvestigate muna\n");
+            exit("\nInvestigate first.\n");
         }
-
         exit("\nShould not go here\n");
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; too permissive. Not strict as Katja's.
@@ -475,8 +470,7 @@ class DwCA_MatchTaxa2DH
                     [s] => a
                 )
         )
-        Fungi|Basidiomycota| -> from DwCA [ancestry]        
-        */
+        Fungi|Basidiomycota| -> from DwCA [ancestry] */
         if($rek = self::matching_byKatja($reks, $hc)) { //Katja's main higherClassification guidelines
             // print_r($rek); exit("\nFound here.\n");
             @$this->debug['AncestryIndex Katja']++;

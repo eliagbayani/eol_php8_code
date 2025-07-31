@@ -672,10 +672,10 @@ class DwCA_Utility
                         $this->shorten_fields = false;
                     }
                     else {
-                        /* old version
-                        self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);
-                        */
+                        /* old version: self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]); */
+                        // /* un-comment in real operation
                         self::carry_over($meta, $this->extensions[$row_type]);
+                        // */
                     }
                 }
                 else exit("\nUndefined row_type: [$row_type]\n");

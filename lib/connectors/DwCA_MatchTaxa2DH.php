@@ -105,8 +105,8 @@ class DwCA_MatchTaxa2DH
         echo "\n ----- AncestryIndex Eli: [" . number_format(@$this->debug['AncestryIndex Eli'] ?? 0) . "]";
 
 
-        echo "\n1. matched ancestry: [" . number_format(@$this->debug['matched ancestry*'] ?? 0) . "]";
-        echo "\n2. matched higherClassification: [" . number_format(@$this->debug['matched higherClassification*'] ?? 0) . "]";
+        echo "\n1. matched ancestry*: [" . number_format(@$this->debug['matched ancestry*'] ?? 0) . "]";
+        echo "\n2. matched higherClassification*: [" . number_format(@$this->debug['matched higherClassification*'] ?? 0) . "]";
         echo "\n3. matched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
         echo "\n4. matched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
         echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";

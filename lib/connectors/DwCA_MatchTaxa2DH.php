@@ -496,16 +496,22 @@ class DwCA_MatchTaxa2DH
         $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
         foreach($reks as $id => $rek) {
             $DH_hc_string = self::prepare_hc_string($rek['h']); //makes "Fungi|Ascomycota" to "Fungi|Ascomycota|"
-            // echo("\n[$dwca_hc_string][$DH_hc_string]\ninvestigate first\n");
-            $found1 = self::search_hc_string_from_AncestryIndex($dwca_hc_string);
-            $found2 = self::search_hc_string_from_AncestryIndex($DH_hc_string);
+
+            $found1 = false; $found2 = false; $index_hc1 = ''; $index_hc2 = '';
+            if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
+                $found1 = $ret[0];
+                $index_hc1 = $ret[1]; //stats only
+            }
+            if($ret = self::search_hc_string_from_AncestryIndex($DH_hc_string)) {
+                $found2 = $ret[0];
+                $index_hc2 = $ret[1]; //stats only
+            }
             if(($found1 == $found2) && $found1 && $found2) {
                 echo "\n------------may na huli-----------\n";
-                echo "\nneedle: [$hc]\n"; print_r($rek);
-                echo "\n[$found1][$dwca_hc_string]\n";
-                echo "\n[$found2][$DH_hc_string]\n";
-                // exit("\nfinally may nahuli\n");
-                echo "\n------------END may na huli-----------\n";
+                print_r($rek); echo " - rek ";
+                echo "\nDwCA: [$found1][$dwca_hc_string][$index_hc1]\n";
+                echo "\n. DH: [$found2][$DH_hc_string][$index_hc2]\n";
+                echo "\n------------END may na huli-----------\n"; //exit;
                 return $rek;
             }
         }
@@ -513,12 +519,22 @@ class DwCA_MatchTaxa2DH
     private function search_hc_string_from_AncestryIndex($hc_str)
     {
         // echo "\nneedle: [$hc_str]\n"; 
-        foreach($this->ancestry_index as $hc => $indexes) {            
-            if(self::is_ending_in_asterisk($hc)) {
-                if(stripos($hc_str, self::remove_last_char($hc)) !== false) return $indexes[0]; //string is found
+        foreach($this->ancestry_index as $index_hc => $indexes) {            
+            if(self::is_ending_in_asterisk($index_hc)) {
+                // /* strict implementation
+                $len = strlen($index_hc) - 1;
+                if(substr($hc_str,0,$len) == self::remove_last_char($index_hc)) {
+                    // echo "\n-----------------start\n";
+                    // echo "\n".substr($hc_str,0,$len);
+                    // echo "\n".self::remove_last_char($index_hc);
+                    // echo "\n-----------------end\n";
+                    // echo("\nactually goes here\n"); 
+                    return array($indexes[0], $index_hc);
+                }
+                // */
             }
             else {
-                if($hc == $hc_str) return $indexes[0];
+                if($index_hc == $hc_str) return array($indexes[0], $index_hc);
             }
         }
         return false;

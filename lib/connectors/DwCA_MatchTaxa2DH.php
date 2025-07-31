@@ -482,8 +482,7 @@ class DwCA_MatchTaxa2DH
             @$this->debug['AncestryIndex Katja']++;
             return $rek;
         }
-        elseif($rek = self::more_strict_matching_byEli($reks, $hc)) {
-            // print_r($rek); exit("\nFound here.\n");
+        elseif($rek = self::more_strict_matching_byEli($reks, $hc)) { //Eli's initiative, permissive.
             @$this->debug['AncestryIndex Eli']++;
             return $rek;
         }
@@ -509,8 +508,8 @@ class DwCA_MatchTaxa2DH
             if(($found1 == $found2) && $found1 && $found2) {
                 echo "\n------------may na huli-----------\n";
                 print_r($rek); echo " - rek ";
-                echo "\nDwCA: [$found1][$dwca_hc_string][$index_hc1]\n";
-                echo "\n. DH: [$found2][$DH_hc_string][$index_hc2]\n";
+                echo "\nDwCA: [$found1] - [$dwca_hc_string] - [$index_hc1]\n";
+                echo "\n. DH: [$found2] - [$DH_hc_string] - [$index_hc2]\n";
                 echo "\n------------END may na huli-----------\n"; //exit;
                 return $rek;
             }
@@ -626,18 +625,15 @@ class DwCA_MatchTaxa2DH
         */
         if($accepted_id = @$this->DH->DH_synonyms[$taxonID]) {
             /* for reference only            
-            $this->DH->DH[$taxonID] = array("c" => $canonicalName);
-            */
+            $this->DH->DH[$taxonID] = array("c" => $canonicalName); */
             if($rec = $this->DH->DH[$accepted_id]) {
                 if($rec['c'] == $DH_canonical && in_array($rec['r'], $choices)) return true;
             }
         }
-
-// SYN-000000207590	EOL-000000462763		Cassia pendula E.Agbayani	Senna pendula	E.Agbayani	variety	not accepted	COL-15	COL:a423c550b4fd0b0feefa2477637935ff	http://www.catalogueoflife.org/annual-checklist/2019/details/species/id/19f057e06cfc7dbd915c90b6bb2e5f70/synonym/a423c550b4fd0b0feefa2477637935ff			
+        // SYN-000000207590	EOL-000000462763		Cassia pendula E.Agbayani	Senna pendula	E.Agbayani	variety	not accepted	COL-15	COL:a423c550b4fd0b0feefa2477637935ff	http://www.catalogueoflife.org/annual-checklist/2019/details/species/id/19f057e06cfc7dbd915c90b6bb2e5f70/synonym/a423c550b4fd0b0feefa2477637935ff			
         if($SYN_ids = @$this->DH->DH_acceptedNames[$taxonID]) { //exit("\nhere 01\n");
             /* reference only            
-            $this->DH->DH[$taxonID] = array("c" => $canonicalName);
-            */
+            $this->DH->DH[$taxonID] = array("c" => $canonicalName); */
             foreach(array_keys($SYN_ids) as $SYN_id) {
                 if($syn_rec = $this->DH->DH[$SYN_id]) {
                     // print_r($syn_rec); print_r($choices); exit("\n[$DH_canonical]\nhere 02\n");

@@ -37,6 +37,7 @@ For diagnostics:
     kill -9 xxx
         -> to kill a running PID
 ====================================================================
+tar -czf protisten_v2_Eli.tar.gz protisten_v2_Eli/
 */
 
 include_once(dirname(__FILE__) . "/../../config/environment.php");

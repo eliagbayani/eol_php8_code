@@ -13,7 +13,8 @@ These ff. workspaces work together:
 - GNParserAPI_8.code-workspace
 - DwCA_MatchTaxa2DH.code-workspace
 - generate_higherClassification_8.code-workspace
-====================================================================
+==================================================================== generate tar.gz
+tar -czf protisten_v2_Eli.tar.gz protisten_v2_Eli/
 */
 
 include_once(dirname(__FILE__) . "/../../config/environment.php");

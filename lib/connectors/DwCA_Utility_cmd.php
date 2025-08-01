@@ -283,6 +283,7 @@ class DwCA_Utility_cmd
             case "referenceID":           return "rID"; break;
             case "originalNameUsageID":   return "oID"; break;
             case "nomenclaturalStatus":   return "nS"; break;
+            case "vernacularName":        return "vN"; break;
             // TreatmentBank_final
             case "references":  return "ref"; break;
             default: exit("\nUndefined field [$field] to shorten. Must be initialized before proceeding!\n");
@@ -321,6 +322,7 @@ class DwCA_Utility_cmd
             case "rID": return "referenceID"; break;
             case "oID": return "originalNameUsageID"; break;
             case "nS":  return "nomenclaturalStatus"; break;
+            case "vN":  return "vernacularName"; break;
             // TreatmentBank_final
             case "ref":  return "references"; break;            
             default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n");

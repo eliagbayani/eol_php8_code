@@ -628,10 +628,13 @@ class DwCA_Utility
         // if($this->debug) print_r($this->debug); //to limit lines of output
     }
     
-    function convert_archive_by_adding_higherClassification() //called by dwca_utility.php
+    function convert_archive_by_adding_higherClassification($task) //called by dwca_utility.php
     {
+        $this->source_of_hc = $task; //exit("\ntask = [$task]\n");
         require_library('connectors/RemoveHTMLTagsAPI');
         require_library('connectors/DwCA_Utility_cmd');
+        require_library('connectors/DwCA_MatchTaxa2DH');
+
         echo "\ndoing this: convert_archive_by_adding_higherClassification()\n";
         $info = self::start();
         $temp_dir = $info['temp_dir'];
@@ -652,9 +655,9 @@ class DwCA_Utility
         echo "\nrecords total: ".count($records)."\n";
         // */
 
-        if(DwCA_Utility_cmd::can_compute_higherClassification($records[0])) {
+        if(DwCA_Utility_cmd::can_compute_higherClassification($records[0], $task)) {
             echo "\n1 of 3\n";  self::build_id_name_array($records);
-            echo "\n2 of 3\n";  $records = self::generate_higherClassification_field($records);
+            echo "\n2 of 3\n";  $records = self::generate_higherClassification_field($records, $this->source_of_hc); //2nd param is either "gen_hC_using_pID" or "gen_hC_using_ancestry"
             /*
             Array
                 [0] => http://rs.tdwg.org/dwc/terms/taxon
@@ -673,22 +676,24 @@ class DwCA_Utility
                     }
                     else {
                         /* old version: self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]); */
-                        // /* un-comment in real operation
+                        /* un-comment in real operation
                         self::carry_over($meta, $this->extensions[$row_type]);
-                        // */
+                        */
                     }
                 }
                 else exit("\nUndefined row_type: [$row_type]\n");
             }
             $this->archive_builder->finalize(TRUE);
         }
-        else echo "\nCannot compute higherClassification.\n";
-        // remove temp dir
-        recursive_rmdir($temp_dir);
-        echo ("\n temporary directory removed: " . $temp_dir);
+        else {
+            recursive_rmdir($temp_dir); echo ("\n temporary directory removed: " . $temp_dir);
+            echo "\nERROR: Cannot compute higherClassification [$task].\n";
+            return false;
+        }
+        recursive_rmdir($temp_dir); echo ("\n temporary directory removed: " . $temp_dir);
         if($this->debug) print_r($this->debug);
+        return true;
     }
-
     function convert_archive_normalized() //this same as above two, but this removes taxa that don't have objects. Only taxa with objects will remain in taxon.tab.
     {
         require_library('connectors/RemoveHTMLTagsAPI');
@@ -1133,21 +1138,41 @@ class DwCA_Utility
             $this->id_name[$taxon_id]['pID'] = (string) $rec["pID"];
         }
     }
-    private function generate_higherClassification_field($records)
+    private function generate_higherClassification_field($records, $source_of_hc = "gen_hC_using_pID")
     {   /* e.g. $rec
         Array
             [http://rs.tdwg.org/dwc/terms/taxonID] => 5e2712849c197671c260f53809836273
             [http://rs.tdwg.org/dwc/terms/scientificName] => Passerina leclancherii leclancherii Lafresnaye, 1840
             [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 49fc924007e33cc43908fed677d5499a
         */
-        $i = -1; $total = count($records);
-        foreach($records as $rec) { $i++;
-            if(($i % 10000) == 0) echo "\n".number_format($i). " of $total";
-            $higherClassification = self::get_higherClassification($rec);
-            $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
-            // print_r($records[$i]); exit("\nelix 1\n");
+        if($source_of_hc == 'gen_hC_using_pID') {
+            $i = -1; $total = count($records);
+            foreach($records as $rec) { $i++;
+                if(($i % 10000) == 0) echo "\n".number_format($i). " of $total";
+                $higherClassification = self::get_higherClassification($rec);
+                $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
+                // print_r($records[$i]); exit("\nelix 1\n");
+            }
+        }
+        elseif($source_of_hc == 'gen_hC_using_ancestry') {
+            $i = -1; $total = count($records);
+            foreach($records as $rec) { $i++;
+                if(($i % 10000) == 0) echo "\n".number_format($i). " of $total";
+                $higherClassification = self::get_higherClassification_ancestry($rec);
+                $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
+            }
         }
         return $records;
+    }
+    private function get_higherClassification_ancestry($rec)
+    {
+        print_r($rec); exit("\n111 222\n");
+        $hc_from_ancestry = DwCA_MatchTaxa2DH::get_names_from_ancestry($rec, '$canonicalName'); //2nd param is excluded name
+        if($hc_from_ancestry) { //exit("\nhere 1\n");
+            $hc_from_ancestry = implode("|", $hc_from_ancestry)."|"; 
+                print_r($rec); exit("\n[.$hc_from_ancestry.]\n");
+            return $hc_from_ancestry;
+        }
     }
     private function get_higherClassification($rek)
     {

@@ -802,7 +802,7 @@ class DwCA_MatchTaxa2DH
         unlink($local); // exit("\n".count($ret)."\n");
         return $ret;
     }
-    private function get_names_from_ancestry($rec, $exclude_name = false)
+    public static function get_names_from_ancestry($rec, $exclude_name = false)
     {
         $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName'];
         $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');

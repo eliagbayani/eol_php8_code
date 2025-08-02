@@ -144,16 +144,25 @@ class DwCA_Utility_cmd
         return $str;
     }
 
-    public static function can_compute_higherClassification($single_rec)
+    public static function can_compute_higherClassification($single_rec, $what = 'gen_hC_using_pID')
     {
-        if(!isset($single_rec["tID"])) return false;
-        if(!isset($single_rec["sN"])) return false;
-        if(!isset($single_rec["pID"])) return false;
-        return true;
+        if($what == 'gen_hC_using_pID') {
+            if(!isset($single_rec["tID"])) return false;
+            if(!isset($single_rec["sN"])) return false;
+            if(!isset($single_rec["pID"])) return false;
+            return true;
+        }
+        elseif($what == 'gen_hC_using_ancestry') {
+            $ancestry = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
+            $hits = 0;
+            foreach($ancestry as $field) {
+                $field = self::shorten_field($field);
+                if(isset($single_rec[$field])) $hits++;
+            }
+            if($hits > 0) return true;
+        }
     }
-    
-    //ends here 
-    
+    //ends here     
     //=====================================================================================================================
     //start functions for the interface tool "genHigherClass" ---> used in form submit tool
     //=====================================================================================================================

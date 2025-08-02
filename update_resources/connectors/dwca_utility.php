@@ -49,9 +49,14 @@ echo "\n[$resource_id] [$dwca_file] [".$task."]\n";
 
 // /* //main operation
 $func = new DwCA_Utility($resource_id, $dwca_file);
-if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) $func->convert_archive_by_adding_higherClassification($task);
-else $func->convert_archive(); //this is same as above; just doesn't generate higherClassification
-Functions::finalize_dwca_resource($resource_id, false, true);
+if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) {
+    $ret = $func->convert_archive_by_adding_higherClassification($task);
+    if($ret) Functions::finalize_dwca_resource($resource_id, false, true);
+}
+else {
+    $func->convert_archive(); //this is same as above; just doesn't generate higherClassification
+    Functions::finalize_dwca_resource($resource_id, false, true);
+}
 unset($func);
 // */
 

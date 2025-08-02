@@ -630,7 +630,7 @@ class DwCA_Utility
     
     function convert_archive_by_adding_higherClassification($task) //called by dwca_utility.php
     {
-        $this->source_of_hc = $task; //exit("\ntask = [$task]\n");
+        $this->source_of_hc = $task; //exit("\ntask = [$task]\n"); //$task is either 'gen_hC_using_pID' or 'gen_hC_using_ancestry'
         require_library('connectors/RemoveHTMLTagsAPI');
         require_library('connectors/DwCA_Utility_cmd');
         require_library('connectors/DwCA_MatchTaxa2DH');
@@ -656,7 +656,8 @@ class DwCA_Utility
         // */
 
         if(DwCA_Utility_cmd::can_compute_higherClassification($records[0], $task)) {
-            echo "\n1 of 3\n";  self::build_id_name_array($records);
+            echo "\n1 of 3\n";
+            if($task == 'gen_hC_using_pID') self::build_id_name_array($records);
             echo "\n2 of 3\n";  $records = self::generate_higherClassification_field($records, $this->source_of_hc); //2nd param is either "gen_hC_using_pID" or "gen_hC_using_ancestry"
             /*
             Array
@@ -1166,11 +1167,17 @@ class DwCA_Utility
     }
     private function get_higherClassification_ancestry($rec)
     {
-        print_r($rec); exit("\n111 222\n");
-        $hc_from_ancestry = DwCA_MatchTaxa2DH::get_names_from_ancestry($rec, '$canonicalName'); //2nd param is excluded name
+        // print_r($rec); exit("\n111 222\n");
+        // /* canonicalName should be excluded in hC
+        if($canonicalName = @$rec['cN']) {} //canonicalName
+        elseif($canonicalName = Functions::canonical_form($rec['sN'])) {} //scientificName
+        else $canonicalName = false;
+        // */
+
+        $hc_from_ancestry = DwCA_MatchTaxa2DH::get_names_from_ancestry($rec, $canonicalName); //2nd param is excluded name
         if($hc_from_ancestry) { //exit("\nhere 1\n");
             $hc_from_ancestry = implode("|", $hc_from_ancestry)."|"; 
-                print_r($rec); exit("\n[.$hc_from_ancestry.]\n");
+            // print_r($rec); exit("\n[$hc_from_ancestry]\n333 444\n");
             return $hc_from_ancestry;
         }
     }

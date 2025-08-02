@@ -333,8 +333,9 @@ class DwCA_Utility_cmd
             case "nS":  return "nomenclaturalStatus"; break;
             case "vN":  return "vernacularName"; break;
             // TreatmentBank_final
-            case "ref":  return "references"; break;            
-            default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n");
+            case "ref":  return "references"; break;
+            default: return $field;
+            // default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n"); //don't use this
         }
     }
     //=====================================================================================================================

@@ -803,12 +803,16 @@ class DwCA_MatchTaxa2DH
         return $ret;
     }
     public static function get_names_from_ancestry($rec, $exclude_name = false)
-    {
-        $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName'];
-        $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
+    {   /* IMPORTANT: $rec fields here can be this type: $rec['http://rs.gbif.org/terms/1.0/scientificName OR this type $rec["sN"] */
+        $fields = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
         $names = array();
-        foreach($ranks as $rank) {
-            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) {       //all the ancestry scinames
+        foreach($fields as $field) {
+            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$field]) {}
+            else {
+                $field = DwCA_Utility_cmd::shorten_field($field);
+                $val = @$rec[$field];
+            }
+            if($val) { //all the ancestry scinames
                 if($exclude_name) {
                     if($val != $exclude_name) $names[$val] = '';
                 }

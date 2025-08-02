@@ -195,11 +195,11 @@ class DwCA_MatchTaxa2DH
                 if (!$canonicalName)                        {self::write_2archive($rec); continue;}
                 if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;}
                 $rec['http://eol.org/schema/EOLid'] = '';
-                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
+                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { //exit("\n111\n");
                     // $rec = self::matching_routine_using_HC($rec, $reks);
                     // if(@$rec['http://eol.org/schema/EOLid']) {}
                     // else {
-                        if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                        if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank); protisten no taxonRank
                     // }
                 } 
                 else $this->debug['No canonical match'][$canonicalName] = '';
@@ -237,8 +237,8 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
-        // print_r($rec); //DwCA in question
-        // print_r($reks); exit("\nfrom DH\n"); //DH
+        print_r($rec); //DwCA in question
+        print_r($reks); exit("\n[$taxonRank]\nfrom DH\n"); //DH
         /*Array(
             [EOL-000000020456] => Array(
                     [r] => genus
@@ -264,7 +264,7 @@ class DwCA_MatchTaxa2DH
         $DH_rank = $rek['r'];
         $DH_canonical = $rek['c'];
         $DH_taxonID = $rek['t'];
-        if ($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if (($taxonRank == $DH_rank) && $taxonRank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 1. In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
         if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 2. It's also ok to match taxa with different ranks if both taxa have a subspecific rank, e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
@@ -385,6 +385,7 @@ class DwCA_MatchTaxa2DH
             }
         }
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
+        $DwCA_names_2search_ancestry = $DwCA_names_2search;
 
         if($hc_from_ancestry) { //exit("\nhere 1\n");
             $hc_from_ancestry = implode("|", $hc_from_ancestry)."|";
@@ -395,12 +396,6 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-        // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
-        if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
-            // print_r($DwCA_names_2search); echo " - matched ancestry Eli\n";
-            @$this->debug['matched ancestry*']++;
-            return $rek;
-        }
 
         // OPTION 2: DwCA higherClassification
         $DwCA_names_2search = array();
@@ -420,12 +415,22 @@ class DwCA_MatchTaxa2DH
             // */
         }
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
+        $DwCA_names_2search_hC = $DwCA_names_2search;
+
+
 
         // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
-        if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search)) {
+        // /* working OK but too permissive; by Eli
+        if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search_hC)) {
+            @$this->debug['matched ancestry*']++;
+            return $rek;
+        }
+        // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
+        if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search_ancestry)) {
             @$this->debug['matched higherClassification*']++;
             return $rek;
         }
+        // */
         
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
@@ -441,7 +446,7 @@ class DwCA_MatchTaxa2DH
         exit("\nShould not go here\n");
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.
-    { //all ancestry|higherClassification names from DwCA should exist in the DH higherClassification AND rank matches
+    {   //all ancestry|higherClassification names from DwCA should exist in the DH higherClassification AND rank matches
         $hits = array();
         $DwCA_names_2search = array_map('trim', $DwCA_names_2search);
         if(!$DwCA_names_2search) return false;
@@ -465,7 +470,7 @@ class DwCA_MatchTaxa2DH
         }
         else return false;
     }
-    private function get_rek_from_reks_byKatja($reks, $hc, $type)
+    private function get_rek_from_reks_byKatja($reks, $hc, $type) //$type is atm is just for stats
     {   /*Array(
             [EOL-000002278575] => Array(
                     [r] => order
@@ -482,10 +487,11 @@ class DwCA_MatchTaxa2DH
             @$this->debug['AncestryIndex Katja']++;
             return $rek;
         }
+        /* working OK but too permissive; by Eli
         elseif($rek = self::more_strict_matching_byEli($reks, $hc)) { //Eli's initiative, permissive.
             @$this->debug['AncestryIndex Eli']++;
             return $rek;
-        }
+        } */
         // print_r($reks); print_r($hc); exit("\n[$type]\nhere 10\n");
     }
     private function matching_byKatja($reks, $hc) //https://github.com/EOL/ContentImport/issues/33#issuecomment-3115034620
@@ -518,8 +524,7 @@ class DwCA_MatchTaxa2DH
         }
     }
     private function search_hc_string_from_AncestryIndex($hc_str)
-    {
-        // echo "\nneedle: [$hc_str]\n"; 
+    {   // echo "\nneedle: [$hc_str]\n"; 
         foreach($this->ancestry_index as $index_hc => $indexes) {            
             if(self::is_ending_in_asterisk($index_hc)) {
                 // /* strict implementation
@@ -553,7 +558,7 @@ class DwCA_MatchTaxa2DH
         return implode("|", $arr)."|";
     }
     private function more_strict_matching_byEli($reks, $hc)
-    { //loop to all reks and check each higherClassification. If ALL scinames from DwCA hc is found in DH hc then that rek is returned.
+    {   //loop to all reks and check each higherClassification. If ALL scinames from DwCA hc is found in DH hc then that rek is returned.
         $hc = explode("|", $hc);
         $hc = self::normalize_array($hc); //print_r($hc); exit("\ncha 01\n");
         /*Array(

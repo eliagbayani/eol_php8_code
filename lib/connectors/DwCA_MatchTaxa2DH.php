@@ -396,7 +396,6 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-
         // OPTION 2: DwCA higherClassification
         $DwCA_names_2search = array();
         if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {

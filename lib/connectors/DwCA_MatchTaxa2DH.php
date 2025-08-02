@@ -381,11 +381,12 @@ class DwCA_MatchTaxa2DH
         $hc_from_ancestry = array();
         foreach($ranks as $rank) {
             if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) {       //all the ancestry scinames
-                $DwCA_names_2search[] = $val;
+                $DwCA_names_2search[$val] = '';
                 if($val != $canonicalName) $hc_from_ancestry[] = $val;
             }
         }
-        if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
+        if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[$val] = '';    //the canonical name
+        $DwCA_names_2search = array_keys($DwCA_names_2search);
         $DwCA_names_2search_ancestry = $DwCA_names_2search;
 
         if($hc_from_ancestry) { //exit("\nhere 1\n");
@@ -404,13 +405,10 @@ class DwCA_MatchTaxa2DH
                 if($separator == 'is_1_word') $DwCA_names_2search = array($hc);
                 else                          $DwCA_names_2search = explode($separator, $hc);
             }
-            // /*
-            // exit("\nhere 2\n");
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc, 'higherClassification')) {
                 @$this->debug['matched HC on AncestryIndex']++;
                 return $rek;
             }
-            // */
         }
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
         $DwCA_names_2search_hC = $DwCA_names_2search;

@@ -373,7 +373,8 @@ class DwCA_MatchTaxa2DH
         $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName'];
         // echo "\n[".$canonicalName."] in question\n";
 
-        // OPTION 1: DwCA ancestry
+
+        // OPTION 1: DwCA ancestry #########################################################################
         // step 1: get ancestry scinames to search from DwCA taxa
         $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
         $DwCA_names_2search = array();
@@ -396,14 +397,12 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-        // OPTION 2: DwCA higherClassification
+        // OPTION 2: DwCA higherClassification ##############################################################
         $DwCA_names_2search = array();
         if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
             if($separator = self::get_separator_in_higherClassification($hc)) {
                 if($separator == 'is_1_word') $DwCA_names_2search = array($hc);
-                else {
-                    $DwCA_names_2search = explode($separator, $hc);
-                }
+                else                          $DwCA_names_2search = explode($separator, $hc);
             }
             // /*
             // exit("\nhere 2\n");
@@ -498,6 +497,7 @@ class DwCA_MatchTaxa2DH
         $dwca_hc = explode("|", $hc);
         $dwca_hc = self::normalize_array($dwca_hc);
         $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
+        $hits = array();
         foreach($reks as $id => $rek) {
             $DH_hc_string = self::prepare_hc_string($rek['h']); //makes "Fungi|Ascomycota" to "Fungi|Ascomycota|"
 
@@ -518,8 +518,12 @@ class DwCA_MatchTaxa2DH
                 echo "\n  DH: [$found2] - [$DH_hc_string] - [$index_hc2]\n";
                 echo "\n------------END may na huli-----------\n"; //exit;
                 */
-                return $rek;
+                $hits[] = $rek;
             }
+        }
+        if(count($hits) == 1) return $hits[0];
+        if(count($hits) > 1) {
+            exit("\nSo this is possible here. Need to plan again.\n");
         }
     }
     private function search_hc_string_from_AncestryIndex($hc_str)

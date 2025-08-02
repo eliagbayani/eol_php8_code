@@ -1186,10 +1186,11 @@ class DwCA_Utility
         $unique = array();
         $parent_id = $rek['pID']; //$rek['http://rs.tdwg.org/dwc/terms/parentNameUsageID'];
         $str = "";
+        // print_r($rek); exit("\nxxx yyy\n");
         while($parent_id) {
-            if($parent_id) {
+            if($parent_id) { //echo "[$parent_id]";
                 // $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['scientificName']))."|";
-                $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['sN']))."|";
+                $str .= Functions::canonical_form(trim(@$this->id_name[$parent_id]['sN'] ?? ""))."|";
                 $parent_id = @$this->id_name[$parent_id]['pID']; //@$this->id_name[$parent_id]['parentNameUsageID'];
                 if(isset($unique[$parent_id])) break;
                 else $unique[$parent_id] = '';

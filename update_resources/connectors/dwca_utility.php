@@ -7,7 +7,9 @@ For non-EOL DwCA file, the result archive will only consist of extensions and fi
 
 $ php dwca_utility.php jenkins '{"resource_id": "704"}'                                 //with jenkins (in eol-archive). Just plain conversion to EOL DwCA
 $ php dwca_utility.php jenkins '{"resource_id": "704", "task": "gen_hC_using_pID"}'     //with jenkins (in eol-archive), and with higherClassification
-$ php dwca_utility.php _       '{"resource_id": "704", "task": "gen_hC_using_pID"}'         
+$ php dwca_utility.php _       '{"resource_id": "704", "task": "gen_hC_using_pID"}'      
+$ php dwca_utility.php _       '{"resource_id": "Brazilian_Flora_ancestry", "task": "gen_hC_using_ancestry"}'
+
 
 These ff. workspaces work together:
 - DHConnLib_8.code-workspace
@@ -26,6 +28,7 @@ $params                     = json_decode(@$argv[2], true); // print_r($param); 
 $params['jenkins_or_cron']  = @$argv[1]; //not needed here
 print_r($params);
 $resource_id = $params['resource_id'];
+$task = $params['task'];
 
 if($resource_id == 704) $dwca_file = "https://opendata.eol.org/dataset/7a17dc15-cb08-4e41-b901-6af5fd89bcd7/resource/3c56c4e4-3be7-463b-b958-22fbc560cf0d/download/pantheria.zip";
 else { // the rest goes here
@@ -36,14 +39,14 @@ else { // the rest goes here
     else exit("\nProgram will terminate. Invalid resource_id [$resource_id].\n\n");
     */
 }
-if($params['task'] == "gen_hC_using_pID") $resource_id .= "-with-higherClassification";
+if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) $resource_id .= "-with-hC";
 //===========================================================================================new - end
-echo "\n[$resource_id] [$dwca_file] [".$params['task']."]\n";
+echo "\n[$resource_id] [$dwca_file] [".$task."]\n";
 
 // /* //main operation
 $func = new DwCA_Utility($resource_id, $dwca_file);
-if($params['task'] == "gen_hC_using_pID") $func->convert_archive_by_adding_higherClassification();
-else                                      $func->convert_archive(); //this is same as above; just doesn't generate higherClassification
+if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) $func->convert_archive_by_adding_higherClassification($task);
+else $func->convert_archive(); //this is same as above; just doesn't generate higherClassification
 Functions::finalize_dwca_resource($resource_id, false, true);
 unset($func);
 // */

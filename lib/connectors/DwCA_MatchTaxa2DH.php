@@ -195,12 +195,13 @@ class DwCA_MatchTaxa2DH
                 if (!$canonicalName)                        {self::write_2archive($rec); continue;}
                 if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;}
                 $rec['http://eol.org/schema/EOLid'] = '';
-                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { //exit("\n111\n");
-                    // $rec = self::matching_routine_using_HC($rec, $reks);
-                    // if(@$rec['http://eol.org/schema/EOLid']) {}
-                    // else {
-                        if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank); protisten no taxonRank
-                    // }
+                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
+
+                    if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                    if(!@$rec['http://eol.org/schema/EOLid']) {
+                        $rec = self::matching_routine_using_HC($rec, $reks);
+                    }
+
                 } 
                 else $this->debug['No canonical match'][$canonicalName] = '';
                 self::write_2archive($rec); continue;
@@ -237,8 +238,8 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
-        print_r($rec); //DwCA in question
-        print_r($reks); exit("\n[$taxonRank]\nfrom DH\n"); //DH
+        // print_r($rec); //DwCA in question
+        // print_r($reks); exit("\n[$taxonRank]\nfrom DH\n"); //DH
         /*Array(
             [EOL-000000020456] => Array(
                     [r] => genus
@@ -264,7 +265,7 @@ class DwCA_MatchTaxa2DH
         $DH_rank = $rek['r'];
         $DH_canonical = $rek['c'];
         $DH_taxonID = $rek['t'];
-        if (($taxonRank == $DH_rank) && $taxonRank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
+        if ($taxonRank == $DH_rank) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 1. In general it's ok to match taxa with different ranks if the taxa have higher ranks like phyla, classes, and orders.
         if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['http://eol.org/schema/EOLid'] = $rek['e']; //eolID
         // 2. It's also ok to match taxa with different ranks if both taxa have a subspecific rank, e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
@@ -330,7 +331,6 @@ class DwCA_MatchTaxa2DH
         }
         // */
 
-        @$this->debug['Has canonical match']++;
         if ($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
         return $rec;
     }

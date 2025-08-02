@@ -334,7 +334,6 @@ class DwCA_MatchTaxa2DH
         if ($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
         return $rec;
     }
-
     private function which_rek_to_use($rec, $reks, $taxonRank)
     {   /*e.g. $reks Array(
             [EOL-000000020456] => Array(
@@ -376,26 +375,9 @@ class DwCA_MatchTaxa2DH
 
         // OPTION 1: DwCA ancestry #########################################################################
         // step 1: get ancestry scinames to search from DwCA taxa
-        $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
-        $DwCA_names_2search = array();
-        $hc_from_ancestry = array();
-        foreach($ranks as $rank) {
-            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) {       //all the ancestry scinames
-                $DwCA_names_2search[$val] = '';
-                if($val != $canonicalName) $hc_from_ancestry[] = $val;
-            }
-        }
-
-        $DwCA_names_2search = self::get_names_from_ancestry($rec);
-        $hc_from_ancestry = self::get_names_from_ancestry($rec, $exclude = "Eli");
-
-        if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[$val] = '';    //the canonical name
-        $DwCA_names_2search = array_keys($DwCA_names_2search);
-        $DwCA_names_2search_ancestry = $DwCA_names_2search;
-
+        $hc_from_ancestry = self::get_names_from_ancestry($rec, $canonicalName); //2nd param is excluded name
         if($hc_from_ancestry) { //exit("\nhere 1\n");
-            $hc_from_ancestry = implode("|", $hc_from_ancestry)."|";
-            // print_r($rec); echo "\ndito eli\n";
+            $hc_from_ancestry = implode("|", $hc_from_ancestry)."|"; // print_r($rec); echo "\ndito eli\n";
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry, 'ancestry')) {
                 @$this->debug['matched ancestry on AncestryIndex']++;
                 return $rek;
@@ -403,29 +385,31 @@ class DwCA_MatchTaxa2DH
         }
 
         // OPTION 2: DwCA higherClassification ##############################################################
-        $DwCA_names_2search = array();
         if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
-            if($separator = self::get_separator_in_higherClassification($hc)) {
-                if($separator == 'is_1_word') $DwCA_names_2search = array($hc);
-                else                          $DwCA_names_2search = explode($separator, $hc);
-            }
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc, 'higherClassification')) {
                 @$this->debug['matched HC on AncestryIndex']++;
                 return $rek;
             }
         }
-        if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[] = $val;    //the canonical name
-        $DwCA_names_2search_hC = $DwCA_names_2search;
+
+
 
 
 
         // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         // /* working OK but too permissive; by Eli
+        $DwCA_names_2search_hC = self::get_names_from_hC($rec, $canonicalName);
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search_hC)) {
             @$this->debug['matched ancestry*']++;
             return $rek;
         }
         // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
+        $names = self::get_names_from_ancestry($rec);
+        if($canonicalName) {
+            $names[] = $canonicalName;
+            $names = self::normalize_array($names);
+        }
+        $DwCA_names_2search_ancestry = $names;
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search_ancestry)) {
             @$this->debug['matched higherClassification*']++;
             return $rek;
@@ -821,6 +805,34 @@ class DwCA_MatchTaxa2DH
         }      
         unlink($local); // exit("\n".count($ret)."\n");
         return $ret;
+    }
+    private function get_names_from_ancestry($rec, $exclude_name = false)
+    {
+        $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName'];
+        $ranks = array('kingdom', 'phylum', 'class', 'order', 'family', 'genus');
+        $names = array();
+        foreach($ranks as $rank) {
+            if($val = @$rec['http://rs.tdwg.org/dwc/terms/'.$rank]) {       //all the ancestry scinames
+                if($exclude_name) {
+                    if($val != $exclude_name) $names[$val] = '';
+                }
+                else $names[$val] = '';
+            }
+        }
+        return array_keys($names);
+    }
+    private function get_names_from_hC($rec, $canonicalName)
+    {
+        $names = array();
+        if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
+            if($separator = self::get_separator_in_higherClassification($hc)) {
+                if($separator == 'is_1_word') $names = array($hc);
+                else                          $names = explode($separator, $hc);
+            }
+        }
+        if($canonicalName) $names[] = $canonicalName;
+        $names = self::normalize_array($names);
+        return $names;
     }
     private function normalize_array($arr)
     {

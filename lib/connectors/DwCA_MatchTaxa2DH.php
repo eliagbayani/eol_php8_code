@@ -392,10 +392,6 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-
-
-
-
         // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         // /* working OK but too permissive; by Eli
         $DwCA_names_2search_hC = self::get_names_from_hC($rec, $canonicalName);

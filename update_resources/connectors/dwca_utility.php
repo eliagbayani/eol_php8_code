@@ -20,6 +20,10 @@ These ff. workspaces work together:
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/DwCA_Utility');
 $timestart = time_elapsed();
+// /* dev only
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', true);
+// */
 // ini_set("memory_limit","4000M");
 // $GLOBALS['ENV_DEBUG'] = true;
 //===========================================================================================new - start -- handles cmdline params

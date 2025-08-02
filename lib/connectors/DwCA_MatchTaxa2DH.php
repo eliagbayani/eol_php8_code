@@ -385,6 +385,10 @@ class DwCA_MatchTaxa2DH
                 if($val != $canonicalName) $hc_from_ancestry[] = $val;
             }
         }
+
+        $DwCA_names_2search = self::get_names_from_ancestry($rec);
+        $hc_from_ancestry = self::get_names_from_ancestry($rec, $exclude = "Eli");
+
         if($val = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) $DwCA_names_2search[$val] = '';    //the canonical name
         $DwCA_names_2search = array_keys($DwCA_names_2search);
         $DwCA_names_2search_ancestry = $DwCA_names_2search;

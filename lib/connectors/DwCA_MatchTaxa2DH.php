@@ -236,9 +236,39 @@ class DwCA_MatchTaxa2DH
         }
     }
     private function matching_routine_using_HC($rec, $reks)
-    {
+    {   /*Array(
+            [http://rs.tdwg.org/dwc/terms/taxonID] => 130
+            [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB130
+            [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
+            [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 
+            [http://rs.tdwg.org/dwc/terms/scientificName] => Hydnoraceae C. Agardh
+            [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
+            [http://rs.tdwg.org/dwc/terms/higherClassification] => 
+            [http://rs.tdwg.org/dwc/terms/kingdom] => Plantae
+            [http://rs.tdwg.org/dwc/terms/phylum] => 
+            [http://rs.tdwg.org/dwc/terms/class] => 
+            [http://rs.tdwg.org/dwc/terms/order] => 
+            [http://rs.tdwg.org/dwc/terms/family] => Hydnoraceae
+            [http://rs.tdwg.org/dwc/terms/genus] => 
+            [http://rs.tdwg.org/dwc/terms/taxonRank] => family
+            [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => C. Agardh
+            [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
+            [http://purl.org/dc/terms/modified] => 2019-09-24 16:40:37.148
+            [http://rs.gbif.org/terms/1.0/canonicalName] => Hydnoraceae
+            [http://eol.org/schema/EOLid] => 
+        )*/ //print_r($rec);
+        $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+        $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+
+        $rek = self::which_rek_to_use($rec, $reks, $taxonRank);
+        if(!$rek['e']) { @$this->debug['DH blank EOLid'][$taxonID] = ''; return $rec; }
+
+        echo "\n------------------------\n"; print_r($rec); print_r($rek);
+        $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
+        if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
+        exit("\nstop muna 1\n");
+
         return $rec;
-        // return false;
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
@@ -265,6 +295,8 @@ class DwCA_MatchTaxa2DH
         3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
         */
         $rek = self::which_rek_to_use($rec, $reks, $taxonRank); //important step!
+        if(!$rek['e']) { @$this->debug['DH blank EOLid'][$taxonID] = ''; return $rec; }
+
         // print_r($rek); exit("\nstopx\n");
         $DH_rank = $rek['r'];
         $DH_canonical = $rek['c'];

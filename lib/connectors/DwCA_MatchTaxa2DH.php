@@ -41,6 +41,9 @@ class DwCA_MatchTaxa2DH
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
     {
+        
+        require_library('connectors/DwCA_Utility_cmd');
+
         // /* step 1: read info from DH
         require_library('connectors/DHConnLib');
         $this->DH = new DHConnLib(1);
@@ -204,7 +207,7 @@ class DwCA_MatchTaxa2DH
 
                 } 
                 else $this->debug['No canonical match'][$canonicalName] = '';
-                self::write_2archive($rec); continue;
+                self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
             }
             elseif($what == 'generate_synonyms_info') {
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
@@ -234,7 +237,8 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_routine_using_HC($rec, $reks)
     {
-        return false;
+        return $rec;
+        // return false;
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
@@ -369,13 +373,12 @@ class DwCA_MatchTaxa2DH
         )*/
         // exit("\nhere 3\n");
 
-        $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName'];
-        // echo "\n[".$canonicalName."] in question\n";
-
+        $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']; // echo "\n[".$canonicalName."] in question\n";
 
         // OPTION 1: DwCA ancestry #########################################################################
         // step 1: get ancestry scinames to search from DwCA taxa
         $hc_from_ancestry = self::get_names_from_ancestry($rec, $canonicalName); //2nd param is excluded name
+        // step 2:
         if($hc_from_ancestry) { //exit("\nhere 1\n");
             $hc_from_ancestry = implode("|", $hc_from_ancestry)."|"; // print_r($rec); echo "\ndito eli\n";
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry, 'ancestry')) {
@@ -392,14 +395,14 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-        // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
-        // /* working OK but too permissive; by Eli
+        // /* ============================ working OK but too permissive; by Eli
+        // Search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         $DwCA_names_2search_hC = self::get_names_from_hC($rec, $canonicalName);
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search_hC)) {
             @$this->debug['matched ancestry*']++;
             return $rek;
         }
-        // step 2: search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
+        // Search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         $names = self::get_names_from_ancestry($rec);
         if($canonicalName) {
             $names[] = $canonicalName;
@@ -410,7 +413,7 @@ class DwCA_MatchTaxa2DH
             @$this->debug['matched higherClassification*']++;
             return $rek;
         }
-        // */
+        // ============================ */
         
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step

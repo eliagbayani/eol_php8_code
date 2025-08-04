@@ -375,6 +375,14 @@ class DwCA_MatchTaxa2DH
 
         $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']; // echo "\n[".$canonicalName."] in question\n";
 
+        // OPTION 2: DwCA higherClassification ##############################################################
+        if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
+            if($rek = self::get_rek_from_reks_byKatja($reks, $hc, 'higherClassification')) {
+                @$this->debug['matched HC on AncestryIndex']++;
+                return $rek;
+            }
+        }
+        
         // OPTION 1: DwCA ancestry #########################################################################
         // step 1: get ancestry scinames to search from DwCA taxa
         $hc_from_ancestry = self::get_names_from_ancestry($rec, $canonicalName); //2nd param is excluded name
@@ -383,14 +391,6 @@ class DwCA_MatchTaxa2DH
             $hc_from_ancestry = implode("|", $hc_from_ancestry)."|"; // print_r($rec); echo "\ndito eli\n";
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry, 'ancestry')) {
                 @$this->debug['matched ancestry on AncestryIndex']++;
-                return $rek;
-            }
-        }
-
-        // OPTION 2: DwCA higherClassification ##############################################################
-        if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
-            if($rek = self::get_rek_from_reks_byKatja($reks, $hc, 'higherClassification')) {
-                @$this->debug['matched HC on AncestryIndex']++;
                 return $rek;
             }
         }
@@ -678,7 +678,6 @@ class DwCA_MatchTaxa2DH
                 }
             }
         }
-        // 1st loop
         foreach($reks as $DH_taxonIDx => $rek) {
             if($rek['s'] == 'a' && $taxonRank == $rek['r'] && $rek['e']) {
                 @$this->debug['matched same rank and status accepted']++;

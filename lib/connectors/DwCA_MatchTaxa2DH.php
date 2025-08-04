@@ -82,7 +82,9 @@ class DwCA_MatchTaxa2DH
 
         echo $tbl ?? '';
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? 0) . "]\n";
         echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]\n";
+        echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]\n";
 
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
         echo "\nOK DwCA:                           [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
@@ -201,8 +203,10 @@ class DwCA_MatchTaxa2DH
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
 
                     if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
-                    if(!@$rec['http://eol.org/schema/EOLid']) {
-                        $rec = self::matching_routine_using_HC($rec, $reks);
+                    else {
+                        if(!@$rec['http://eol.org/schema/EOLid']) {
+                            $rec = self::matching_routine_using_HC($rec, $reks);
+                        }
                     }
 
                 } 
@@ -261,14 +265,25 @@ class DwCA_MatchTaxa2DH
         $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
 
         $rek = self::which_rek_to_use($rec, $reks, $taxonRank);
-        if(!$rek['e']) { @$this->debug['DH blank EOLid'][$taxonID] = ''; return $rec; }
+        if ($rek['e']) {
+            $allowed = $this->ok_match_subspecific_ranks;
+            $allowed[] = 'species';
+            if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['http://eol.org/schema/EOLid'] = $rek['e'];
+            else {
 
-        echo "\n------------------------\n"; print_r($rec); print_r($rek);
-        $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
-        if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
-        exit("\nstop muna 1\n");
+                echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
+                $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
+                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
+                // exit("\nstop muna 2\n");
 
+            }
+
+        }
+        else {
+            @$this->debug['DH blank EOLid'][$taxonID] = ''; 
+        }
         return $rec;
+
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
@@ -540,6 +555,17 @@ class DwCA_MatchTaxa2DH
         }
         if(count($hits) == 1) return $hits[0];
         if(count($hits) > 1) {
+
+            $taxonRank = $this->rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+            if($rek = self::choose_from_matched_group($taxonRank, $hits)) {
+                // @$this->debug['matched group rank']++; 
+                return $rek;
+            }
+
+            echo "\n-----------------multiple hits detected--------------------\n[$hc]\n";
+            print_r($this->rec);
+            print_r($dwca_hc);
+            print_r($hits);
             exit("\nSo this is possible here. Need to plan again.\n");
         }
     }
@@ -722,24 +748,10 @@ class DwCA_MatchTaxa2DH
                 return $rek;
             }
         }
-        foreach($reks as $DH_taxonIDx => $rek) {
-            if(in_array($taxonRank, $this->g_kingdom_domain) && in_array($rek['r'], $this->g_kingdom_domain) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_phylum) && in_array($rek['r'], $this->g_phylum) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_class) && in_array($rek['r'], $this->g_class) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_order) && in_array($rek['r'], $this->g_order) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_family) && in_array($rek['r'], $this->g_family) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_tribe) && in_array($rek['r'], $this->g_tribe) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_genus) && in_array($rek['r'], $this->g_genus) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_section) && in_array($rek['r'], $this->g_section) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-            if(in_array($taxonRank, $this->g_species) && in_array($rek['r'], $this->g_species) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-        }
-        $family_tribe = array_merge($this->g_family, $this->g_tribe);
-        foreach($reks as $DH_taxonIDx => $rek) {
-            if(in_array($taxonRank, $family_tribe) && in_array($rek['r'], $family_tribe) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
-        }
-        $genus_section = array_merge($this->g_genus, $this->g_section);
-        foreach($reks as $DH_taxonIDx => $rek) {
-            if(in_array($taxonRank, $genus_section) && in_array($rek['r'], $genus_section) && $rek['e']) { @$this->debug['matched group rank']++; return $rek; }
+
+        if($rek = self::choose_from_matched_group($taxonRank, $reks)) {
+            @$this->debug['matched group rank']++; 
+            return $rek;
         }
 
         // 'accepted' vs 'not accepted'
@@ -867,6 +879,28 @@ class DwCA_MatchTaxa2DH
         if($canonicalName) $names[] = $canonicalName;
         $names = self::normalize_array($names);
         return $names;
+    }
+    private function choose_from_matched_group($taxonRank, $reks)
+    {
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if(in_array($taxonRank, $this->g_kingdom_domain) && in_array($rek['r'], $this->g_kingdom_domain) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_phylum) && in_array($rek['r'], $this->g_phylum) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_class) && in_array($rek['r'], $this->g_class) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_order) && in_array($rek['r'], $this->g_order) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_family) && in_array($rek['r'], $this->g_family) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_tribe) && in_array($rek['r'], $this->g_tribe) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_genus) && in_array($rek['r'], $this->g_genus) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_section) && in_array($rek['r'], $this->g_section) && $rek['e']) return $rek;
+            if(in_array($taxonRank, $this->g_species) && in_array($rek['r'], $this->g_species) && $rek['e']) return $rek;
+        }
+        $family_tribe = array_merge($this->g_family, $this->g_tribe);
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if(in_array($taxonRank, $family_tribe) && in_array($rek['r'], $family_tribe) && $rek['e']) return $rek;
+        }
+        $genus_section = array_merge($this->g_genus, $this->g_section);
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if(in_array($taxonRank, $genus_section) && in_array($rek['r'], $genus_section) && $rek['e']) return $rek;
+        }
     }
     private function normalize_array($arr)
     {

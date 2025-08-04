@@ -82,9 +82,10 @@ class DwCA_MatchTaxa2DH
 
         echo $tbl ?? '';
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
-        echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? 0) . "]\n";
-        echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]\n";
-        echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]\n";
+        echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? 0) . "]";
+        echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]";
+        echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]";
+        echo "\nWith EOLid but not matched: [" . number_format(@$this->debug['With EOLid but not matched'] ?? 0) . "]\n";
 
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
         echo "\nOK DwCA:                           [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
@@ -261,7 +262,7 @@ class DwCA_MatchTaxa2DH
             [http://rs.gbif.org/terms/1.0/canonicalName] => Hydnoraceae
             [http://eol.org/schema/EOLid] => 
         )*/ //print_r($rec);
-        $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+        $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank']; //at this point this, rank is blank
         $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
 
         $rek = self::which_rek_to_use($rec, $reks, $taxonRank);
@@ -269,21 +270,18 @@ class DwCA_MatchTaxa2DH
             $allowed = $this->ok_match_subspecific_ranks;
             $allowed[] = 'species';
             if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['http://eol.org/schema/EOLid'] = $rek['e'];
-            else {
+            else { /* at this point no legit match was found */
+                @$this->debug['With EOLid but not matched']++;
 
-                echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
-                $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
-                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
+                // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
+                // $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
+                // // if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
+                // echo "\n-----------END meron hits-------------\n";
                 // exit("\nstop muna 2\n");
-
             }
-
         }
-        else {
-            @$this->debug['DH blank EOLid'][$taxonID] = ''; 
-        }
+        else @$this->debug['DH blank EOLid'][$taxonID] = '';
         return $rec;
-
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
     {
@@ -542,7 +540,7 @@ class DwCA_MatchTaxa2DH
                 $found2 = $ret[0];
                 $index_hc2 = $ret[1]; //stats only
             }
-            if(($found1 == $found2) && $found1 && $found2) {
+            if(($found1 == $found2) && $found1 && $found2 && $rek['e']) {
                 /* good debug works OK
                 echo "\n------------may na huli-----------\n";
                 print_r($rek); echo " - rek ";

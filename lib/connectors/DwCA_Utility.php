@@ -171,10 +171,10 @@ class DwCA_Utility
             if(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") break; //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "neo4j_prep") break;                            //all extensions will be processed elsewhere.
 
-            // /* during dev only; un-comment in real operation : Remember this
+            /* during dev only; un-comment in real operation : Remember this
             if(@$this->params['resource'] == "add_canonical_Katja") break;    //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "match_taxa_2DH") break;         //all extensions will be processed elsewhere.
-            // */
+            */
 
             if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
             elseif(in_array($this->resource_id, array("BF", "gbif_classification", "gbif_classification_without_ancestry", "gbif_classification_final", 
@@ -677,9 +677,9 @@ class DwCA_Utility
                     }
                     else {
                         /* old version: self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]); */
-                        /* un-comment in real operation; Remember this
+                        // /* un-comment in real operation; Remember this
                         self::carry_over($meta, $this->extensions[$row_type]);
-                        */
+                        // */
                     }
                 }
                 else exit("\nUndefined row_type: [$row_type]\n");

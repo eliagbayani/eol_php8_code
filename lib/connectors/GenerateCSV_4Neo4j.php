@@ -36,10 +36,8 @@ class GenerateCSV_4Neo4j
                     $k++;
                 }
                 $rec = array_map('trim', $rec); // print_r($rec); exit;
-                /*Array(
-                    [EOL_predicate_id] => 12748
-                    [Label] => Body symmetry
-                )*/
+                /*Array( [EOL_predicate_id] => 12748
+                         [Label] => Body symmetry )*/
                 $label = $rec['Label'];
                 $uri = $uris[$label];
                 $rec['URI'] = $uri;

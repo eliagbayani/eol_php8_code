@@ -11,24 +11,21 @@ class GenerateCSV_4Neo4j
         $this->download_options["expire_seconds"] = 60*60*24*1;
         $this->debug = array();
         $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv';
-        $this->files['predicates'] = CONTENT_RESOURCE_PATH."reports/predicates.tsv";
+        $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
     }
     function buildup_predicates()
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI();
         $ret = $func->get_terms_yml('ALL'); //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
-        foreach($ret as $label => $uri) $this->uris[$label] = $uri;
-        // print_r($this->uris);
+        foreach($ret as $label => $uri) $uris[$label] = $uri;
         /*[eat] => http://purl.obolibrary.org/obo/RO_0002470
           [co-roost with] => http://purl.obolibrary.org/obo/RO_0002801*/
-        
-        
+        $WRITE = Functions::file_open($this->files['predicates'], 'w');
         $tmp_file = Functions::save_remote_file_to_local($this->urls['raw predicates'], $this->download_options);
         $i = 0;
-        foreach(new FileIterator($tmp_file) as $line => $row) {
-            $row = Functions::conv_to_utf8($row);
-            $i++; 
+        foreach(new FileIterator($tmp_file) as $line => $row) { $i++;
+            $row = Functions::conv_to_utf8($row); 
             if($i == 1) $fields = explode("\t", $row);
             else {
                 if(!$row) continue;
@@ -38,18 +35,22 @@ class GenerateCSV_4Neo4j
                     $rec[$field] = $tmp[$k];
                     $k++;
                 }
-                $rec = array_map('trim', $rec);
-                print_r($rec); exit;
+                $rec = array_map('trim', $rec); // print_r($rec); exit;
                 /*Array(
                     [EOL_predicate_id] => 12748
                     [Label] => Body symmetry
                 )*/
                 $label = $rec['Label'];
                 $uri = $uris[$label];
-
+                $rec['URI'] = $uri;
+                if($i == 2) {
+                    $headers = array_keys($rec);
+                    fwrite($WRITE, implode("\t", $headers)."\n");
+                }
+                fwrite($WRITE, implode("\t", $rec)."\n");
             }
         }
-
+        fclose($WRITE);
     }
 }
 ?>

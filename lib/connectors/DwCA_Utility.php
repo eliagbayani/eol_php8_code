@@ -141,6 +141,7 @@ class DwCA_Utility
         */
         // print_r($index); exit; //good debug to see the all-lower case URIs
         foreach($index as $row_type) {
+
             /* ----------customized start------------ */
             /* used already - obsolete
             if(substr($this->resource_id,0,3) == 'SC_') {
@@ -202,16 +203,21 @@ class DwCA_Utility
                     self::process_fields($harvester->process_row_type($row_type), 'occurrence_specific');
                 }
                 else { //original, the rest goes here
-                    self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);
 
-                    /* not implemented but is the right sol'n for insuficient memory. And NOT increasing the memory allocation in wikimedia_subsets.php
+                    /* Is the right sol'n for insuficient memory. And NOT increasing the memory allocation in wikimedia_subsets.php
                     if($this->resource_id == '71_new' && $row_type == "http://eol.org/schema/media/document") {
                         self::carry_over($meta, 'document'); //was never run but should work just need to get the value for $meta from local $info.
+                    }
+                    */
+                                        
+                    if(in_array(@$this->params['resource'], array('add_canonical_Katja', 'match_taxa_2DH'))) {
+                        $meta = $tables[$row_type][0];
+                        self::carry_over($meta, $this->extensions[$row_type]); //was never run but should work just need to get the value for $meta from local $info.
+
                     }
                     else { //orig | the rest goes here
                         self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);
                     }
-                    */
                 }
                 // */
                 

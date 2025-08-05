@@ -677,7 +677,7 @@ class DwCA_Utility
                     }
                     else {
                         /* old version: self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]); */
-                        /* un-comment in real operation
+                        /* un-comment in real operation; Remember this
                         self::carry_over($meta, $this->extensions[$row_type]);
                         */
                     }
@@ -1066,15 +1066,14 @@ class DwCA_Utility
             // print_r($meta->fields); exit;
             foreach($meta->fields as $field) {
                 if($purpose == 'return_shorten') {
+                    if(in_array($field['term'], array('others', 'http://purl.org/dc/terms/rightsHolder'))) continue;
                     $field['term'] = DwCA_Utility_cmd::shorten_field($field['term']);
                 }
                 if(!$field['term']) continue;
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
-            $rec = array_map('trim', $rec);
-            
-            // print_r($rec); exit("\ndebug...\n");
+            $rec = array_map('trim', $rec); // print_r($rec); exit("\ndebug...\n");
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/taxonID] => 90698
                 [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 318

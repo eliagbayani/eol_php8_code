@@ -35,12 +35,12 @@ class GenerateCSV_4Neo4j
         // self::prepate_taxa_csv($tables);
 
         // /*
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
-        // self::process_table($meta, 'build_occurrence_info');
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];  self::process_table($meta, 'build_occurrence_info');
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];  self::process_table($meta, 'build_taxon_info');
 
         if(in_array('http://eol.org/schema/association', $extensions)) {
             $meta = $tables['http://eol.org/schema/association'][0];
-            self::process_tsv($this->files['predicates'], 'gen_allowed_uri_predicates'); print_r($this->allowed_uri_predicates); exit;
+            self::process_tsv($this->files['predicates'], 'gen_allowed_uri_predicates'); //print_r($this->allowed_uri_predicates); exit;
             // self::process_table($meta, 'build_association_info');
             self::prepare_predicates_csv($tables);
         }
@@ -70,6 +70,7 @@ class GenerateCSV_4Neo4j
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
             elseif($what == 'generate-predicates-csv') self::generate_predicates_csv($rec);
             elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
+            elseif($what == 'build_taxon_info') self::build_taxon_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
         }
     }
@@ -97,15 +98,41 @@ class GenerateCSV_4Neo4j
         // print_r($rec); exit("\ncha\n");
         // $csv = '".$rec['taxonID'].",".$rec['scientificName'].",".$rec['taxonRank'].",".$rec['higherClassification']."';
         $fields = array('taxonID', 'scientificName', 'taxonRank', 'higherClassification');
-        $csv = "";
-        foreach($fields as $field) {
-            $csv .= '"' . $rec[$field] . '",';
-        }
-        exit("\n[$csv]\n");
+        $csv = self::format_csv_entry($rec, $fields);
         fwrite($WRITE, $csv."\n");
+    }
+    private function format_csv_entry($rec, $fields)
+    {
+        $csv = "";
+        foreach($fields as $field) $csv .= '"' . $rec[$field] . '",';
+        // exit("\n[$csv]\n");
+        return $csv;
     }
     private function generate_predicates_csv($rec)
     {
+        // print_r($rec); exit("\ngoes here...\n");
+        /*Array(
+            [associationID] => 4cb8806ffd419983bc7080a1a50b02b4
+            [occurrenceID] => 9a9e31fb999985e6631623c65385b984
+            [associationType] => http://purl.obolibrary.org/obo/RO_0002556
+            [targetOccurrenceID] => 6e5210acd02426f7ade33cbb6e8e9d46
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => 
+            [measurementRemarks] => 
+            [source] => Sarah E Miller. 12/20/2016. Species associations manually extracted from Mhaisen, F.T., Ali, A.H. and Khamees, N.R., Checklists of Protozoans and Myxozoans of Freshwater and Marine Fishes of Basrah Province, Iraq.
+            [bibliographicCitation] => 
+            [contributor] => 
+            [referenceID] => 211bebbd914337ab8ce89e18880cd8bf
+        )*/
+        if(!isset($this->allowed_uri_predicates[$rec['associationType']])) return;
+        print_r($rec); exit("\n\111n");
+
+                // fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
+
+        // $fields = array('taxonID', 'scientificName', 'taxonRank', 'higherClassification');
+        // $csv = self::format_csv_entry($rec, $fields);
+        // fwrite($WRITE, $csv."\n");
 
     }
     private function build_association_info($rec)
@@ -124,16 +151,41 @@ class GenerateCSV_4Neo4j
             [http://eol.org/schema/reference/referenceID] => 211bebbd914337ab8ce89e18880cd8bf
         )*/
         $associationType = $rec['http://eol.org/schema/associationType'];
-        if(isset($this->allowed_uri_predicates[$associationType])) {}
+        // if(isset($this->allowed_uri_predicates[$associationType])) {}
     }
     private function build_occurrence_info($rec)
     {   /*Array(
-        [http://rs.tdwg.org/dwc/terms/occurrenceID] => 749fe40cdd56a4a6e33167b5950740aa
-        [http://rs.tdwg.org/dwc/terms/taxonID] => EOL:1002964
-        [http://rs.tdwg.org/dwc/terms/institutionCode] => */
-        if($taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID']) {
-            if($occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID']) $this->occurrence[$taxonID] = $occurrenceID;
+        [occurrenceID] => 749fe40cdd56a4a6e33167b5950740aa
+        [taxonID] => EOL:1002964
+        [institutionCode] => */
+        if($taxonID = $rec['taxonID']) {
+            if($occurrenceID = $rec['occurrenceID']) $this->occurrence[$occurrenceID] = $taxonID;
         }
+    }
+    private function build_taxon_info($rec)
+    {
+        /*Array(
+            [taxonID] => COL:74YCG
+            [furtherInformationURL] => https://www.catalogueoflife.org/data/taxon/74YCG
+            [referenceID] => 
+            [parentNameUsageID] => 
+            [scientificName] => Orthosia pacifica
+            [namePublishedIn] => 
+            [higherClassification] => Animalia|Arthropoda|Insecta|Lepidoptera|Noctuidae|Orthosia|
+            [kingdom] => Animalia
+            [phylum] => Arthropoda
+            [class] => Insecta
+            [order] => Lepidoptera
+            [family] => Noctuidae
+            [genus] => Orthosia
+            [taxonRank] => species
+            [taxonomicStatus] => 
+            [taxonRemarks] => 
+            [canonicalName] => Orthosia pacifica
+            [EOLid] => 465299
+        )*/
+        $sciname = $rec['canonicalName'] ? $rec['canonicalName'] : $rec['scientificName'];
+        $this->taxon[$rec['taxonID']] = array('cN' => $sciname, 'r' => $rec['taxonRank']);
     }
     function buildup_predicates()
     {
@@ -186,7 +238,7 @@ class GenerateCSV_4Neo4j
                         [Label] => Body symmetry
                         [URI] => http://eol.org/schema/terms/body_symmetry
                     )*/
-                    if($rec['Label'] != 'are eaten by') continue;
+                    if($rec['Label'] != 'eat') continue;
                     $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => $rec['EOL_predicate_id'], 'Label' => $rec['Label']);
                 }
                 // ==================================================================================================
@@ -208,7 +260,7 @@ class GenerateCSV_4Neo4j
     {
         $WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
         fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        $meta = $tables['http://eol.org/schema/association'][0];
         self::process_table($meta, 'generate-predicates-csv');
         fclose($WRITE);
     }

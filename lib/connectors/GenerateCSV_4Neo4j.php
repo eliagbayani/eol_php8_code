@@ -74,6 +74,10 @@ class GenerateCSV_4Neo4j
             [http://purl.org/dc/terms/contributor] => 
             [http://eol.org/schema/reference/referenceID] => 211bebbd914337ab8ce89e18880cd8bf
         )*/
+        $associationType = $rec['http://eol.org/schema/associationType'];
+        if(isset($this->allowed_uri_predicates[$associationType])) {
+            
+        }
     }
     private function build_occurrence_info($rec)
     {   /*Array(
@@ -102,7 +106,6 @@ class GenerateCSV_4Neo4j
         if($task == 'buildup_predicates') {
             $WRITE = Functions::file_open($this->files['predicates'], 'w');
         }
-
         $i = 0;
         foreach(new FileIterator($local_tsv) as $line => $row) { $i++;
             $row = Functions::conv_to_utf8($row); 

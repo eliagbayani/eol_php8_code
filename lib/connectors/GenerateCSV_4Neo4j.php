@@ -32,18 +32,19 @@ class GenerateCSV_4Neo4j
 
         $extensions = array_keys($tables); print_r($extensions);
 
-        self::prepate_taxa_csv($tables);
+        // self::prepate_taxa_csv($tables);
 
-        /*
-        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence"; $meta = $tables[$tbl][0];
+        // /*
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
         self::process_table($meta, 'build_occurrence_info');
 
         if(in_array('http://eol.org/schema/association', $extensions)) {
-            $tbl = "http://eol.org/schema/association"; $meta = $tables[$tbl][0];
+            $meta = $tables['http://eol.org/schema/association'][0];
             self::process_tsv($this->files['predicates'], 'allowed_uri_predicates');
-            self::process_table($meta, 'build_association_info');
+            // self::process_table($meta, 'build_association_info');
+            self::prepare_predicates_csv($tables);
         }
-        */
+        // */
 
         // $tbl = "http://rs.tdwg.org/dwc/terms/taxon"; $meta = $tables[$tbl][0];
         // self::process_table($meta, 'assemble_taxa');
@@ -67,9 +68,9 @@ class GenerateCSV_4Neo4j
             }
             // print_r($rec); exit;
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
+            if($what == 'generate-predicates-csv') self::generate_predicates_csv($rec);
             elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
-
         }
     }
     private function generate_taxa_csv($rec)
@@ -196,6 +197,14 @@ class GenerateCSV_4Neo4j
         fwrite($WRITE, "EOLid:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate-taxa-csv');
+        fclose($WRITE);
+    }
+    private function prepare_predicates_csv($tables)
+    {
+        $WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
+        fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        self::process_table($meta, 'generate-predicates-csv');
         fclose($WRITE);
     }
     private function initialize_folders($resource_id)

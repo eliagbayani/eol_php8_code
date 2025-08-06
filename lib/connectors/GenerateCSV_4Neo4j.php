@@ -32,7 +32,7 @@ class GenerateCSV_4Neo4j
 
         $extensions = array_keys($tables); print_r($extensions);
 
-        // self::prepate_taxa_csv($tables);
+        // self::prepare_taxa_csv($tables);
 
         // /*
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];  self::process_table($meta, 'build_occurrence_info');
@@ -133,27 +133,30 @@ class GenerateCSV_4Neo4j
             [contributor] => 
             [referenceID] => 211bebbd914337ab8ce89e18880cd8bf
         )*/
-        if(!isset($this->allowed_uri_predicates[$rec['associationType']])) return;
+        if($ret = @$this->allowed_uri_predicates[$rec['associationType']]) {
+            $predicate = strtoupper($ret['Label']);
+        }
+        else exit("\nPredicate not found. [".$rec['associationType']."]\n");
         // print_r($rec); //exit("\nstop 3\n");
 
         // fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
-        $name1 = ''; $name2 = '';
+        $taxonID_1 = ''; $taxonID_2 = '';
         
-        if($taxonID = $this->occurrence[$rec['occurrenceID']]) {
+        if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
             if($ret = @$this->taxon[$taxonID]) $name1 = $ret['cN'];
             else {
                 print_r($rec); exit("\n1st oID not found\n");
             }
         }
-        if($taxonID = $this->occurrence[$rec['targetOccurrenceID']]) {
+        if($taxonID_2 = $this->occurrence[$rec['targetOccurrenceID']]) {
             if($ret = @$this->taxon[$taxonID]) $name2 = $ret['cN'];
             else {
                 print_r($rec); exit("\n2nd oID not found\n");
             }
         }
 
-        if($name1 && $name2) {
-            $arr = array($name1, $rec['associationType'], $rec['referenceID'], $name2);
+        if($taxonID_1 && $taxonID_2) {
+            $arr = array($taxonID_1, $rec['associationType'], $rec['referenceID'], $taxonID_2, $predicate);
             $csv = self::format_csv_entry_array($arr);
             fwrite($WRITE, $csv."\n");
         }
@@ -271,7 +274,7 @@ class GenerateCSV_4Neo4j
             fclose($WRITE);
         }
     }
-    private function prepate_taxa_csv($tables)
+    private function prepare_taxa_csv($tables)
     {
         $WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
         fwrite($WRITE, "taxonID:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");

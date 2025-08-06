@@ -26,10 +26,16 @@ class GenerateCSV_4Neo4j
         } else echo "\nValid DwCA [$resource_id].\n";
 
         $extensions = array_keys($tables); print_r($extensions);
-        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
-        $meta = $tables[$tbl][0];
 
-        self::process_table($meta, 'assemble_taxa');
+        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence"; $meta = $tables[$tbl][0];
+        self::process_table($meta, 'build_occurrence_info');
+        if(in_array('http://eol.org/schema/association', $extensions)) {
+            $tbl = "http://eol.org/schema/association"; $meta = $tables[$tbl][0];
+            self::process_table($meta, 'build_association_info');
+        }
+
+        // $tbl = "http://rs.tdwg.org/dwc/terms/taxon"; $meta = $tables[$tbl][0];
+        // self::process_table($meta, 'assemble_taxa');
 
     }
     private function process_table($meta, $what)
@@ -47,7 +53,34 @@ class GenerateCSV_4Neo4j
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
-            print_r($rec); exit;
+            // print_r($rec); exit;
+            if($what == 'build_occurrence_info') self::build_occurrence_info($rec);
+            elseif($what == 'build_association_info') self::build_association_info($rec);
+        }
+    }
+    private function build_association_info($rec)
+    {   /*Array(
+            [http://eol.org/schema/associationID] => 4cb8806ffd419983bc7080a1a50b02b4
+            [http://rs.tdwg.org/dwc/terms/occurrenceID] => 9a9e31fb999985e6631623c65385b984
+            [http://eol.org/schema/associationType] => http://purl.obolibrary.org/obo/RO_0002556
+            [http://eol.org/schema/targetOccurrenceID] => 6e5210acd02426f7ade33cbb6e8e9d46
+            [http://rs.tdwg.org/dwc/terms/measurementDeterminedDate] => 
+            [http://rs.tdwg.org/dwc/terms/measurementDeterminedBy] => 
+            [http://rs.tdwg.org/dwc/terms/measurementMethod] => 
+            [http://rs.tdwg.org/dwc/terms/measurementRemarks] => 
+            [http://purl.org/dc/terms/source] => Sarah E Miller. 12/20/2016. Species associations manually extracted from Mhaisen, F.T., Ali, A.H. and Khamees, N.R., Checklists of Protozoans and Myxozoans of Freshwater and Marine Fishes of Basrah Province, Iraq.
+            [http://purl.org/dc/terms/bibliographicCitation] => 
+            [http://purl.org/dc/terms/contributor] => 
+            [http://eol.org/schema/reference/referenceID] => 211bebbd914337ab8ce89e18880cd8bf
+        )*/
+    }
+    private function build_occurrence_info($rec)
+    {   /*Array(
+        [http://rs.tdwg.org/dwc/terms/occurrenceID] => 749fe40cdd56a4a6e33167b5950740aa
+        [http://rs.tdwg.org/dwc/terms/taxonID] => EOL:1002964
+        [http://rs.tdwg.org/dwc/terms/institutionCode] => */
+        if($taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID']) {
+            if($occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID']) $this->occurrence[$taxonID] = $occurrenceID;
         }
     }
     function buildup_predicates()

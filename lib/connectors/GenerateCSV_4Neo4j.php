@@ -17,15 +17,38 @@ class GenerateCSV_4Neo4j
         require_library('connectors/ResourceUtility');
         $func = new ResourceUtility(false, $resource_id);
         $ret = $func->prepare_archive_for_access($dwca_file, $this->download_options);
-        // print_r($ret);
         $temp_dir = $ret['temp_dir'];
         $tables = $ret['tables'];
         $index = array_keys($tables);
         if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
             debug("Invalid archive file. Program will terminate.");
             return false;
-        } else echo "\nValid DwCA.\n";
+        } else echo "\nValid DwCA [$resource_id].\n";
 
+        $extensions = array_keys($tables); print_r($extensions);
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
+        $meta = $tables[$tbl][0];
+
+        self::process_table($meta, 'assemble_taxa');
+
+    }
+    private function process_table($meta, $what)
+    {
+        echo "\nprocess_table: [$what] [$meta->file_uri]...\n"; $i = 0;
+        foreach(new FileIterator($meta->file_uri) as $line => $row) { $i++;
+            if(($i % 10000) == 0) echo "\n".number_format($i)." - ";
+            if($meta->ignore_header_lines && $i == 1) continue;
+            if(!$row) continue;
+            // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
+            $tmp = explode("\t", $row);
+            $rec = array(); $k = 0;
+            foreach($meta->fields as $field) {
+                if(!$field['term']) continue;
+                $rec[$field['term']] = $tmp[$k];
+                $k++;
+            }
+            print_r($rec); exit;
+        }
     }
     function buildup_predicates()
     {

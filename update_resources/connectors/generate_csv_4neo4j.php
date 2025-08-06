@@ -17,7 +17,7 @@ $param                     = json_decode(@$argv[2], true); // print_r($param); e
 $resource_id = $param['resource_id'];
 
 require_library('connectors/GenerateCSV_4Neo4j');
-$func = new GenerateCSV_4Neo4j();
+$func = new GenerateCSV_4Neo4j($resource_id);
 // $func->buildup_predicates(); //Done
 $func->assemble_data($resource_id);
 

@@ -5,15 +5,21 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class GenerateCSV_4Neo4j
 {
-    function __construct() {
+    function __construct($resource_id) {
+        $this->resource_id = $resource_id;
         $this->download_options = array('resource_id' => 'neo4j', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
         $this->debug = array();
         $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv';
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
+
+        self::initialize_folders($resource_id);
     }
-    function assemble_data($resource_id) {
+    function assemble_data($resource_id) 
+    {
         $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
         $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/" . $resource_id . ".tar.gz"; //maybe the way to go
+        $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go
+
         require_library('connectors/ResourceUtility');
         $func = new ResourceUtility(false, $resource_id);
         $ret = $func->prepare_archive_for_access($dwca_file, $this->download_options);
@@ -21,19 +27,23 @@ class GenerateCSV_4Neo4j
         $tables = $ret['tables'];
         $index = array_keys($tables);
         if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
-            debug("Invalid archive file. Program will terminate.");
-            return false;
+            debug("Invalid archive file. Program will terminate."); return false;
         } else echo "\nValid DwCA [$resource_id].\n";
 
         $extensions = array_keys($tables); print_r($extensions);
 
+        self::prepate_taxa_csv($tables);
+
+        /*
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence"; $meta = $tables[$tbl][0];
         self::process_table($meta, 'build_occurrence_info');
+
         if(in_array('http://eol.org/schema/association', $extensions)) {
             $tbl = "http://eol.org/schema/association"; $meta = $tables[$tbl][0];
             self::process_tsv($this->files['predicates'], 'allowed_uri_predicates');
             self::process_table($meta, 'build_association_info');
         }
+        */
 
         // $tbl = "http://rs.tdwg.org/dwc/terms/taxon"; $meta = $tables[$tbl][0];
         // self::process_table($meta, 'assemble_taxa');
@@ -43,21 +53,55 @@ class GenerateCSV_4Neo4j
     {
         echo "\nprocess_table: [$what] [$meta->file_uri]...\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) { $i++;
-            if(($i % 10000) == 0) echo "\n".number_format($i)." - ";
+            if(($i % 100000) == 0) echo "\n".number_format($i)." - ";
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
             $tmp = explode("\t", $row);
             $rec = array(); $k = 0;
             foreach($meta->fields as $field) {
+                $field['term'] = self::small_field($field['term']);
                 if(!$field['term']) continue;
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
             // print_r($rec); exit;
-            if($what == 'build_occurrence_info') self::build_occurrence_info($rec);
+            if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
+            elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
+
         }
+    }
+    private function generate_taxa_csv($rec)
+    {   /*Array(
+            [taxonID] => COL:74YCG
+            [furtherInformationURL] => https://www.catalogueoflife.org/data/taxon/74YCG
+            [referenceID] => 
+            [parentNameUsageID] => 
+            [scientificName] => Orthosia pacifica
+            [namePublishedIn] => 
+            [higherClassification] => Animalia|Arthropoda|Insecta|Lepidoptera|Noctuidae|Orthosia|
+            [kingdom] => Animalia
+            [phylum] => Arthropoda
+            [class] => Insecta
+            [order] => Lepidoptera
+            [family] => Noctuidae
+            [genus] => Orthosia
+            [taxonRank] => species
+            [taxonomicStatus] => 
+            [taxonRemarks] => 
+            [canonicalName] => Orthosia pacifica
+            [EOLid] => 465299
+        )*/
+        // print_r($rec); exit("\ncha\n");
+        // $csv = '".$rec['taxonID'].",".$rec['scientificName'].",".$rec['taxonRank'].",".$rec['higherClassification']."';
+        $fields = array('taxonID', 'scientificName', 'taxonRank', 'higherClassification');
+        $csv = "";
+        foreach($fields as $field) {
+            $csv .= '"' . $rec[$field] . '",';
+        }
+        exit("\n[$csv]\n");
+        fwrite($WRITE, $csv."\n");
     }
     private function build_association_info($rec)
     {   /*Array(
@@ -75,9 +119,7 @@ class GenerateCSV_4Neo4j
             [http://eol.org/schema/reference/referenceID] => 211bebbd914337ab8ce89e18880cd8bf
         )*/
         $associationType = $rec['http://eol.org/schema/associationType'];
-        if(isset($this->allowed_uri_predicates[$associationType])) {
-            
-        }
+        if(isset($this->allowed_uri_predicates[$associationType])) {}
     }
     private function build_occurrence_info($rec)
     {   /*Array(
@@ -147,6 +189,25 @@ class GenerateCSV_4Neo4j
         if($task == 'buildup_predicates') {
             fclose($WRITE);
         }
+    }
+    private function prepate_taxa_csv($tables)
+    {
+        $WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
+        fwrite($WRITE, "EOLid:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        self::process_table($meta, 'generate-taxa-csv');
+        fclose($WRITE);
+    }
+    private function initialize_folders($resource_id)
+    {
+        $path = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . '_csv';
+        if(is_dir($path)) recursive_rmdir($path);
+        mkdir($path);
+        $this->path = $path;
+    }
+    private function small_field($uri)
+    {
+        return pathinfo($uri, PATHINFO_FILENAME);
     }
 }
 ?>

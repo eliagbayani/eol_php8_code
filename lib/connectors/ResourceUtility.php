@@ -929,6 +929,21 @@ class ResourceUtility
         }
         $this->archive_builder->write_object_to_file($o);        
     }
-
+    function prepare_archive_for_access($dwca_file, $download_options = array('timeout' => 172800, 'expire_seconds' => 60*60*24*1))
+    {
+        require_library('connectors/INBioAPI');
+        $func = new INBioAPI();
+        $paths = $func->extract_archive_file($this->dwca_file, "meta.xml", $download_options);
+        $archive_path = $paths['archive_path'];
+        $temp_dir = $paths['temp_dir'];
+        $harvester = new ContentArchiveReader(NULL, $archive_path);
+        $tables = $harvester->tables;
+        $index = array_keys($tables);
+        if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
+            debug("Invalid archive file. Program will terminate.");
+            return false;
+        }
+        return array("harvester" => $harvester, "temp_dir" => $temp_dir, "tables" => $tables, "index" => $index);
+    }
 }
 ?>

@@ -1,13 +1,15 @@
 <?php
 namespace php_active_record;
-/* Main starting point for generating CSV files for loading into Neo4j */
+/* Main starting point for generating CSV files for loading into Neo4j
+php update_resources/connectors/generate_csv_4neo4j.php _ '{"resource_id": "globi_assoc-with-hC_neo4j_2_OK"}'
+*/
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
 ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // */
-ini_set('memory_limit','8096M');
+// ini_set('memory_limit','8096M');
 $timestart = time_elapsed();
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
@@ -17,6 +19,6 @@ $resource_id = $param['resource_id'];
 require_library('connectors/GenerateCSV_4Neo4j');
 $func = new GenerateCSV_4Neo4j();
 // $func->buildup_predicates(); //Done
-$func->assemble_taxa();
+$func->assemble_data($resource_id);
 
 ?>

@@ -99,7 +99,7 @@ class GenerateCSV_4Neo4j
         // $csv = '".$rec['taxonID'].",".$rec['scientificName'].",".$rec['taxonRank'].",".$rec['higherClassification']."';
         $fields = array('taxonID', 'scientificName', 'taxonRank', 'higherClassification');
         $csv = self::format_csv_entry($rec, $fields);
-        fwrite($WRITE, $csv."\n");
+        fwrite($this->WRITE, $csv."\n");
     }
     private function format_csv_entry($rec, $fields)
     {
@@ -112,10 +112,10 @@ class GenerateCSV_4Neo4j
     {
         $csv = "";
         foreach($arr as $val) $csv .= '"' . $val . '",';
-        exit("\n[$csv]\nstop 1\n");
+        $csv = substr($csv, 0, -1);
+        // exit("\n[$csv]\nstop 1\n");
         return $csv;
     }
- 
     private function generate_predicates_csv($rec)
     {
         // print_r($rec); exit("\ngoes here...\n");
@@ -139,17 +139,17 @@ class GenerateCSV_4Neo4j
         else return; //exit("\nPredicate not found. [".$rec['associationType']."]\n");
         // print_r($rec); //exit("\nstop 3\n");
 
-        // fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
+        // fwrite($this->WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
         $taxonID_1 = ''; $taxonID_2 = '';
         
         if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
-            if($ret = @$this->taxon[$taxonID]) $name1 = $ret['cN'];
+            if($ret = @$this->taxon[$taxonID_1]) $name1 = $ret['cN'];
             else {
                 print_r($rec); exit("\n1st oID not found\n");
             }
         }
         if($taxonID_2 = $this->occurrence[$rec['targetOccurrenceID']]) {
-            if($ret = @$this->taxon[$taxonID]) $name2 = $ret['cN'];
+            if($ret = @$this->taxon[$taxonID_2]) $name2 = $ret['cN'];
             else {
                 print_r($rec); exit("\n2nd oID not found\n");
             }
@@ -158,7 +158,7 @@ class GenerateCSV_4Neo4j
         if($taxonID_1 && $taxonID_2) {
             $arr = array($taxonID_1, $rec['associationType'], $rec['referenceID'], $taxonID_2, $predicate);
             $csv = self::format_csv_entry_array($arr);
-            fwrite($WRITE, $csv."\n");
+            fwrite($this->WRITE, $csv."\n");
         }
     }
     private function build_association_info($rec)
@@ -229,7 +229,7 @@ class GenerateCSV_4Neo4j
     private function process_tsv($local_tsv, $task)
     {
         if($task == 'buildup_predicates') {
-            $WRITE = Functions::file_open($this->files['predicates'], 'w');
+            $this->WRITE = Functions::file_open($this->files['predicates'], 'w');
         }
         $i = 0;
         foreach(new FileIterator($local_tsv) as $line => $row) { $i++;
@@ -253,9 +253,9 @@ class GenerateCSV_4Neo4j
                     $rec['URI'] = $uri;
                     if($i == 2) {
                         $headers = array_keys($rec);
-                        fwrite($WRITE, implode("\t", $headers)."\n");
+                        fwrite($this->WRITE, implode("\t", $headers)."\n");
                     }
-                    fwrite($WRITE, implode("\t", $rec)."\n");
+                    fwrite($this->WRITE, implode("\t", $rec)."\n");
                 }
                 // ==================================================================================================
                 if($task == 'gen_allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
@@ -271,24 +271,24 @@ class GenerateCSV_4Neo4j
             }
         }
         if($task == 'buildup_predicates') {
-            fclose($WRITE);
+            fclose($this->WRITE);
         }
     }
     private function prepare_taxa_csv($tables)
     {
-        $WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
-        fwrite($WRITE, "taxonID:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");
+        $this->WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
+        fwrite($this->WRITE, "taxonID:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate-taxa-csv');
-        fclose($WRITE);
+        fclose($this->WRITE);
     }
     private function prepare_predicates_csv($tables)
     {
-        $WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
-        fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
+        $this->WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
+        fwrite($this->WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
         $meta = $tables['http://eol.org/schema/association'][0];
         self::process_table($meta, 'generate-predicates-csv');
-        fclose($WRITE);
+        fclose($this->WRITE);
     }
     private function initialize_folders($resource_id)
     {

@@ -88,13 +88,22 @@ class GenerateCSV_4Neo4j
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI();
         $ret = $func->get_terms_yml('ALL'); //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
-        foreach($ret as $label => $uri) $uris[$label] = $uri;
+        foreach($ret as $label => $uri) $this->uris[$label] = $uri;
         /*[eat] => http://purl.obolibrary.org/obo/RO_0002470
           [co-roost with] => http://purl.obolibrary.org/obo/RO_0002801*/
-        $WRITE = Functions::file_open($this->files['predicates'], 'w');
-        $tmp_file = Functions::save_remote_file_to_local($this->urls['raw predicates'], $this->download_options);
+        $local_tsv = Functions::save_remote_file_to_local($this->urls['raw predicates'], $this->download_options);
+        self::process_tsv($local_tsv, 'buildup_predicates');
+        unlink($local_tsv);
+        unset($this->uris);
+    }
+    private function process_tsv($local_tsv, $task)
+    {
+        if($task == 'buildup_predicates') {
+            $WRITE = Functions::file_open($this->files['predicates'], 'w');
+        }
+
         $i = 0;
-        foreach(new FileIterator($tmp_file) as $line => $row) { $i++;
+        foreach(new FileIterator($local_tsv) as $line => $row) { $i++;
             $row = Functions::conv_to_utf8($row); 
             if($i == 1) $fields = explode("\t", $row);
             else {
@@ -106,19 +115,25 @@ class GenerateCSV_4Neo4j
                     $k++;
                 }
                 $rec = array_map('trim', $rec); // print_r($rec); exit;
-                /*Array( [EOL_predicate_id] => 12748
-                         [Label] => Body symmetry )*/
-                $label = $rec['Label'];
-                $uri = $uris[$label];
-                $rec['URI'] = $uri;
-                if($i == 2) {
-                    $headers = array_keys($rec);
-                    fwrite($WRITE, implode("\t", $headers)."\n");
+                // ==================================================================================================
+                if($task == 'buildup_predicates') {
+                    /*Array( [EOL_predicate_id] => 12748
+                            [Label] => Body symmetry )*/
+                    $label = $rec['Label'];
+                    $uri = $this->uris[$label];
+                    $rec['URI'] = $uri;
+                    if($i == 2) {
+                        $headers = array_keys($rec);
+                        fwrite($WRITE, implode("\t", $headers)."\n");
+                    }
+                    fwrite($WRITE, implode("\t", $rec)."\n");
                 }
-                fwrite($WRITE, implode("\t", $rec)."\n");
+                // ==================================================================================================
             }
         }
-        fclose($WRITE);
+        if($task == 'buildup_predicates') {
+            fclose($WRITE);
+        }
     }
 }
 ?>

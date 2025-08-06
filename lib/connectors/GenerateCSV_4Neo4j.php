@@ -36,11 +36,11 @@ class GenerateCSV_4Neo4j
 
         // /*
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
-        self::process_table($meta, 'build_occurrence_info');
+        // self::process_table($meta, 'build_occurrence_info');
 
         if(in_array('http://eol.org/schema/association', $extensions)) {
             $meta = $tables['http://eol.org/schema/association'][0];
-            self::process_tsv($this->files['predicates'], 'allowed_uri_predicates');
+            self::process_tsv($this->files['predicates'], 'gen_allowed_uri_predicates'); print_r($this->allowed_uri_predicates); exit;
             // self::process_table($meta, 'build_association_info');
             self::prepare_predicates_csv($tables);
         }
@@ -68,7 +68,7 @@ class GenerateCSV_4Neo4j
             }
             // print_r($rec); exit;
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
-            if($what == 'generate-predicates-csv') self::generate_predicates_csv($rec);
+            elseif($what == 'generate-predicates-csv') self::generate_predicates_csv($rec);
             elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
         }
@@ -103,6 +103,10 @@ class GenerateCSV_4Neo4j
         }
         exit("\n[$csv]\n");
         fwrite($WRITE, $csv."\n");
+    }
+    private function generate_predicates_csv($rec)
+    {
+
     }
     private function build_association_info($rec)
     {   /*Array(
@@ -176,13 +180,14 @@ class GenerateCSV_4Neo4j
                     fwrite($WRITE, implode("\t", $rec)."\n");
                 }
                 // ==================================================================================================
-                if($task == 'allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
+                if($task == 'gen_allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
                     /*Array(
                         [EOL_predicate_id] => 12748
                         [Label] => Body symmetry
                         [URI] => http://eol.org/schema/terms/body_symmetry
                     )*/
-                    $this->allowed_uri_predicates[$rec['URI']] = '';
+                    if($rec['Label'] != 'are eaten by') continue;
+                    $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => $rec['EOL_predicate_id'], 'Label' => $rec['Label']);
                 }
                 // ==================================================================================================
             }

@@ -108,6 +108,14 @@ class GenerateCSV_4Neo4j
         // exit("\n[$csv]\n");
         return $csv;
     }
+    private function format_csv_entry_array($arr)
+    {
+        $csv = "";
+        foreach($arr as $val) $csv .= '"' . $val . '",';
+        exit("\n[$csv]\nstop 1\n");
+        return $csv;
+    }
+ 
     private function generate_predicates_csv($rec)
     {
         // print_r($rec); exit("\ngoes here...\n");
@@ -126,14 +134,24 @@ class GenerateCSV_4Neo4j
             [referenceID] => 211bebbd914337ab8ce89e18880cd8bf
         )*/
         if(!isset($this->allowed_uri_predicates[$rec['associationType']])) return;
-        print_r($rec); exit("\n\111n");
+        // print_r($rec); //exit("\nstop 3\n");
 
-                // fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
+        // fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
+        $name1 = ''; $name2 = '';
+        if($ret = @$this->taxon[$rec['occurrenceID']]) $name1 = $ret['cN'];
+        else {
+            $print_r($rec); exit("\n1st oID not found\n");
+        }
+        if($ret = @$this->taxon[$rec['targetOccurrenceID']]) $name2 = $ret['cN'];
+        else {
+            print_r($rec); exit("\n2nd oID not found\n");
+        }
 
-        // $fields = array('taxonID', 'scientificName', 'taxonRank', 'higherClassification');
-        // $csv = self::format_csv_entry($rec, $fields);
-        // fwrite($WRITE, $csv."\n");
-
+        if($name1 && $name2) {
+            $arr = array($name1, $rec['associationType'], $rec['referenceID'], $name2);
+            $csv = self::format_csv_entry_array($arr);
+            fwrite($WRITE, $csv."\n");
+        }
     }
     private function build_association_info($rec)
     {   /*Array(
@@ -251,7 +269,7 @@ class GenerateCSV_4Neo4j
     private function prepate_taxa_csv($tables)
     {
         $WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
-        fwrite($WRITE, "EOLid:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");
+        fwrite($WRITE, "taxonID:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate-taxa-csv');
         fclose($WRITE);

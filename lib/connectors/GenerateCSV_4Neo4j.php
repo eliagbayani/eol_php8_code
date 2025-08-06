@@ -31,6 +31,7 @@ class GenerateCSV_4Neo4j
         self::process_table($meta, 'build_occurrence_info');
         if(in_array('http://eol.org/schema/association', $extensions)) {
             $tbl = "http://eol.org/schema/association"; $meta = $tables[$tbl][0];
+            self::process_tsv($this->files['predicates'], 'allowed_uri_predicates');
             self::process_table($meta, 'build_association_info');
         }
 
@@ -127,6 +128,15 @@ class GenerateCSV_4Neo4j
                         fwrite($WRITE, implode("\t", $headers)."\n");
                     }
                     fwrite($WRITE, implode("\t", $rec)."\n");
+                }
+                // ==================================================================================================
+                if($task == 'allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
+                    /*Array(
+                        [EOL_predicate_id] => 12748
+                        [Label] => Body symmetry
+                        [URI] => http://eol.org/schema/terms/body_symmetry
+                    )*/
+                    $this->allowed_uri_predicates[$rec['URI']] = '';
                 }
                 // ==================================================================================================
             }

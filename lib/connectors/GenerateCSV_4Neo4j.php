@@ -136,7 +136,7 @@ class GenerateCSV_4Neo4j
         if($ret = @$this->allowed_uri_predicates[$rec['associationType']]) {
             $predicate = strtoupper($ret['Label']);
         }
-        else exit("\nPredicate not found. [".$rec['associationType']."]\n");
+        else return; //exit("\nPredicate not found. [".$rec['associationType']."]\n");
         // print_r($rec); //exit("\nstop 3\n");
 
         // fwrite($WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");

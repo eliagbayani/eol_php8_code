@@ -15,9 +15,17 @@ class GenerateCSV_4Neo4j
         $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
         $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/" . $resource_id . ".tar.gz"; //maybe the way to go
         require_library('connectors/ResourceUtility');
-        $func = new ResourceUtility();
+        $func = new ResourceUtility(false, $resource_id);
         $ret = $func->prepare_archive_for_access($dwca_file, $this->download_options);
-        print_r($ret);
+        // print_r($ret);
+        $temp_dir = $ret['temp_dir'];
+        $tables = $ret['tables'];
+        $index = array_keys($tables);
+        if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
+            debug("Invalid archive file. Program will terminate.");
+            return false;
+        } else echo "\nValid DwCA.\n";
+
     }
     function buildup_predicates()
     {

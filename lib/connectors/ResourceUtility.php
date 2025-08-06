@@ -9,9 +9,11 @@ first client: called from DwCA_Utility.php, which is called from remove_taxa_wit
 5th client: remove_unused_references() -- called from DwCA_Utility.php, which is called from remove_unused_references.php
 6th? client: remove_MoF_for_taxonID() -- called from DwCA_Utility.php, which is called from remove_MoF_for_taxonID.php
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class ResourceUtility
 {
-    function __construct($archive_builder, $resource_id)
+    function __construct($archive_builder = false, $resource_id = false)
     {
         $this->resource_id = $resource_id;
         $this->archive_builder = $archive_builder;
@@ -931,9 +933,17 @@ class ResourceUtility
     }
     function prepare_archive_for_access($dwca_file, $download_options = array('timeout' => 172800, 'expire_seconds' => 60*60*24*1))
     {
+        /* normal operation
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
-        $paths = $func->extract_archive_file($this->dwca_file, "meta.xml", $download_options);
+        $paths = $func->extract_archive_file($dwca_file, "meta.xml", $download_options);
+        */
+        // /* development only
+        $paths = Array(
+            'archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_46405/',
+            'temp_dir' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_46405/'
+        );
+        // */
         $archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
         $harvester = new ContentArchiveReader(NULL, $archive_path);

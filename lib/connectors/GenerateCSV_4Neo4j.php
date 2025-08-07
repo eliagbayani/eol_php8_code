@@ -301,13 +301,9 @@ class GenerateCSV_4Neo4j
         $csv = substr($csv, 0, -1); //exit("\n[$csv]\nstop 1\n");
         return $csv;
     }
-
     private function small_field($uri)
     {
         return pathinfo($uri, PATHINFO_FILENAME);
     }
-
-    
-
 }
 ?>

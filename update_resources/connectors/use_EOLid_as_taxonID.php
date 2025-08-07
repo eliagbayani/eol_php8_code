@@ -16,7 +16,7 @@ These ff. workspaces work together:
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
 ==================================================================== generate tar.gz
-tar -czf protisten_v2_Eli.tar.gz protisten_v2_Eli/
+tar -czf folder.tar.gz folder/
 */
 
 include_once(dirname(__FILE__) . "/../../config/environment.php");
@@ -33,10 +33,11 @@ $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
 $tmp_id = $param['resource_id'];
-$tmp_id .= "_neo4j_1";
+$tmp_id .= "_neo4j_2";
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$tmp_id.'.tar.gz';
-$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz"; //during dev only
+$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz";  //during dev only
+$dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/".$tmp_id.".tar.gz";                       //maybe the way to go
 
 $resource_id .= "_neo4j_3"; //the DwCA using EOLid in taxonID of taxon.tab
 

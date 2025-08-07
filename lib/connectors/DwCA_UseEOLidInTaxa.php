@@ -89,7 +89,7 @@ class DwCA_UseEOLidInTaxa
             }
             if($what == 'write_taxon') {
                 if($new_taxonID = $this->taxonID_EOLid[$taxonID]) {
-                    if(isset($this->unique_taxonID[$new_taxonID])) continue;
+                    if(isset($this->unique_taxonID[$new_taxonID])) continue; //prevented duplicate taxonIDs, which is possible e.g. Globi DwCA.
                     else {
                         $this->unique_taxonID[$new_taxonID] = '';
                         $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;

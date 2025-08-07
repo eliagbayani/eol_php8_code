@@ -203,8 +203,10 @@ class GenerateCSV_4Neo4j
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI();
-        $ret = $func->get_terms_yml('ALL'); //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
-        foreach($ret as $label => $uri) $this->uris[$label] = $uri;
+        $this->uris = $func->get_terms_yml('neo4j'); //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
+        // print_r($ret); exit;
+        // foreach($ret as $label => $rek) $this->uris[$label] = $rek;
+        // print_r($this->uris); exit;
         /*[eat] => http://purl.obolibrary.org/obo/RO_0002470
           [co-roost with] => http://purl.obolibrary.org/obo/RO_0002801*/
         $local_tsv = Functions::save_remote_file_to_local($this->urls['raw predicates'], $this->download_options);
@@ -235,8 +237,8 @@ class GenerateCSV_4Neo4j
                     /*Array( [EOL_predicate_id] => 12748
                             [Label] => Body symmetry )*/
                     $label = $rec['Label'];
-                    $uri = $this->uris[$label];
-                    $rec['URI'] = $uri;
+                    $rec['URI'] = $this->uris[$label]['uri'];
+                    $rec['type'] = $this->uris[$label]['type'];
                     if($i == 2) {
                         $headers = array_keys($rec);
                         fwrite($this->WRITE, implode("\t", $headers)."\n");

@@ -32,7 +32,7 @@ class GenerateCSV_4Neo4j
 
         $extensions = array_keys($tables); print_r($extensions);
 
-        // self::prepare_taxa_csv($tables);
+        self::prepare_taxa_csv($tables);
 
         // /*
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];  self::process_table($meta, 'build_occurrence_info');
@@ -99,21 +99,8 @@ class GenerateCSV_4Neo4j
         // $csv = '".$rec['taxonID'].",".$rec['scientificName'].",".$rec['taxonRank'].",".$rec['higherClassification']."';
         $fields = array('taxonID', 'scientificName', 'taxonRank', 'higherClassification');
         $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'Taxon';
         fwrite($this->WRITE, $csv."\n");
-    }
-    private function format_csv_entry($rec, $fields)
-    {
-        $csv = "";
-        foreach($fields as $field) $csv .= '"' . $rec[$field] . '",'; 
-        //exit("\n[$csv]\n");
-        return $csv;
-    }
-    private function format_csv_entry_array($arr)
-    {
-        $csv = "";
-        foreach($arr as $val) $csv .= '"' . $val . '",';
-        $csv = substr($csv, 0, -1); //exit("\n[$csv]\nstop 1\n");
-        return $csv;
     }
     private function generate_predicates_csv($rec)
     {
@@ -276,7 +263,7 @@ class GenerateCSV_4Neo4j
     private function prepare_taxa_csv($tables)
     {
         $this->WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
-        fwrite($this->WRITE, "taxonID:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification:LABEL"."\n");
+        fwrite($this->WRITE, "taxonID:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification,:LABEL"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate-taxa-csv');
         fclose($this->WRITE);
@@ -289,6 +276,10 @@ class GenerateCSV_4Neo4j
         self::process_table($meta, 'generate-predicates-csv');
         fclose($this->WRITE);
     }
+    private function clean_csv_item($str)
+    {
+        return str_replace('"', '""', $str);
+    }
     private function initialize_folders($resource_id)
     {
         $path = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . '_csv';
@@ -296,9 +287,27 @@ class GenerateCSV_4Neo4j
         mkdir($path);
         $this->path = $path;
     }
+    private function format_csv_entry($rec, $fields)
+    {
+        $csv = "";
+        foreach($fields as $field) $csv .= '"' . self::clean_csv_item($rec[$field]) . '",'; 
+        //exit("\n[$csv]\n");
+        return $csv;
+    }
+    private function format_csv_entry_array($arr)
+    {
+        $csv = "";
+        foreach($arr as $val) $csv .= '"' . self::clean_csv_item($val) . '",';
+        $csv = substr($csv, 0, -1); //exit("\n[$csv]\nstop 1\n");
+        return $csv;
+    }
+
     private function small_field($uri)
     {
         return pathinfo($uri, PATHINFO_FILENAME);
     }
+
+    
+
 }
 ?>

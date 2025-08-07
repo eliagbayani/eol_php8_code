@@ -23,8 +23,12 @@ class DwCA_UseEOLidInTaxa
         $extensions = array_keys($tables); print_r($extensions);
         // */
 
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        self::process_table($meta, 'build_taxon_info');
+        // $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        // self::process_table($meta, 'build_taxon_info');
+
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
+        self::process_table($meta, 'build_occurrence_info');
+
 
         if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
     }
@@ -83,6 +87,10 @@ class DwCA_UseEOLidInTaxa
                 if($EOLid) $this->taxonID_EOLid[$taxonID] = $EOLid;
                 else       $this->taxonID_EOLid[$taxonID] = $taxonID;
             }
+            if ($what == 'build_occurrence_info') {
+
+            }
+            
             // self::write_2archive($rec); continue;
             // if($i >= 100) break; //dev only
         }

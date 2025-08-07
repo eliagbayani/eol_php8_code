@@ -16,19 +16,23 @@ class DwCA_UseEOLidInTaxa
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
     {
-        require_library('connectors/DwCA_Utility_cmd');
-
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions);
         // */
 
-        // $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        // self::process_table($meta, 'build_taxon_info');
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        self::process_table($meta, 'build_taxon_info');
+        self::process_table($meta, 'write_taxon');
 
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
-        self::process_table($meta, 'build_occurrence_info');
+        self::process_table($meta, 'write_occurrence');
 
+        /* not needed since no taxonID here
+        if(in_array('http://eol.org/schema/association', $extensions)) {
+            $meta = $tables['http://eol.org/schema/association'][0];
+            self::process_table($meta, 'build_association_info');
+        } */
 
         if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
     }
@@ -38,7 +42,7 @@ class DwCA_UseEOLidInTaxa
         $i = 0;
         foreach (new FileIterator($meta->file_uri) as $line => $row) {
             $i++;
-            if (($i % 100000) == 0) echo "\n" . number_format($i) . " - "; //10k orig
+            if (($i % 500000) == 0) echo "\n" . number_format($i) . " - "; //10k orig
             if ($meta->ignore_header_lines && $i == 1) continue;
             if (!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
@@ -49,7 +53,7 @@ class DwCA_UseEOLidInTaxa
                 if (!$field['term']) continue;
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
-            } print_r($rec); exit;
+            } //print_r($rec); exit;
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/taxonID] => COL:74YCG
                 [http://rs.tdwg.org/ac/terms/furtherInformationURL] => https://www.catalogueoflife.org/data/taxon/74YCG
@@ -77,32 +81,60 @@ class DwCA_UseEOLidInTaxa
             */
 
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-            $EOLid = $rec['http://eol.org/schema/EOLid'];
-            // $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
-            // $taxonomicStatus = @$rec['http://rs.tdwg.org/dwc/terms/taxonomicStatus'];
-            // $acceptedNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'];
-            // $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
 
             if ($what == 'build_taxon_info') {
+                $EOLid = $rec['http://eol.org/schema/EOLid'];
                 if($EOLid) $this->taxonID_EOLid[$taxonID] = $EOLid;
                 else       $this->taxonID_EOLid[$taxonID] = $taxonID;
             }
-            if ($what == 'build_occurrence_info') {
+            if($what == 'write_taxon') {
+                if($new_taxonID = $this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
 
+                if($parentNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID']) {
+                    if($new_taxonID = $this->taxonID_EOLid[$parentNameUsageID]) $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = $new_taxonID;
+                }
+
+                self::write_2archive($rec, 'taxon'); continue;                
             }
-            
-            // self::write_2archive($rec); continue;
+            if ($what == 'write_occurrence') {
+                if($new_taxonID = $this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
+                self::write_2archive($rec, 'occurrence_specific'); continue;
+            }
             // if($i >= 100) break; //dev only
         }
     }
-    private function write_2archive($rec)
+    private function write_2archive($rec, $class)
     {
-        $o = new \eol_schema\Taxon();
+        $o = self::get_eol_schema($class);
         $uris = array_keys($rec);
         foreach ($uris as $uri) {
             $field = self::get_field_from_uri($uri);
             $o->$field = $rec[$uri];
         }
         $this->archive_builder->write_object_to_file($o);
+    }
+    private function get_eol_schema($class)
+    {
+        if($class == "taxon")                   $c = new \eol_schema\Taxon();
+        elseif($class == "occurrence")          $c = new \eol_schema\Occurrence();
+        elseif($class == "occurrence_specific") $c = new \eol_schema\Occurrence_specific();
+        /* not used here
+        elseif($class == "vernacular")           $c = new \eol_schema\VernacularName();
+        elseif($class == "agent")                $c = new \eol_schema\Agent();
+        elseif($class == "reference")            $c = new \eol_schema\Reference();
+        elseif($class == "document")             $c = new \eol_schema\MediaResource();
+        elseif($class == "measurementorfact")    $c = new \eol_schema\MeasurementOrFact();
+        elseif($class == "association")          $c = new \eol_schema\Association();
+        */
+        else exit("\nUndefined class [$class]. Will terminate*.\n");
+        return $c;
+    }
+    private function get_field_from_uri($uri)
+    {
+        $field = pathinfo($uri, PATHINFO_BASENAME);
+        $parts = explode("#", $field);
+        if ($parts[0]) $field = $parts[0];
+        if (@$parts[1]) $field = $parts[1];
+        return $field;
     }
 }

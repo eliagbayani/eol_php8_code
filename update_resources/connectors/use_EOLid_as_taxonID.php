@@ -33,7 +33,7 @@ $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
 $tmp_id = $param['resource_id'];
-$tmp_id .= "_neo4j_2";
+$tmp_id .= "_neo4j_2"; //reads this file
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$tmp_id.'.tar.gz';
 $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz";  //during dev only
@@ -50,7 +50,7 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
     $preferred_rowtypes = array("http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 
-        "http://rs.tdwg.org/dwc/terms/occurrence", "http://rs.tdwg.org/dwc/terms/measurementorfact", "http://eol.org/schema/association",    
+        "http://rs.tdwg.org/dwc/terms/measurementorfact", "http://eol.org/schema/association",    
         "http://eol.org/schema/agent/agent", "http://eol.org/schema/media/document");
     $preferred_rowtypes[] = "http://rs.gbif.org/terms/1.0/reference"; //just in case used by some DwCA
     $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');

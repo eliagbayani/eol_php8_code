@@ -69,7 +69,7 @@ if ($resource_id == "WoRMS2EoL") {
 if($resource_id == "Brazilian_Flora") $resource_id = "Brazilian_Flora_with_canonical";
 else exit("\nresource_id [$resource_id] not yet initialized. \n");
 */
-$resource_id .= "_neo4j_1"; //latest implementation
+$resource_id .= "_neo4j_1"; //generates this file; latest implementation
 
 process_resource_url($dwca_file, $resource_id, $timestart);
 

@@ -16,10 +16,12 @@ Now the command line gnparser option is the default. No more lookup, very slow a
 As of this writing: Global Names Parser (v1.7.1) - https://parser.globalnames.org/doc/api
 
 These ff. workspaces work together:
+- generate_higherClassification_8.code-workspace
 - DHConnLib_8.code-workspace
 - GNParserAPI_8.code-workspace
 - DwCA_MatchTaxa2DH.code-workspace
-- generate_higherClassification_8.code-workspace
+- UseEOLidInTaxon.code-workspace
+- GenerateCSV_4Neo4j.code-workspace
 ====================================================================
 $ nohup php run_gnparser_dwca.php _ "{'resource_id': 'Brazilian_Flora'}" > terminal_BF_canonical.out 2>&1 &
 -> use 'nohup' so it continues even after logging out of the terminal

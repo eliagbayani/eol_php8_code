@@ -4,9 +4,9 @@ namespace php_active_record;
 https://github.com/EOL/ContentImport/issues/33
 
 clients: for neo4j trait resources
-php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "Brazilian_Flora"}'
-php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "globi_assoc"}'
-php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "WoRMS2EoL"}'
+php update_resources/connectors/use_EOLid_as_taxonID.php _ '{"resource_id": "globi_assoc"}'
+php update_resources/connectors/xxx.php _ '{"resource_id": "Brazilian_Flora"}'
+php update_resources/connectors/xxx.php _ '{"resource_id": "WoRMS2EoL"}'
 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
@@ -38,14 +38,14 @@ $tmp_id .= "_neo4j_1";
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$tmp_id.'.tar.gz';
 $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz"; //during dev only
 
-$resource_id .= "_neo4j_2"; //the DwCA with the new column eolID from DH
+$resource_id .= "_neo4j_3"; //the DwCA using EOLid in taxonID of taxon.tab
 
 process_resource_url($dwca_file, $resource_id, $timestart);
 
 function process_resource_url($dwca_file, $resource_id, $timestart)
 {
     require_library('connectors/DwCA_Utility');
-    $params['resource'] = "match_taxa_2DH";
+    $params['resource'] = "use_EOLid_as_taxonID";
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
     $preferred_rowtypes = array("http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 

@@ -51,8 +51,6 @@ class DHConnLib
             // $this->main_path = "/Volumes/AKiTiO4/d_w_h/history/dhv21/";                                      //supposedly latest but doesn't have EOLid
             $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/dh226/taxon.tsv";   //latest from Katja 17Jul2025
             $this->main_path = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/dh226_Eli/taxon.tsv";   //latest from Katja 17Jul2025
-
-
         }
         if ($val = $path_to_taxa_file) $this->main_path = $val;
         echo "\npath_to_taxa_file: [$this->main_path]\n";

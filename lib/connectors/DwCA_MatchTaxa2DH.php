@@ -41,9 +41,7 @@ class DwCA_MatchTaxa2DH
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
     {
-        
         require_library('connectors/DwCA_Utility_cmd');
-
         // /* step 1: read info from DH
         require_library('connectors/DHConnLib');
         $this->DH = new DHConnLib(1);

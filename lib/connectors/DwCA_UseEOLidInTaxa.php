@@ -88,7 +88,13 @@ class DwCA_UseEOLidInTaxa
                 else       $this->taxonID_EOLid[$taxonID] = $taxonID;
             }
             if($what == 'write_taxon') {
-                if($new_taxonID = $this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
+                if($new_taxonID = $this->taxonID_EOLid[$taxonID]) {
+                    if(isset($this->unique_taxonID[$new_taxonID])) continue;
+                    else {
+                        $this->unique_taxonID[$new_taxonID] = '';
+                        $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
+                    }
+                }
 
                 if($parentNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID']) {
                     if($new_taxonID = $this->taxonID_EOLid[$parentNameUsageID]) $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = $new_taxonID;

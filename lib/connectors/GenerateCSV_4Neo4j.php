@@ -104,16 +104,15 @@ class GenerateCSV_4Neo4j
     private function format_csv_entry($rec, $fields)
     {
         $csv = "";
-        foreach($fields as $field) $csv .= '"' . $rec[$field] . '",';
-        // exit("\n[$csv]\n");
+        foreach($fields as $field) $csv .= '"' . $rec[$field] . '",'; 
+        //exit("\n[$csv]\n");
         return $csv;
     }
     private function format_csv_entry_array($arr)
     {
         $csv = "";
         foreach($arr as $val) $csv .= '"' . $val . '",';
-        $csv = substr($csv, 0, -1);
-        // exit("\n[$csv]\nstop 1\n");
+        $csv = substr($csv, 0, -1); //exit("\n[$csv]\nstop 1\n");
         return $csv;
     }
     private function generate_predicates_csv($rec)

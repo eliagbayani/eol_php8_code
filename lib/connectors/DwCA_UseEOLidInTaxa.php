@@ -12,10 +12,14 @@ class DwCA_UseEOLidInTaxa
         $this->archive_path = $archive_path;
         $this->debug = array();
         $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
+        $this->urls['preferred_vernaculars'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/english_preferred_vernaculars_by_page.tsv';
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
     {
+        self::lookup_JRice_vernacular_list();
+        // print_r($this->taxonID_vernacular); exit("\n".count($this->taxonID_vernacular)."\n"); //as of 9Aug2025 n=239,514
+
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions);
@@ -92,7 +96,9 @@ class DwCA_UseEOLidInTaxa
                     if(isset($this->unique_taxonID[$new_taxonID])) continue; //prevented duplicate taxonIDs, which is possible e.g. Globi DwCA.
                     else {
                         $this->unique_taxonID[$new_taxonID] = '';
-                        $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
+                        $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID; //is the EOLid
+
+                        $rec['http://rs.tdwg.org/dwc/terms/vernacularName'] = self::get_vernacularName($new_taxonID);
                     }
                 }
 
@@ -142,5 +148,55 @@ class DwCA_UseEOLidInTaxa
         if ($parts[0]) $field = $parts[0];
         if (@$parts[1]) $field = $parts[1];
         return $field;
+    }
+    private function lookup_JRice_vernacular_list()
+    {
+        $local_tsv = Functions::save_remote_file_to_local($this->urls['preferred_vernaculars'], $this->download_options);
+        $i = 0;
+        foreach(new FileIterator($local_tsv) as $line => $row) { $i++;
+            $row = Functions::conv_to_utf8($row); 
+            if($i == 1) $fields = explode("\t", $row);
+            else {
+                if(!$row) continue;
+                $tmp = explode("\t", $row);
+                $rec = array(); $k = 0;
+                foreach($fields as $field) {
+                    $rec[$field] = $tmp[$k];
+                    $k++;
+                }
+                $rec = array_map('trim', $rec); //print_r($rec); exit;
+                /*Array(
+                    [EOLid] => 328090
+                    [vernacularName] => Brown Palm Civet
+                )*/
+                if(is_numeric($rec['EOLid'])) {
+                    if(self::valid_vernacular($rec['vernacularName'])) {
+                        $this->taxonID_vernacular[$rec['EOLid']] = $rec['vernacularName'];
+                    }
+                    else exit("\nInvalid vernacularName [".$rec['vernacularName']."]\n");
+                }
+                else exit("\nInvalid EOLid [".$rec['EOLid']."]\n");
+            }
+        }
+        unlink($local_tsv);
+    }
+    private function get_vernacularName($eol_id)
+    {
+        if($val = @$this->taxonID_vernacular[$eol_id]) {
+            if($val == '""') return "";
+            else return $val;
+        }
+        return "";
+    }
+    private function valid_vernacular($vernacular)
+    {
+        $count = substr_count($vernacular, '"');
+        if(!self::isEven($count)) {
+            exit("\nCheck vernacular [".$vernacular."]\n");
+        }
+        return true;
+    }
+    private function isEven($num) {
+        return ($num % 2 == 0);
     }
 }

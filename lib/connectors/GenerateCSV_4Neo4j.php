@@ -66,7 +66,7 @@ class GenerateCSV_4Neo4j
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
-            // print_r($rec); exit;
+            // print_r($rec); //exit;
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
             elseif($what == 'generate-predicates-csv') self::generate_predicates_csv($rec);
             elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
@@ -95,9 +95,9 @@ class GenerateCSV_4Neo4j
             [canonicalName] => Orthosia pacifica
             [EOLid] => 465299
         )*/
-        // print_r($rec); exit("\ncha\n");
         // $csv = '".$rec['taxonID'].",".$rec['scientificName'].",".$rec['taxonRank'].",".$rec['higherClassification']."';
-        $fields = array('taxonID', 'scientificName', 'taxonRank', 'higherClassification');
+        $fields = array('taxonID', 'vernacularName', 'scientificName', 'taxonRank', 'higherClassification');
+        // print_r($rec); print_r($fields); exit;
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Taxon';
         fwrite($this->WRITE, $csv."\n");
@@ -265,7 +265,7 @@ class GenerateCSV_4Neo4j
     private function prepare_taxa_csv($tables)
     {
         $this->WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
-        fwrite($this->WRITE, "taxonID:ID(Taxon){label:Taxon},scientificName,taxonRank,higherClassification,:LABEL"."\n");
+        fwrite($this->WRITE, "taxonID:ID(Taxon){label:Taxon},vernacularName,scientificName,taxonRank,higherClassification,:LABEL"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate-taxa-csv');
         fclose($this->WRITE);
@@ -292,7 +292,13 @@ class GenerateCSV_4Neo4j
     private function format_csv_entry($rec, $fields)
     {
         $csv = "";
-        foreach($fields as $field) $csv .= '"' . self::clean_csv_item($rec[$field]) . '",'; 
+        foreach($fields as $field) {
+            if($field == 'vernacularName') {
+                $val = $rec['vernacularName'] ? $rec['vernacularName'] : $rec['scientificName'];
+            }
+            else $val = $rec[$field];
+            $csv .= '"' . self::clean_csv_item($val) . '",'; 
+        }
         //exit("\n[$csv]\n");
         return $csv;
     }

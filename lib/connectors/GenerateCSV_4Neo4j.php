@@ -121,6 +121,7 @@ class GenerateCSV_4Neo4j
         )*/
         if($ret = @$this->allowed_uri_predicates[$rec['associationType']]) {
             $predicate = strtoupper($ret['Label']);
+            $predicate = str_replace(" ", "_", $predicate);
         }
         else return; //exit("\nPredicate not found. [".$rec['associationType']."]\n");
         // print_r($rec); //exit("\nstop 3\n");
@@ -199,20 +200,39 @@ class GenerateCSV_4Neo4j
         $sciname = $rec['canonicalName'] ? $rec['canonicalName'] : $rec['scientificName'];
         $this->taxon[$rec['taxonID']] = array('cN' => $sciname, 'r' => $rec['taxonRank']);
     }
+    /* obsolete
     function buildup_predicates()
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI();
-        $this->uris = $func->get_terms_yml('neo4j'); //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
-        // print_r($ret); exit;
-        // foreach($ret as $label => $rek) $this->uris[$label] = $rek;
-        // print_r($this->uris); exit;
-        /*[eat] => http://purl.obolibrary.org/obo/RO_0002470
-          [co-roost with] => http://purl.obolibrary.org/obo/RO_0002801*/
+        //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
+        $this->uris = $func->get_terms_yml('neo4j');         
         $local_tsv = Functions::save_remote_file_to_local($this->urls['raw predicates'], $this->download_options);
         self::process_tsv($local_tsv, 'buildup_predicates');
         unlink($local_tsv);
         unset($this->uris);
+    } */
+    function buildup_predicates_all()
+    {
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI();
+        //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
+        $terms = $func->get_terms_yml('neo4j_v2');
+        $WRITE = Functions::file_open($this->files['predicates'], 'w');
+        fwrite($WRITE, implode("\t", array('Label', 'URI', 'type'))."\n");
+        foreach($terms as $uri => $rek) {
+            // echo "\n[$uri]\n"; print_r($rek); exit;
+            /*Array(
+                [name] => abundance
+                [type] => measurement
+            )*/
+            $rec = array();
+            $rec[] = $rek['name'];
+            $rec[] = $uri;
+            $rec[] = $rek['type'];
+            fwrite($WRITE, implode("\t", $rec)."\n");
+        }
+        fclose($WRITE);
     }
     private function process_tsv($local_tsv, $task)
     {
@@ -252,7 +272,7 @@ class GenerateCSV_4Neo4j
                         [Label] => Body symmetry
                         [URI] => http://eol.org/schema/terms/body_symmetry
                     )*/
-                    if($rec['Label'] != 'eat') continue;
+                    // if($rec['Label'] != 'eat') continue; //dev only
                     $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => $rec['EOL_predicate_id'], 'Label' => $rec['Label']);
                 }
                 // ==================================================================================================

@@ -50,7 +50,16 @@ class EOLterms_ymlAPI
                     )*/
                     $name = self::remove_quote_delimiters($rek['name']);
                     if($sought_type == 'ALL')               $final[$name] = $rek['uri'];
-                    elseif($sought_type == 'neo4j')         $final[$name] = array('uri' => $rek['uri'], 'type' => $rek['type']);
+                    elseif($sought_type == 'neo4j') {
+                        if(in_array(@$rek['type'], array('measurement', 'association'))) {
+                            $final[$name] = array('uri' => $rek['uri'], 'type' => $rek['type']);
+                        }
+                    }
+                    elseif($sought_type == 'neo4j_v2') {
+                        if(in_array(@$rek['type'], array('measurement', 'association'))) {
+                            $final[$rek['uri']] = array('name' => $name, 'type' => $rek['type']);
+                        }
+                    }
                     elseif($sought_type == 'ALL_URI')       $final[$rek['uri']] = $name;
                     elseif($sought_type == 'WoRMS value') {
                         if(@$rek['type'] == 'value') $final[$rek['uri']] = $name;

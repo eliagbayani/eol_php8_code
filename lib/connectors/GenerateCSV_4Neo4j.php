@@ -273,7 +273,7 @@ class GenerateCSV_4Neo4j
                         [URI] => http://eol.org/schema/terms/body_symmetry
                     )*/
                     // if($rec['Label'] != 'eat') continue; //dev only
-                    $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => $rec['EOL_predicate_id'], 'Label' => $rec['Label']);
+                    $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => @$rec['EOL_predicate_id'], 'Label' => $rec['Label']);
                 }
                 // ==================================================================================================
             }

@@ -19,7 +19,7 @@ $resource_id = $param['resource_id'];
 require_library('connectors/GenerateCSV_4Neo4j');
 $func = new GenerateCSV_4Neo4j($resource_id);
 // $func->buildup_predicates(); //obsolete. Only generates based on a given file
-$func->buildup_predicates_all(); //the way to go. generates all from EOL Terms File: type 'measurement' and 'association'
-// $func->assemble_data($resource_id);
+// $func->buildup_predicates_all(); //the way to go. generates all from EOL Terms File: type 'measurement' and 'association'
+$func->assemble_data($resource_id);
 
 ?>

@@ -109,7 +109,8 @@ class DwCA_UseEOLidInTaxa
                 self::write_2archive($rec, 'taxon'); continue;                
             }
             if ($what == 'write_occurrence') {
-                if($new_taxonID = $this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
+                if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
+                else @$this->debug['WoRMS taxa in O.tab but not in T.tab'] .= " [$taxonID]";
                 self::write_2archive($rec, 'occurrence_specific'); continue;
             }
             // if($i >= 100) break; //dev only

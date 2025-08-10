@@ -38,16 +38,20 @@ class GenerateCSV_4Neo4j
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];  self::process_table($meta, 'build_occurrence_info');
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];  self::process_table($meta, 'build_taxon_info');
 
-        if(in_array('http://eol.org/schema/association', $extensions)) {
-            $meta = $tables['http://eol.org/schema/association'][0];
+        if(in_array('http://eol.org/schema/association', $extensions) || 
+           in_array('http://rs.tdwg.org/dwc/terms/measurementorfact', $extensions)) {
             self::process_tsv($this->files['predicates'], 'gen_allowed_uri_predicates'); //print_r($this->allowed_uri_predicates); exit;
-            // self::process_table($meta, 'build_association_info');
-            self::prepare_predicates_csv($tables);
         }
+        
+        if(in_array('http://eol.org/schema/association', $extensions)) {
+            self::prepare_predicates_csv_association($tables);
+        }
+        if(in_array('http://rs.tdwg.org/dwc/terms/measurementorfact', $extensions)) {
+            self::prepare_predicates_csv_measurement($tables);
+        }
+
         // */
 
-        // $tbl = "http://rs.tdwg.org/dwc/terms/taxon"; $meta = $tables[$tbl][0];
-        // self::process_table($meta, 'assemble_taxa');
 
     }
     private function process_table($meta, $what)
@@ -69,6 +73,7 @@ class GenerateCSV_4Neo4j
             // print_r($rec); //exit;
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
             elseif($what == 'generate-predicates-csv') self::generate_predicates_csv($rec);
+            elseif($what == 'generate-measurements-csv') self::generate_measurements_csv($rec);
             elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
             elseif($what == 'build_taxon_info') self::build_taxon_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
@@ -290,12 +295,20 @@ class GenerateCSV_4Neo4j
         self::process_table($meta, 'generate-taxa-csv');
         fclose($this->WRITE);
     }
-    private function prepare_predicates_csv($tables)
+    private function prepare_predicates_csv_association($tables)
     {
         $this->WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
         fwrite($this->WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
         $meta = $tables['http://eol.org/schema/association'][0];
         self::process_table($meta, 'generate-predicates-csv');
+        fclose($this->WRITE);
+    }
+    private function prepare_predicates_csv_measurement($tables)
+    {
+        $this->WRITE = Functions::file_open($this->path.'/measurements.csv', 'w');
+        fwrite($this->WRITE, ":START_ID(Taxon),value,measurementType,referenceID,:TYPE"."\n");
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
+        self::process_table($meta, 'generate-measurements-csv');
         fclose($this->WRITE);
     }
     private function clean_csv_item($str)

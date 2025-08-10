@@ -137,13 +137,13 @@ class GenerateCSV_4Neo4j
         if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
             if($ret = @$this->taxon[$taxonID_1]) $name1 = $ret['cN'];
             else {
-                print_r($rec); exit("\n1st oID not found\n");
+                print_r($rec); exit("\nassociations: 1st oID not found\n");
             }
         }
         if($taxonID_2 = $this->occurrence[$rec['targetOccurrenceID']]) {
             if($ret = @$this->taxon[$taxonID_2]) $name2 = $ret['cN'];
             else {
-                print_r($rec); exit("\n2nd oID not found\n");
+                print_r($rec); exit("\nassociations: 2nd oID not found\n");
             }
         }
 
@@ -153,6 +153,48 @@ class GenerateCSV_4Neo4j
             fwrite($this->WRITE, $csv."\n");
         }
     }
+    private function generate_measurements_csv($rec)
+    {
+        // print_r($rec); exit("\ngoes here...\n");
+        /*Array(
+            [measurementID] => 118e29317da0c8eae6c6e44e84959862
+            [occurrenceID] => e36713aea279079ed39099826601f8f6
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://rs.tdwg.org/dwc/terms/habitat
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000024
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:101, Gastropoda Cuvier, 1795
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=1054700
+            [contributor] => 
+            [referenceID] => 
+        )*/
+        if($ret = @$this->allowed_uri_predicates[$rec['measurementType']]) {
+            $predicate = strtoupper($ret['Label']);
+            $predicate = str_replace(" ", "_", $predicate);
+        }
+        else return; //exit("\nPredicate not found. [".$rec['measurementType']."]\n");
+        // print_r($rec); //exit("\nstop 3\n");
+
+        $taxonID_1 = '';
+        if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
+            if($ret = @$this->taxon[$taxonID_1]) $name1 = $ret['cN'];
+            else {
+                // print_r($rec); exit("\nmeasurements: 1st oID not found\n");
+                @$this->debug['measurements: taxonID not found in taxa'] .= " [".$rec['occurrenceID']."-$taxonID_1]";
+            }
+        }
+        if($taxonID_1) {
+            $arr = array($taxonID_1, $rec['measurementValue'], $rec['measurementType'], $rec['referenceID'], $predicate);
+            $csv = self::format_csv_entry_array($arr);
+            fwrite($this->WRITE, $csv."\n");
+        }
+    }
+
     private function build_association_info($rec)
     {   /*Array(
             [http://eol.org/schema/associationID] => 4cb8806ffd419983bc7080a1a50b02b4

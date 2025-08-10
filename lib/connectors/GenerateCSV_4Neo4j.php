@@ -47,12 +47,10 @@ class GenerateCSV_4Neo4j
             self::prepare_predicates_csv_association($tables);
         }
         if(in_array('http://rs.tdwg.org/dwc/terms/measurementorfact', $extensions)) {
+            self::prepare_measurements_csv($tables);
             self::prepare_predicates_csv_measurement($tables);
         }
-
         // */
-
-
     }
     private function process_table($meta, $what)
     {
@@ -72,8 +70,13 @@ class GenerateCSV_4Neo4j
             }
             // print_r($rec); //exit;
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
-            elseif($what == 'generate-predicates-csv') self::generate_predicates_csv($rec);
-            elseif($what == 'generate-measurements-csv') self::generate_measurements_csv($rec);
+            elseif($what == 'generate-measurements-csv') {
+                if($rec['measurementOfTaxon'] == 'true' && !$rec['parentMeasurementID']) {
+                    self::generate_measurements_csv($rec);
+                }
+            }
+            elseif($what == 'generate-predicates-csv')              self::generate_predicates_csv($rec);
+            elseif($what == 'generate-predicates-measurements-csv') self::generate_predicates_measurements_csv($rec);
             elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
             elseif($what == 'build_taxon_info') self::build_taxon_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
@@ -105,6 +108,31 @@ class GenerateCSV_4Neo4j
         // print_r($rec); print_r($fields); exit;
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Taxon';
+        fwrite($this->WRITE, $csv."\n");
+    }
+    private function generate_measurements_csv($rec)
+    {
+        /*Array(
+            [measurementID] => 118e29317da0c8eae6c6e44e84959862
+            [occurrenceID] => e36713aea279079ed39099826601f8f6
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://rs.tdwg.org/dwc/terms/habitat
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000024
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:101, Gastropoda Cuvier, 1795
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=1054700
+            [contributor] => 
+            [referenceID] => 
+        )*/
+        $fields = array('measurementID', 'measurementValue', 'measurementType');
+        // print_r($rec); print_r($fields); exit;
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'Measurement';
         fwrite($this->WRITE, $csv."\n");
     }
     private function generate_predicates_csv($rec)
@@ -153,7 +181,7 @@ class GenerateCSV_4Neo4j
             fwrite($this->WRITE, $csv."\n");
         }
     }
-    private function generate_measurements_csv($rec)
+    private function generate_predicates_measurements_csv($rec)
     {
         // print_r($rec); exit("\ngoes here...\n");
         /*Array(
@@ -189,7 +217,7 @@ class GenerateCSV_4Neo4j
             }
         }
         if($taxonID_1) {
-            $arr = array($taxonID_1, $rec['measurementValue'], $rec['measurementType'], $rec['referenceID'], $predicate);
+            $arr = array($taxonID_1, $rec['measurementType'], $rec['referenceID'], $rec['measurementID'] ,$predicate);
             $csv = self::format_csv_entry_array($arr);
             fwrite($this->WRITE, $csv."\n");
         }
@@ -337,6 +365,32 @@ class GenerateCSV_4Neo4j
         self::process_table($meta, 'generate-taxa-csv');
         fclose($this->WRITE);
     }
+    private function prepare_measurements_csv($tables)
+    {
+        /*Array(
+            [measurementID] => 118e29317da0c8eae6c6e44e84959862
+            [occurrenceID] => e36713aea279079ed39099826601f8f6
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://rs.tdwg.org/dwc/terms/habitat
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000024
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:101, Gastropoda Cuvier, 1795
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=1054700
+            [contributor] => 
+            [referenceID] => 
+        )*/
+        $this->WRITE = Functions::file_open($this->path.'/measurements.csv', 'w');
+        fwrite($this->WRITE, "measurementID:ID(Measurement){label:Measurement},measurementValue,measurementType,:LABEL"."\n");
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
+        self::process_table($meta, 'generate-measurements-csv');
+        fclose($this->WRITE);
+    }
+
     private function prepare_predicates_csv_association($tables)
     {
         $this->WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
@@ -347,10 +401,10 @@ class GenerateCSV_4Neo4j
     }
     private function prepare_predicates_csv_measurement($tables)
     {
-        $this->WRITE = Functions::file_open($this->path.'/measurements.csv', 'w');
-        fwrite($this->WRITE, ":START_ID(Taxon),value,measurementType,referenceID,:TYPE"."\n");
+        $this->WRITE = Functions::file_open($this->path.'/predicates_measurements.csv', 'w');
+        fwrite($this->WRITE, ":START_ID(Taxon),measurementType,referenceID,:END_ID(Measurement),:TYPE"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
-        self::process_table($meta, 'generate-measurements-csv');
+        self::process_table($meta, 'generate-predicates-measurements-csv');
         fclose($this->WRITE);
     }
     private function clean_csv_item($str)

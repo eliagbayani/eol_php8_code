@@ -66,8 +66,6 @@ class ResourceUtility
         // foreach($ret as $label => $uri) $uris[$uri] = $label;
         return $uris;
     }
-
-
     /*============================================================= ENDS remove_MoF_for_taxonID ==================================================*/
     /*============================================================ STARTS remove_unused_occurrences =================================================*/
     function remove_unused_occurrences($info, $resource_name) //Func #6
@@ -933,17 +931,21 @@ class ResourceUtility
     }
     function prepare_archive_for_access($dwca_file, $download_options = array('timeout' => 172800, 'expire_seconds' => 60*60*24*1))
     {
-        /* normal operation
+        // /* normal operation
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
         $paths = $func->extract_archive_file($dwca_file, "meta.xml", $download_options);
-        */
-        // /* development only
-        $paths = Array(
-            'archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_46405/',
-            'temp_dir' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_46405/'
-        );
+        // print_r($paths); exit("\nStop, get paths.\n");
         // */
+        /* development only; Remember this
+        $paths = Array(
+            // 'archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_98853x/', //EOLid Globi
+            // 'temp_dir' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_98853x/'
+
+            'archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_58924x/', //EOLid WoRMS
+            'temp_dir' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_58924x/'
+        );
+        */
         $archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
         $harvester = new ContentArchiveReader(NULL, $archive_path);

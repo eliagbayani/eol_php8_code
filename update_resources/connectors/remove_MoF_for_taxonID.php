@@ -61,6 +61,14 @@ function process_resource_url($dwca_file, $resource_id, $param)
         $excluded_rowtypes = array("http://rs.tdwg.org/dwc/terms/measurementorfact", "http://rs.tdwg.org/dwc/terms/occurrence", "http://eol.org/schema/reference/reference", "http://rs.tdwg.org/dwc/terms/taxon");
         */
     }
+    elseif($resource_id == 'WoRMS') {
+        /* main operation. MoF and occurrence will be updated in ResourceUtility. The rest will be carried-over in DwCA_Utility. */
+        $excluded_rowtypes = array("http://rs.tdwg.org/dwc/terms/measurementorfact", "http://rs.tdwg.org/dwc/terms/occurrence");
+        // /* during dev only
+        $excluded_rowtypes = array_merge($excluded_rowtypes, array("http://eol.org/schema/reference/reference", "http://eol.org/schema/media/document", 
+                                                                   "http://eol.org/schema/agent/agent", "http://rs.gbif.org/terms/1.0/vernacularname", "http://rs.tdwg.org/dwc/terms/taxon"));
+        // */
+    }
     else exit("\n[$resource_id]: resource_id not yet set up.\n");
 
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);

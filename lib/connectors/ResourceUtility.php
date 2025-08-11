@@ -27,7 +27,7 @@ class ResourceUtility
     }
     /*============================================================ STARTS remove_MoF_for_taxonID =================================================*/
     function remove_MoF_for_taxonID($info, $resource_name) //Func #7
-    {   // exit("\nthis resource id: $this->resource_id\n"); this resource id: try_dbase_2024
+    {   //exit("\nthis resource id: $this->resource_id\n"); //this resource id: try_dbase_2024 | WoRMS_cleaned
 
         $tables = $info['harvester']->tables; // print_r($tables); exit;
 
@@ -35,6 +35,13 @@ class ResourceUtility
         if($this->resource_id == "try_dbase_2024") {
             // generate $this->taxonIDs_in_question -- e.g. array("Phymatodes sp")
             self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'get taxonIDs 2 delete for TRY dbase');
+            echo "\ntaxonIDs to delete: [".count($this->taxonIDs_in_question)."]\n";
+        }
+        elseif($this->resource_id == "WoRMS_cleaned") {
+            // step 1: 
+            self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'get all taxonIDs from taxon.tab'); //$this->taxa[$taxonID] = '';
+            // step 2: get all taxonIDs in Occurrence that doesn't exist in taxon.tab.
+            self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'get occurrence!taxonIDs which does not exist in taxon.tab'); //$this->taxonIDs_in_question
             echo "\ntaxonIDs to delete: [".count($this->taxonIDs_in_question)."]\n";
         }
         else exit("\nResourceUtility: not yet setup.\n");
@@ -135,6 +142,15 @@ class ResourceUtility
             }
             // print_r($rec); exit("\ndebug...\n");
 
+            // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ for WoRMS and other similar DwCAs
+            if($what == 'get all taxonIDs from taxon.tab') {
+                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+                $this->taxa[$taxonID] = '';
+            }
+            elseif($what == 'get occurrence!taxonIDs which does not exist in taxon.tab') {
+                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+                if(!isset($this->taxa[$taxonID])) $this->taxonIDs_in_question[$taxonID] = '';
+            }
             // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             if($what === 'get taxonIDs 2 delete for TRY dbase') {
                 $taxonID = @$rec['http://rs.tdwg.org/dwc/terms/taxonID'];
@@ -167,16 +183,13 @@ class ResourceUtility
                 }
             }
             elseif($what == 'write occurrences') {
-
                 $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
                 if(isset($this->occurrence_IDs_2delete[$occurrenceID])) continue;
                 else {
                     $o = new \eol_schema\Occurrence_specific();
                     self::loop_write($o, $rec);
                 }
-
             }
-
             elseif($what == 'write MoF not of this taxonID') {
 
                 // /* ++++++++++++++++++++ NEW: log URI not found in EOL Terms file

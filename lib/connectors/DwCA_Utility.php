@@ -66,7 +66,7 @@ class DwCA_Utility
         // print_r($paths); exit("\n-exit muna-\n");
         // */
 
-        /* development only
+        /* development only //for globi
         $paths = Array(
             'archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_39644x/',
             'temp_dir' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_39644x/'
@@ -263,7 +263,7 @@ class DwCA_Utility
             $func = new ResourceUtility($this->archive_builder, $this->resource_id);
             $func->remove_unused_occurrences($info, $this->params['resource_name']);
         }
-        if(@$this->params['resource'] == 'remove_MoF_for_taxonID') { //1st client TRY database
+        if(@$this->params['resource'] == 'remove_MoF_for_taxonID') { //1st client TRY database, 2nd WoRMS.tar.gz
             require_library('connectors/ResourceUtility');
             $func = new ResourceUtility($this->archive_builder, $this->resource_id);
             $func->remove_MoF_for_taxonID($info, $this->params['resource_name']);

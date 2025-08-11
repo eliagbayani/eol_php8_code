@@ -6,7 +6,7 @@ first client: Try database: https://opendata.eol.org/dataset/try/resource/c55b90
                             http://content.eol.org/resources/578 -- TRY summarized records
     php update_resources/connectors/remove_MoF_for_taxonID.php _ '{"resource_id": "TRY_temp2", "resource": "remove_MoF_for_taxonID", "resource_name": "Try Database temp2"}'
 
-2nd client: xxx
+2nd client: WoRMS.tar.gz
 */
 
 include_once(dirname(__FILE__) . "/../../config/environment.php");
@@ -31,18 +31,14 @@ if($resource_id == "TRY_temp2") {
 }
 // ===== end ===== */
 
-// /*
-if(Functions::is_production()) $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . $extension; //".tar.gz";
-else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources_3/'.$resource_id.$extension;  //'.tar.gz';
-// */
+$dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . $extension; //".tar.gz";
 
 // /* ---------- customize here ----------
-    if($resource_id == 'TRY_temp2')         $resource_id = "try_dbase_2024";
+    if($resource_id == 'TRY_temp2')         $resource_id = "try_dbase_2024"; //final DwCA
 elseif($resource_id == 'the source')        $resource_id = "final dwca"; //add other resources here...
 else exit("\nERROR: resource_id not yet initialized. Will terminate.\n");
 // ----------------------------------------*/
 process_resource_url($dwca_file, $resource_id, $param);
-
 
 $elapsed_time_sec = time_elapsed() - $timestart;
 echo "\n\n";

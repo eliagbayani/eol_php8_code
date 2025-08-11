@@ -442,5 +442,23 @@ class GenerateCSV_4Neo4j
     {
         return pathinfo($uri, PATHINFO_FILENAME);
     }
+    /*
+    =========================================================================== Globi
+    cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE elidb;"
+    neo4j-admin database import full elidb --overwrite-destination \
+    --nodes=import/globi_assoc/taxa.csv \
+    --relationships=import/globi_assoc/predicates.csv \
+    --verbose --array-delimiter="U+007C"
+    cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE elidb;"
+    =========================================================================== WoRMS
+    cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE elidb;"
+    neo4j-admin database import full elidb --overwrite-destination \
+    --nodes=import/WoRMS/taxa.csv \
+    --nodes=import/WoRMS/measurements.csv \
+    --relationships=import/WoRMS/predicates_measurements.csv \
+    --verbose --array-delimiter="U+007C"
+    cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE elidb;"
+    ===========================================================================
+    */
 }
 ?>

@@ -7,6 +7,7 @@ first client: Try database: https://opendata.eol.org/dataset/try/resource/c55b90
     php update_resources/connectors/remove_MoF_for_taxonID.php _ '{"resource_id": "TRY_temp2", "resource": "remove_MoF_for_taxonID", "resource_name": "Try Database temp2"}'
 
 2nd client: WoRMS.tar.gz
+    php update_resources/connectors/remove_MoF_for_taxonID.php _ '{"resource_id": "WoRMS", "resource": "remove_MoF_for_taxonID", "resource_name": ""}'
 */
 
 include_once(dirname(__FILE__) . "/../../config/environment.php");
@@ -35,6 +36,7 @@ $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . $extension; //".tar
 
 // /* ---------- customize here ----------
     if($resource_id == 'TRY_temp2')         $resource_id = "try_dbase_2024"; //final DwCA
+elseif($resource_id == 'WoRMS')             $resource_id = "WoRMS_cleaned"; //final DwCA
 elseif($resource_id == 'the source')        $resource_id = "final dwca"; //add other resources here...
 else exit("\nERROR: resource_id not yet initialized. Will terminate.\n");
 // ----------------------------------------*/

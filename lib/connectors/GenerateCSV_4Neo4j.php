@@ -129,7 +129,7 @@ class GenerateCSV_4Neo4j
             [contributor] => 
             [referenceID] => 
         )*/
-        $fields = array('measurementID', 'measurementValue', 'measurementType');
+        $fields = array('measurementID', 'measurementValue', 'measurementUnit', 'statisticalMethod', 'source', 'referenceID');
         // print_r($rec); print_r($fields); exit;
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Measurement';
@@ -159,7 +159,6 @@ class GenerateCSV_4Neo4j
         else return; //exit("\nPredicate not found. [".$rec['associationType']."]\n");
         // print_r($rec); //exit("\nstop 3\n");
 
-        // fwrite($this->WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
         $taxonID_1 = ''; $taxonID_2 = '';
         
         if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
@@ -176,7 +175,7 @@ class GenerateCSV_4Neo4j
         }
 
         if($taxonID_1 && $taxonID_2) {
-            $arr = array($taxonID_1, $rec['associationType'], $rec['referenceID'], $taxonID_2, $predicate);
+            $arr = array($taxonID_1, $rec['associationType'], $taxonID_2, $predicate);
             $csv = self::format_csv_entry_array($arr);
             fwrite($this->WRITE, $csv."\n");
         }
@@ -217,7 +216,7 @@ class GenerateCSV_4Neo4j
             }
         }
         if($taxonID_1) {
-            $arr = array($taxonID_1, $rec['measurementType'], $rec['referenceID'], $rec['measurementID'] ,$predicate);
+            $arr = array($taxonID_1, $rec['measurementType'], $rec['measurementID'] ,$predicate);
             $csv = self::format_csv_entry_array($arr);
             fwrite($this->WRITE, $csv."\n");
         }
@@ -385,7 +384,7 @@ class GenerateCSV_4Neo4j
             [referenceID] => 
         )*/
         $this->WRITE = Functions::file_open($this->path.'/measurements.csv', 'w');
-        fwrite($this->WRITE, "measurementID:ID(Measurement){label:Measurement},measurementValue,measurementType,:LABEL"."\n");
+        fwrite($this->WRITE, "measurementID:ID(Measurement){label:Measurement},measurementValue,measurementUnit,statisticalMethod,source,referenceID:LABEL"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
         self::process_table($meta, 'generate-measurements-csv');
         fclose($this->WRITE);
@@ -394,7 +393,7 @@ class GenerateCSV_4Neo4j
     private function prepare_predicates_csv_association($tables)
     {
         $this->WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
-        fwrite($this->WRITE, ":START_ID(Taxon),associationType,referenceID,:END_ID(Taxon),:TYPE"."\n");
+        fwrite($this->WRITE, ":START_ID(Taxon),associationType,:END_ID(Taxon),:TYPE"."\n");
         $meta = $tables['http://eol.org/schema/association'][0];
         self::process_table($meta, 'generate-predicates-csv');
         fclose($this->WRITE);
@@ -402,7 +401,7 @@ class GenerateCSV_4Neo4j
     private function prepare_predicates_csv_measurement($tables)
     {
         $this->WRITE = Functions::file_open($this->path.'/predicates_measurements.csv', 'w');
-        fwrite($this->WRITE, ":START_ID(Taxon),measurementType,referenceID,:END_ID(Measurement),:TYPE"."\n");
+        fwrite($this->WRITE, ":START_ID(Taxon),measurementType,:END_ID(Measurement),:TYPE"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
         self::process_table($meta, 'generate-predicates-measurements-csv');
         fclose($this->WRITE);

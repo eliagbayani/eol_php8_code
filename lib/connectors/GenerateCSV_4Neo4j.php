@@ -423,7 +423,7 @@ class GenerateCSV_4Neo4j
         $csv = "";
         foreach($fields as $field) {
             if($field == 'vernacularName') {
-                $val = $rec['vernacularName'] ? $rec['vernacularName'] : $rec['scientificName'];
+                $val = $rec['vernacularName'] ? $rec['vernacularName'] : ""; //$rec['scientificName'];
             }
             else $val = $rec[$field];
             $csv .= '"' . self::clean_csv_item($val) . '",'; 

@@ -130,6 +130,7 @@ class GenerateCSV_4Neo4j
             [referenceID] => 
         )*/
         $fields = array('measurementID', 'measurementValue', 'measurementUnit', 'statisticalMethod', 'source', 'referenceID');
+
         // print_r($rec); print_r($fields); exit;
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Measurement';
@@ -384,7 +385,7 @@ class GenerateCSV_4Neo4j
             [referenceID] => 
         )*/
         $this->WRITE = Functions::file_open($this->path.'/measurements.csv', 'w');
-        fwrite($this->WRITE, "measurementID:ID(Measurement){label:Measurement},measurementValue,measurementUnit,statisticalMethod,source,referenceID:LABEL"."\n");
+        fwrite($this->WRITE, "measurementID:ID(Measurement){label:Measurement},measurementValue,measurementUnit,statisticalMethod,source,referenceID,:LABEL"."\n");
         $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
         self::process_table($meta, 'generate-measurements-csv');
         fclose($this->WRITE);

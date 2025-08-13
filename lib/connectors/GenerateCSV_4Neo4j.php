@@ -458,6 +458,10 @@ class GenerateCSV_4Neo4j
     --relationships=import/WoRMS/predicates_measurements.csv \
     --verbose --array-delimiter="U+007C"
     cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE elidb;"
+    =========================================================================== dump database
+    cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE elidb;"
+    neo4j-admin database dump --to-path=import/dumps/ elidb
+    cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE elidb;"
     ===========================================================================
     */
 }

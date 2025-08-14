@@ -17,6 +17,8 @@ class DwCA_RunGNParser
         /*
         --------------------------------------------------- Used latest gnparser (as of 18Jul2025) from:
         https://github.com/gnames/gnparser/releases/tag/v1.11.6
+        https://github.com/gnames/gnparser/releases/download/v1.11.6/gnparser-v1.11.6-linux-arm.tar.gz
+        https://github.com/gnames/gnparser/releases/download/v1.11.6/gnparser-v1.11.6-linux-arm.tar.gz
         ---------------------------------------------------
         Install gnparser in command line: https://github.com/gnames/gnparser/blob/master/README.md#installation
 

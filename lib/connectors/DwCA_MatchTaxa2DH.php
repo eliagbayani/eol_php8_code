@@ -444,7 +444,7 @@ class DwCA_MatchTaxa2DH
             }
         }
 
-        // /* ============================ working OK but too permissive; by Eli
+        /* ============================ working OK but too permissive; by Eli
         // Search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         $DwCA_names_2search_hC = self::get_names_from_hC($rec, $canonicalName);
         if($rek = self::get_rek_from_reks_byEli($reks, $DwCA_names_2search_hC)) {
@@ -462,7 +462,7 @@ class DwCA_MatchTaxa2DH
             @$this->debug['matched higherClassification*']++;
             return $rek;
         }
-        // ============================ */
+        ============================ */
         
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step

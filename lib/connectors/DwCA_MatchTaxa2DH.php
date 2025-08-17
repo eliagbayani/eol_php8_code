@@ -261,7 +261,7 @@ class DwCA_MatchTaxa2DH
             [http://rs.gbif.org/terms/1.0/canonicalName] => Hydnoraceae
             [http://eol.org/schema/EOLid] => 
         )*/ //print_r($rec);
-        $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank']; //at this point this, rank is blank
+        $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank']; //at this point, rank is blank if resource doesn't have taxonRank.
         $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
 
         $rek = self::which_rek_to_use($rec, $reks, $taxonRank);

@@ -112,7 +112,7 @@ class DwCA_MatchTaxa2DH
 
         echo "\n1. matched ancestry*: [" . number_format(@$this->debug['matched ancestry*'] ?? 0) . "]";
         echo "\n2. matched higherClassification*: [" . number_format(@$this->debug['matched higherClassification*'] ?? 0) . "]";
-        echo "\n3. matched just 1 record: [" . number_format(@$this->debug['matched just 1 record'] ?? 0) . "]";
+        echo "\n3. matched just 1 record, same rank: [" . number_format(@$this->debug['matched just 1 record, same rank'] ?? 0) . "]";
         echo "\n4. matched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
         echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
         echo "\n6. matched group rank: [" . number_format(@$this->debug['matched group rank'] ?? 0) . "]";
@@ -121,7 +121,7 @@ class DwCA_MatchTaxa2DH
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
         $total = @$this->debug['matched ancestry on AncestryIndex'] + @$this->debug['matched HC on AncestryIndex']
                 + @$this->debug['matched ancestry*'] + @$this->debug['matched higherClassification*'] 
-                + @$this->debug['matched just 1 record']
+                + @$this->debug['matched just 1 record, same rank']
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
                 + @$this->debug['matched group rank']
@@ -732,8 +732,9 @@ class DwCA_MatchTaxa2DH
         // if reks is just 1 record then no choice use it
         if(count($reks) == 1) {
             foreach($reks as $DH_taxonIDx => $rek) {
-                if($rek['e']) {
-                    @$this->debug['matched just 1 record']++;
+                if($taxonRank == $rek['r'] && $rek['e']) {
+                    @$this->debug['matched just 1 record, same rank']++;
+                    // print_r($this->rec); print_r($rek); exit("\nCheck 100\n");
                     return $rek;
                 }
             }
@@ -741,6 +742,7 @@ class DwCA_MatchTaxa2DH
         foreach($reks as $DH_taxonIDx => $rek) {
             if($rek['s'] == 'a' && $taxonRank == $rek['r'] && $rek['e']) {
                 @$this->debug['matched same rank and status accepted']++;
+                // print_r($this->rec); print_r($rek); exit("\nCheck 200\n");
                 return $rek;
             }
         }
@@ -753,6 +755,7 @@ class DwCA_MatchTaxa2DH
 
         if($rek = self::choose_from_matched_group($taxonRank, $reks)) {
             @$this->debug['matched group rank']++; 
+            // print_r($this->rec); print_r($rek); exit("\nCheck 300\n");
             return $rek;
         }
 

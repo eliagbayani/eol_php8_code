@@ -205,7 +205,7 @@ class DwCA_MatchTaxa2DH
                     if($taxonRank) {
                         $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
                     }
-                    // else {
+                    // else { //initially used
                     //     if(!@$rec['http://eol.org/schema/EOLid']) {
                     //         $rec = self::matching_routine_using_HC($rec, $reks);
                     //     }

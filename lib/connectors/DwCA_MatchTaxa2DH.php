@@ -197,12 +197,14 @@ class DwCA_MatchTaxa2DH
             $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
 
             if ($what == 'match_canonical') {
-                if (!$canonicalName)                        {self::write_2archive($rec); continue;}
-                if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;}
+                if (!$canonicalName)                        {self::write_2archive($rec); continue;} //trait taxon has no canonicalName
+                if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;} //trait taxon already has EOLid
                 $rec['http://eol.org/schema/EOLid'] = '';
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
 
-                    if($taxonRank) $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                    if($taxonRank) {
+                        $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                    }
                     else {
                         if(!@$rec['http://eol.org/schema/EOLid']) {
                             $rec = self::matching_routine_using_HC($rec, $reks);

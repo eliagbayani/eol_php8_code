@@ -117,8 +117,8 @@ class DwCA_MatchTaxa2DH
         echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
         echo "\n6. matched group rank old: [" . number_format(@$this->debug['matched group rank old'] ?? 0) . "]";
         echo "\n6. matched group rank Katja: [" . number_format(@$this->debug['matched group rank Katja'] ?? 0) . "]";
-        echo "\n7. accepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
-        echo "\n8. matched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
+        echo "\n7. accepted only [X]: [" . number_format(@$this->debug['accepted only [X]'] ?? 0) . "]";
+        echo "\n8. matched 1st [X] rek: [" . number_format(@$this->debug['matched 1st [X] rek'] ?? 0) . "]";
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
         $total = @$this->debug['matched ancestry on AncestryIndex'] + @$this->debug['matched HC on AncestryIndex']
                 + @$this->debug['matched ancestry*'] + @$this->debug['matched higherClassification*'] 
@@ -127,8 +127,8 @@ class DwCA_MatchTaxa2DH
                 + @$this->debug['matched same rank'] 
                 + @$this->debug['matched group rank old']
                 + @$this->debug['matched group rank Katja']
-                + @$this->debug['accepted only']
-                + @$this->debug['matched 1st rek']
+                + @$this->debug['accepted only [X]']
+                + @$this->debug['matched 1st [X] rek']
                 + @$this->debug['matched blank eolID'];
         $diff = $total - @$this->debug['Has canonical match'];
         echo "\nTotal 9 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
@@ -199,6 +199,7 @@ class DwCA_MatchTaxa2DH
             $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
 
             if ($what == 'match_canonical') {
+                if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); continue;} 
                 if (!$canonicalName)                        {self::write_2archive($rec); continue;} //trait taxon has no canonicalName
                 if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;} //trait taxon already has EOLid
                 $rec['http://eol.org/schema/EOLid'] = '';
@@ -472,6 +473,8 @@ class DwCA_MatchTaxa2DH
             return $rek;
         }
 
+        return false;
+        
         if(count($reks) > 2) {
             print_r($reks);
             print_r($rec);
@@ -761,33 +764,35 @@ class DwCA_MatchTaxa2DH
             return $rek;
         }
 
-        // 'accepted' vs 'not accepted'
+        /* 'accepted' vs 'not accepted' -- DISCONTINUED
         foreach($reks as $DH_taxonIDx => $rek) {
             if($rek['s'] == 'a' && $rek['e']) {
-                @$this->debug['accepted only']++;
+                @$this->debug['accepted only [X]']++;
                 return $rek;
             }
         }
+        */
 
-        // last loop: get the 1st rek from reks
+        /* last loop: get the 1st rek from reks -- DISCONTINUED
         foreach($reks as $DH_taxonIDx => $rek) {
             if($rek['e']) {
-                @$this->debug['matched 1st rek']++;
+                @$this->debug['matched 1st [X] rek']++;
                 return $rek;
             }
         }
+        */
 
         // /* for stats only
         @$this->debug['counts of reks at this point'][count($reks)]++;
         // */
 
-        // this has blank eolID
-        foreach($reks as $DH_taxonIDx => $rek) {
-            @$this->debug['matched blank eolID']++;
-            return $rek;
-        }
-
-        print_r($reks); print_r($rec); exit("\nInvestigate muna\n"); //good debug
+        /* at this point: cannot be matched at all 
+                          not all have blank eolid
+                          rek record match is a SYN, etc...
+        */
+        $this->debug['cannot be matched at all'][] = $rec;
+        return false;        
+        print_r($reks); print_r($this->rec); print_r($rec); exit("\nInvestigate muna\n"); //good debug
     }
     private function get_separator_in_higherClassification($hc)
     {
@@ -910,6 +915,11 @@ class DwCA_MatchTaxa2DH
         foreach($reks as $DH_taxonIDx => $rek) {
             if(in_array($taxonRank, $genus_section) && in_array($rek['r'], $genus_section) && $rek['e']) return $rek;
         }
+    }
+    private function valid_taxonomicStatus($status)
+    {
+        if(stripos($status, "synonym") !== false) return false; //string is found
+        return true;
     }
     private function normalize_array($arr)
     {

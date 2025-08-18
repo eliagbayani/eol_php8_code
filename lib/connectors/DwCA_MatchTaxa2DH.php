@@ -80,17 +80,20 @@ class DwCA_MatchTaxa2DH
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
         echo $tbl ?? '';
 
-        $cannot_be_matched_at_all = count($this->debug['cannot be matched at all']);
+        $cannot_be_matched_at_all = count($this->debug['cannot be matched at all'] ?? array());
         $With_eolID_assignments = count(@$this->debug['With eolID assignments'] ?? array());
+        $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
 
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\ncannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\nWith eolID assignments: [" . number_format($With_eolID_assignments) . "]\n";
+        echo "\nWith eolID assignments: [" . number_format($With_eolID_assignments) . "]";
+        echo "\nWith EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "]";
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $With_EOLid_but_not_matched;
+        $diff = @$this->debug['Has canonical match'] ?? 0 - $sum;
+        echo "\nsum $sum should be equal to [Has canonical match] = [$diff] should be zero\n";
 
         echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? array()) . "]";
         // echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]";
-        echo "\nWith EOLid but not matched: [" . number_format(@$this->debug['With EOLid but not matched'] ?? 0) . "]\n";
-
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
         echo "\nOK DwCA:                           [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
         echo "\nOK DH:                             [" . number_format(@$this->debug['canonical match: genus - subgenus OK DH'] ?? 0) . "]";
@@ -125,7 +128,7 @@ class DwCA_MatchTaxa2DH
         echo "\n7. accepted only [X]: [" . number_format(@$this->debug['accepted only [X]'] ?? 0) . "]";
         echo "\n8. matched 1st [X] rek: [" . number_format(@$this->debug['matched 1st [X] rek'] ?? 0) . "]";
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
-        $total = count(@$this->debug['matched ancestry on AncestryIndex']) + count(@$this->debug['matched HC on AncestryIndex'])
+        $total = count(@$this->debug['matched ancestry on AncestryIndex'] ?? array()) + count(@$this->debug['matched HC on AncestryIndex'] ?? array())
                 + @$this->debug['matched ancestry*'] + @$this->debug['matched higherClassification*'] 
                 + count(@$this->debug['matched just 1 record, same rank'] ?? array())
                 + count(@$this->debug['matched same rank and status accepted'] ?? array())
@@ -282,7 +285,7 @@ class DwCA_MatchTaxa2DH
                 $allowed[] = 'species';
                 if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['http://eol.org/schema/EOLid'] = $rek['e'];
                 else { /* at this point no legit match was found */
-                    @$this->debug['With EOLid but not matched']++;
+                    @$this->debug['With EOLid but not matched'][$taxonID] = '';
 
                     // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
                     // $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];

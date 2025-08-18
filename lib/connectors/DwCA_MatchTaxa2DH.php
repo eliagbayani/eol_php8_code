@@ -116,6 +116,7 @@ class DwCA_MatchTaxa2DH
         echo "\n4. matched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
         echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
         echo "\n6. matched group rank: [" . number_format(@$this->debug['matched group rank'] ?? 0) . "]";
+        echo "\n6. matched group rank Katja: [" . number_format(@$this->debug['matched group rank Katja'] ?? 0) . "]";
         echo "\n7. accepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
         echo "\n8. matched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
@@ -125,6 +126,7 @@ class DwCA_MatchTaxa2DH
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
                 + @$this->debug['matched group rank']
+                + @$this->debug['matched group rank Katja']
                 + @$this->debug['accepted only']
                 + @$this->debug['matched 1st rek']
                 + @$this->debug['matched blank eolID'];
@@ -560,7 +562,7 @@ class DwCA_MatchTaxa2DH
 
             $taxonRank = $this->rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
             if($rek = self::choose_from_matched_group($taxonRank, $hits)) {
-                // @$this->debug['matched group rank']++; 
+                @$this->debug['matched group rank Katja']++; 
                 return $rek;
             }
 

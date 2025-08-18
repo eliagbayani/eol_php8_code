@@ -115,7 +115,7 @@ class DwCA_MatchTaxa2DH
         echo "\n3. matched just 1 record, same rank: [" . number_format(@$this->debug['matched just 1 record, same rank'] ?? 0) . "]";
         echo "\n4. matched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
         echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
-        echo "\n6. matched group rank: [" . number_format(@$this->debug['matched group rank'] ?? 0) . "]";
+        echo "\n6. matched group rank old: [" . number_format(@$this->debug['matched group rank old'] ?? 0) . "]";
         echo "\n6. matched group rank Katja: [" . number_format(@$this->debug['matched group rank Katja'] ?? 0) . "]";
         echo "\n7. accepted only: [" . number_format(@$this->debug['accepted only'] ?? 0) . "]";
         echo "\n8. matched 1st rek: [" . number_format(@$this->debug['matched 1st rek'] ?? 0) . "]";
@@ -125,7 +125,7 @@ class DwCA_MatchTaxa2DH
                 + @$this->debug['matched just 1 record, same rank']
                 + @$this->debug['matched same rank and status accepted']
                 + @$this->debug['matched same rank'] 
-                + @$this->debug['matched group rank']
+                + @$this->debug['matched group rank old']
                 + @$this->debug['matched group rank Katja']
                 + @$this->debug['accepted only']
                 + @$this->debug['matched 1st rek']
@@ -756,7 +756,7 @@ class DwCA_MatchTaxa2DH
         }
 
         if($rek = self::choose_from_matched_group($taxonRank, $reks)) {
-            @$this->debug['matched group rank']++; 
+            @$this->debug['matched group rank old']++; 
             // print_r($this->rec); print_r($rek); exit("\nCheck 300\n");
             return $rek;
         }

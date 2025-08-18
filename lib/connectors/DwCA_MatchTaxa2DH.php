@@ -85,12 +85,12 @@ class DwCA_MatchTaxa2DH
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
 
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
-        echo "\ncannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\nWith eolID assignments: [" . number_format($With_eolID_assignments) . "]";
-        echo "\nWith EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "]";
+        echo "\n1. cannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
+        echo "\n2. With eolID assignments: [" . number_format($With_eolID_assignments) . "]";
+        echo "\n3. With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "]";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $With_EOLid_but_not_matched;
-        $diff = @$this->debug['Has canonical match'] ?? 0 - $sum;
-        echo "\nsum $sum should be equal to [Has canonical match] = [$diff] should be zero\n";
+        $diff = @$this->debug['Has canonical match'] - $sum;
+        echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match] = [".number_format($diff)."] should be zero\n";
 
         echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? array()) . "]";
         // echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]";

@@ -78,13 +78,16 @@ class DwCA_MatchTaxa2DH
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
+        echo $tbl ?? '';
 
         $cannot_be_matched_at_all = count($this->debug['cannot be matched at all']);
-        echo $tbl ?? '';
+        $With_eolID_assignments = count(@$this->debug['With eolID assignments'] ?? array());
+
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\ncannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? 0) . "]";
-        echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]";
+        echo "\nWith eolID assignments: [" . number_format($With_eolID_assignments) . "]\n";
+
+        echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? array()) . "]";
         // echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]";
         echo "\nWith EOLid but not matched: [" . number_format(@$this->debug['With EOLid but not matched'] ?? 0) . "]\n";
 
@@ -105,8 +108,8 @@ class DwCA_MatchTaxa2DH
         echo "\ntaxonomicStatus breakdown: "; print_r(@$this->debug['taxonomicStatus']);
         echo "total acceptedNameUsageID: [" . number_format(@$this->debug['total acceptedNameUsageID'] ?? 0) . "]\n";
 
-        echo "\na. matched ancestry on AncestryIndex: [" . number_format(@$this->debug['matched ancestry on AncestryIndex'] ?? 0) . "]";
-        echo "\nb. matched HC on AncestryIndex: [" . number_format(@$this->debug['matched HC on AncestryIndex'] ?? 0) . "]";
+        echo "\na. matched ancestry on AncestryIndex: [" . number_format(count(@$this->debug['matched ancestry on AncestryIndex'] ?? array())) . "]";
+        echo "\nb. matched HC on AncestryIndex: [" . number_format(count(@$this->debug['matched HC on AncestryIndex'] ?? array())) . "]";
 
         echo "\n ----- AncestryIndex Katja: [" . number_format(@$this->debug['AncestryIndex Katja'] ?? 0) . "]";
         echo "\n ----- AncestryIndex Eli: [" . number_format(@$this->debug['AncestryIndex Eli'] ?? 0) . "]";
@@ -114,20 +117,20 @@ class DwCA_MatchTaxa2DH
 
         echo "\n1. matched ancestry*: [" . number_format(@$this->debug['matched ancestry*'] ?? 0) . "]";
         echo "\n2. matched higherClassification*: [" . number_format(@$this->debug['matched higherClassification*'] ?? 0) . "]";
-        echo "\n3. matched just 1 record, same rank: [" . number_format(@$this->debug['matched just 1 record, same rank'] ?? 0) . "]";
-        echo "\n4. matched same rank and status accepted: [" . number_format(@$this->debug['matched same rank and status accepted'] ?? 0) . "]";
-        echo "\n5. matched same rank: [" . number_format(@$this->debug['matched same rank'] ?? 0) . "]";
-        echo "\n6. matched group rank old: [" . number_format(@$this->debug['matched group rank old'] ?? 0) . "]";
+        echo "\n3. matched just 1 record, same rank: [" . number_format(count(@$this->debug['matched just 1 record, same rank'] ?? array())) . "]";
+        echo "\n4. matched same rank and status accepted: [" . number_format(count(@$this->debug['matched same rank and status accepted'] ?? array())) . "]";
+        echo "\n5. matched same rank: [" . number_format(count(@$this->debug['matched same rank'] ?? array())) . "]";
+        echo "\n6. matched group rank old: [" . number_format(count(@$this->debug['matched group rank old'] ?? array())) . "]";
         echo "\n6. matched group rank Katja: [" . number_format(@$this->debug['matched group rank Katja'] ?? 0) . "]";
         echo "\n7. accepted only [X]: [" . number_format(@$this->debug['accepted only [X]'] ?? 0) . "]";
         echo "\n8. matched 1st [X] rek: [" . number_format(@$this->debug['matched 1st [X] rek'] ?? 0) . "]";
         echo "\n9. matched blank eolID: [" . number_format(@$this->debug['matched blank eolID'] ?? 0) . "]";
-        $total = @$this->debug['matched ancestry on AncestryIndex'] + @$this->debug['matched HC on AncestryIndex']
+        $total = count(@$this->debug['matched ancestry on AncestryIndex']) + count(@$this->debug['matched HC on AncestryIndex'])
                 + @$this->debug['matched ancestry*'] + @$this->debug['matched higherClassification*'] 
-                + @$this->debug['matched just 1 record, same rank']
-                + @$this->debug['matched same rank and status accepted']
-                + @$this->debug['matched same rank'] 
-                + @$this->debug['matched group rank old']
+                + count(@$this->debug['matched just 1 record, same rank'] ?? array())
+                + count(@$this->debug['matched same rank and status accepted'] ?? array())
+                + count(@$this->debug['matched same rank'] ?? array()) 
+                + count(@$this->debug['matched group rank old'] ?? array())
                 + @$this->debug['matched group rank Katja']
                 + @$this->debug['accepted only [X]']
                 + @$this->debug['matched 1st [X] rek']
@@ -216,6 +219,10 @@ class DwCA_MatchTaxa2DH
 
                 } 
                 else $this->debug['No canonical match'][$canonicalName] = '';
+
+                if($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments'][$taxonID] = '';
+                else {}
+
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
             }
             elseif($what == 'generate_synonyms_info') {
@@ -390,10 +397,6 @@ class DwCA_MatchTaxa2DH
         }
         // */
 
-        if($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
-        else {
-            $this->debug['cannot be matched at all'][$taxonID] = $rec; //ditox eli
-        }
         return $rec;
     }
     private function which_rek_to_use($rec, $reks, $taxonRank)
@@ -430,13 +433,13 @@ class DwCA_MatchTaxa2DH
             [http://eol.org/schema/EOLid] => 
         )*/
         // exit("\nhere 3\n");
-
+        $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
         $canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']; // echo "\n[".$canonicalName."] in question\n";
 
         // OPTION 2: DwCA higherClassification ##############################################################
         if($hc = @$rec['http://rs.tdwg.org/dwc/terms/higherClassification']) {
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc, 'higherClassification')) {
-                @$this->debug['matched HC on AncestryIndex']++;
+                @$this->debug['matched HC on AncestryIndex'][$taxonID] = '';
                 return $rek;
             }
         }
@@ -448,7 +451,7 @@ class DwCA_MatchTaxa2DH
         if($hc_from_ancestry) { //exit("\nhere 1\n");
             $hc_from_ancestry = implode("|", $hc_from_ancestry)."|"; // print_r($rec); echo "\ndito eli\n";
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry, 'ancestry')) {
-                @$this->debug['matched ancestry on AncestryIndex']++;
+                @$this->debug['matched ancestry on AncestryIndex'][$taxonID] = '';
                 return $rek;
             }
         }
@@ -479,15 +482,9 @@ class DwCA_MatchTaxa2DH
             return $rek;
         }
 
-        $this->debug['cannot be matched at all'][$rec['http://rs.tdwg.org/dwc/terms/taxonID']] = $rec; //ditox eli
+        $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+        $this->debug['cannot be matched at all'][$taxonID] = $rec; //ditox eli
         return false;
-
-        if(count($reks) > 2) {
-            print_r($reks);
-            print_r($rec);
-            exit("\nInvestigate first.\n");
-        }
-        exit("\nShould not go here\n");
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.
     {   //all ancestry|higherClassification names from DwCA should exist in the DH higherClassification AND rank matches
@@ -739,13 +736,15 @@ class DwCA_MatchTaxa2DH
             [http://rs.gbif.org/terms/1.0/canonicalName] => Ctenophora
             [http://eol.org/schema/EOLid] => 
         )*/
+        
+        $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
         $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
 
         // if reks is just 1 record then no choice use it
         if(count($reks) == 1) {
             foreach($reks as $DH_taxonIDx => $rek) {
                 if($taxonRank == $rek['r'] && $rek['e']) {
-                    @$this->debug['matched just 1 record, same rank']++;
+                    @$this->debug['matched just 1 record, same rank'][$taxonID] = '';
                     // print_r($this->rec); print_r($rek); exit("\nCheck 100\n");
                     return $rek;
                 }
@@ -753,20 +752,20 @@ class DwCA_MatchTaxa2DH
         }
         foreach($reks as $DH_taxonIDx => $rek) {
             if($rek['s'] == 'a' && $taxonRank == $rek['r'] && $rek['e']) {
-                @$this->debug['matched same rank and status accepted']++;
+                @$this->debug['matched same rank and status accepted'][$taxonID] = '';
                 // print_r($this->rec); print_r($rek); exit("\nCheck 200\n");
                 return $rek;
             }
         }
         foreach($reks as $DH_taxonIDx => $rek) {
             if($taxonRank == $rek['r'] && $rek['e']) {
-                @$this->debug['matched same rank']++;
+                @$this->debug['matched same rank'][$taxonID] = '';
                 return $rek;
             }
         }
 
         if($rek = self::choose_from_matched_group($taxonRank, $reks)) {
-            @$this->debug['matched group rank old']++; 
+            @$this->debug['matched group rank old'][$taxonID] = ''; 
             // print_r($this->rec); print_r($rek); exit("\nCheck 300\n");
             return $rek;
         }

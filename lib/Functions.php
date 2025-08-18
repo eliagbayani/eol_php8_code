@@ -2605,20 +2605,20 @@ class Functions
         foreach($this_debug as $topic => $arr) {
             fwrite($WRITE, "=============================================================[".date('Y-m-d')."]\n");
             fwrite($WRITE, $topic."\n");
-            if(is_array($arr)) {
+            if(is_array($arr)) { $count_arr = count($arr);
                 foreach($arr as $subtopic => $arr2) {
                     // /* new 2025
                     $count_arr2 = 0;
                     if($arr2 && is_array($arr2)) $count_arr2 = count($arr2);
                     // if(!is_array($arr2)) echo "\narr2 not array: [$arr2]\n"; //good debug
                     // */
-                    fwrite($WRITE, "----- ".$subtopic."  total: ".$count_arr2."\n");
+                    fwrite($WRITE, "----- ".$subtopic."  total: ".$count_arr." subtotal: $count_arr2\n");
                     if(is_array($arr2)) {
                         $arr3 = $arr2;
                         $arr2 = array_keys($arr2);
                         asort($arr2);
                         foreach($arr2 as $item) {
-                            if($item) fwrite($WRITE, "$item=".@$arr3[$item]."\n");
+                            if($item) fwrite($WRITE, "$item = ".@$arr3[$item]."\n");
                         }
                     }
                     else {

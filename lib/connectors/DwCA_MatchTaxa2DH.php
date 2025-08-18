@@ -947,7 +947,7 @@ class DwCA_MatchTaxa2DH
     {   echo "\nPrinting logs...";
         $indexes = array('Cannot be matched at all', 'With EOLid assignments', 'With EOLid but not matched', 'Matches made without ancestry info');
         foreach($indexes as $index) { echo "\n-> $index ...";
-            $file = $this->stats_path . str_replace(" ", "_", $index);
+            $file = $this->stats_path . str_replace(" ", "_", $index); echo "\nfile: [$file]";
             $WRITE = fopen($file, 'w');
             $i = 0;
             foreach($this->debug[$index] as $taxonID => $rec) { $i++; // print_r($rec); exit("\n$taxonID\n");

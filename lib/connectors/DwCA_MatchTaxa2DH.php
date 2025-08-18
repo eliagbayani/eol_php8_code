@@ -279,7 +279,7 @@ class DwCA_MatchTaxa2DH
         $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank']; //at this point, rank is blank if resource doesn't have taxonRank.
         $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
 
-        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) {
+        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) { // --- matching_routine_using_HC()
             if ($rek['e']) {
                 $allowed = $this->ok_match_subspecific_ranks;
                 $allowed[] = 'species';
@@ -322,8 +322,8 @@ class DwCA_MatchTaxa2DH
         1, 2, 
         3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
         */
-        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) {} //important step!
-        else return $rec;
+        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) {} //important step! --- matching_routine_using_rank()
+        else return $rec; 
 
         if(!$rek['e']) { 
             @$this->debug['DH blank EOLid'][$taxonID] = ''; 

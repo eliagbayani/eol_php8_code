@@ -944,9 +944,9 @@ class DwCA_MatchTaxa2DH
         return substr($str, 0, -1);
     }
     private function print_logs_for_Katja()
-    {
+    {   echo "\nPrinting logs...";
         $indexes = array('Cannot be matched at all', 'With EOLid assignments', 'With EOLid but not matched', 'Matches made without ancestry info');
-        foreach($indexes as $index) {
+        foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path . str_replace(" ", "_", $index);
             $WRITE = fopen($file, 'w');
             $i = 0;
@@ -976,15 +976,19 @@ class DwCA_MatchTaxa2DH
                     $uris = array_keys($rec);
                     $headers = array();
                     foreach($uris as $uri) $headers[] = self::small_field($uri);
-                    if($i == 1) fwrite($WRITE, implode("\t", $headers)."\n");
-                    fwrite($WRITE, implode("\t", $rec)."\n");
+                    if($i == 1) {
+                        fwrite($WRITE, implode("\t", $headers)."\n");
+                        print_r($headers);
+                    }
+                    fwrite($WRITE, implode("\t", $rec)."\n"); echo " -P- ";
                 }
                 if(is_string($rec)) {
-                    echo "\n[$index] is string\n"; exit;
+                    echo "\nError: [$index] is string\n"; exit;
                 }
             } 
             fclose($WRITE);
-        }        
+        }
+        echo "\nLogs printed.\n";
     }
     private function small_field($uri)
     {

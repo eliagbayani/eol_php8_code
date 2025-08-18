@@ -38,6 +38,8 @@ class DwCA_MatchTaxa2DH
         $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
         $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
+        $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/".$this->resource_id."_logs";
+        if(!is_dir($this->stats_path)) mkdir($this->stats_path);
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -80,14 +82,14 @@ class DwCA_MatchTaxa2DH
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
         echo $tbl ?? '';
 
-        $cannot_be_matched_at_all = count($this->debug['cannot be matched at all'] ?? array());
-        $With_eolID_assignments = count(@$this->debug['With eolID assignments'] ?? array());
+        $cannot_be_matched_at_all = count($this->debug['Cannot be matched at all'] ?? array());
+        $With_eolID_assignments = count(@$this->debug['With EOLid assignments'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
-        $matches_made_without_ancestry_info = count(@$this->debug['matches made without ancestry info'] ?? array());
+        $matches_made_without_ancestry_info = count(@$this->debug['Matches made without ancestry info'] ?? array());
 
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\n1. cannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n2. With eolID assignments: [" . number_format($With_eolID_assignments) . "]";
+        echo "\n2. With EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
         echo "\n3. With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "]";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
@@ -221,7 +223,7 @@ class DwCA_MatchTaxa2DH
                 } 
                 else $this->debug['No canonical match'][$canonicalName] = '';
 
-                if($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments'][$taxonID] = '';
+                if($rec['http://eol.org/schema/EOLid']) @$this->debug['With EOLid assignments'][$taxonID] = $rec;
                 else {}
 
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
@@ -480,12 +482,12 @@ class DwCA_MatchTaxa2DH
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
-            $this->debug['matches made without ancestry info'][$taxonID] = $rec;
+            $this->debug['Matches made without ancestry info'][$taxonID] = $rec;
             return $rek;
         }
 
         $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-        $this->debug['cannot be matched at all'][$taxonID] = $rec; //ditox eli
+        $this->debug['Cannot be matched at all'][$taxonID] = $rec; //ditox eli
         return false;
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.
@@ -794,7 +796,7 @@ class DwCA_MatchTaxa2DH
         @$this->debug['counts of reks at this point'][count($reks)]++;
         // */
 
-        /* at this point: cannot be matched at all 
+        /* at this point: Cannot be matched at all 
                           not all have blank eolid
                           rek record match is a SYN, etc...
         */
@@ -941,19 +943,53 @@ class DwCA_MatchTaxa2DH
     {
         return substr($str, 0, -1);
     }
-
-
-
     private function print_logs_for_Katja()
     {
-        $indexes = array('cannot be matched at all', 'With eolID assignments', 'With EOLid but not matched', 'matches made without ancestry info');
+        $indexes = array('Cannot be matched at all', 'With EOLid assignments', 'With EOLid but not matched', 'Matches made without ancestry info');
         foreach($indexes as $index) {
-
+            $file = $this->stats_path . str_replace(" ", "_", $index);
+            $WRITE = fopen($file, 'w');
+            $i = 0;
+            foreach($this->debug[$index] as $taxonID => $rec) { $i++; // print_r($rec); exit("\n$taxonID\n");
+                /*Array(
+                    [http://rs.tdwg.org/dwc/terms/taxonID] => 130
+                    [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB130
+                    [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
+                    [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 
+                    [http://rs.tdwg.org/dwc/terms/scientificName] => Hydnoraceae C. Agardh
+                    [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
+                    [http://rs.tdwg.org/dwc/terms/higherClassification] => 
+                    [http://rs.tdwg.org/dwc/terms/kingdom] => Plantae
+                    [http://rs.tdwg.org/dwc/terms/phylum] => 
+                    [http://rs.tdwg.org/dwc/terms/class] => 
+                    [http://rs.tdwg.org/dwc/terms/order] => 
+                    [http://rs.tdwg.org/dwc/terms/family] => Hydnoraceae
+                    [http://rs.tdwg.org/dwc/terms/genus] => 
+                    [http://rs.tdwg.org/dwc/terms/taxonRank] => family
+                    [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => C. Agardh
+                    [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
+                    [http://purl.org/dc/terms/modified] => 2019-09-24 16:40:37.148
+                    [http://rs.gbif.org/terms/1.0/canonicalName] => Hydnoraceae
+                    [http://eol.org/schema/EOLid] => 
+                )*/
+                if($rec && is_array($rec)) {
+                    $uris = array_keys($rec);
+                    $headers = array();
+                    foreach($uris as $uri) $headers[] = self::small_field($uri);
+                    if($i == 1) fwrite($WRITE, implode("\t", $headers)."\n");
+                    fwrite($WRITE, implode("\t", $rec)."\n");
+                }
+                if(is_string($rec)) {
+                    echo "\n[$index] is string\n"; exit;
+                }
+            } 
+            fclose($WRITE);
         }        
-            
-
     }
-
+    private function small_field($uri)
+    {
+        return pathinfo($uri, PATHINFO_FILENAME);
+    }
     /* copied template
     private function get_taxonID_EOLid_list()
     {

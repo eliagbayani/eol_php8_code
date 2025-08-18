@@ -83,6 +83,7 @@ class DwCA_MatchTaxa2DH
         $cannot_be_matched_at_all = count($this->debug['cannot be matched at all'] ?? array());
         $With_eolID_assignments = count(@$this->debug['With eolID assignments'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
+        $matches_made_without_ancestry_info = count(@$this->debug['matches made without ancestry info'] ?? array());
 
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\n1. cannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
@@ -91,9 +92,9 @@ class DwCA_MatchTaxa2DH
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match] = [".number_format($diff)."] should be zero\n";
-
+        echo "\nmatches_made_without_ancestry_info: [" . number_format($matches_made_without_ancestry_info) . "]\n-----end-----\n";
+        
         echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? array()) . "]";
-        // echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]";
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
         echo "\nOK DwCA:                           [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
         echo "\nOK DH:                             [" . number_format(@$this->debug['canonical match: genus - subgenus OK DH'] ?? 0) . "]";
@@ -116,7 +117,6 @@ class DwCA_MatchTaxa2DH
 
         echo "\n ----- AncestryIndex Katja: [" . number_format(@$this->debug['AncestryIndex Katja'] ?? 0) . "]";
         echo "\n ----- AncestryIndex Eli: [" . number_format(@$this->debug['AncestryIndex Eli'] ?? 0) . "]";
-
 
         echo "\n1. matched ancestry*: [" . number_format(@$this->debug['matched ancestry*'] ?? 0) . "]";
         echo "\n2. matched higherClassification*: [" . number_format(@$this->debug['matched higherClassification*'] ?? 0) . "]";
@@ -152,11 +152,8 @@ class DwCA_MatchTaxa2DH
             $diff = $sum - @$this->debug['matched blank eolID'];
             echo "\nSum: [$sum] -> should be equal to: [matched blank eolID] [$diff]\n";
         }
-
         if(@$this->debug['eli']) print_r($this->debug['eli']);
-
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
-        // exit("\nstop muna\n"); //dev only
     }
     private function process_table($meta, $what)
     {   //print_r($meta);
@@ -482,6 +479,7 @@ class DwCA_MatchTaxa2DH
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
+            $this->debug['matches made without ancestry info'][$taxonID] = '';
             return $rek;
         }
 

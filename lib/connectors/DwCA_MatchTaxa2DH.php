@@ -79,11 +79,13 @@ class DwCA_MatchTaxa2DH
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
 
+        $cannot_be_matched_at_all = count($this->debug['cannot be matched at all']);
         echo $tbl ?? '';
         echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        echo "\ncannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
         echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? 0) . "]";
         echo "\nWith eolID assignments: [" . number_format(@$this->debug['With eolID assignments'] ?? 0) . "]";
-        echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]";
+        // echo "\nDH blank EOLid: [" . number_format(count(@$this->debug['DH blank EOLid']) ?? 0) . "]";
         echo "\nWith EOLid but not matched: [" . number_format(@$this->debug['With EOLid but not matched'] ?? 0) . "]\n";
 
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
@@ -147,7 +149,7 @@ class DwCA_MatchTaxa2DH
 
         if(@$this->debug['eli']) print_r($this->debug['eli']);
 
-        // if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
         // exit("\nstop muna\n"); //dev only
     }
     private function process_table($meta, $what)
@@ -208,11 +210,6 @@ class DwCA_MatchTaxa2DH
                     if($taxonRank) {
                         $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
                     }
-                    // else { //initially used
-                    //     if(!@$rec['http://eol.org/schema/EOLid']) {
-                    //         $rec = self::matching_routine_using_HC($rec, $reks);
-                    //     }
-                    // }
                     if(!@$rec['http://eol.org/schema/EOLid']) {
                         $rec = self::matching_routine_using_HC($rec, $reks);
                     }
@@ -272,22 +269,23 @@ class DwCA_MatchTaxa2DH
         $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank']; //at this point, rank is blank if resource doesn't have taxonRank.
         $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
 
-        $rek = self::which_rek_to_use($rec, $reks, $taxonRank);
-        if ($rek['e']) {
-            $allowed = $this->ok_match_subspecific_ranks;
-            $allowed[] = 'species';
-            if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['http://eol.org/schema/EOLid'] = $rek['e'];
-            else { /* at this point no legit match was found */
-                @$this->debug['With EOLid but not matched']++;
+        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) {
+            if ($rek['e']) {
+                $allowed = $this->ok_match_subspecific_ranks;
+                $allowed[] = 'species';
+                if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['http://eol.org/schema/EOLid'] = $rek['e'];
+                else { /* at this point no legit match was found */
+                    @$this->debug['With EOLid but not matched']++;
 
-                // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
-                // $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
-                // // if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
-                // echo "\n-----------END meron hits-------------\n";
-                // exit("\nstop muna 2\n");
+                    // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
+                    // $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
+                    // // if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
+                    // echo "\n-----------END meron hits-------------\n";
+                    // exit("\nstop muna 2\n");
+                }
             }
+            else @$this->debug['DH blank EOLid'][$taxonID] = '';
         }
-        else @$this->debug['DH blank EOLid'][$taxonID] = '';
         return $rec;
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
@@ -314,8 +312,13 @@ class DwCA_MatchTaxa2DH
         1, 2, 
         3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
         */
-        $rek = self::which_rek_to_use($rec, $reks, $taxonRank); //important step!
-        if(!$rek['e']) { @$this->debug['DH blank EOLid'][$taxonID] = ''; return $rec; }
+        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) {} //important step!
+        else return $rec;
+
+        if(!$rek['e']) { 
+            @$this->debug['DH blank EOLid'][$taxonID] = ''; 
+            return $rec; 
+        }
 
         // print_r($rek); exit("\nstopx\n");
         $DH_rank = $rek['r'];
@@ -387,7 +390,10 @@ class DwCA_MatchTaxa2DH
         }
         // */
 
-        if ($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
+        if($rec['http://eol.org/schema/EOLid']) @$this->debug['With eolID assignments']++;
+        else {
+            $this->debug['cannot be matched at all'][$taxonID] = $rec; //ditox eli
+        }
         return $rec;
     }
     private function which_rek_to_use($rec, $reks, $taxonRank)
@@ -473,8 +479,9 @@ class DwCA_MatchTaxa2DH
             return $rek;
         }
 
+        $this->debug['cannot be matched at all'][$rec['http://rs.tdwg.org/dwc/terms/taxonID']] = $rec; //ditox eli
         return false;
-        
+
         if(count($reks) > 2) {
             print_r($reks);
             print_r($rec);
@@ -790,7 +797,6 @@ class DwCA_MatchTaxa2DH
                           not all have blank eolid
                           rek record match is a SYN, etc...
         */
-        $this->debug['cannot be matched at all'][] = $rec;
         return false;        
         print_r($reks); print_r($this->rec); print_r($rec); exit("\nInvestigate muna\n"); //good debug
     }

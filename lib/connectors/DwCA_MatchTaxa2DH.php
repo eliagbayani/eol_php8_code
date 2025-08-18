@@ -92,8 +92,9 @@ class DwCA_MatchTaxa2DH
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match] = [".number_format($diff)."] should be zero\n";
-        echo "\nmatches_made_without_ancestry_info: [" . number_format($matches_made_without_ancestry_info) . "]\n-----end-----\n";
-        
+        echo "\nmatches_made_without_ancestry_info: [" . number_format($matches_made_without_ancestry_info) . "]\n-----end-----\n";        
+        self::print_logs_for_Katja();
+
         echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? array()) . "]";
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
         echo "\nOK DwCA:                           [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
@@ -282,7 +283,7 @@ class DwCA_MatchTaxa2DH
                 $allowed[] = 'species';
                 if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['http://eol.org/schema/EOLid'] = $rek['e'];
                 else { /* at this point no legit match was found */
-                    @$this->debug['With EOLid but not matched'][$taxonID] = '';
+                    @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
 
                     // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
                     // $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
@@ -479,7 +480,7 @@ class DwCA_MatchTaxa2DH
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
-            $this->debug['matches made without ancestry info'][$taxonID] = '';
+            $this->debug['matches made without ancestry info'][$taxonID] = $rec;
             return $rek;
         }
 
@@ -924,7 +925,9 @@ class DwCA_MatchTaxa2DH
     }
     private function valid_taxonomicStatus($status)
     {
-        if(stripos($status, "synonym") !== false) return false; //string is found
+        if($status) {
+            if(stripos($status, "synonym") !== false) return false; //string is found
+        }
         return true;
     }
     private function normalize_array($arr)
@@ -938,6 +941,19 @@ class DwCA_MatchTaxa2DH
     {
         return substr($str, 0, -1);
     }
+
+
+
+    private function print_logs_for_Katja()
+    {
+        $indexes = array('cannot be matched at all', 'With eolID assignments', 'With EOLid but not matched', 'matches made without ancestry info');
+        foreach($indexes as $index) {
+
+        }        
+            
+
+    }
+
     /* copied template
     private function get_taxonID_EOLid_list()
     {

@@ -98,7 +98,21 @@ class DwCA_MatchTaxa2DH
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match] = [".number_format($diff)."] should be zero\n";
         echo "\nC. Matches made without ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
-        echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n-----end-----\n";
+        echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
+
+
+        echo "\ntotal taxa: "                   . @$this->debug['total taxa'];
+        echo "\nexcluded: invalid taxa: "       . @$this->debug['excluded: invalid taxa'];
+        echo "\nexcluded: no canonicalName: "   . @$this->debug['excluded: no canonicalName'];
+        echo "\nexcluded: already has EOLid: "  . @$this->debug['excluded: already has EOLid'];
+        echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
+        echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        $sum = @$this->debug['excluded: invalid taxa'] + @$this->debug['excluded: no canonicalName'] + @$this->debug['excluded: already has EOLid']
+               + count(@$this->debug['No canonical match'] ?? array())
+               + @$this->debug['Has canonical match'];
+        $diff = $sum - @$this->debug['total taxa'];
+        echo "\nsum = [$sum] Diff should be zero [$diff]";
+        echo "\n-----end-----\n";
 
         self::print_logs_for_Katja();
 
@@ -161,7 +175,8 @@ class DwCA_MatchTaxa2DH
             echo "\nSum: [$sum] -> should be equal to: [matched blank eolID] [$diff]\n";
         }
         if(@$this->debug['eli']) print_r($this->debug['eli']);
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
+        // if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
+        unset($this->debug);
     }
     private function process_table($meta, $what)
     {   //print_r($meta);
@@ -211,10 +226,10 @@ class DwCA_MatchTaxa2DH
             $acceptedNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'];
             $canonicalName = self::format_canonical($rec['http://rs.gbif.org/terms/1.0/canonicalName']);
 
-            if ($what == 'match_canonical') {
-                if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); continue;} 
-                if (!$canonicalName)                        {self::write_2archive($rec); continue;} //trait taxon has no canonicalName
-                if (@$rec['http://eol.org/schema/EOLid'])   {self::write_2archive($rec); continue;} //trait taxon already has EOLid
+            if ($what == 'match_canonical') { @$this->debug['total taxa']++;
+                if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); @$this->debug['excluded: invalid taxa']++; continue;} 
+                if (!$canonicalName)                               {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
+                if (@$rec['http://eol.org/schema/EOLid'])          {self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;} //trait taxon already has EOLid
                 $rec['http://eol.org/schema/EOLid'] = '';
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
 

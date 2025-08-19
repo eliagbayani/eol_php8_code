@@ -172,7 +172,7 @@ class DwCA_Utility
             if(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") break; //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "neo4j_prep") break;                            //all extensions will be processed elsewhere.
 
-            /* during dev only; Remember this
+            /* during dev only; comment in real operation ... Remember this
             if(@$this->params['resource'] == "add_canonical_Katja") break;    //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "match_taxa_2DH") break;         //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "use_EOLid_as_taxonID") break;   //all extensions will be processed elsewhere.

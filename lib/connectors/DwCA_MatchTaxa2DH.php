@@ -978,13 +978,11 @@ class DwCA_MatchTaxa2DH
                     foreach($uris as $uri) $headers[] = self::small_field($uri);
                     if($i == 1) {
                         fwrite($WRITE, implode("\t", $headers)."\n");
-                        print_r($headers);
+                        // print_r($headers); //good debug
                     }
-                    fwrite($WRITE, implode("\t", $rec)."\n"); //echo " -P- ";
+                    fwrite($WRITE, implode("\t", $rec)."\n");
                 }
-                if(is_string($rec)) {
-                    echo "\nError: [$index] is string\n"; exit;
-                }
+                if(is_string($rec)) exit("\nError: [$index] is string\n");
             } 
             fclose($WRITE);
         }
@@ -1019,6 +1017,5 @@ class DwCA_MatchTaxa2DH
             if($val = @$rec['EOLid']) $this->taxonID_EOLid_info[$rec['taxonID']] = $val;
         }
         unlink($tmp_file);
-    }
-    */
+    }*/
 }

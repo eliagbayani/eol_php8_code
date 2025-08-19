@@ -38,8 +38,10 @@ class DwCA_MatchTaxa2DH
         $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
         $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
+
         $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/".$this->resource_id."_logs";
-        if(!is_dir($this->stats_path)) mkdir($this->stats_path);
+        if(is_dir($this->stats_path)) recursive_rmdir($this->stats_path);
+        mkdir($this->stats_path);
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -88,16 +90,16 @@ class DwCA_MatchTaxa2DH
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without ancestry info'] ?? array());
 
         echo "\n--STATS--\n";
-        echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
-        echo "\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
-
-        echo "\n1. cannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n2. With EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
-        echo "\n3. With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "]";
+        echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
+        echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        echo "\n -> B1. With EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
+        echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]\n -> B = B1 + B2";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match] = [".number_format($diff)."] should be zero\n";
-        echo "\nmatches_made_without_ancestry_info: [" . number_format($matches_made_without_ancestry_info) . "]\n-----end-----\n";        
+        echo "\nC. Matches made without ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
+        echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n-----end-----\n";
+
         self::print_logs_for_Katja();
 
         echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? array()) . "]";

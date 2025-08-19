@@ -85,14 +85,14 @@ class DwCA_MatchTaxa2DH
         echo $tbl ?? '';
 
         $cannot_be_matched_at_all = count($this->debug['Cannot be matched at all'] ?? array());
-        $With_eolID_assignments = count(@$this->debug['With EOLid assignments'] ?? array());
+        $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without ancestry info'] ?? array());
 
         echo "\n--STATS--\n";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
-        echo "\n -> B1. With EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
+        echo "\n -> B1. With DH EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
         echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]\n -> B = B1 + B2";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
@@ -228,7 +228,7 @@ class DwCA_MatchTaxa2DH
                 } 
                 else $this->debug['No canonical match'][$taxonID] = $rec;
 
-                if($rec['http://eol.org/schema/EOLid']) @$this->debug['With EOLid assignments'][$taxonID] = $rec;
+                if($rec['http://eol.org/schema/EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
                 else {}
 
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
@@ -951,7 +951,7 @@ class DwCA_MatchTaxa2DH
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('No canonical match', 'Cannot be matched at all', 'With EOLid assignments', 'Matches made without ancestry info');
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments', 'Matches made without ancestry info');
         // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";

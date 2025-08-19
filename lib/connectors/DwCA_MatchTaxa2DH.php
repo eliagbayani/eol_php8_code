@@ -87,7 +87,10 @@ class DwCA_MatchTaxa2DH
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without ancestry info'] ?? array());
 
-        echo "\n--STATS--\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        echo "\n--STATS--\n";
+        echo "\nNo canonical match: [" . number_format(@$this->debug['No canonical match'] ?? 0) . "]";
+        echo "\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+
         echo "\n1. cannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
         echo "\n2. With EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
         echo "\n3. With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "]";
@@ -221,7 +224,7 @@ class DwCA_MatchTaxa2DH
                     }
 
                 } 
-                else $this->debug['No canonical match'][$canonicalName] = '';
+                else $this->debug['No canonical match'][$taxonID] = $rec;
 
                 if($rec['http://eol.org/schema/EOLid']) @$this->debug['With EOLid assignments'][$taxonID] = $rec;
                 else {}
@@ -945,7 +948,7 @@ class DwCA_MatchTaxa2DH
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('Cannot be matched at all', 'With EOLid assignments', 'With EOLid but not matched', 'Matches made without ancestry info');
+        $indexes = array('Cannot be matched at all', 'With EOLid assignments', 'With EOLid but not matched', 'Matches made without ancestry info', 'No canonical match');
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
             $WRITE = fopen($file, 'w');

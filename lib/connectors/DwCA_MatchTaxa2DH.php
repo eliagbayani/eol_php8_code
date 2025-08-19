@@ -94,7 +94,7 @@ class DwCA_MatchTaxa2DH
         echo "\n1. cannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
         echo "\n2. With EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
         echo "\n3. With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "]";
-        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $With_EOLid_but_not_matched;
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match] = [".number_format($diff)."] should be zero\n";
         echo "\nmatches_made_without_ancestry_info: [" . number_format($matches_made_without_ancestry_info) . "]\n-----end-----\n";        

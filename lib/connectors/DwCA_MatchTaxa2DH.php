@@ -88,7 +88,7 @@ class DwCA_MatchTaxa2DH
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without ancestry info'] ?? array());
 
         echo "\n--STATS--\n";
-        echo "\nNo canonical match: [" . number_format(@$this->debug['No canonical match'] ?? 0) . "]";
+        echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nHas canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
 
         echo "\n1. cannot_be_matched_at_all: [" . number_format($cannot_be_matched_at_all) . "]";
@@ -289,6 +289,7 @@ class DwCA_MatchTaxa2DH
                 if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['http://eol.org/schema/EOLid'] = $rek['e'];
                 else { /* at this point no legit match was found */
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
+                    @$this->debug['Cannot be matched at all'][$taxonID] = $rec;
 
                     // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
                     // $canonicalName = $rec['http://rs.gbif.org/terms/1.0/canonicalName'];
@@ -948,7 +949,8 @@ class DwCA_MatchTaxa2DH
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('Cannot be matched at all', 'With EOLid assignments', 'With EOLid but not matched', 'Matches made without ancestry info', 'No canonical match');
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With EOLid assignments', 'Matches made without ancestry info');
+        // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
             $WRITE = fopen($file, 'w');

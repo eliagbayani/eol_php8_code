@@ -100,12 +100,13 @@ class DwCA_MatchTaxa2DH
         echo "\nC. Matches made without ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
         echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
 
-        echo "\nBreakdown:\ntotal taxa: "                   . number_format(@$this->debug['total taxa'] ?? 0);
-        echo "\nexcluded: invalid taxa: "       . number_format(@$this->debug['excluded: invalid taxa'] ?? 0);
-        echo "\nexcluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
-        echo "\nexcluded: already has EOLid: "  . number_format(@$this->debug['excluded: already has EOLid']);
-        echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
-        echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
+        echo "\nTotal taxa from taxon.tab: "                   . number_format(@$this->debug['total taxa'] ?? 0);
+        echo "\nBreakdown:";
+        echo "\n -> excluded: invalid taxa: "       . number_format(@$this->debug['excluded: invalid taxa'] ?? 0);
+        echo "\n -> excluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
+        echo "\n -> excluded: already has EOLid: "  . self::number_format_eli(@$this->debug['excluded: already has EOLid']);
+        echo "\n -> A. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
+        echo "\n -> B. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         $sum = @$this->debug['excluded: invalid taxa'] + @$this->debug['excluded: no canonicalName'] + @$this->debug['excluded: already has EOLid']
                + count(@$this->debug['No canonical match'] ?? array())
                + @$this->debug['Has canonical match'];

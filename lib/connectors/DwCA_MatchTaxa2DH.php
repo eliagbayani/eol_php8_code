@@ -100,19 +100,18 @@ class DwCA_MatchTaxa2DH
         echo "\nC. Matches made without ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
         echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
 
-
-        echo "\ntotal taxa: "                   . @$this->debug['total taxa'];
-        echo "\nexcluded: invalid taxa: "       . @$this->debug['excluded: invalid taxa'];
-        echo "\nexcluded: no canonicalName: "   . @$this->debug['excluded: no canonicalName'];
-        echo "\nexcluded: already has EOLid: "  . @$this->debug['excluded: already has EOLid'];
+        echo "\nBreakdown:\ntotal taxa: "                   . number_format(@$this->debug['total taxa'] ?? 0);
+        echo "\nexcluded: invalid taxa: "       . number_format(@$this->debug['excluded: invalid taxa'] ?? 0);
+        echo "\nexcluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
+        echo "\nexcluded: already has EOLid: "  . number_format(@$this->debug['excluded: already has EOLid']);
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         $sum = @$this->debug['excluded: invalid taxa'] + @$this->debug['excluded: no canonicalName'] + @$this->debug['excluded: already has EOLid']
                + count(@$this->debug['No canonical match'] ?? array())
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
-        echo "\nsum = [$sum] Diff should be zero [$diff]";
-        echo "\n-----end-----\n";
+        echo "\nsum = [".number_format($sum)."] Diff should be zero [".number_format($diff)."]";
+        echo "\n----------end----------\n";
 
         self::print_logs_for_Katja();
 
@@ -1013,6 +1012,11 @@ class DwCA_MatchTaxa2DH
     private function small_field($uri)
     {
         return pathinfo($uri, PATHINFO_FILENAME);
+    }
+    private function number_format_eli($num)
+    {
+        if($num) return number_format($num);
+        else return 0;
     }
     /* copied template
     private function get_taxonID_EOLid_list()

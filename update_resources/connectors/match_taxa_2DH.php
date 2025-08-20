@@ -25,7 +25,7 @@ ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // */
-ini_set('memory_limit','8096M');
+ini_set('memory_limit','9096M'); //8096M orig
 $timestart = time_elapsed();
 
 // print_r($argv);

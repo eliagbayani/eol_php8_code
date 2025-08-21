@@ -44,6 +44,12 @@ rm -f 22_cleaned_MoF_habitat.tar.gz
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/QuaardvarkAPI');
+// /* during development
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', true);
+$GLOBALS['ENV_DEBUG'] = true; //set to true during development
+// */
+
 $timestart = time_elapsed();
 $resource_id = '22';
 $func = new QuaardvarkAPI($resource_id);

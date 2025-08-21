@@ -87,9 +87,24 @@ class QuaardvarkAPI
         $this->license_lookup['by-nc'] = 'http://creativecommons.org/licenses/by-nc/3.0/';
         $this->license_lookup['by-sa'] = 'http://creativecommons.org/licenses/by-sa/3.0/';
         $this->license_lookup['by-nc-sa'] = 'http://creativecommons.org/licenses/by-nc-sa/3.0/';
+
+        // /* For ImageYN routine:
+        if(Functions::is_production()) $this->cache_path = '/extra/other_files/ImageYNcache/';
+        else                           $this->cache_path = '/Volumes/AKiTiO4/other_files/ImageYNcache/';
+        if(!is_dir($this->cache_path)) mkdir($this->cache_path);
+        $this->cache_path .= "ADW/"; //this will be for any resource. E.g. protisten_de/ OR BOLDS/, etc.
+        if(!is_dir($this->cache_path)) mkdir($this->cache_path);
+        // */        
     }
     public function start()
-    {   // /* copied template
+    {
+        // /* For ImageYN routine:
+        require_library('connectors/CacheMngtAPI');
+        $this->func_img = new CacheMngtAPI($this->cache_path);
+        // */
+   
+        $this->curl_error_urls = self::get_curl_error_urls();
+        // /* copied template
         require_library('connectors/TraitGeneric'); 
         $this->func = new TraitGeneric($this->resource_id, $this->archive_builder);
         /* START DATA-1841 terms remapping */
@@ -138,6 +153,7 @@ class QuaardvarkAPI
         
         $this->archive_builder->finalize(true);
         echo "\n"; print_r($this->debug);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function main($data)
     {
@@ -148,6 +164,7 @@ class QuaardvarkAPI
             $sum = 1;
             for ($i = 1; $i <= $loops; $i++) {
                 echo "\n$i. $sum";
+                if(!@$this->url[$data]) continue;
                 $url = $this->url[$data].$sum;
                 if($html = Functions::lookup_with_cache($url, $this->download_options)) { //hits="6369"
                     $recs = self::parse_page($html, $data);
@@ -562,7 +579,11 @@ class QuaardvarkAPI
                         'Venomous' => 'DISCARD',
                     ),
                 'Sexual Dimorphism' => Array(
-                        'measurementType' => 'http://www.owl-ontologies.com/unnamed.owl#Dimorphism',
+                        // /* https://github.com/EOL/ContentImport/issues/34#event-19122939107
+                        // 'measurementType' => 'http://www.owl-ontologies.com/unnamed.owl#Dimorphism',
+                        'measurementType' => 'https://www.wikidata.org/entity/Q181497', //new uri
+                        // */
+
                         'Female larger' => 'http://eol.org/schema/terms/female_larger',
                         'Female more colorful' => 'http://eol.org/schema/terms/female_more_colorful',
                         'Male larger' => 'http://eol.org/schema/terms/male_larger',
@@ -796,7 +817,12 @@ class QuaardvarkAPI
             /*For the [Other Physical Features] section, the measurementType specified works for the values we're using so far. 
             If we eventually start using some of the others, we'll probably assign them different ones. Don't say I didn't warn you */
             if($subtopic == 'Other Physical Features') {}
-            elseif($subtopic == 'Sexual Dimorphism') $mType = 'http://www.owl-ontologies.com/unnamed.owl#Dimorphism';
+            elseif($subtopic == 'Sexual Dimorphism') {
+                // /* https://github.com/EOL/ContentImport/issues/34#event-19122939107
+                // $mType = 'http://www.owl-ontologies.com/unnamed.owl#Dimorphism';
+                $mType = 'https://www.wikidata.org/entity/Q181497';
+                // */
+            }
             
             if($mValue = @$this->values[$data][$subtopic][$string]) {
                 if($mValue == 'DISCARD') continue;
@@ -889,10 +915,10 @@ class QuaardvarkAPI
         $arr = explode("|", $val);
         
         // print_r($arr); exit("\n---\n");
+        $total = count($arr);
         $k = 0; //for debug only
-        foreach($arr as $url) { $k++;
+        foreach($arr as $url) { $k++; echo "-[$k of $total]";
             $pathinfo = pathinfo($url);
-            // print_r($pathinfo); exit;
             /*Array(
                 [dirname] => https://animaldiversity.org/collections/contributors/melody_lytle/abaeis_nicippe
                 [basename] => medium.jpg
@@ -900,6 +926,7 @@ class QuaardvarkAPI
                 [filename] => medium
             )*/
             $img_rec = self::parse_image_summary($pathinfo['dirname']);
+            if(!$img_rec) continue;
             $img_rec['taxonID'] = $rek['taxonID'];
             $img_rec['source'] = $pathinfo['dirname'];
             $img_rec['mimeType'] = Functions::get_mimetype($pathinfo['basename']);
@@ -924,6 +951,7 @@ class QuaardvarkAPI
     }
     private function parse_image_summary($url)
     {
+        if(in_array($url, $this->curl_error_urls)) return false;
         // $url = 'https://animaldiversity.org/collections/contributors/farhang_torki/Apannonicus3'; //debug only - forced value
         $options = $this->download_options;
         $options['expire_seconds'] = 60*60*24*365; //expires in a year
@@ -977,7 +1005,6 @@ class QuaardvarkAPI
                preg_match("/<h3>Identification<\/h3>(.*?)<h3>/ims", $html, $a)
             ) {
                 if(preg_match_all("/<ul class=(.*?)<\/ul>/ims", $a[1], $a2)) {
-                    // print_r($a2[1]); exit;
                     $arr = array();
                     foreach($a2[1] as $tmp) {
                         $tmp = strip_tags("<ul".$tmp, "<span>");
@@ -986,11 +1013,9 @@ class QuaardvarkAPI
                         $tmp = strip_tags(str_replace(' <span>', ": ", $tmp));
                         $arr[] = $tmp;
                     }
-                    // print_r($arr); exit;
                     $img['description'] = implode(" | ", $arr);
                 }
             }
-            // print_r($img); exit;
             return $img;
         }
         else $this->debug['url down'][$url] = '';
@@ -1098,10 +1123,19 @@ class QuaardvarkAPI
         $filenames = array('large.jpg', 'medium.jpg');
         foreach($filenames as $filename) {
             $remoteFile = $source."/".$filename;
+            /* not used anymore too slow
             // Open file
             $handle = @fopen($remoteFile, 'r');
             // Check if file exists
             if($handle) return $remoteFile;
+            */
+
+            // /* New: Aug 22, 2025
+            if(!$this->func_img->ImageExistsYN($remoteFile)) {
+                $this->debug['does not exist'][$remoteFile] = '';
+            }
+            else return $remoteFile;
+            // */
         }
         return false;
     }
@@ -1128,6 +1162,57 @@ class QuaardvarkAPI
            $this->archive_builder->write_object_to_file($r);
         }
         return $agent_ids;
+    }
+    private function get_curl_error_urls()
+    {
+        return array(
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8568', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8796',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9195',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta5876',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8343',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta6260',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8612',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9024', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9049', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9327', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9478', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta_haesitata7896', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta_haesitata7905', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta_haesitata8143', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta3292', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8263', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8756', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8760', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8803', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8804', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8813', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8819', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8821', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8831', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta5470', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9812', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta7194', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9647', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta5112', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta3328', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta4605', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta5092', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8283', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9050', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9101', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9185', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8794', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8264', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9053', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta4461', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta_noctivaga7911', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta6527', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9324', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta0216', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta0352', 
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8261'
+        );
     }
 }
 ?>

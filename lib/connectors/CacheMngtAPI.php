@@ -45,21 +45,33 @@ class CacheMngtAPI
     /* ------------- END: retrieve module ------------- */
 
     /* ------------- START: image exists YN module ------------- */
-    function ImageExistsYN($image_url)
+    function ImageExistsYN($image_url, $force_fopen = false)
     {
         $md5_id = md5($image_url);
-        if($arr = self::retrieve_json_obj($md5_id, false)) { //2nd param false means returned value is an array()
-            echo "-[RC]-";
-        }
-        else {
+
+        if($force_fopen) {
             echo "-[SC]-";
             $arr = array("ImageExistsYN" => self::fopen_image_YN($image_url));
             $json = json_encode($arr);
             self::save_json($md5_id, $json);
         }
+        else {
+            if($arr = self::retrieve_json_obj($md5_id, false)) { //2nd param false means returned value is an array()
+                echo "-[RC]-";
+            }
+            else {
+                echo "-[SC]-";
+                $arr = array("ImageExistsYN" => self::fopen_image_YN($image_url));
+                $json = json_encode($arr);
+                self::save_json($md5_id, $json);
+            }
+        }
+
         // print_r($arr);
         if($arr['ImageExistsYN']) return true;
-        else return false;
+        else {
+            return false;
+        }
     }
     private function fopen_image_YN($image_url)
     {

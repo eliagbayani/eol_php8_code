@@ -173,6 +173,7 @@ class QuaardvarkAPI
         $this->archive_builder->finalize(true);
         echo "\n"; print_r($this->debug);
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+        echo "\nimage does not exist: ".count($this->debug['does not exist'])."\n";
     }
     private function main($data, $remark)
     {
@@ -1146,13 +1147,12 @@ class QuaardvarkAPI
             // /* New: Aug 22, 2025
             if(!$this->func_img->ImageExistsYN($remoteFile)) {
 
-                /* not part of main operation
-                if($filename == 'medium.jpg') {
+                /* not part of main operation. Used if u want to force check if image exists using fopen and not the cache info.
+                // if($filename == 'medium.jpg') {
                     $this->func_img->ImageExistsYN($remoteFile, true); //2nd param is force_fopen boolean
                     return;
-                }
+                // }
                 */
-
 
                 $this->debug['does not exist'][$remoteFile] = '';
             }

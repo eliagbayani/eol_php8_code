@@ -14,7 +14,8 @@ class QuaardvarkAPI
         $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
         $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));
 
-        $this->download_options = array('resource_id' => $folder, 'download_wait_time' => 1000000, 'download_attempts' => 1, 'delay_in_minutes' => 0.5); //'timeout' => 172800,
+        $this->download_options = array('resource_id' => $folder, 'download_wait_time' => 1000000, 'timeout' => 172800,
+                                        'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->download_options["expire_seconds"] = 60*60*24*30; //false orig
         $this->download_options["expire_seconds"] = false; //false orig
 
@@ -132,10 +133,14 @@ class QuaardvarkAPI
         // /* MoF records: un-comment in real operation
         $topics = array('Habitat', 'Geographic Range', 'Physical Description', 'Reproduction: Mating Systems', 'Reproduction: Parental Investment', 
                         'Behavior', 'Food Habits');
-        // $topics = array('Reproduction: Parental Investment'); //debug only
-        // $topics = array('Habitat'); //debug only
         // $topics = array('Geographic Range'); //debug only
-        foreach($topics as $data) self::main($data);
+
+        $i = 0;
+        $total = count($topics);
+        foreach($topics as $data) { $i++;
+            $remark = "$i of $total";
+            self::main($data, $remark); //un-comment in real operation
+        } 
         // */
 
         // /* Image objects: un-comment in real operation
@@ -146,8 +151,22 @@ class QuaardvarkAPI
                         'Media Assets: Specimens > Specimen: Lower Jaw', 'Media Assets: Specimens > Specimen: Skull',
                         'Media Assets: Specimens > Specimen: Teeth'); // for stillImage objects
 
-        // $topics = array('Media Assets: Specimens > Specimen: Skull'); // for stillImage objects
-        foreach($topics as $data) self::main($data);
+        // ------------------ division when caching only
+        // $topics = array('Media Assets: Subjects > Live Animal'); // for stillImage objects
+        // $topics = array('Media Assets: Subjects > Behaviors', 'Media Assets: Subjects > Habitat', 
+        //                 'Media Assets: Subjects > Life Stages and Gender', 'Media Assets: Subjects > Anatomy',
+        //                 'Media Assets: Specimens > Specimen: Foot', 'Media Assets: Specimens > Specimen: Forefoot',
+        //                 'Media Assets: Specimens > Specimen: Forelimb', 'Media Assets: Specimens > Specimen: Hindfoot',
+        //                 'Media Assets: Specimens > Specimen: Lower Jaw', 'Media Assets: Specimens > Specimen: Skull',
+        //                 'Media Assets: Specimens > Specimen: Teeth'); // for stillImage objects
+        // ------------------
+
+        $i = 0;
+        $total = count($topics);
+        foreach($topics as $data) { $i++;
+            $remark = "$i of $total";
+            self::main($data, $remark);
+        }
         // exit("\ncaching only...\n");
         // */
         
@@ -155,7 +174,7 @@ class QuaardvarkAPI
         echo "\n"; print_r($this->debug);
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
-    private function main($data)
+    private function main($data, $remark)
     {
         $this->print_fields = false;
         if($total_pages = self::get_total_number_of_pages($data)) {
@@ -163,7 +182,7 @@ class QuaardvarkAPI
             echo "\n $data\n total_pages: [$total_pages]\n loops: [$loops]\n";
             $sum = 1;
             for ($i = 1; $i <= $loops; $i++) {
-                echo "\n$i. $sum";
+                echo "\nProcessing [$data][$remark] $i of $loops. [$sum]";
                 if(!@$this->url[$data]) continue;
                 $url = $this->url[$data].$sum;
                 if($html = Functions::lookup_with_cache($url, $this->download_options)) { //hits="6369"
@@ -1123,15 +1142,18 @@ class QuaardvarkAPI
         $filenames = array('large.jpg', 'medium.jpg');
         foreach($filenames as $filename) {
             $remoteFile = $source."/".$filename;
-            /* not used anymore too slow
-            // Open file
-            $handle = @fopen($remoteFile, 'r');
-            // Check if file exists
-            if($handle) return $remoteFile;
-            */
 
             // /* New: Aug 22, 2025
             if(!$this->func_img->ImageExistsYN($remoteFile)) {
+
+                /* not part of main operation
+                if($filename == 'medium.jpg') {
+                    $this->func_img->ImageExistsYN($remoteFile, true); //2nd param is force_fopen boolean
+                    return;
+                }
+                */
+
+
                 $this->debug['does not exist'][$remoteFile] = '';
             }
             else return $remoteFile;
@@ -1211,7 +1233,17 @@ class QuaardvarkAPI
             'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta9324', 
             'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta0216', 
             'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta0352', 
-            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8261'
+            'https://animaldiversity.org/collections/contributors/phil_myers/lepidoptera/Noctuidae_Acronicta/Acronicta8261',
+            
+            'https:',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/lower_dorsal8336',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/lower_dorsal8349',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/lower_lateral8335',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/lower_lateral8348',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/ltr8341',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/ltr8350',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/utr8340',  
+            'https://animaldiversity.org/collections/contributors/phil_myers/ADW_mammals/specimens/Rodentia/Echimyidae/Thrichomys_apereoides/utr8344'
         );
     }
 }

@@ -207,7 +207,7 @@ class DwCA_MatchTaxa2DH
                 [http://rs.gbif.org/terms/1.0/canonicalName] => Agaricales
             )*/
             // /*
-            $rec = self::not_recongized_fields($rec);
+            $rec = self::not_recongized_fields($rec); //remove not recognized fields
             $this->rec = $rec;
             // */
 
@@ -294,7 +294,10 @@ class DwCA_MatchTaxa2DH
             if ($rek['e']) {
                 $allowed = $this->ok_match_subspecific_ranks;
                 $allowed[] = 'species';
-                if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) $rec['EOLid'] = $rek['e'];
+                if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) {
+                    $rec['EOLid'] = $rek['e'];
+                    $rec['taxonRemarks'] = @$rek['remarkz'];
+                }
                 else { /* at this point no legit match was found */
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec;
@@ -570,11 +573,13 @@ class DwCA_MatchTaxa2DH
                 $index_hc2 = $ret[1]; //stats only
             }
             if(($found1 == $found2) && $found1 && $found2 && $rek['e']) {
+                $remarkz  = "\nTrait: [$found1] - [$dwca_hc_string] - [$index_hc1]";
+                $remarkz .= "\n   DH: [$found2] - [$DH_hc_string] - [$index_hc2] - [".$rek['t']."]";
+                $rek['remarkz'] = $remarkz;
                 /* good debug works OK
                 echo "\n------------may na huli-----------\n";
                 print_r($rek); echo " - rek ";
-                echo "\nDwCA: [$found1] - [$dwca_hc_string] - [$index_hc1]\n";
-                echo "\n  DH: [$found2] - [$DH_hc_string] - [$index_hc2]\n";
+                echo "\n$remarkz";
                 echo "\n------------END may na huli-----------\n"; //exit;
                 */
                 $hits[] = $rek;

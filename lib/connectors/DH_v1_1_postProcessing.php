@@ -666,6 +666,31 @@ class DH_v1_1_postProcessing
         $func->save_all_ids_from_all_hierarchies_2MySQL('write2mysql_v2.txt', true); //2nd param true means it's a postProcess task
         
     }
+    private function get_descendantz($descendants)
+    {
+        $final = array(); $loops = 0;
+        while(true) { $loops++; echo "[$loops]";
+            if($descendants) { $final = array_merge($final, $descendants);
+                $cumulative = array();
+                foreach($descendants as $child) {
+                    if(isset($checked_already[$child])) continue;
+                    if($val = @$this->descendants[$child]) {
+                        $cumulative = array_merge($cumulative, array_keys($val));
+                    }
+                    $checked_already[$child] = '';
+                }
+                $descendants = $cumulative;
+            }
+            else break;
+        }
+
+        $final = array_filter($final); //remove null arrays
+        $final = array_unique($final); //make unique
+        asort($final);
+        $final = array_values($final); //reindex key
+        echo "\nTotal: ".count($final)."\n"; //exit("\nstopped good OK\n");
+        return $final;
+    }
     function get_descendants_of_taxID($uid, $direct_descendants_only_YN = false, $this_descendants = array())
     {
         if(!isset($this->descendants)) $this->descendants = $this_descendants;
@@ -673,6 +698,11 @@ class DH_v1_1_postProcessing
         $descendants = array();
         if($val = @$this->descendants[$uid]) $descendants = array_keys($val);
         if($direct_descendants_only_YN) return $descendants;
+
+        $final = self::get_descendantz($descendants);
+        return $final;
+        exit("\nstop...\n");
+
         if($descendants) {
             foreach($descendants as $child) {
                 $final[$child] = '';
@@ -814,6 +844,11 @@ if($val = @$this->descendants[$child17]) {
                                                                                                     $descendants30 = array_keys($val);
                                                                                                     foreach($descendants30 as $child30) {
                                                                                                         $final[$child30] = '';
+
+                                                                                                        $final = array_keys($final);
+                                                                                                        asort($final);
+                                                                                                        $final = array_values($final); //reindex key
+                                                                                                        print_r($final); echo "\n".count($final)."\n";
                                                                                                         exit("\nReached level 30, will need to extend.\n");
                                                                                                     }
                                                                                                 }

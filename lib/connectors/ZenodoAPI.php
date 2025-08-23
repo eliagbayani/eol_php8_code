@@ -39,7 +39,8 @@ ERROR	update_0924	13382586	{"error_id":"a46067fb8cc3443799ff8a0ff03f0f3c","messa
 proceed with U and P	13382488	EOL computer vision pipelines: Object Detection for Image Cropping: Lepidoptera	2024-09-28 01:33:16 AM
 ERROR	update_0924	13382488	{"error_id":"de4cd960650442a18c9e185ca90326e9","message":"The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.","status":500}	2024-09-28 01:33:17 AM
 */
-
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class ZenodoAPI extends ZenodoConnectorAPI
 {
     function __construct($folder = null, $query = null)

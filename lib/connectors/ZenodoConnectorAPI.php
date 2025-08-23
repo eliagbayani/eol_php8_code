@@ -1692,7 +1692,7 @@ class ZenodoConnectorAPI extends ZenodoFunctions
                                     "related_identifiers" => @$obj_1st['metadata']['related_identifiers'],
                                     "imprint_publisher" => @$obj_1st['metadata']['imprint_publisher'],
                                     "communities" => @$obj_1st['metadata']['communities'],
-                                    "notes" => str_replace("'", "__", $notes),
+                                    "notes" => str_replace("'", "__", $notes ? $notes: ""),
                                     "prereserve_doi" => @$obj_1st['metadata']['prereserve_doi'],
                                     "license" => $license_final,
                                     "dates" => $dates_final,
@@ -2016,6 +2016,7 @@ class ZenodoConnectorAPI extends ZenodoFunctions
     }
     private function remove_all_in_between_inclusive($left, $right, $html, $includeRight = true)
     {
+        if(!$html || is_null($html)) return $html;
         if(preg_match_all("/".preg_quote($left, '/')."(.*?)".preg_quote($right, '/')."/ims", $html, $arr)) {
             foreach($arr[1] as $str) {
                 if($includeRight) { //original
@@ -2038,10 +2039,12 @@ class ZenodoConnectorAPI extends ZenodoFunctions
         $right = "__ ---####";
         $desc = self::remove_all_in_between_inclusive($left, $right, $desc, true);
 
-        $arr = explode("\n", $desc); //print_r($arr);
-        // echo "\nlast element is: [".end($arr)."]\n";
-        if(end($arr) == "") {} //echo "\nlast element is nothing\n";
-        else $desc .= chr(13); //add a next line
+        if($desc) {
+            $arr = explode("\n", $desc); //print_r($arr);
+            // echo "\nlast element is: [".end($arr)."]\n";
+            if(end($arr) == "") {} //echo "\nlast element is nothing\n";
+            else $desc .= chr(13); //add a next line
+        }
 
         /* working OK but now obsolete
         $forced_date = date("m/d/Y H:i:s"); //date today

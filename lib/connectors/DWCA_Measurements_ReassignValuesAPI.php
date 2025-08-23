@@ -1,6 +1,6 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from first client: dwca_MoF_reassign_values.php] 
+/* connector: [called from DwCA_Utility.php, which is called from first client: dwca_MoF_reassign_values.php]
 
 Purpose of this API is described in this ticket: https://github.com/EOL/ContentImport/issues/28
 First client for MADtraits:

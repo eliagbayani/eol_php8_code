@@ -1,6 +1,6 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from first client: dwca_MoF_fix.php for DATA-1886] 
+/* connector: [called from DwCA_Utility.php, which is called from first client: dwca_MoF_fix.php for DATA-1886]
 Right now the fix means: remove the orphan child records in MoF
 */
 class DWCA_Measurements_Fix

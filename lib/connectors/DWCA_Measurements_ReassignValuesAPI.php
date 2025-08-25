@@ -2,15 +2,16 @@
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from first client: dwca_MoF_reassign_values.php]
 
-Purpose of this API is described in this ticket: https://github.com/EOL/ContentImport/issues/28
-First client for MADtraits:
+Purpose of this API is to reassign MoF values.
+First client for MADtraits: from this ticket: https://github.com/EOL/ContentImport/issues/28 (Tweak for MADtraits)
     for records where measurementValue=
         http://eol.org/schema/terms/lecithotrophic
         OR
         http://eol.org/schema/terms/planktotrophic
-
     Please change measurementType   from:   http://eol.org/schema/terms/TrophicGuild
                                     TO:     http://eol.org/schema/terms/MarineLarvalDevelopmentStrategy
+
+2nd group of clients from: https://github.com/EOL/ContentImport/issues/34#event-19122939107 (Misc terms mappings)
 */
 class DWCA_Measurements_ReassignValuesAPI
 {
@@ -27,6 +28,9 @@ class DWCA_Measurements_ReassignValuesAPI
         $tables = $info['harvester']->tables;
         if($this->resource_id == 'natdb_temp_1') { //MADtraits
             self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'write_MADtraits');
+        }
+        elseif($this->resource_id == 'TreatmentBank_adjustment_04') { //TreatmentBank
+            self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'write_TreatmentBank');
         }
         else exit("\nResource ID not initialized [DWCA_Measurements_ReassignValuesAPI]\n");
     }
@@ -77,18 +81,29 @@ class DWCA_Measurements_ReassignValuesAPI
                         else                                                               $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://eol.org/schema/terms/MarineLarvalDevelopmentStrategy'; //assign it anyway
                     }                    
                 }
-                
-                if($class == 'MoF')             $o = new \eol_schema\MeasurementOrFact_specific();
-                elseif($class == 'occurrence')  $o = new \eol_schema\Occurrence_specific();
-                elseif($class == 'reference')   $o = new \eol_schema\Reference();
-                $uris = array_keys($rec); //print_r($uris); exit("\ndito eli\n");
-                foreach($uris as $uri) {
-                    $field = pathinfo($uri, PATHINFO_BASENAME);
-                    $o->$field = $rec[$uri];
+                self::proceed_2write($rec, $class);
+            }
+            elseif($what == 'write_TreatmentBank') {
+                if($class == 'MoF') {
+                    $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+                    if($measurementType == 'http://purl.obolibrary.org/obo/ENVO_09200008') $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://purl.obolibrary.org/obo/RO_0002303';
                 }
-                $this->archive_builder->write_object_to_file($o);
+                self::proceed_2write($rec, $class);
             }
         }
+    }
+    private function proceed_2write($rec, $class)
+    {
+        if($class == 'MoF')             $o = new \eol_schema\MeasurementOrFact_specific();
+        elseif($class == 'occurrence')  $o = new \eol_schema\Occurrence_specific();
+        elseif($class == 'reference')   $o = new \eol_schema\Reference();
+        else exit("\nclass not defined [$class].\n");
+        $uris = array_keys($rec); //print_r($uris); exit("\ndito eli\n");
+        foreach($uris as $uri) {
+            $field = pathinfo($uri, PATHINFO_BASENAME);
+            $o->$field = $rec[$uri];
+        }
+        $this->archive_builder->write_object_to_file($o);
     }
 }
 ?>

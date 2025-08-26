@@ -98,6 +98,15 @@ class DwCA_MatchTaxa2DH
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match]. Diff should be zero [".number_format($diff)."].\n";
         echo "\nC. Matches made without ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
+
+        $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
+        $with_hc = count(@$this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'] ?? array());
+        echo "\n -> C1. No higherClassification: [".$no_hc."]";
+        echo "\n -> C2. With higherClassification but cannot be mapped to any index group: [".$with_hc."]\n -> C = C1 + C2";
+        $sum = $no_hc + $with_hc;
+        $diff = $matches_made_without_ancestry_info - $sum;
+        echo "\nsum [".number_format($sum)."] should be equal to [Matches made without ancestry info]. Diff should be zero [".number_format($diff)."].\n";
+
         echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
 
         echo "\nTotal taxa from taxon.tab: "                   . number_format(@$this->debug['total taxa'] ?? 0);
@@ -226,37 +235,36 @@ class DwCA_MatchTaxa2DH
                 // 1. if it can be tested with AncestryIndex then proceed to test and if it fails then stop there.
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
 
-                $rec['EOLid'] = '';
-                $rec['taxonRemarks'] = '';
-                $ret = self::can_proceed_with_AncestryIndex_check($rec);
-                $rec = $ret[0];
-                $can_proceed_with_AncestryIndex_check = $ret[1];
 
-                if($can_proceed_with_AncestryIndex_check) {
-                    if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
+                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
+
+                    $rec['EOLid'] = '';
+                    $rec['taxonRemarks'] = '';
+                    $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); exit("\nelix 1\n");
+                                              $rec = $ret[0];
+                    $can_proceed_with_AIndex_check = $ret[1];
+
+                    if($can_proceed_with_AIndex_check) {
                         $rec = self::matching_routine_using_HC($rec, $reks);
+                        print_r($rec); exit("\nhuli ka\n");
                     }
-                    else $this->debug['No canonical match'][$taxonID] = $rec;
-                }
-                else {
-                    if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
-
+                    else {
                         if($taxonRank) {
                             $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
                         }
                         if(!@$rec['EOLid']) {
                             $rec = self::matching_routine_using_HC($rec, $reks);
                         }
+                        $this->debug['Matches made without ancestry info'][$taxonID] = $rec;
+                    }
 
-                    } 
-                    else $this->debug['No canonical match'][$taxonID] = $rec;
+                    if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
+                    else {}
 
-                    $this->debug['Matches made without ancestry info'][$taxonID] = $rec;
                 }
+                else $this->debug['No canonical match'][$taxonID] = $rec;
 
 
-                if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
-                else {}
 
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
             }
@@ -304,10 +312,18 @@ class DwCA_MatchTaxa2DH
             [taxonomicStatus] => accepted
             [canonicalName] => Agaricales
         )*/
-        if(!$rec['higherClassification']) return array($rec, false);
+        if(!$rec['higherClassification']) {
+            $rec['taxonRemarks'] = "No higherClassification";
+            $this->debug['M-m-w-a-i']['No hC'][$rec['taxonID']] = '';
+            return array($rec, false);
+        }
         $rec = self::can_be_assigned_an_IndexGroup($rec);
         if(substr(@$rec['taxonRemarks'],0,6) == 'Trait:') return array($rec, true);
-        else return array($rec, false);
+        else {
+            $rec['taxonRemarks'] = "With higherClassification but cannot be mapped to any index group.";
+            $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$rec['taxonID']] = '';
+            return array($rec, false);
+        }
     }
     private function can_be_assigned_an_IndexGroup($rec)
     {
@@ -325,11 +341,12 @@ class DwCA_MatchTaxa2DH
                     [IndexHC] => Anacardiaceae|*
                     [SourceHC] => Anacardiaceae|
                 )*/                
-                $remarkz  = "\nTrait: [".$ret['IndexGroup']."] - [".$ret['SourceHC']."] - [".$ret['IndexHC']."]";
+                $remarkz  = "Trait: [".$ret['IndexGroup']."] - [".$ret['SourceHC']."] - [".$ret['IndexHC']."]";
                 $rec['taxonRemarks'] = $remarkz;
                 return $rec;
             }
         }
+        // $rec['taxonRemarks'] = "Cannot be assigned an index group."; //not needed, will be overwritten
         return $rec;
     }
     private function given_hc_get_Ancestry_Group_and_Index($hc)
@@ -661,8 +678,8 @@ class DwCA_MatchTaxa2DH
                 $index_hc2 = $ret['IndexHC']; //stats only
             }
             if(($found1 == $found2) && $found1 && $found2 && $rek['e']) {
-                $remarkz  = "\nTrait: [$found1] - [$dwca_hc_string] - [$index_hc1]";
-                $remarkz .= "\n   DH: [$found2] - [$DH_hc_string] - [$index_hc2] - [".$rek['t']."]";
+                $remarkz  = "Trait: [$found1] - [$dwca_hc_string] - [$index_hc1]";
+                $remarkz .= "\n DH: [$found2] - [$DH_hc_string] - [$index_hc2] - [".$rek['t']."]";
                 $rek['remarkz'] = $remarkz;
                 /* good debug works OK
                 echo "\n------------may na huli-----------\n";

@@ -277,8 +277,58 @@ class DwCA_MatchTaxa2DH
         }
     }
     private function can_proceed_with_AncestryIndex_check($rec)
+    {   /*e.g. Array(
+            [taxonID] => 12
+            [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
+            [parentNameUsageID] => 120181
+            [scientificName] => Agaricales
+            [higherClassification] => Basidiomycota|
+            [kingdom] => Fungi
+            [phylum] => Basidiomycota
+            [class] => 
+            [order] => Agaricales
+            [family] => 
+            [genus] => 
+            [taxonRank] => order
+            [scientificNameAuthorship] => 
+            [taxonomicStatus] => accepted
+            [canonicalName] => Agaricales
+        )*/
+        if(!$rec['higherClassification']) return false;
+        if(!self::can_be_assigned_an_IndexGroup($rec)) return false;
+        return true;
+    }
+    private function can_be_assigned_an_IndexGroup($rec)
     {
-        
+        $hc = @$rec['higherClassification'];
+        $hc_from_ancestry = self::get_names_from_ancestry($rec, $rec['canonicalName']); //2nd param is excluded name
+        $hCs = array();
+        if($hc) $hCs[] = $hc;
+        if($hc_from_ancestry) $hCs[] = $hc_from_ancestry;
+
+        foreach($hCs as $hc) {
+            if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc)) {
+                // print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
+                if($ancestry_group = $ret[0]) return $ancestry_group;
+            }
+        }
+    }
+    private function given_hc_get_Ancestry_Group_and_Index($hc)
+    {
+        $dwca_hc = explode("|", $hc);
+        $dwca_hc = self::normalize_array($dwca_hc);
+        $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
+        $found1 = false;
+        $index_hc1 = '';
+        if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
+            $found1 = $ret[0];
+            $index_hc1 = $ret[1]; //stats only
+            return $ret;
+        }
+        return array();
+
+
+
     }
     private function matching_routine_using_HC($rec, $reks)
     {   /*Array(
@@ -571,18 +621,18 @@ class DwCA_MatchTaxa2DH
     }
     private function matching_byKatja($reks, $hc) //https://github.com/EOL/ContentImport/issues/33#issuecomment-3115034620
     {
-        $dwca_hc = explode("|", $hc);
-        $dwca_hc = self::normalize_array($dwca_hc);
-        $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
+        $found1 = false; 
+        $index_hc1 = ''; 
+        if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc)) {
+                $found1 = $ret[0];
+                $index_hc1 = $ret[1]; //stats only
+        }
+
         $hits = array();
         foreach($reks as $id => $rek) {
             $DH_hc_string = self::prepare_hc_string($rek['h']); //makes "Fungi|Ascomycota" to "Fungi|Ascomycota|"
-
-            $found1 = false; $found2 = false; $index_hc1 = ''; $index_hc2 = '';
-            if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
-                $found1 = $ret[0];
-                $index_hc1 = $ret[1]; //stats only
-            }
+            $found2 = false; 
+            $index_hc2 = '';
             if($ret = self::search_hc_string_from_AncestryIndex($DH_hc_string)) {
                 $found2 = $ret[0];
                 $index_hc2 = $ret[1]; //stats only

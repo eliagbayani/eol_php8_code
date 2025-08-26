@@ -219,19 +219,8 @@ class DwCA_MatchTaxa2DH
 
             if ($what == 'match_canonical') { @$this->debug['total taxa']++;
                 if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); @$this->debug['excluded: invalid taxa']++; continue;} 
-                if(!$canonicalName)                                {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
-                if(@$rec['EOLid'])                                 {self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;} //trait taxon already has EOLid
-                
-                // priorities:
-                // 1. if it can be tested with AncestryIndex then proceed to test and if it fails then stop there.
-                // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
-                if(self::can_proceed_with_AncestryIndex_check($rec)) {
-
-                }
-                else {
-
-                }
-
+                if (!$canonicalName)                               {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
+                if (@$rec['EOLid'])          {self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;} //trait taxon already has EOLid
                 $rec['EOLid'] = '';
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
 
@@ -275,10 +264,6 @@ class DwCA_MatchTaxa2DH
             }
             // if($i >= 100) break; //dev only
         }
-    }
-    private function can_proceed_with_AncestryIndex_check($rec)
-    {
-        
     }
     private function matching_routine_using_HC($rec, $reks)
     {   /*Array(

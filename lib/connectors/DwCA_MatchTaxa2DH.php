@@ -319,8 +319,13 @@ class DwCA_MatchTaxa2DH
 
         foreach($hCs as $hc) {
             if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc)) {
-                print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
-                $remarkz  = "\nTrait: [$found1] - [$dwca_hc_string] - [$index_hc1]";
+                // print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
+                /*Array(
+                    [IndexGroup] => Angiosperms
+                    [IndexHC] => Anacardiaceae|*
+                    [SourceHC] => Anacardiaceae|
+                )*/                
+                $remarkz  = "\nTrait: [".$ret['IndexGroup']."] - [".$ret['SourceHC']."] - [".$ret['IndexHC']."]";
                 $rec['taxonRemarks'] = $remarkz;
                 return $rec;
             }

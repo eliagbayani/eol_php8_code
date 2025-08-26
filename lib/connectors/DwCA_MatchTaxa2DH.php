@@ -225,25 +225,35 @@ class DwCA_MatchTaxa2DH
                 // priorities:
                 // 1. if it can be tested with AncestryIndex then proceed to test and if it fails then stop there.
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
-                if(self::can_proceed_with_AncestryIndex_check($rec)) {
-
-                }
-                else {
-
-                }
 
                 $rec['EOLid'] = '';
-                if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
+                $rec['taxonRemarks'] = '';
+                $ret = self::can_proceed_with_AncestryIndex_check($rec);
+                $rec = $ret[0];
+                $can_proceed_with_AncestryIndex_check = $ret[1];
 
-                    if($taxonRank) {
-                        $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
-                    }
-                    if(!@$rec['EOLid']) {
+                if($can_proceed_with_AncestryIndex_check) {
+                    if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
                         $rec = self::matching_routine_using_HC($rec, $reks);
                     }
+                    else $this->debug['No canonical match'][$taxonID] = $rec;
+                }
+                else {
+                    if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
 
-                } 
-                else $this->debug['No canonical match'][$taxonID] = $rec;
+                        if($taxonRank) {
+                            $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                        }
+                        if(!@$rec['EOLid']) {
+                            $rec = self::matching_routine_using_HC($rec, $reks);
+                        }
+
+                    } 
+                    else $this->debug['No canonical match'][$taxonID] = $rec;
+
+                    $this->debug['Matches made without ancestry info'][$taxonID] = $rec;
+                }
+
 
                 if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
                 else {}
@@ -294,9 +304,10 @@ class DwCA_MatchTaxa2DH
             [taxonomicStatus] => accepted
             [canonicalName] => Agaricales
         )*/
-        if(!$rec['higherClassification']) return false;
-        if(!self::can_be_assigned_an_IndexGroup($rec)) return false;
-        return true;
+        if(!$rec['higherClassification']) return array($rec, false);
+        $rec = self::can_be_assigned_an_IndexGroup($rec);
+        if(substr(@$rec['taxonRemarks'],0,6) == 'Trait:') return array($rec, true);
+        else return array($rec, false);
     }
     private function can_be_assigned_an_IndexGroup($rec)
     {
@@ -308,27 +319,29 @@ class DwCA_MatchTaxa2DH
 
         foreach($hCs as $hc) {
             if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc)) {
-                // print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
-                if($ancestry_group = $ret[0]) return $ancestry_group;
+                print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
+                $remarkz  = "\nTrait: [$found1] - [$dwca_hc_string] - [$index_hc1]";
+                $rec['taxonRemarks'] = $remarkz;
+                return $rec;
             }
         }
+        return $rec;
     }
     private function given_hc_get_Ancestry_Group_and_Index($hc)
     {
         $dwca_hc = explode("|", $hc);
         $dwca_hc = self::normalize_array($dwca_hc);
         $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
-        $found1 = false;
-        $index_hc1 = '';
+        // $found1 = false;
+        // $index_hc1 = '';
         if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
-            $found1 = $ret[0];
-            $index_hc1 = $ret[1]; //stats only
+            // $found1 = $ret[0];
+            // $index_hc1 = $ret[1]; //stats only
+            $ret['SourceHC'] = $dwca_hc_string;
+            // print_r($ret);
             return $ret;
         }
         return array();
-
-
-
     }
     private function matching_routine_using_HC($rec, $reks)
     {   /*Array(
@@ -355,7 +368,7 @@ class DwCA_MatchTaxa2DH
         $taxonRank = @$rec['taxonRank']; //at this point, rank is blank if resource doesn't have taxonRank.
         $taxonID = $rec['taxonID'];
 
-        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) { // --- matching_routine_using_HC()
+        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank, true)) { //4th boolean param is strictYN --- matching_routine_using_HC()
             if ($rek['e']) {
                 $allowed = $this->ok_match_subspecific_ranks;
                 $allowed[] = 'species';
@@ -376,6 +389,7 @@ class DwCA_MatchTaxa2DH
             }
             else @$this->debug['DH blank EOLid'][$taxonID] = '';
         }
+        else @$this->debug['Cannot be matched at all'][$taxonID] = $rec;
         return $rec;
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
@@ -482,7 +496,7 @@ class DwCA_MatchTaxa2DH
 
         return $rec;
     }
-    private function which_rek_to_use($rec, $reks, $taxonRank)
+    private function which_rek_to_use($rec, $reks, $taxonRank, $strictYN = false)
     {   /*e.g. $reks Array(
             [EOL-000000020456] => Array(
                     [r] => genus
@@ -539,6 +553,8 @@ class DwCA_MatchTaxa2DH
             }
         }
 
+        if($strictYN) return false;
+
         /* ============================ working OK but too permissive; by Eli
         // Search in DH reks which higherClassification matches with ALL of the DwCA_names_2search
         $DwCA_names_2search_hC = self::get_names_from_hC($rec, $canonicalName);
@@ -562,7 +578,7 @@ class DwCA_MatchTaxa2DH
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
-            $this->debug['Matches made without ancestry info'][$taxonID] = $rec;
+            // $this->debug['Matches made without ancestry info'][$taxonID] = $rec; //wrong said Katja
             return $rek;
         }
 
@@ -623,9 +639,11 @@ class DwCA_MatchTaxa2DH
     {
         $found1 = false; 
         $index_hc1 = ''; 
+        $dwca_hc_string = '';
         if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc)) {
-                $found1 = $ret[0];
-                $index_hc1 = $ret[1]; //stats only
+                $found1 = $ret['IndexGroup'];
+                $index_hc1 = $ret['IndexHC']; //stats only
+                $dwca_hc_string = $ret['SourceHC'];
         }
 
         $hits = array();
@@ -634,8 +652,8 @@ class DwCA_MatchTaxa2DH
             $found2 = false; 
             $index_hc2 = '';
             if($ret = self::search_hc_string_from_AncestryIndex($DH_hc_string)) {
-                $found2 = $ret[0];
-                $index_hc2 = $ret[1]; //stats only
+                $found2 = $ret['IndexGroup'];
+                $index_hc2 = $ret['IndexHC']; //stats only
             }
             if(($found1 == $found2) && $found1 && $found2 && $rek['e']) {
                 $remarkz  = "\nTrait: [$found1] - [$dwca_hc_string] - [$index_hc1]";
@@ -678,12 +696,12 @@ class DwCA_MatchTaxa2DH
                     // echo "\n".self::remove_last_char($index_hc);
                     // echo "\n-----------------end\n";
                     // echo("\nactually goes here\n"); 
-                    return array($indexes[0], $index_hc);
+                    return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
                 }
                 // */
             }
             else {
-                if($index_hc == $hc_str) return array($indexes[0], $index_hc);
+                if($index_hc == $hc_str) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
             }
         }
         return false;

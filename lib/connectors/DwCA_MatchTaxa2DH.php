@@ -96,7 +96,7 @@ class DwCA_MatchTaxa2DH
         echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]\n -> B = B1 + B2";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
-        echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match]. Diff should be zero [".number_format($diff)."].\n";
+        echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
         echo "\nC. Matches made without ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
 
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
@@ -105,7 +105,7 @@ class DwCA_MatchTaxa2DH
         echo "\n -> C2. With higherClassification but cannot be mapped to any index group: [".number_format($with_hc)."]\n -> C = C1 + C2";
         $sum = $no_hc + $with_hc;
         $diff = $matches_made_without_ancestry_info - $sum;
-        echo "\nsum [".number_format($sum)."] should be equal to [Matches made without ancestry info]. Diff should be zero [".number_format($diff)."].\n";
+        echo "\nsum [".number_format($sum)."] should be equal to [Matches made without ancestry info]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
 
         echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
 
@@ -120,7 +120,7 @@ class DwCA_MatchTaxa2DH
                + count(@$this->debug['No canonical match'] ?? array())
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
-        echo "\nsum = [".number_format($sum)."] Diff should be zero [".number_format($diff)."]";
+        echo "\nsum = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
         echo "\n----------STATS end----------\n";
 
         self::print_logs_for_Katja();
@@ -400,7 +400,7 @@ class DwCA_MatchTaxa2DH
                 }
                 else { /* at this point no legit match was found */
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
-                    @$this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                    @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
                     // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
                     // $canonicalName = $rec['canonicalName'];
@@ -411,7 +411,7 @@ class DwCA_MatchTaxa2DH
             }
             else @$this->debug['DH blank EOLid'][$taxonID] = '';
         }
-        else @$this->debug['Cannot be matched at all'][$taxonID] = $rec;
+        else @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //two
         return $rec;
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
@@ -605,7 +605,7 @@ class DwCA_MatchTaxa2DH
         }
 
         $taxonID = $rec['taxonID'];
-        $this->debug['Cannot be matched at all'][$taxonID] = $rec; //ditox eli
+        $this->debug['Cannot be matched at all'][$taxonID] = $rec; //ditox eli //three
         return false;
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.

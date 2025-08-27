@@ -342,6 +342,7 @@ class DwCA_MatchTaxa2DH
                     [SourceHC] => Anacardiaceae|
                 )*/                
                 $remarkz  = "Trait: [".$ret['SourceHC']."] - IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."]";
+                $remarkz  = "Trait: [IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."]";
                 $rec['taxonRemarks'] = $remarkz;
                 return $rec;
             }
@@ -637,7 +638,7 @@ class DwCA_MatchTaxa2DH
     private function append_taxonRemarks($rec, $add_str)
     {
         $rem = @$rec['taxonRemarks'];
-        if(substr($rem, 0, 8) == 'Trait: [') $add_str = " => conflict IndexGroup mapping";
+        if(substr($rem, 0, 8) == 'Trait: [') $add_str = "conflict IndexGroup mapping";
         if($add_str) $rec['taxonRemarks'] .= " => $add_str";
         return $rec;
     }
@@ -714,7 +715,7 @@ class DwCA_MatchTaxa2DH
                 // $remarkz  = "Trait: [".$dwca_hc_string."] - IndexGroup:[".$found1."] - IndexHC:[".$index_hc1."]";
                 // $remarkz .= "   DH: [$DH_hc_string]       - IndexGroup[$found2]      - IndexHC[$index_hc2] - DHtaxonID[".$rek['t']."]";
                 $arr = array();
-                $arr['Trait'] = array('hC' => $dwca_hc_string, 'IndexGroup' => $found1, 'IndexHC' => $index_hc1);
+                $arr['Trait'] = array('IndexGroup' => $found1, 'IndexHC' => $index_hc1);
                 $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
                 $remarkz = json_encode($arr);
                 $rek['remarkz'] = $remarkz;

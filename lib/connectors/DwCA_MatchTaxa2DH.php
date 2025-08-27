@@ -246,7 +246,7 @@ class DwCA_MatchTaxa2DH
 
                     if($can_proceed_with_AIndex_check) {
                         $rec = self::matching_routine_using_HC($rec, $reks);
-                        print_r($rec); exit("\nhuli ka\n");
+                        // print_r($rec); exit("\nhuli ka\n");
                     }
                     else {
                         if($taxonRank) {
@@ -341,7 +341,7 @@ class DwCA_MatchTaxa2DH
                     [IndexHC] => Anacardiaceae|*
                     [SourceHC] => Anacardiaceae|
                 )*/                
-                $remarkz  = "Trait: [".$ret['IndexGroup']."] - [".$ret['SourceHC']."] - [".$ret['IndexHC']."]";
+                $remarkz  = "Trait: [".$ret['SourceHC']."] - IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."]";
                 $rec['taxonRemarks'] = $remarkz;
                 return $rec;
             }
@@ -678,8 +678,8 @@ class DwCA_MatchTaxa2DH
                 $index_hc2 = $ret['IndexHC']; //stats only
             }
             if(($found1 == $found2) && $found1 && $found2 && $rek['e']) {
-                $remarkz  = "Trait: [$found1] - [$dwca_hc_string] - [$index_hc1]";
-                $remarkz .= "\n DH: [$found2] - [$DH_hc_string] - [$index_hc2] - [".$rek['t']."]";
+                $remarkz  = "Trait: [".$dwca_hc_string."] - IndexGroup:[".$found1."] - IndexHC:[".$index_hc1."]";
+                $remarkz .= "\n DH: [$DH_hc_string] - IndexGroup[$found2] - IndexHC[$index_hc2] - DHtaxonID[".$rek['t']."]";
                 $rek['remarkz'] = $remarkz;
                 /* good debug works OK
                 echo "\n------------may na huli-----------\n";

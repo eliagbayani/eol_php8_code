@@ -418,7 +418,7 @@ class DwCA_MatchTaxa2DH
                 }
                 else { /* at this point no legit match was found */
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
-                    $rec = self::append_taxonRemarks($rec, "111");
+                    $rec = self::append_taxonRemarks($rec, "");
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
                     echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
@@ -431,7 +431,7 @@ class DwCA_MatchTaxa2DH
             else @$this->debug['DH blank EOLid'][$taxonID] = '';
         }
         else {
-            $rec = self::append_taxonRemarks($rec, "222");
+            $rec = self::append_taxonRemarks($rec, "");
             @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //two
 
         }
@@ -630,7 +630,7 @@ class DwCA_MatchTaxa2DH
         }
 
         $taxonID = $rec['taxonID'];
-        $rec = self::append_taxonRemarks($rec, "333");
+        $rec = self::append_taxonRemarks($rec, "");
         $this->debug['Cannot be matched at all'][$taxonID] = $rec; //ditox eli //three
         return false;
     }

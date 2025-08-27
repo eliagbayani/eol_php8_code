@@ -661,6 +661,12 @@ class DwCA_MatchTaxa2DH
         $rem = @$rec['taxonRemarks'];
         if(substr($rem, 0, 8) == 'Trait: [') $add_str = "conflict IndexGroup mapping";
         if($add_str) $rec['taxonRemarks'] .= " => $add_str";
+
+        /* not fully tested
+        $taxonID = $rec['taxonID'];
+        if($val = @$this->sys[$taxonID]['remark']) $rec['taxonRemarks'] .= " => $val";
+        */
+
         return $rec;
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.
@@ -747,6 +753,12 @@ class DwCA_MatchTaxa2DH
                 echo "\n------------END may na huli-----------\n"; //exit;
                 */
                 $hits[] = $rek;
+            }
+            else {
+                /* not fully tested
+                $trait_taxonID = $this->rec['taxonID'];
+                $this->sys[$trait_taxonID]['remark'] = "CONFLICT: Trait IndexGroup: [$found1] | DH IndexGroup: [$found2]";
+                */
             }
         }
         if(count($hits) == 1) return $hits[0];

@@ -101,8 +101,8 @@ class DwCA_MatchTaxa2DH
 
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
         $with_hc = count(@$this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'] ?? array());
-        echo "\n -> C1. No higherClassification: [".$no_hc."]";
-        echo "\n -> C2. With higherClassification but cannot be mapped to any index group: [".$with_hc."]\n -> C = C1 + C2";
+        echo "\n -> C1. No higherClassification: [".number_format($no_hc)."]";
+        echo "\n -> C2. With higherClassification but cannot be mapped to any index group: [".number_format($with_hc)."]\n -> C = C1 + C2";
         $sum = $no_hc + $with_hc;
         $diff = $matches_made_without_ancestry_info - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Matches made without ancestry info]. Diff should be zero [".number_format($diff)."].\n";
@@ -678,8 +678,12 @@ class DwCA_MatchTaxa2DH
                 $index_hc2 = $ret['IndexHC']; //stats only
             }
             if(($found1 == $found2) && $found1 && $found2 && $rek['e']) {
-                $remarkz  = "Trait: [".$dwca_hc_string."] - IndexGroup:[".$found1."] - IndexHC:[".$index_hc1."]";
-                $remarkz .= "\n DH: [$DH_hc_string] - IndexGroup[$found2] - IndexHC[$index_hc2] - DHtaxonID[".$rek['t']."]";
+                // $remarkz  = "Trait: [".$dwca_hc_string."] - IndexGroup:[".$found1."] - IndexHC:[".$index_hc1."]";
+                // $remarkz .= "   DH: [$DH_hc_string]       - IndexGroup[$found2]      - IndexHC[$index_hc2] - DHtaxonID[".$rek['t']."]";
+                $arr = array();
+                $arr['Trait'] = array('hC' => $dwca_hc_string, 'IndexGroup' => $found1, 'IndexHC' => $index_hc1);
+                $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
+                $remarkz = json_encode($arr);
                 $rek['remarkz'] = $remarkz;
                 /* good debug works OK
                 echo "\n------------may na huli-----------\n";

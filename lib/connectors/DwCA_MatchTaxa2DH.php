@@ -87,7 +87,7 @@ class DwCA_MatchTaxa2DH
         $cannot_be_matched_at_all = count($this->debug['Cannot be matched at all'] ?? array());
         $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
-        $matches_made_without_ancestry_info = count(@$this->debug['Matches made without ancestry info'] ?? array());
+        $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
 
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
@@ -97,15 +97,26 @@ class DwCA_MatchTaxa2DH
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
-        echo "\nC. Matches made without ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
+        echo "\nC. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
 
+        $rems = array_keys($this->debug['without_OR_lacking']);
+        $sum = 0;
+        foreach($rems as $rem) {
+            $val = count($this->debug['without_OR_lacking'][$rem]);
+            $sum += $val;
+            echo "\n -> [$rem]: ".number_format($val);
+        }
+        echo "\n -> sum: ".number_format($sum)."";
+
+        /* commented for now
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
         $with_hc = count(@$this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'] ?? array());
         echo "\n -> C1. No higherClassification: [".number_format($no_hc)."]";
         echo "\n -> C2. With higherClassification but cannot be mapped to any index group: [".number_format($with_hc)."]\n -> C = C1 + C2";
         $sum = $no_hc + $with_hc;
         $diff = $matches_made_without_ancestry_info - $sum;
-        echo "\nsum [".number_format($sum)."] should be equal to [Matches made without ancestry info]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
+        echo "\nsum [".number_format($sum)."] should be equal to [Matches made without_OR_lacking ancestry info]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
+        */
 
         echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
 
@@ -255,7 +266,17 @@ class DwCA_MatchTaxa2DH
                         if(!@$rec['EOLid']) {
                             $rec = self::matching_routine_using_HC($rec, $reks);
                         }
-                        $this->debug['Matches made without ancestry info'][$taxonID] = $rec;
+
+                        if(@$rec['EOLid']) {
+                            $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
+                            $rem = $rec['taxonRemarks'];
+                            $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
+                        }
+                        else {
+                            $taxonID = $rec['taxonID'];
+                            $rec = self::append_taxonRemarks($rec, ""); //A4
+                            $this->debug['Cannot be matched at all'][$taxonID] = $rec; //four
+                        }
                     }
 
                     if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
@@ -419,7 +440,7 @@ class DwCA_MatchTaxa2DH
                 }
                 else { /* at this point no legit match was found */
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
-                    $rec = self::append_taxonRemarks($rec, "");
+                    $rec = self::append_taxonRemarks($rec, ""); //A1 failed ancestry match
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
                     echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
@@ -432,7 +453,7 @@ class DwCA_MatchTaxa2DH
             else @$this->debug['DH blank EOLid'][$taxonID] = '';
         }
         else {
-            $rec = self::append_taxonRemarks($rec, "");
+            $rec = self::append_taxonRemarks($rec, ""); //A2 failed ancestry match
             @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //two
 
         }
@@ -626,13 +647,13 @@ class DwCA_MatchTaxa2DH
         // where OPTION2 1 and 2 fail...
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
-            // $this->debug['Matches made without ancestry info'][$taxonID] = $rec; //wrong said Katja
+            // $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec; //wrong said Katja
             return $rek;
         }
 
         $taxonID = $rec['taxonID'];
-        $rec = self::append_taxonRemarks($rec, "");
-        $this->debug['Cannot be matched at all'][$taxonID] = $rec; //ditox eli //three
+        $rec = self::append_taxonRemarks($rec, ""); //A3 failed rank match
+        $this->debug['Cannot be matched at all'][$taxonID] = $rec; //three
         return false;
     }
     private function append_taxonRemarks($rec, $add_str)
@@ -1101,7 +1122,7 @@ class DwCA_MatchTaxa2DH
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments', 'Matches made without ancestry info');
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments', 'Matches made without_OR_lacking ancestry info');
         // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";

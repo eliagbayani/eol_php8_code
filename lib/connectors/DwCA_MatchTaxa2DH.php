@@ -392,9 +392,27 @@ class DwCA_MatchTaxa2DH
 
         if($rek = self::which_rek_to_use($rec, $reks, $taxonRank, true)) { //4th boolean param is strictYN --- matching_routine_using_HC()
             if ($rek['e']) {
-                $allowed = $this->ok_match_subspecific_ranks;
-                $allowed[] = 'species';
-                if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) {
+
+                // $allowed = $this->ok_match_subspecific_ranks;
+                // $allowed[] = 'species';
+                // if(in_array($rek['r'], $allowed) || in_array($taxonRank, $allowed)) {
+                //     $rec['EOLid'] = $rek['e'];
+                //     $rec['taxonRemarks'] = @$rek['remarkz'];
+                // }
+
+                // /* ----- start block -----
+                // print_r($rek); exit("\nstopx\n");
+                $DH_rank = $rek['r'];
+                $DH_canonical = $rek['c'];
+                $DH_taxonID = $rek['t'];
+                $assignYN = false;
+                if(substr(@$rek['remarkz'],0,9) == '{"Trait":') $assignYN = true; //meaning with matching IndexGroup
+                if ($taxonRank == $DH_rank) $assignYN = true;
+                if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $assignYN = true;
+                if (in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $assignYN = true;
+                // ----- end block ----- */
+                
+                if($assignYN) {
                     $rec['EOLid'] = $rek['e'];
                     $rec['taxonRemarks'] = @$rek['remarkz'];
                 }
@@ -402,11 +420,11 @@ class DwCA_MatchTaxa2DH
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
-                    // echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
-                    // $canonicalName = $rec['canonicalName'];
-                    // // if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
-                    // echo "\n-----------END meron hits-------------\n";
-                    // exit("\nstop muna 2\n");
+                    echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
+                    $canonicalName = $rec['canonicalName'];
+                    // if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
+                    echo "\n-----------END meron hits-------------\n";
+                    exit("\nstop muna 2\n");
                 }
             }
             else @$this->debug['DH blank EOLid'][$taxonID] = '';
@@ -446,6 +464,7 @@ class DwCA_MatchTaxa2DH
             return $rec; 
         }
 
+        // /* ----- start block -----
         // print_r($rek); exit("\nstopx\n");
         $DH_rank = $rek['r'];
         $DH_canonical = $rek['c'];
@@ -455,7 +474,8 @@ class DwCA_MatchTaxa2DH
         if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $rec['EOLid'] = $rek['e']; //eolID
         // 2. It's also ok to match taxa with different ranks if both taxa have a subspecific rank, e.g., subspecies | variety | form | forma | infraspecies | infraspecific name | infrasubspecific name | subvariety | subform | proles | lusus | forma specialis
         if (in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $rec['EOLid'] = $rek['e']; //eolID
-        
+        // ----- end block ----- */
+
         // print_r($rec);
         $taxonID = $rec['taxonID'];
         // $taxonRank = $rec['taxonRank'];

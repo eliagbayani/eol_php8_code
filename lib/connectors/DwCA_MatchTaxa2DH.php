@@ -418,6 +418,7 @@ class DwCA_MatchTaxa2DH
                 }
                 else { /* at this point no legit match was found */
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
+                    $rec = self::append_taxonRemarks($rec, "111");
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
                     echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
@@ -429,7 +430,11 @@ class DwCA_MatchTaxa2DH
             }
             else @$this->debug['DH blank EOLid'][$taxonID] = '';
         }
-        else @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //two
+        else {
+            $rec = self::append_taxonRemarks($rec, "222");
+            @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //two
+
+        }
         return $rec;
     }
     private function matching_routine_using_rank($rec, $reks, $taxonRank)
@@ -625,8 +630,16 @@ class DwCA_MatchTaxa2DH
         }
 
         $taxonID = $rec['taxonID'];
+        $rec = self::append_taxonRemarks($rec, "333");
         $this->debug['Cannot be matched at all'][$taxonID] = $rec; //ditox eli //three
         return false;
+    }
+    private function append_taxonRemarks($rec, $add_str)
+    {
+        $rem = @$rec['taxonRemarks'];
+        if(substr($rem, 0, 8) == 'Trait: [') $add_str = " => conflict IndexGroup mapping";
+        if($add_str) $rec['taxonRemarks'] .= " => $add_str";
+        return $rec;
     }
     private function get_rek_from_reks_byEli($reks, $DwCA_names_2search) //Eli's initiative; kinda permissive. Not strict as Katja's.
     {   //all ancestry|higherClassification names from DwCA should exist in the DH higherClassification AND rank matches

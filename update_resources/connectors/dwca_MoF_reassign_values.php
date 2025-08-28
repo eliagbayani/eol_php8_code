@@ -3,6 +3,7 @@ namespace php_active_record;
 /* Clients for DWCA_Measurements_ReassignValues() and purpose of this API is in: DWCA_Measurements_ReassignValuesAPI.php
 php update_resources/connectors/dwca_MoF_reassign_values.php _ '{"resource_id":"natdb_meta_recoded", "resource":"MoF_reassign_values"}'
 php update_resources/connectors/dwca_MoF_reassign_values.php _ '{"resource_id":"TreatmentBank_adjustment_03", "resource":"MoF_reassign_values"}'
+php                             dwca_MoF_reassign_values.php _ '{"resource_id":"polytraits_new", "resource":"MoF_reassign_values"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 $timestart = time_elapsed();
@@ -24,6 +25,7 @@ $dwca = CONTENT_RESOURCE_LOCAL_PATH.$resource_id.'.tar.gz'; //seems a better sol
 // /* ---------- CUSTOMIZE HERE: ----------
 if($resource_id == "natdb_meta_recoded")              $resource_id = "natdb_temp_1"; //this will be moved to natdb_final.tar.gz in Jenkins script.
 elseif($resource_id == "TreatmentBank_adjustment_03") $resource_id = "TreatmentBank_adjustment_04"; //this will be moved to TreatmentBank_final.tar.gz in Jenkins script.
+elseif($resource_id == "polytraits_new")              $resource_id = "polytraits";
 else exit("\nresource ID not yet initialized [$resource_id]\n");
 // ---------------------------------------- */
 

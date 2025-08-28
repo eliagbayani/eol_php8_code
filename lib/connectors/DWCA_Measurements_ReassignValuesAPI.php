@@ -32,6 +32,9 @@ class DWCA_Measurements_ReassignValuesAPI
         elseif($this->resource_id == 'TreatmentBank_adjustment_04') { //TreatmentBank
             self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'write_TreatmentBank');
         }
+        elseif($this->resource_id == 'polytraits') { //Polytraits
+            self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'write_Polytraits');
+        }
         else exit("\nResource ID not initialized [DWCA_Measurements_ReassignValuesAPI]\n");
     }
     private function process_extension($meta, $class, $what)
@@ -89,6 +92,9 @@ class DWCA_Measurements_ReassignValuesAPI
                     if($measurementType == 'http://purl.obolibrary.org/obo/ENVO_09200008') $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://purl.obolibrary.org/obo/RO_0002303';
                 }
                 self::proceed_2write($rec, $class);
+            }
+            elseif($what == 'write_Polytraits') {
+                
             }
         }
     }

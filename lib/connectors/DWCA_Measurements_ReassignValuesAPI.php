@@ -35,7 +35,15 @@ class DWCA_Measurements_ReassignValuesAPI
         elseif($this->resource_id == 'polytraits_new') { //Polytraits
             self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'write_Polytraits');
         }
-        else exit("\nResource ID not initialized [DWCA_Measurements_ReassignValuesAPI][$this->resource_id]\n");
+        elseif($this->resource_id == '726_meta_recoded_01') { //Rotifer World Catalog
+            self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'Rotifer_round_1');
+            self::save_array_2json_textfile($this->old_new_mID, CONTENT_RESOURCE_LOCAL_PATH.'/Rotifer_temp_mID.json');
+        }
+        elseif($this->resource_id == '726_meta_recoded_02') { //Rotifer World Catalog
+            $this->old_new_mID = self::retrive_json_textfile_2array(CONTENT_RESOURCE_LOCAL_PATH.'/Rotifer_temp_mID.json');
+            self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'Rotifer_round_2');
+        }
+        else exit("\nResource ID not initialized [from: DWCA_Measurements_ReassignValuesAPI][$this->resource_id]\n");
     }
     private function process_extension($meta, $class, $what)
     {   //print_r($meta);
@@ -112,15 +120,63 @@ class DWCA_Measurements_ReassignValuesAPI
                     http://polytraits.lifewatchgreece.eu/terms/EP_EPIP
                     please replace http://polytraits.lifewatchgreece.eu/terms/EP with http://eol.org/schema/terms/EcomorphologicalGuild                        
                 */
-                if($measurementType == 'http://polytraits.lifewatchgreece.eu/terms/EP') {
-                    if(in_array($measurementValue, array('http://polytraits.lifewatchgreece.eu/terms/EP_ENDOB', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIB', 'http://polytraits.lifewatchgreece.eu/terms/EP_EL'))) {
-                        $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://purl.obolibrary.org/obo/RO_0002303';                        
-                    }                    
-                    if(in_array($measurementValue, array('http://polytraits.lifewatchgreece.eu/terms/EP_LITH', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIZ', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIP'))) {
-                        $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://eol.org/schema/terms/EcomorphologicalGuild';
+                if($class == 'MoF') {
+                    if($measurementType == 'http://polytraits.lifewatchgreece.eu/terms/EP') {
+                        if(in_array($measurementValue, array('http://polytraits.lifewatchgreece.eu/terms/EP_ENDOB', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIB', 'http://polytraits.lifewatchgreece.eu/terms/EP_EL'))) {
+                            $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://purl.obolibrary.org/obo/RO_0002303';                        
+                        }                    
+                        if(in_array($measurementValue, array('http://polytraits.lifewatchgreece.eu/terms/EP_LITH', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIZ', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIP'))) {
+                            $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://eol.org/schema/terms/EcomorphologicalGuild';
+                        }
                     }
+                    self::proceed_2write($rec, $class);
                 }
-                self::proceed_2write($rec, $class);
+            }
+            // =======================================================================================================
+            elseif($what == 'Rotifer_round_1') {
+                /* for records with value= http://eol.org/schema/terms/littoralGlacialSand, 
+                please replace with two records with all the same data, 
+                but one with value= http://purl.obolibrary.org/obo/ENVO_01000017
+                and one with value= http://eol.org/schema/terms/littoralZone                
+                Array(
+                    [http://rs.tdwg.org/dwc/terms/measurementID] => be13b9db67bf953a70bb4b5d9dfa00fa_726
+                    [http://rs.tdwg.org/dwc/terms/occurrenceID] => b087e2a4775d863ee488aa73ecf4af45O24b241fb5b316f48de5f825d743d9dcc
+                    [http://eol.org/schema/measurementOfTaxon] => true
+                    [http://eol.org/schema/parentMeasurementID] => 
+                    [http://rs.tdwg.org/dwc/terms/measurementType] => http://purl.obolibrary.org/obo/RO_0002303
+                    [http://rs.tdwg.org/dwc/terms/measurementValue] => http://eol.org/schema/terms/littoralGlacialSand
+                    [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
+                    [http://rs.tdwg.org/dwc/terms/measurementMethod] => 
+                    [http://rs.tdwg.org/dwc/terms/measurementRemarks] => 
+                    [http://purl.org/dc/terms/source] => http://rotifera.hausdernatur.at/Species/Index/670
+                )*/
+                if($class == 'MoF') {
+                    if($measurementValue == 'http://eol.org/schema/terms/littoralGlacialSand') { // print_r($rec); exit("\nstop 1\n");
+                        $values = array('http://purl.obolibrary.org/obo/ENVO_01000017', 'http://eol.org/schema/terms/littoralZone');
+                        foreach($values as $value) {
+                            $rec['http://rs.tdwg.org/dwc/terms/measurementValue'] = $value;
+                            $o = new \eol_schema\MeasurementOrFact_specific();
+                            $uris = array_keys($rec); //print_r($uris); exit("\ndito eli\n");
+                            foreach($uris as $uri) {
+                                $field = pathinfo($uri, PATHINFO_BASENAME);
+                                $o->$field = $rec[$uri];
+                            }
+                            $old_mID = $o->measurementID;
+                            $o->measurementID = Functions::generate_measurementID($o, '726'); //$this->resource_id
+                            $this->old_new_mID[$old_mID] = $o->measurementID;
+                            $this->archive_builder->write_object_to_file($o);
+                        }
+                    }
+                    else self::proceed_2write($rec, $class);
+                }                
+            }
+            elseif($what == 'Rotifer_round_2') {
+                if($class == 'MoF') {
+                    if($parent_id = $rec['http://eol.org/schema/parentMeasurementID']) {
+                        if($new_parent_id = @$this->old_new_mID[$parent_id]) $rec['http://eol.org/schema/parentMeasurementID'] = $new_parent_id;
+                    }
+                    self::proceed_2write($rec, $class);
+                }                
             }
             // =======================================================================================================
         }
@@ -137,6 +193,18 @@ class DWCA_Measurements_ReassignValuesAPI
             $o->$field = $rec[$uri];
         }
         $this->archive_builder->write_object_to_file($o);
+    }
+    private function save_array_2json_textfile($arr, $filename)
+    {
+        $json = json_encode($arr);
+        $WRITE = fopen($filename, 'w');
+        fwrite($WRITE, $json);
+        fclose($WRITE);
+    }
+    private function retrive_json_textfile_2array($filename)
+    {
+        $json = file_get_contents($filename);
+        return json_decode($json, true);
     }
 }
 ?>

@@ -70,15 +70,19 @@ class DWCA_Measurements_ReassignValuesAPI
             )*/
             //===========================================================================================================================================================
             //===========================================================================================================================================================
+            if($class == 'MoF') {
+                $measurementValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
+                $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+            }
+            // =======================================================================================================
             if($what == 'build-up') {
                 if($class == 'MoF') {
                     $this->measurementIDs[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = '';
                 }
             }
+            // =======================================================================================================
             elseif($what == 'write_MADtraits') {
                 if($class == 'MoF') {
-                    $measurementValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
-                    $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
                     if(in_array($measurementValue, array('http://eol.org/schema/terms/lecithotrophic', 'http://eol.org/schema/terms/planktotrophic'))) {
                         if($measurementType == 'http://eol.org/schema/terms/TrophicGuild') $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://eol.org/schema/terms/MarineLarvalDevelopmentStrategy';
                         else                                                               $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://eol.org/schema/terms/MarineLarvalDevelopmentStrategy'; //assign it anyway
@@ -86,16 +90,39 @@ class DWCA_Measurements_ReassignValuesAPI
                 }
                 self::proceed_2write($rec, $class);
             }
+            // =======================================================================================================
             elseif($what == 'write_TreatmentBank') {
                 if($class == 'MoF') {
-                    $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
                     if($measurementType == 'http://purl.obolibrary.org/obo/ENVO_09200008') $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://purl.obolibrary.org/obo/RO_0002303';
                 }
                 self::proceed_2write($rec, $class);
             }
+            // =======================================================================================================
             elseif($what == 'write_Polytraits') {
-                
+                /* for records with measurementType=http://polytraits.lifewatchgreece.eu/terms/EP
+                    IF the record value is
+                    http://polytraits.lifewatchgreece.eu/terms/EP_ENDOB
+                    http://polytraits.lifewatchgreece.eu/terms/EP_EPIB
+                    http://polytraits.lifewatchgreece.eu/terms/EP_EL
+                    please replace http://polytraits.lifewatchgreece.eu/terms/EP with http://purl.obolibrary.org/obo/RO_0002303
+
+                    IF the record value is
+                    http://polytraits.lifewatchgreece.eu/terms/EP_LITH
+                    http://polytraits.lifewatchgreece.eu/terms/EP_EPIZ
+                    http://polytraits.lifewatchgreece.eu/terms/EP_EPIP
+                    please replace http://polytraits.lifewatchgreece.eu/terms/EP with http://eol.org/schema/terms/EcomorphologicalGuild                        
+                */
+                if($measurementType == 'http://polytraits.lifewatchgreece.eu/terms/EP') {
+                    if(in_array($measurementValue, array('http://polytraits.lifewatchgreece.eu/terms/EP_ENDOB', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIB', 'http://polytraits.lifewatchgreece.eu/terms/EP_EL'))) {
+                        $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://purl.obolibrary.org/obo/RO_0002303';                        
+                    }                    
+                    if(in_array($measurementValue, array('http://polytraits.lifewatchgreece.eu/terms/EP_LITH', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIZ', 'http://polytraits.lifewatchgreece.eu/terms/EP_EPIP'))) {
+                        $rec['http://rs.tdwg.org/dwc/terms/measurementType'] = 'http://eol.org/schema/terms/EcomorphologicalGuild';
+                    }
+                }
+                self::proceed_2write($rec, $class);
             }
+            // =======================================================================================================
         }
     }
     private function proceed_2write($rec, $class)

@@ -96,7 +96,7 @@ class DwCA_MatchTaxa2DH
         echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]\n -> B = B1 + B2";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
-        echo "\nsum [".number_format($sum)."] should be equal to [Has canonical match]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
+        echo "\nsum [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
         echo "\nC. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
 
         $rems = array_keys($this->debug['without_OR_lacking']);
@@ -106,7 +106,8 @@ class DwCA_MatchTaxa2DH
             $sum += $val;
             echo "\n -> [$rem]: ".number_format($val);
         }
-        echo "\n -> sum: ".number_format($sum)."";
+        $diff = $matches_made_without_ancestry_info - $sum;
+        echo "\n -> sum: ".number_format($sum)." DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         /* commented for now
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());

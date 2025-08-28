@@ -20,6 +20,7 @@ $GLOBALS['ENV_DEBUG'] = true;
 $timestart = time_elapsed();
 
 $resource_id = 'polytraits_new'; //this replaced the Polytraits.tar.gz resource from polytraits.php
+$resource_id = 'polytraits_01'; //as of Aug 28, 2025
 
 /* using mostly API and some HTML pages */
 require_library('connectors/ContributorsMapAPI');

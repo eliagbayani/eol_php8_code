@@ -32,10 +32,10 @@ class DWCA_Measurements_ReassignValuesAPI
         elseif($this->resource_id == 'TreatmentBank_adjustment_04') { //TreatmentBank
             self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'write_TreatmentBank');
         }
-        elseif($this->resource_id == 'polytraits') { //Polytraits
+        elseif($this->resource_id == 'polytraits_new') { //Polytraits
             self::process_extension($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF', 'write_Polytraits');
         }
-        else exit("\nResource ID not initialized [DWCA_Measurements_ReassignValuesAPI]\n");
+        else exit("\nResource ID not initialized [DWCA_Measurements_ReassignValuesAPI][$this->resource_id]\n");
     }
     private function process_extension($meta, $class, $what)
     {   //print_r($meta);

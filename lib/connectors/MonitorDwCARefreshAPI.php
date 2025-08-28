@@ -2,6 +2,8 @@
 namespace php_active_record;
 /* 
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class MonitorDwCARefreshAPI
 {
     function __construct()

@@ -133,6 +133,11 @@ class DwCA_MatchTaxa2DH
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
         echo "\nsum = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+
+        echo "\n". @$this->debug['synonym option 1'];
+        echo "\n". @$this->debug['synonym option 2'];
+        echo "\n". @$this->debug['synonyms OK'];
+
         echo "\n----------STATS end----------\n";
 
         self::print_logs_for_Katja();
@@ -654,7 +659,7 @@ class DwCA_MatchTaxa2DH
         }
 
         // /* the synonym option
-        if($rek = self::synonym_option($reks)) {
+        if($rek = self::synonym_option($reks, $rec)) {
             return $rek;
         }
         // */
@@ -664,9 +669,20 @@ class DwCA_MatchTaxa2DH
         $this->debug['Cannot be matched at all'][$taxonID] = $rec; //three
         return false;
     }
-    private function synonym_option($reks)
+    private function synonym_option($reks, $rec)
     {
-
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if($rek['s'] == 'n' && $rec['taxonRank'] == $rek['r']) {
+                @$this->debug['synonym option 1']++;
+                return $rek;
+            }
+        }
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if($rek['s'] == 'n') {
+                @$this->debug['synonym option 2']++;
+                return $rek;
+            }
+        }
     }
     private function append_taxonRemarks($rec, $add_str)
     {
@@ -962,7 +978,7 @@ class DwCA_MatchTaxa2DH
                 return $rek;
             }
         }
-        
+
         if($rek = self::choose_from_matched_group($taxonRank, $reks)) {
             @$this->debug['matched group rank old'][$taxonID] = ''; 
             // print_r($this->rec); print_r($rek); exit("\nCheck 300\n");
@@ -1185,13 +1201,24 @@ class DwCA_MatchTaxa2DH
         $taxonID = $rek['t'];
         if(substr($taxonID,0,3) == 'EOL') return $rek; //not a synonym
         if($rek['s'] == 'a')              return $rek; //accepted name
-        if($acceptedNameUsageID = @$this->DH->DH_synonyms[$taxonID]) {
+        if($acceptedNameUsageID = @$this->DH->DH_synonyms[$taxonID]) { echo "\nsyn ID: [$taxonID] | acceptedNameUsageID: [$acceptedNameUsageID]\n";
             // for reference: $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank);
             if($accepted_rek = $this->DH->DH[$acceptedNameUsageID]) {
-                print_r($rek);
-                print_r($accepted_rek);
-                exit("\nfound accepted rek for a synonym rek\n");
-                return $accepted_rek;
+                // print_r($rek); print_r($accepted_rek);
+                /*Array( e.g. $accepted_rek
+                    [c] => Aristolochiaceae
+                    [r] => family
+                )*/
+                // exit("\nfound accepted rek for a synonym rek\n");
+                // for reference: $this->DHCanonical_info[$canonicalName][$taxonID]
+                if($canonicalName = $accepted_rek['c']) {
+                    if($final_rek = $this->DH->DHCanonical_info[$canonicalName][$acceptedNameUsageID]) {
+                        // print_r($final_rek); exit("\nfound final rek\n");
+                        @$this->debug['synonyms OK']++;
+                        return $final_rek; //tested OK!
+                    }
+                    else exit("\nInvestigate: should not go here at least...\n");
+                }
             }
             else {
                 print_r($rek);

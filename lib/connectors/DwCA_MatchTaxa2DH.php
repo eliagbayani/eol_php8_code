@@ -242,7 +242,7 @@ class DwCA_MatchTaxa2DH
             $taxonomicStatus = @$rec['taxonomicStatus'];
             $acceptedNameUsageID = @$rec['acceptedNameUsageID'];
             $canonicalName = self::format_canonical($rec['canonicalName']);
-
+            //========================================================================================================= 
             if ($what == 'match_canonical') { @$this->debug['total taxa']++;
                 if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); @$this->debug['excluded: invalid taxa']++; continue;} 
                 if(!$canonicalName)                                {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
@@ -283,16 +283,16 @@ class DwCA_MatchTaxa2DH
                         }
                     }
 
+                    if(!$rec['EOLid']) $rec = self::the_synonyms_way($reks, $rec);
+
                     if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
                     else {}
 
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;
-
-
-
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
             }
+            //========================================================================================================= 
             elseif($what == 'generate_synonyms_info') {
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
                 @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
@@ -316,8 +316,21 @@ class DwCA_MatchTaxa2DH
                 }
                 */
             }
+            //========================================================================================================= 
             // if($i >= 100) break; //dev only
         }
+    }
+    private function the_synonyms_way($reks, $rec)
+    {
+        foreach($reks as $taxonID => $rek) {
+            if($rek['s'] == 'n') { //this is a synonym
+                if($accepted_rek = self::get_acceptedRek_if_synonym($rek)) {
+                    $rec['EOLid'] = $accepted_rek['e']; //eolID
+                    print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
+                }                
+            }
+        }
+        return $rec;
     }
     private function can_proceed_with_AncestryIndex_check($rec)
     {   /*e.g. Array(

@@ -120,8 +120,16 @@ class DHConnLib
         echo "\nyyy1:".count($this->DH_synonyms)."";
         echo "\nzzz1:".count($this->DH_acceptedNames)."\n";
 
-        // foreach($this->DHCanonical_info as $name => $reks) {
-        //     foreach($reks as $taxonID => $rek) echo "[".$rek['t']."] ";
+        // foreach($this->DHCanonical_info as $name => $reks) { SYNONYMS DON'T HAVE EOLid AND higherClassification
+        //     foreach($reks as $taxonID => $rek) {
+        //         if(substr($rek['t'],0,3) == 'SYN') {
+        //             $t = $rek['t'];
+        //             $e = $rek['e'];
+        //             $c = $rek['c'];
+        //             $h = $rek['h'];
+        //             if($e || $h) echo "\n[$t]-[$c]-[$e]-[$h]";
+        //         }
+        //     }
         // }
         // exit("\nelix\n");
         // print_r(@$this->debug['taxonRank']); exit; //stats only

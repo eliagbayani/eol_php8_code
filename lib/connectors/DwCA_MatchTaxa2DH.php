@@ -52,7 +52,7 @@ class DwCA_MatchTaxa2DH
         $this->DH = new DHConnLib(1);
         $this->DH->build_up_taxa_info(); //generates 4 info lookups
         echo "\naaa2:".count($this->DH->DHCanonical_info)."";
-        echo "\nxxx2:".count($this->DH->DH)."";
+        echo "\nxxx2:".count($this->DH->DH)."";                                     // -> from DH: $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
         echo "\nyyy2:".count($this->DH->DH_synonyms)."";                            // -> from DH: $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
         echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");       // -> from DH: $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
         // */
@@ -412,6 +412,7 @@ class DwCA_MatchTaxa2DH
         $taxonID = $rec['taxonID'];
 
         if($rek = self::which_rek_to_use($rec, $reks, $taxonRank, true)) { //4th boolean param is strictYN --- matching_routine_using_HC()
+            $rek = self::get_acceptedRek_if_synonym($rek);
             if ($rek['e']) {
 
                 // $allowed = $this->ok_match_subspecific_ranks;
@@ -482,7 +483,9 @@ class DwCA_MatchTaxa2DH
         1, 2, 
         3. When you get to family or below, taxon matching across ranks becomes increasingly iffy.
         */
-        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) {} //important step! --- matching_routine_using_rank()
+        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank)) { //important step! --- matching_routine_using_rank()
+            $rek = self::get_acceptedRek_if_synonym($rek);        
+        }
         else return $rec; 
 
         if(!$rek['e']) { 
@@ -650,10 +653,20 @@ class DwCA_MatchTaxa2DH
             return $rek;
         }
 
+        // /* the synonym option
+        if($rek = self::synonym_option($reks)) {
+            return $rek;
+        }
+        // */
+
         $taxonID = $rec['taxonID'];
         $rec = self::append_taxonRemarks($rec, ""); //A3 failed rank match
         $this->debug['Cannot be matched at all'][$taxonID] = $rec; //three
         return false;
+    }
+    private function synonym_option($reks)
+    {
+
     }
     private function append_taxonRemarks($rec, $add_str)
     {
@@ -943,19 +956,13 @@ class DwCA_MatchTaxa2DH
             }
         }
         foreach($reks as $DH_taxonIDx => $rek) {
-            if($rek['s'] == 'a' && $taxonRank == $rek['r'] && $rek['e']) {
+            if($taxonRank == $rek['r'] && $rek['e']) { //$rek['s'] == 'a' && 
                 @$this->debug['matched same rank and status accepted'][$taxonID] = '';
                 // print_r($this->rec); print_r($rek); exit("\nCheck 200\n");
                 return $rek;
             }
         }
-        foreach($reks as $DH_taxonIDx => $rek) {
-            if($taxonRank == $rek['r'] && $rek['e']) {
-                @$this->debug['matched same rank'][$taxonID] = '';
-                return $rek;
-            }
-        }
-
+        
         if($rek = self::choose_from_matched_group($taxonRank, $reks)) {
             @$this->debug['matched group rank old'][$taxonID] = ''; 
             // print_r($this->rec); print_r($rek); exit("\nCheck 300\n");
@@ -1172,6 +1179,30 @@ class DwCA_MatchTaxa2DH
             fclose($WRITE);
         }
         echo "\nLogs printed.\n";
+    }
+    private function get_acceptedRek_if_synonym($rek)
+    {
+        $taxonID = $rek['t'];
+        if(substr($taxonID,0,3) == 'EOL') return $rek; //not a synonym
+        if($rek['s'] == 'a')              return $rek; //accepted name
+        if($acceptedNameUsageID = @$this->DH->DH_synonyms[$taxonID]) {
+            // for reference: $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank);
+            if($accepted_rek = $this->DH->DH[$acceptedNameUsageID]) {
+                print_r($rek);
+                print_r($accepted_rek);
+                exit("\nfound accepted rek for a synonym rek\n");
+                return $accepted_rek;
+            }
+            else {
+                print_r($rek);
+                exit("\nInvestigate 02: can't locate rek for this acceptedNameUsageID: [$acceptedNameUsageID]\n");
+            }
+        }
+        else {
+            print_r($rek);
+            exit("\nInvestigate 01: synonym doesn't have an acceptedNameUsageID\n");
+        }
+        return $rek;
     }
     private function shorten_record($rec)
     {

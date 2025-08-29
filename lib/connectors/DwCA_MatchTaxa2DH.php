@@ -247,7 +247,6 @@ class DwCA_MatchTaxa2DH
                 // 1. if it can be tested with AncestryIndex then proceed to test and if it fails then stop there.
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
 
-
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
 
                     $rec['EOLid'] = '';

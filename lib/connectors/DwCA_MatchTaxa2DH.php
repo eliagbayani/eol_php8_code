@@ -1035,7 +1035,7 @@ class DwCA_MatchTaxa2DH
     private function retrieve_ancestry_index()
     {
         $options = $this->download_options;
-        $options['expire_seconds'] = 0; //60*60*24*1; //orig 1 day
+        $options['expire_seconds'] = 60*60*24*1; //60*60*24*1; //orig 1 day
         if($local = Functions::save_remote_file_to_local($this->ancestry_index_file, $options)) {
             $i = 0;
             foreach(new FileIterator($local) as $line_number => $line) {

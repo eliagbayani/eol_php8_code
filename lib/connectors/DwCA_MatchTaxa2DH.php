@@ -248,7 +248,6 @@ class DwCA_MatchTaxa2DH
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
 
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
-
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
                     $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); exit("\nelix 1\n");

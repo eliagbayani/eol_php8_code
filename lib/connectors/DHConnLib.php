@@ -268,7 +268,7 @@ class DHConnLib
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
                             , 'c' => $rec['canonicalName'] //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
                             , 't' => $rec['taxonID']     //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
-                            , 's' => substr($rec['taxonomicStatus'],0,1));
+                            , 's' => substr($rec['taxonomicStatus'],0,1)); // 'a' accepted | 'n' not accepted
                         @$this->debug['breakdown'][$canonicalName]++;
                     // }
                 }

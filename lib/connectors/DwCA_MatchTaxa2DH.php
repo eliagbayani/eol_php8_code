@@ -53,8 +53,8 @@ class DwCA_MatchTaxa2DH
         $this->DH->build_up_taxa_info(); //generates 4 info lookups
         echo "\naaa2:".count($this->DH->DHCanonical_info)."";
         echo "\nxxx2:".count($this->DH->DH)."";
-        echo "\nyyy2:".count($this->DH->DH_synonyms)."";
-        echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");
+        echo "\nyyy2:".count($this->DH->DH_synonyms)."";                            // -> from DH: $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
+        echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");       // -> from DH: $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
         // */
 
         // /* Read the DwCA in question:
@@ -881,10 +881,6 @@ class DwCA_MatchTaxa2DH
             if($type == 1) $choices = array('genus', 'subgenus');
         elseif($type == 2) $choices = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
-        /* for reference only
-        $this->DH->DH_synonyms[$taxonID] = $acceptedNameUsageID;
-        $this->DH->DH_acceptedNames[$acceptedNameUsageID] = $taxonID;
-        */
         if($accepted_id = @$this->DH->DH_synonyms[$taxonID]) {
             /* for reference only            
             $this->DH->DH[$taxonID] = array("c" => $canonicalName); */

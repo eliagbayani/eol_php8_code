@@ -109,7 +109,7 @@ class DHConnLib
             if($value > 1) echo "\n[$key][$value]";
         }
         */
-        // print_r(@$this->debug['status']); print_r(@$this->debug['status2']); exit;
+        print_r(@$this->debug['status']); print_r(@$this->debug['status2']); echo("\ntaxonomicStatus info\n"); //stats only
 
         // print_r($this->DHCanonical_info['Edwardsiella']);
         // print_r($this->DHCanonical_info['Morganella']);
@@ -120,7 +120,6 @@ class DHConnLib
         echo "\nyyy1:".count($this->DH_synonyms)."";
         echo "\nzzz1:".count($this->DH_acceptedNames)."\n";
 
-        // print_r(@$this->debug['status']); exit; //stats only
         // print_r(@$this->debug['taxonRank']); exit; //stats only
     }
     // -------------------------------------------- END taxa matching
@@ -263,7 +262,7 @@ class DHConnLib
                 @$this->debug['taxonRank'][$taxonRank]++;   //stats only
 
                 @$this->debug['status'][$taxonomicStatus]++;
-                // @$this->debug['status2'][substr($taxonID,0,4)][$taxonomicStatus]++;
+                @$this->debug['status2'][substr($taxonID,0,4)][$taxonomicStatus]++;
                 if ($canonicalName = $rec['canonicalName']) {
                     // if($taxonomicStatus == 'accepted') {
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']

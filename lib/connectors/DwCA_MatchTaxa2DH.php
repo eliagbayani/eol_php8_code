@@ -88,6 +88,7 @@ class DwCA_MatchTaxa2DH
         $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
+        $matched_thru_a_synonym = count(@$this->debug['matched thru a synonym'] ?? array());
 
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
@@ -97,6 +98,11 @@ class DwCA_MatchTaxa2DH
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
+
+        
+        echo "\n -> matched_thru_a_synonym: [" . number_format($matched_thru_a_synonym) . "]";
+
+
         echo "\nC. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
 
         $rems = array_keys($this->debug['without_OR_lacking']);
@@ -325,8 +331,31 @@ class DwCA_MatchTaxa2DH
         foreach($reks as $taxonID => $rek) {
             if($rek['s'] == 'n') { //this is a synonym
                 if($accepted_rek = self::get_acceptedRek_if_synonym($rek)) {
-                    $rec['EOLid'] = $accepted_rek['e']; //eolID
-                    print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
+                    /*Array( $rek
+                        [r] => species
+                        [e] => 
+                        [h] => 
+                        [c] => Raputia simulans
+                        [t] => SYN-000001435859
+                        [s] => n
+                    )
+                    Array( $accepted_rek
+                        [r] => species
+                        [e] => 47126499
+                        [h] => Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|Raputia
+                        [c] => Raputia megalantha
+                        [t] => EOL-000000457036
+                        [s] => a
+                    )*/
+                    // print_r($rec);
+                    $t = $accepted_rek['t'];
+                    $reks = array($t => $accepted_rek);
+                    $rec = self::matching_routine_using_HC($rec, $reks);
+                    // print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
+                    if($rec['EOLid']) {
+                        @$this->debug['matched thru a synonym'][$rec['taxonID']] = '';
+                        return $rec;
+                    }
                 }                
             }
         }

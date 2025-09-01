@@ -109,7 +109,7 @@ class DHConnLib
             if($value > 1) echo "\n[$key][$value]";
         }
         */
-        print_r(@$this->debug['status']); print_r(@$this->debug['status2']); echo("\ntaxonomicStatus info\n"); //stats only
+        print_r(@$this->debug['status']); print_r(@$this->debug['status2']); echo(" - taxonomicStatus info\n"); //stats only
 
         // print_r($this->DHCanonical_info['Edwardsiella']);
         // print_r($this->DHCanonical_info['Morganella']);

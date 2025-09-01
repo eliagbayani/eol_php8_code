@@ -94,13 +94,13 @@ class DwCA_MatchTaxa2DH
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\n -> B1. With DH EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
-        echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]\n -> B = B1 + B2";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
-        echo "\n -> sum: [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
+        echo "\n -> B = B1 + B2 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+
         echo "\nC. Matched thru a synonym: [" . number_format($matched_thru_a_synonym) . "]";
         echo "\nD. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
-
         $rems = array_keys($this->debug['without_OR_lacking']);
         $sum = 0; $i = 0;
         foreach($rems as $rem) { $i++;
@@ -109,7 +109,7 @@ class DwCA_MatchTaxa2DH
             echo "\n -> D$i. [$rem]: ".number_format($val);
         }
         $diff = $matches_made_without_ancestry_info - $sum;
-        echo "\n -> sum: [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\n -> D = D1 + D2 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         /* commented for now
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
@@ -121,9 +121,7 @@ class DwCA_MatchTaxa2DH
         echo "\nsum [".number_format($sum)."] should be equal to [Matches made without_OR_lacking ancestry info]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
         */
 
-        echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
-
-        echo "\nTotal taxa from taxon.tab: "                   . number_format(@$this->debug['total taxa'] ?? 0);
+        echo "\n\nTotal taxa from taxon.tab: "                   . number_format(@$this->debug['total taxa'] ?? 0);
         echo "\nBreakdown:";
         echo "\n -> excluded: invalid taxa: "       . number_format(@$this->debug['excluded: invalid taxa'] ?? 0);
         echo "\n -> excluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
@@ -134,13 +132,14 @@ class DwCA_MatchTaxa2DH
                + count(@$this->debug['No canonical match'] ?? array())
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
-        echo "\nsum = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
-
-        echo "\n". @$this->debug['synonym option 1'];
-        echo "\n". @$this->debug['synonym option 2'];
-        echo "\n". @$this->debug['synonyms OK'];
+        echo "\nTotal = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         echo "\n----------STATS end----------\n";
+
+        echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
+        echo "\nsyn opt 1: ". @$this->debug['synonym option 1'];
+        echo "\nsyn opt 2: ". @$this->debug['synonym option 2'];
+        echo "\nsyn OK: ". @$this->debug['synonyms OK'];
 
         self::print_logs_for_Katja();
 

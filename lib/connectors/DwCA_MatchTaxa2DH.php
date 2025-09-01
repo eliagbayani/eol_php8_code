@@ -136,7 +136,7 @@ class DwCA_MatchTaxa2DH
 
         echo "\n----------STATS end----------\n";
 
-        echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)\n";
+        echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)";
         echo "\nsyn opt 1: ". @$this->debug['synonym option 1'];
         echo "\nsyn opt 2: ". @$this->debug['synonym option 2'];
         echo "\nsyn OK: ". @$this->debug['synonyms OK'];

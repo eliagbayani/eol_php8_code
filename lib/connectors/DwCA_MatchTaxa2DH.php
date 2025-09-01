@@ -325,7 +325,7 @@ class DwCA_MatchTaxa2DH
     {
         foreach($reks as $taxonID => $rek) {
             if($rek['s'] == 'n') { //this is a synonym
-                if($accepted_rek = self::get_acceptedRek_if_synonym($rek)) {
+                if($accepted_rek = self::get_acceptedRek_if_synonym($rek)) { // print_r($rec);
                     /*Array( $rek
                         [r] => species
                         [e] => 
@@ -342,11 +342,9 @@ class DwCA_MatchTaxa2DH
                         [t] => EOL-000000457036
                         [s] => a
                     )*/
-                    // print_r($rec);
                     $t = $accepted_rek['t'];
                     $reks = array($t => $accepted_rek); //simulate creating $reks using the $accepted_rek
-                    $rec = self::matching_routine_using_HC($rec, $reks);
-                    // print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
+                    $rec = self::matching_routine_using_HC($rec, $reks); //print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
                     if($rec['EOLid']) {
                         if($tR = @$accepted_rek['tR']) {
                             if($taxonRemarks = $rec['taxonRemarks']) {

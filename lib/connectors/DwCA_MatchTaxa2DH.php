@@ -88,20 +88,17 @@ class DwCA_MatchTaxa2DH
         $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
-        $matched_thru_a_synonym = count(@$this->debug['matched thru a synonym'] ?? array());
+        $matched_thru_a_synonym = count(@$this->debug['Matched thru a synonym'] ?? array());
 
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\n -> B1. With DH EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
-        echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]\n -> B = B1 + B2";
-        $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
+        echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
+        echo "\n -> B3. Matched thru a synonym: [" . number_format($matched_thru_a_synonym) . "]\n -> B = B1 + B2 + B3";
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\nsum [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
-
-        
-        echo "\n -> matched_thru_a_synonym: [" . number_format($matched_thru_a_synonym) . "]";
-
 
         echo "\nC. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
 
@@ -289,10 +286,10 @@ class DwCA_MatchTaxa2DH
                         }
                     }
 
-                    if(!$rec['EOLid']) $rec = self::the_synonyms_way($reks, $rec);
-
                     if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
-                    else {}
+                    else {
+                        $rec = self::the_synonyms_way($reks, $rec);
+                    }
 
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;
@@ -349,11 +346,18 @@ class DwCA_MatchTaxa2DH
                     )*/
                     // print_r($rec);
                     $t = $accepted_rek['t'];
-                    $reks = array($t => $accepted_rek);
+                    $reks = array($t => $accepted_rek); //simulate creating $reks using the $accepted_rek
                     $rec = self::matching_routine_using_HC($rec, $reks);
                     // print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
                     if($rec['EOLid']) {
-                        @$this->debug['matched thru a synonym'][$rec['taxonID']] = '';
+                        if($tR = @$accepted_rek['tR']) {
+                            if($taxonRemarks = $rec['taxonRemarks']) {
+                                $new_remark = "$tR . || . $taxonRemarks";
+                                $rec['taxonRemarks'] = $new_remark;
+                            }
+                            else $rec['taxonRemarks'] = $tR;
+                        }
+                        $this->debug['Matched thru a synonym'][$rec['taxonID']] = $rec;
                         return $rec;
                     }
                 }                
@@ -1194,7 +1198,7 @@ class DwCA_MatchTaxa2DH
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments', 'Matches made without_OR_lacking ancestry info');
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments', 'Matches made without_OR_lacking ancestry info', 'Matched thru a synonym');
         // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
@@ -1243,10 +1247,9 @@ class DwCA_MatchTaxa2DH
         $taxonID = $rek['t'];
         if(substr($taxonID,0,3) == 'EOL') return $rek; //not a synonym
         if($rek['s'] == 'a')              return $rek; //accepted name
-        if($acceptedNameUsageID = @$this->DH->DH_synonyms[$taxonID]) { echo "\nsyn ID: [$taxonID] | acceptedNameUsageID: [$acceptedNameUsageID]\n";
+        if($acceptedNameUsageID = @$this->DH->DH_synonyms[$taxonID]) { //echo "\nsyn ID: [$taxonID] | acceptedNameUsageID: [$acceptedNameUsageID]\n"; //good debug
             // for reference: $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank);
-            if($accepted_rek = $this->DH->DH[$acceptedNameUsageID]) {
-                // print_r($rek); print_r($accepted_rek);
+            if($accepted_rek = $this->DH->DH[$acceptedNameUsageID]) { // print_r($rek); print_r($accepted_rek);
                 /*Array( e.g. $accepted_rek
                     [c] => Aristolochiaceae
                     [r] => family
@@ -1254,9 +1257,9 @@ class DwCA_MatchTaxa2DH
                 // exit("\nfound accepted rek for a synonym rek\n");
                 // for reference: $this->DHCanonical_info[$canonicalName][$taxonID]
                 if($canonicalName = $accepted_rek['c']) {
-                    if($final_rek = $this->DH->DHCanonical_info[$canonicalName][$acceptedNameUsageID]) {
-                        // print_r($final_rek); exit("\nfound final rek\n");
+                    if($final_rek = $this->DH->DHCanonical_info[$canonicalName][$acceptedNameUsageID]) { // print_r($final_rek); exit("\nfound final rek\n");
                         @$this->debug['synonyms OK']++;
+                        $final_rek['tR'] = "syn ID: [$taxonID] | acceptedNameUsageID: [$acceptedNameUsageID]";
                         return $final_rek; //tested OK!
                     }
                     else exit("\nInvestigate: should not go here at least...\n");

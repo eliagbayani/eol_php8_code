@@ -348,7 +348,7 @@ class DwCA_MatchTaxa2DH
                     if($rec['EOLid']) {
                         if($tR = @$accepted_rek['tR']) {
                             if($taxonRemarks = $rec['taxonRemarks']) {
-                                $new_remark = "$tR . || . $taxonRemarks";
+                                $new_remark = "$tR || $taxonRemarks";
                                 $rec['taxonRemarks'] = $new_remark;
                             }
                             else $rec['taxonRemarks'] = $tR;

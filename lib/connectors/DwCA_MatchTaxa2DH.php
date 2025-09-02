@@ -296,7 +296,7 @@ class DwCA_MatchTaxa2DH
                             if(@$this->debug['Cannot be matched at all'][$taxonID]) unset($this->debug['Cannot be matched at all'][$taxonID]);
                         }
                         else {
-                            $this->debug['Cannot be matched at all'][$taxonID] = $rec; //five // ???
+                            $this->debug['Cannot be matched at all'][$taxonID] = $rec; //five //It works with or without this line.
                         }
                     }
 

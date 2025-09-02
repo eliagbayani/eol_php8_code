@@ -267,8 +267,7 @@ class DwCA_MatchTaxa2DH
                     $can_proceed_with_AIndex_check = $ret[1];
 
                     if($can_proceed_with_AIndex_check) {
-                        $rec = self::matching_routine_using_HC($rec, $reks);
-                        // print_r($rec); exit("\nhuli ka\n");
+                        $rec = self::matching_routine_using_HC($rec, $reks); //print_r($rec); exit("\nhuli ka\n");
                     }
                     else {
                         if($taxonRank) {

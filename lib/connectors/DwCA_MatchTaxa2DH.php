@@ -85,10 +85,10 @@ class DwCA_MatchTaxa2DH
         echo $tbl ?? '';
 
         $cannot_be_matched_at_all = count($this->debug['Cannot be matched at all'] ?? array());
-        $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments'] ?? array());
+        $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments (accepted name)'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
-        $matched_thru_a_synonym = count(@$this->debug['Matched thru a synonym'] ?? array());
+        $matched_thru_a_synonym = count(@$this->debug['With DH EOLid assignments (synonym)'] ?? array()); //'Matched thru a synonym'
 
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
@@ -288,14 +288,16 @@ class DwCA_MatchTaxa2DH
                         }
                     }
 
-                    if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
+                    if($rec['EOLid']) @$this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
                     else {
                         $rec = self::the_synonyms_way($reks, $rec);
                         if($rec['EOLid']) {
                             $taxonID = $rec['taxonID'];
                             if(@$this->debug['Cannot be matched at all'][$taxonID]) unset($this->debug['Cannot be matched at all'][$taxonID]);
                         }
-                        else {}
+                        else {
+                            $this->debug['Cannot be matched at all'][$taxonID] = $rec; //five // ???
+                        }
                     }
 
                 }
@@ -365,7 +367,7 @@ class DwCA_MatchTaxa2DH
                             */
                             $rec['taxonRemarks'] = self::append_string($rec['taxonRemarks'], $tR);
                         }
-                        $this->debug['Matched thru a synonym'][$rec['taxonID']] = $rec;
+                        $this->debug['With DH EOLid assignments (synonym)'][$rec['taxonID']] = $rec;
                         return $rec;
                     }
                     else {
@@ -1222,7 +1224,7 @@ class DwCA_MatchTaxa2DH
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments', 'Matches made without_OR_lacking ancestry info', 'Matched thru a synonym');
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)');
         // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";

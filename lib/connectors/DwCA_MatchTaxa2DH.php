@@ -93,20 +93,19 @@ class DwCA_MatchTaxa2DH
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
-        echo "\n -> B1. With DH EOLid assignments: [" . number_format($With_eolID_assignments) . "]";
-        $sum = $cannot_be_matched_at_all + $With_eolID_assignments; // + $With_EOLid_but_not_matched;
+        echo "\n -> B1. With DH EOLid assignments (accepted name): [" . number_format($With_eolID_assignments) . "]";
+        echo "\n -> B2. With DH EOLid assignments (synonym): [" . number_format($matched_thru_a_synonym) . "]";
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
-        echo "\n -> B2. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n -> B = B1 + B2 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
-
-        echo "\nC. Matched thru a synonym: [" . number_format($matched_thru_a_synonym) . "]";
+        echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
+        echo "\n -> B = B1 + B2 + B3 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         $Synonym_matched_but_no_DH_EOLid = count(@$this->debug['Synonym matched but no DH EOLid'] ?? array());
         $Failed_synonym_match            = count(@$this->debug['Failed synonym match'] ?? array());
-        echo "\n -> Synonym_matched_but_no_DH_EOLid: [" . number_format($Synonym_matched_but_no_DH_EOLid) . "]";
+        echo "\n\n -> Synonym_matched_but_no_DH_EOLid: [" . number_format($Synonym_matched_but_no_DH_EOLid) . "]";
         echo "\n -> Failed_synonym_match: [" . number_format($Failed_synonym_match) . "]";
 
-        echo "\nD. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
+        echo "\n\nD. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
         $rems = array_keys($this->debug['without_OR_lacking']);
         $sum = 0; $i = 0;
         foreach($rems as $rem) { $i++;
@@ -292,6 +291,11 @@ class DwCA_MatchTaxa2DH
                     if($rec['EOLid']) @$this->debug['With DH EOLid assignments'][$taxonID] = $rec;
                     else {
                         $rec = self::the_synonyms_way($reks, $rec);
+                        if($rec['EOLid']) {
+                            $taxonID = $rec['taxonID'];
+                            if(@$this->debug['Cannot be matched at all'][$taxonID]) unset($this->debug['Cannot be matched at all'][$taxonID]);
+                        }
+                        else {}
                     }
 
                 }

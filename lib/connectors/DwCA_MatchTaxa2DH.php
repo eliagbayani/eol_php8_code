@@ -100,6 +100,12 @@ class DwCA_MatchTaxa2DH
         echo "\n -> B = B1 + B2 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         echo "\nC. Matched thru a synonym: [" . number_format($matched_thru_a_synonym) . "]";
+
+        $Synonym_matched_but_no_DH_EOLid = count(@$this->debug['Synonym matched but no DH EOLid'] ?? array());
+        $Failed_synonym_match            = count(@$this->debug['Failed synonym match'] ?? array());
+        echo "\n -> Synonym_matched_but_no_DH_EOLid: [" . number_format($Synonym_matched_but_no_DH_EOLid) . "]";
+        echo "\n -> Failed_synonym_match: [" . number_format($Failed_synonym_match) . "]";
+
         echo "\nD. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
         $rems = array_keys($this->debug['without_OR_lacking']);
         $sum = 0; $i = 0;
@@ -347,19 +353,38 @@ class DwCA_MatchTaxa2DH
                     $rec = self::matching_routine_using_HC($rec, $reks); //print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
                     if($rec['EOLid']) {
                         if($tR = @$accepted_rek['tR']) {
+                            /* can be refactored => append_string()
                             if($taxonRemarks = $rec['taxonRemarks']) {
                                 $new_remark = "$tR || $taxonRemarks";
                                 $rec['taxonRemarks'] = $new_remark;
                             }
                             else $rec['taxonRemarks'] = $tR;
+                            */
+                            $rec['taxonRemarks'] = self::append_string($rec['taxonRemarks'], $tR);
                         }
                         $this->debug['Matched thru a synonym'][$rec['taxonID']] = $rec;
                         return $rec;
                     }
-                }                
+                    else {
+                        $rec['taxonRemarks'] = self::append_string($rec['taxonRemarks'], "Synonym matched but no DH EOLid.");
+                        $this->debug['Synonym matched but no DH EOLid'][$rec['taxonID']] = '';
+                    }
+                }
+                else {
+                    $rec['taxonRemarks'] = self::append_string($rec['taxonRemarks'], "Failed synonym match.");
+                    $this->debug['Failed synonym match'][$rec['taxonID']] = '';
+                }
             }
         }
         return $rec;
+    }
+    private function append_string($orig, $tobe_added)
+    {
+        if($orig) {
+            if($tobe_added) return "$tobe_added || $orig"; //to be added string is priority of order of appearance
+            else return $orig;
+        }
+        else return $tobe_added;
     }
     private function can_proceed_with_AncestryIndex_check($rec)
     {   /*e.g. Array(

@@ -13,7 +13,6 @@ class DwCA_RunGNParser
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         // $this->paths['wikidata_hierarchy'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/wikidata/wikidataEOLidMappings.txt';
         $this->service['GNParser'] = 'https://parser.globalnames.org/api/v1/';
-
         /*
         --------------------------------------------------- Used latest gnparser (as of 18Jul2025) from:
         https://github.com/gnames/gnparser/releases/tag/v1.11.6

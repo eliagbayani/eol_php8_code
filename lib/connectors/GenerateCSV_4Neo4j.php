@@ -1,6 +1,6 @@
 <?php
 namespace php_active_record;
-/* Library that will generate CSV files for Neo4j Admin Import utility */
+/* Library that reads an EOL DwCA and generates CSV files for Neo4j Admin Import utility */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class GenerateCSV_4Neo4j

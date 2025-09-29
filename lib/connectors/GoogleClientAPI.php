@@ -17,8 +17,31 @@ class GoogleClientAPI
 
         $this->credentials_json_path = __DIR__ . '/../../vendor/google_client_lib_2023/json/credentials.json';
     }
-    function access_google_sheet($params, $use_cache_YN = true)
+    private function evaluate_expire_param($params, $use_cache_YN)
     {
+        if(!isset($params['expire_seconds'])) return $use_cache_YN;
+        else {
+            $options['expire_seconds'] = $params['expire_seconds'];
+            $some_id = md5($params['spreadsheetID'].$params['range']);
+            if(Functions::expire_YN($some_id, $options)) return false; //means redo, cache expired
+            else return true; //means use cache
+        }
+    }
+    function access_google_sheet($params, $use_cache_YN = true)
+    {   /* IMPORTANT:
+        if 1st param has $params['expire_seconds'], will follow value accordingly
+        else
+            2nd param if blank, will use cache
+            2nd param if true, will use cache
+            2nd param if false, will re-access remote
+        */
+
+        // /* new: add expire to caching
+        $use_cache_YN = self::evaluate_expire_param($params, $use_cache_YN);
+        if($use_cache_YN) echo "\nwill use cache\n";
+        else              echo "\nwill not use cache\n";
+        // */
+
         // /*
         require_library('connectors/CacheMngtAPI');
         $this->func = new CacheMngtAPI($this->cache_path);

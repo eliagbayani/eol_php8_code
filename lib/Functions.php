@@ -192,6 +192,40 @@ class Functions
         }
         return false;
     }
+    public static function expire_YN($some_id, $options = array())
+    {
+        // default expire time is 30 days. Ideally $options will always have 'expire_seconds' property.
+        if(!isset($options['expire_seconds'])) $options['expire_seconds'] = 60*60*24*30; //default expires in 30 days
+        if(!isset($options['cache_path'])) $options['cache_path'] = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'];    //orig value in environment.php is 'tmp/cache/'
+
+        $md5 = md5($some_id);
+        $cache1 = substr($md5, 0, 2);
+        $cache2 = substr($md5, 2, 2);
+
+        if(!file_exists($options['cache_path'] . $cache1)) mkdir($options['cache_path'] . $cache1);
+        if(!file_exists($options['cache_path'] . "$cache1/$cache2")) mkdir($options['cache_path'] . "$cache1/$cache2");
+        $cache_path = $options['cache_path'] . "$cache1/$cache2/$md5.cache";
+        if(file_exists($cache_path)) {
+            $file_contents = file_get_contents($cache_path);
+            if(($file_contents)) {
+                $file_age_in_seconds = time() - filemtime($cache_path);
+                if($file_age_in_seconds < $options['expire_seconds']) return false;
+                if($options['expire_seconds'] === false) return false;
+            }
+            @unlink($cache_path);
+        }
+        $file_contents = "anything here...";
+        if($FILE = Functions::file_open($cache_path, 'w+')) { // normal
+            fwrite($FILE, $file_contents);
+            fclose($FILE);
+        }
+        else { // can happen when cache_path is from external drive with corrupt dir/file
+            if(!($h = Functions::file_open(DOC_ROOT . "/public/tmp/cant_delete_2.txt", 'a'))) return;
+            fwrite($h, $cache_path . "\n");
+            fclose($h);
+        }
+        return true;
+    }
     public static function get_remote_file_fake_browser($remote_url, $options = array())
     {
         if(!isset($options['download_wait_time'])) $options['download_wait_time'] = DOWNLOAD_WAIT_TIME;

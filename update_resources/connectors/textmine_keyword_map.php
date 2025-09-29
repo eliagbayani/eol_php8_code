@@ -9,8 +9,10 @@ $timestart = time_elapsed();
 $func = new TextmineKeywordMapAPI();
 $params['spreadsheetID'] = '1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0';
 $params['range']         = 'river!A1:D430'; //where "A" is the starting column, "D" is the ending column, and "1" is the starting row.
-// $params['expire_seconds'] = 60*60*24*1; //1 day cache
+$params['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
 // $params['expire_seconds'] = 0; //expire now 0 or false
+// $params['expire_seconds'] = 60; //expire now 0 or false
+
 $func->xxx($params);
 
 $elapsed_time_sec = time_elapsed() - $timestart;

@@ -214,7 +214,6 @@ class DwCA_Utility
                     if(in_array(@$this->params['resource'], array('add_canonical_Katja', 'match_taxa_2DH', 'use_EOLid_as_taxonID'))) {
                         $meta = $tables[$row_type][0];
                         self::carry_over($meta, $this->extensions[$row_type]); //was never run but should work just need to get the value for $meta from local $info.
-
                     }
                     else { //orig | the rest goes here
                         self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);

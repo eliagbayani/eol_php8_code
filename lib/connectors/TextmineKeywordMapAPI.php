@@ -6,12 +6,41 @@ https://github.com/EOL/ContentImport/issues/36
 class TextmineKeywordMapAPI
 {
     function __construct()
-    {
+    {   /* 
+        Then add the strings that are mapped to terms on the following worksheets:
+
+        - strings related to river/stream [river]
+        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
+
+        - strings related to lake [lake]
+        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=974642361#gid=974642361
+
+        - strings related to mountain [mountain etc.]
+        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1677871921#gid=1677871921
+
+        - strings related to coastal [coastal]
+        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1687183186#gid=1687183186
+        */
+        $params['spreadsheetID'] = '1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0';
+        $params['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
+
+        $params['range'] = 'river!A1:D430'; //where "A" is the starting column, "D" is the ending column, and "1" is the starting row.
+        $this->params['river'] = $params;
+
+        $params['range'] = 'lake!A1:D30';
+        $this->params['lake'] = $params;
+
+        $params['range'] = 'mountain etc.!A1:C340';
+        $this->params['mountain'] = $params;
+
+        $params['range'] = 'coastal!A1:D100';
+        $this->params['coastal'] = $params;
     }
     function xxx($params) 
-    {   //https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
+    {   
         require_library('connectors/GoogleClientAPI');
         $func = new GoogleClientAPI(); //get_declared_classes(); will give you how to access all available classes
+        $params = $this->params['coastal'];
         $arr = $func->access_google_sheet($params); 
         /* IMPORTANT:
         if 1st param has $params['expire_seconds'], will follow value accordingly

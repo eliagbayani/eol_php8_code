@@ -2772,5 +2772,13 @@ class Functions
         }
         return $arr;
     }
+    public static function get_field_from_uri($uri)
+    {
+        $field = pathinfo($uri, PATHINFO_BASENAME);
+        $parts = explode("#", $field);
+        if($parts[0]) $field = $parts[0];
+        if(@$parts[1]) $field = $parts[1];
+        return $field;
+    }
 }
 ?>

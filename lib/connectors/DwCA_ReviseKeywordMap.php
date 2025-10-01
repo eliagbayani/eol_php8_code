@@ -20,7 +20,7 @@ class DwCA_ReviseKeywordMap
         $func = new TextmineKeywordMapAPI();
         $func->get_keyword_mappings();
         echo "\nuri_in_question 2: ".count($func->uri_in_question);
-        echo "\nnew_keywords 2: ".count($func->new_keywords);
+        echo "\nnew_keywords 2: ".count($func->new_keywords_string_uri);
         // exit("\nEli 200\n");
     }
     function start($info)

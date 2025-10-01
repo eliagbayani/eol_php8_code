@@ -8,10 +8,10 @@ class TextmineKeywordMapAPI
     public $params; // Declare the property
     public $func;
     public $uri_in_question;
-    public $new_keywords, $new_kwords_for_these_uris;
+    public $new_keywords_string_uri, $uris_with_new_kwords;
     function __construct()
     {   /* Please remove all keywords that currently map to these uris: */
-        $this->new_kwords_for_these_uris = array("http://purl.obolibrary.org/obo/ENVO_00000081", "http://purl.obolibrary.org/obo/ENVO_01000342", "http://purl.obolibrary.org/obo/ENVO_01000340", "http://purl.obolibrary.org/obo/ENVO_00000080", "http://purl.obolibrary.org/obo/ENVO_00000381", "http://purl.obolibrary.org/obo/ENVO_01000333", "http://purl.obolibrary.org/obo/ENVO_00000497", "http://purl.obolibrary.org/obo/ENVO_00000287", "http://purl.obolibrary.org/obo/ENVO_01000253", "http://purl.obolibrary.org/obo/ENVO_01000252", "http://purl.obolibrary.org/obo/ENVO_01000687", "http://purl.obolibrary.org/obo/ENVO_00000100", "http://purl.obolibrary.org/obo/ENVO_01000143", "http://purl.obolibrary.org/obo/ENVO_00000091", "http://purl.obolibrary.org/obo/ENVO_00000475");
+        $this->uris_with_new_kwords = array("http://purl.obolibrary.org/obo/ENVO_00000081", "http://purl.obolibrary.org/obo/ENVO_01000342", "http://purl.obolibrary.org/obo/ENVO_01000340", "http://purl.obolibrary.org/obo/ENVO_00000080", "http://purl.obolibrary.org/obo/ENVO_00000381", "http://purl.obolibrary.org/obo/ENVO_01000333", "http://purl.obolibrary.org/obo/ENVO_00000497", "http://purl.obolibrary.org/obo/ENVO_00000287", "http://purl.obolibrary.org/obo/ENVO_01000253", "http://purl.obolibrary.org/obo/ENVO_01000252", "http://purl.obolibrary.org/obo/ENVO_01000687", "http://purl.obolibrary.org/obo/ENVO_00000100", "http://purl.obolibrary.org/obo/ENVO_01000143", "http://purl.obolibrary.org/obo/ENVO_00000091", "http://purl.obolibrary.org/obo/ENVO_00000475");
         /* Then add the strings that are mapped to terms on the following worksheets:
         - strings related to river/stream [river]
             https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
@@ -48,9 +48,9 @@ class TextmineKeywordMapAPI
             $arr = $this->func->access_google_sheet($params);
             self::massage_result($arr);
         }
-        // print_r($this->uri_in_question); print_r($this->new_keywords);
+        // print_r($this->uri_in_question); print_r($this->new_keywords_string_uri);
         echo "\nuri_in_question 1: ".count($this->uri_in_question);
-        echo "\nnew_keywords 1: ".count($this->new_keywords);
+        echo "\nnew_keywords_string_uri 1: ".count($this->new_keywords_string_uri);
     }
     private function massage_result($arr)
     {
@@ -78,7 +78,7 @@ class TextmineKeywordMapAPI
                 $match_string = @$rek['match string'];
                 if($uri && $match_string) {
                     $this->uri_in_question[$uri] = '';
-                    $this->new_keywords[$match_string] = $uri; 
+                    $this->new_keywords_string_uri[$match_string] = $uri; 
                 }
             }
         }

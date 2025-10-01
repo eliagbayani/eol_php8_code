@@ -10,7 +10,9 @@ class TextmineKeywordMapAPI
     public $uri_in_question;
     public $new_keywords;
     function __construct()
-    {   /* 
+    {   /* Please remove all keywords that currently map to these uris: */
+        $this->remove_kwords_for_uris = array("http://purl.obolibrary.org/obo/ENVO_00000081", "http://purl.obolibrary.org/obo/ENVO_01000342", "http://purl.obolibrary.org/obo/ENVO_01000340", "http://purl.obolibrary.org/obo/ENVO_00000080", "http://purl.obolibrary.org/obo/ENVO_00000381", "http://purl.obolibrary.org/obo/ENVO_01000333", "http://purl.obolibrary.org/obo/ENVO_00000497", "http://purl.obolibrary.org/obo/ENVO_00000287", "http://purl.obolibrary.org/obo/ENVO_01000253", "http://purl.obolibrary.org/obo/ENVO_01000252", "http://purl.obolibrary.org/obo/ENVO_01000687", "http://purl.obolibrary.org/obo/ENVO_00000100", "http://purl.obolibrary.org/obo/ENVO_01000143", "http://purl.obolibrary.org/obo/ENVO_00000091", "http://purl.obolibrary.org/obo/ENVO_00000475");
+        /*
         Then add the strings that are mapped to terms on the following worksheets:
 
         - strings related to river/stream [river]

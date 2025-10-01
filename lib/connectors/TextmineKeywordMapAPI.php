@@ -45,16 +45,16 @@ class TextmineKeywordMapAPI
     {
         if(!$item) $items = array('river', 'lake', 'mountain', 'coastal');
         else       $items = array($item);
-        foreach($items as $what) {
+        foreach($items as $what) { echo "\nAccessing [$what]...\n";
             $params = $this->params[$what]; //$what e.g. 'coastal'
             $arr = $this->func->access_google_sheet($params);
-            self::massage_result($arr);
+            self::massage_result($arr, $what);
         }
         // print_r($this->uri_in_question); print_r($this->new_keywords_string_uri);
         echo "\nuri_in_question 1: ".count($this->uri_in_question);
         echo "\nnew_keywords_string_uri 1: ".count($this->new_keywords_string_uri);
     }
-    private function massage_result($arr)
+    private function massage_result($arr, $what)
     {
         //start massage array
         $i = 0;
@@ -69,6 +69,7 @@ class TextmineKeywordMapAPI
                 @$ctr++;
                 $rek['new_uid'] = "NEW_".$ctr;
                 $rek = array_map('trim', $rek); // print_r($rek); exit("\nEli 100\n");
+                if($what == 'coastal') $rek['uri'] = "http://purl.obolibrary.org/obo/ENVO_01000687";
                 /*Array(
                     [match string] => at forest stream
                     [value] => riparian zone

@@ -22,13 +22,13 @@ class DwCA_ReviseKeywordMap
         // get vars from TextmineKeywordMapAPI(), then unset() it.
         $this->uris_with_new_kwords     = $func->uris_with_new_kwords; //n=15
         $this->uri_in_question          = $func->uri_in_question; //print_r($func->uri_in_question); exit;
-        $this->new_keywords_string_uri  = $func->new_keywords_string_uri;
+        // $this->new_keywords_string_uri  = $func->new_keywords_string_uri;
         unset($func->uris_with_new_kwords);
         unset($func->uri_in_question);
-        unset($func->new_keywords_string_uri);
+        // unset($func->new_keywords_string_uri);
 
         echo "\nuri_in_question 2: ".count($this->uri_in_question);
-        echo "\nnew_keywords 2: ".count($this->new_keywords_string_uri);
+        // echo "\nnew_keywords 2: ".count($this->new_keywords_string_uri);
         echo "\nuris_with_new_kwords: ".count($this->uris_with_new_kwords); //print_r($this->uris_with_new_kwords);
         // exit("\nEli 200\n");
     }
@@ -89,7 +89,7 @@ class DwCA_ReviseKeywordMap
                 $this->archive_builder->write_object_to_file($o);
             }
             */
-            if($i >= 5) break;
+            // if($i >= 5) break;
         }
     }
     private function evaluate_MoF($rec)
@@ -103,17 +103,26 @@ class DwCA_ReviseKeywordMap
             [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
         )*/
         $measurementValue = $rec['measurementValue'];
+        // 1st case
         if(isset($this->uris_with_new_kwords[$measurementValue])) { //included in the list of 15 URIs. Please remove all keywords that currently map to these uris:
             if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
                 $measurementRemarks = $rec['measurementRemarks'];
                 // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
-                print_r($rec); print_r($match_strings); //exit("\nhuli ka\n");
+                print_r($rec); //print_r($match_strings); echo(" --- huli ka 1\n");
                 if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) echo "\nmatch_string found in mRemarks\n";
-                else { echo "\ndelete MoF\n"; return "delete MoF"; }
-                // exit("\nstop muna\n");
+                else { echo "\ndelete MoF 1\n"; return "delete MoF"; }
             }
-            else { echo "\ndelete MoF\n"; return "delete MoF"; }
+            else { echo "\ndelete MoF 2\n"; return "delete MoF"; }
         }
+        // 2nd case: below block is copied above
+        if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
+            $measurementRemarks = $rec['measurementRemarks'];
+            // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
+            print_r($rec); //print_r($match_strings); echo(" --- huli ka 2\n");
+            if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) echo "\nmatch_string found in mRemarks\n";
+            else { echo "\ndelete MoF 3\n"; return "delete MoF"; }
+        }
+        else { echo "\ndelete MoF 4\n"; return "delete MoF"; }
     }
     private function is_suggested_keyword_match_YN($measurementRemarks, $match_strings)
     {
@@ -122,16 +131,16 @@ class DwCA_ReviseKeywordMap
         echo "\n[$measurementRemarks]\n"; //exit;
         
         foreach($match_strings as $str) {
-            if(stripos($measurementRemarks, $str) !== false) return true; //string is found
+            if(stripos($measurementRemarks, " ".$str) !== false) return true; //string is found
         }
         return false;
     }
     private function write_MoF($rec)
     {
-        $o = new \eol_schema\Taxon();
+        $o = new \eol_schema\MeasurementOrFact_specific();
         $fields = array_keys($rec); // print_r($uris); //exit;
         foreach($fields as $field) {
-            $o->$field = $rec[$uri];
+            $o->$field = $rec[$field];
         }
         $this->archive_builder->write_object_to_file($o);
     }

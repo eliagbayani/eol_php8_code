@@ -11,7 +11,9 @@ class TextmineKeywordMapAPI
     public $new_keywords_string_uri, $uris_with_new_kwords;
     function __construct()
     {   /* Please remove all keywords that currently map to these uris: */
-        $this->uris_with_new_kwords = array("http://purl.obolibrary.org/obo/ENVO_00000081", "http://purl.obolibrary.org/obo/ENVO_01000342", "http://purl.obolibrary.org/obo/ENVO_01000340", "http://purl.obolibrary.org/obo/ENVO_00000080", "http://purl.obolibrary.org/obo/ENVO_00000381", "http://purl.obolibrary.org/obo/ENVO_01000333", "http://purl.obolibrary.org/obo/ENVO_00000497", "http://purl.obolibrary.org/obo/ENVO_00000287", "http://purl.obolibrary.org/obo/ENVO_01000253", "http://purl.obolibrary.org/obo/ENVO_01000252", "http://purl.obolibrary.org/obo/ENVO_01000687", "http://purl.obolibrary.org/obo/ENVO_00000100", "http://purl.obolibrary.org/obo/ENVO_01000143", "http://purl.obolibrary.org/obo/ENVO_00000091", "http://purl.obolibrary.org/obo/ENVO_00000475");
+        $temp = array("http://purl.obolibrary.org/obo/ENVO_00000081", "http://purl.obolibrary.org/obo/ENVO_01000342", "http://purl.obolibrary.org/obo/ENVO_01000340", "http://purl.obolibrary.org/obo/ENVO_00000080", "http://purl.obolibrary.org/obo/ENVO_00000381", "http://purl.obolibrary.org/obo/ENVO_01000333", "http://purl.obolibrary.org/obo/ENVO_00000497", "http://purl.obolibrary.org/obo/ENVO_00000287", "http://purl.obolibrary.org/obo/ENVO_01000253", "http://purl.obolibrary.org/obo/ENVO_01000252", "http://purl.obolibrary.org/obo/ENVO_01000687", "http://purl.obolibrary.org/obo/ENVO_00000100", "http://purl.obolibrary.org/obo/ENVO_01000143", "http://purl.obolibrary.org/obo/ENVO_00000091", "http://purl.obolibrary.org/obo/ENVO_00000475");
+        $this->uris_with_new_kwords = array_flip($temp);
+
         /* Then add the strings that are mapped to terms on the following worksheets:
         - strings related to river/stream [river]
             https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
@@ -77,7 +79,9 @@ class TextmineKeywordMapAPI
                 $uri = @$rek['uri'];
                 $match_string = @$rek['match string'];
                 if($uri && $match_string) {
-                    $this->uri_in_question[$uri] = '';
+                    $this->uri_in_question[$uri][] = $match_string;
+                    $this->uri_in_question[$uri] = array_unique($this->uri_in_question[$uri]); //make values unique
+
                     $this->new_keywords_string_uri[$match_string] = $uri; 
                 }
             }

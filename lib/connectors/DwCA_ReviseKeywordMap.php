@@ -19,9 +19,18 @@ class DwCA_ReviseKeywordMap
         require_library('connectors/TextmineKeywordMapAPI');
         $func = new TextmineKeywordMapAPI();
         $func->get_keyword_mappings();
-        echo "\nuri_in_question 2: ".count($func->uri_in_question);
-        echo "\nnew_keywords 2: ".count($func->new_keywords_string_uri);
-        // exit("\nEli 200\n");
+        // get vars from TextmineKeywordMapAPI(), then unset() it.
+        $this->uris_with_new_kwords     = $func->uris_with_new_kwords; //n=15
+        $this->uri_in_question          = $func->uri_in_question; print_r($func->uri_in_question); exit;
+        $this->new_keywords_string_uri  = $func->new_keywords_string_uri;
+        unset($func->uris_with_new_kwords);
+        unset($func->uri_in_question);
+        unset($func->new_keywords_string_uri);
+
+        echo "\nuri_in_question 2: ".count($this->uri_in_question);
+        echo "\nnew_keywords 2: ".count($this->new_keywords_string_uri);
+        echo "\nuris_with_new_kwords: ".count($this->uris_with_new_kwords); print_r($this->uris_with_new_kwords);
+        exit("\nEli 200\n");
     }
     function start($info)
     {
@@ -59,39 +68,20 @@ class DwCA_ReviseKeywordMap
                 $rec[Functions::get_field_from_uri($field['term'])] = $tmp[$k];
                 $k++;
             }
-            print_r($rec); exit;
-            /*Array(
-                [http://rs.tdwg.org/dwc/terms/taxonID] => 12
-                [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
-                [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
-                [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 120181
-                [http://rs.tdwg.org/dwc/terms/scientificName] => Agaricales
-                [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
-                [http://rs.tdwg.org/dwc/terms/kingdom] => Fungi
-                [http://rs.tdwg.org/dwc/terms/phylum] => Basidiomycota
-                [http://rs.tdwg.org/dwc/terms/class] => 
-                [http://rs.tdwg.org/dwc/terms/order] => Agaricales
-                [http://rs.tdwg.org/dwc/terms/family] => 
-                [http://rs.tdwg.org/dwc/terms/genus] => 
-                [http://rs.tdwg.org/dwc/terms/taxonRank] => order
-                [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => 
-                [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
-                [http://purl.org/dc/terms/modified] => 2018-08-10 11:58:06.954
-            )*/
-
+            // print_r($rec); exit;
             /* Not recognized fields e.g. WoRMS2EoL.zip
             if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
             if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
             */
             if($what == 'evaluate_MoF') { // print_r($rek); exit;
-                if($ret = self::evaluate_MoF($rek)) {}
-                {
+                if($ret = self::evaluate_MoF($rec)) {}
+                else {
 
                 }
             }
 
 
-
+            /* working OK
             if($what == 'write_archive') {
                 $o = new \eol_schema\Taxon();
                 $uris = array_keys($rec); // print_r($uris); //exit;
@@ -101,10 +91,11 @@ class DwCA_ReviseKeywordMap
                 }
                 $this->archive_builder->write_object_to_file($o);
             }
+            */
             if($i >= 5) break;
         }
     }
-    private function evaluate_MoF($rek)
+    private function evaluate_MoF($rec)
     {   /*Array(
             [measurementID] => cf79b546359dea3915383ff3bc583c8c_617_ENV
             [occurrenceID] => bce4fa8b6c08381b674c545409717a17_617_ENV
@@ -114,7 +105,10 @@ class DwCA_ReviseKeywordMap
             [measurementRemarks] => source text: "thicket a reed-bed a _cave_ or some other sheltered"
             [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
         )*/
-        
+        $measurementValue = $rec['measurementValue'];
+        if(isset($this->uris_with_new_kwords[$measurementValue])) {
+
+        }
     }
 }
 ?>

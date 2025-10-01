@@ -21,7 +21,7 @@ class DwCA_ReviseKeywordMap
         $func->get_keyword_mappings();
         // get vars from TextmineKeywordMapAPI(), then unset() it.
         $this->uris_with_new_kwords     = $func->uris_with_new_kwords; //n=15
-        $this->uri_in_question          = $func->uri_in_question; print_r($func->uri_in_question); exit;
+        $this->uri_in_question          = $func->uri_in_question; //print_r($func->uri_in_question); exit;
         $this->new_keywords_string_uri  = $func->new_keywords_string_uri;
         unset($func->uris_with_new_kwords);
         unset($func->uri_in_question);
@@ -29,8 +29,8 @@ class DwCA_ReviseKeywordMap
 
         echo "\nuri_in_question 2: ".count($this->uri_in_question);
         echo "\nnew_keywords 2: ".count($this->new_keywords_string_uri);
-        echo "\nuris_with_new_kwords: ".count($this->uris_with_new_kwords); print_r($this->uris_with_new_kwords);
-        exit("\nEli 200\n");
+        echo "\nuris_with_new_kwords: ".count($this->uris_with_new_kwords); //print_r($this->uris_with_new_kwords);
+        // exit("\nEli 200\n");
     }
     function start($info)
     {
@@ -46,11 +46,8 @@ class DwCA_ReviseKeywordMap
         $meta = $tables[$tbl][0];
         self::process_table($meta, 'evaluate_MoF');
 
-        /* writing taxa - copied template
-        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
-        $meta = $tables[$tbl][0];
-        self::process_table($meta, 'write_archive');
-        */
+        
+
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function process_table($meta, $what)
@@ -74,10 +71,10 @@ class DwCA_ReviseKeywordMap
             if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
             */
             if($what == 'evaluate_MoF') { // print_r($rek); exit;
-                if($ret = self::evaluate_MoF($rec)) {}
-                else {
-
-                }
+                $occurrenceID = $rec['occurrenceID'];
+                $ret = self::evaluate_MoF($rec);
+                if($ret == "Delete MoF") $this->delete_occurrence_ids[$occurrenceID] = '';
+                else self::write_MoF($rec);
             }
 
 
@@ -97,18 +94,46 @@ class DwCA_ReviseKeywordMap
     }
     private function evaluate_MoF($rec)
     {   /*Array(
-            [measurementID] => cf79b546359dea3915383ff3bc583c8c_617_ENV
-            [occurrenceID] => bce4fa8b6c08381b674c545409717a17_617_ENV
+            [measurementID] => 7ee2407dac4771b5fa5c8c925b5694d6_617_ENV
+            [occurrenceID] => da3f17497355258f02ec4798ac4736c3_617_ENV
             [measurementOfTaxon] => true
             [measurementType] => http://purl.obolibrary.org/obo/RO_0002303
-            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_00000067
-            [measurementRemarks] => source text: "thicket a reed-bed a _cave_ or some other sheltered"
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000252
+            [measurementRemarks] => source text: "in a tree near _Lake_ Nakuru Lions may live"
             [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
         )*/
         $measurementValue = $rec['measurementValue'];
-        if(isset($this->uris_with_new_kwords[$measurementValue])) {
-
+        if(isset($this->uris_with_new_kwords[$measurementValue])) { //included in the list of 15 URIs. Please remove all keywords that currently map to these uris:
+            if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
+                $measurementRemarks = $rec['measurementRemarks'];
+                // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
+                print_r($rec); print_r($match_strings); //exit("\nhuli ka\n");
+                if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) echo "\nmatch_string found in mRemarks\n";
+                else { echo "\ndelete MoF\n"; return "delete MoF"; }
+                // exit("\nstop muna\n");
+            }
+            else { echo "\ndelete MoF\n"; return "delete MoF"; }
         }
+    }
+    private function is_suggested_keyword_match_YN($measurementRemarks, $match_strings)
+    {
+        echo "\n[$measurementRemarks]\n";
+        $measurementRemarks = str_replace("_", "", $measurementRemarks);
+        echo "\n[$measurementRemarks]\n"; //exit;
+        
+        foreach($match_strings as $str) {
+            if(stripos($measurementRemarks, $str) !== false) return true; //string is found
+        }
+        return false;
+    }
+    private function write_MoF($rec)
+    {
+        $o = new \eol_schema\Taxon();
+        $fields = array_keys($rec); // print_r($uris); //exit;
+        foreach($fields as $field) {
+            $o->$field = $rec[$uri];
+        }
+        $this->archive_builder->write_object_to_file($o);
     }
 }
 ?>

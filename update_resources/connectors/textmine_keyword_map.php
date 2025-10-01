@@ -3,7 +3,7 @@ namespace php_active_record;
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/TextmineKeywordMapAPI');
 // ini_set('memory_limit','6096M');
-// $GLOBALS['ENV_DEBUG'] = true;
+$GLOBALS['ENV_DEBUG'] = true;
 $timestart = time_elapsed();
 
 $func = new TextmineKeywordMapAPI();

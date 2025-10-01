@@ -5,6 +5,10 @@ https://github.com/EOL/ContentImport/issues/36
 */
 class TextmineKeywordMapAPI
 {
+    public $params; // Declare the property
+    public $func;
+    public $uri_in_question;
+    public $new_keywords;
     function __construct()
     {   /* 
         Then add the strings that are mapped to terms on the following worksheets:
@@ -35,6 +39,55 @@ class TextmineKeywordMapAPI
 
         $params['range'] = 'coastal!A1:D100';
         $this->params['coastal'] = $params;
+
+        require_library('connectors/GoogleClientAPI');
+        $this->func = new GoogleClientAPI(); //get_declared_classes(); will give you how to access all available classes
+    }
+    function get_keyword_mappings($item = false)
+    {
+        if(!$item) $items = array('river', 'lake', 'mountain', 'coastal');
+        else       $items = array($item);
+        foreach($items as $what) {
+            $params = $this->params[$what]; //$what e.g. 'coastal'
+            $arr = $this->func->access_google_sheet($params);
+            self::massage_result($arr);
+        }
+        print_r($this->uri_in_question);
+        print_r($this->new_keywords);
+        echo "\nuri_in_question 1: ".count($this->uri_in_question);
+        echo "\nnew_keywords 1: ".count($this->new_keywords);
+    }
+    private function massage_result($arr)
+    {
+        //start massage array
+        $i = 0;
+        foreach($arr as $item) { $i++;
+            if($i == 1) $fields = $item;
+            else {
+                $rek = array(); $k = 0;
+                foreach($fields as $fld) {
+                    if($fld) $rek[$fld] = @$item[$k];
+                    $k++;
+                }
+                @$ctr++;
+                $rek['new_uid'] = "NEW_".$ctr;
+                $rek = array_map('trim', $rek); // print_r($rek); exit("\nEli 100\n");
+                /*Array(
+                    [match string] => at forest stream
+                    [value] => riparian zone
+                    [uri] => https://www.wikidata.org/entity/Q13360049
+                    [notes] => Other resources
+                    [new_uid] => NEW_1
+                )*/
+                $uri = @$rek['uri'];
+                $match_string = @$rek['match string'];
+                if($uri && $match_string) {
+                    $this->uri_in_question[$uri] = '';
+                    $this->new_keywords[$match_string] = $uri; 
+                }
+            }
+        }
+        // end massage array
     }
     function xxx($params) 
     {   

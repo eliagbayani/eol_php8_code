@@ -14,8 +14,18 @@ class DwCA_ReviseKeywordMap
         $this->debug = array();
     }
     /*================================================================= STARTS HERE ======================================================================*/
+    private function initialize()
+    {
+        require_library('connectors/TextmineKeywordMapAPI');
+        $func = new TextmineKeywordMapAPI();
+        $func->get_keyword_mappings();
+        echo "\nuri_in_question 2: ".count($func->uri_in_question);
+        echo "\nnew_keywords 2: ".count($func->new_keywords);
+        exit("\nEli 200\n");
+    }
     function start($info)
     {
+        self::initialize();
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); //print_r($extensions); exit;
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";

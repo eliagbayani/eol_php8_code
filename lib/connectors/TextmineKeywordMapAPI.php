@@ -12,21 +12,15 @@ class TextmineKeywordMapAPI
     function __construct()
     {   /* Please remove all keywords that currently map to these uris: */
         $this->remove_kwords_for_uris = array("http://purl.obolibrary.org/obo/ENVO_00000081", "http://purl.obolibrary.org/obo/ENVO_01000342", "http://purl.obolibrary.org/obo/ENVO_01000340", "http://purl.obolibrary.org/obo/ENVO_00000080", "http://purl.obolibrary.org/obo/ENVO_00000381", "http://purl.obolibrary.org/obo/ENVO_01000333", "http://purl.obolibrary.org/obo/ENVO_00000497", "http://purl.obolibrary.org/obo/ENVO_00000287", "http://purl.obolibrary.org/obo/ENVO_01000253", "http://purl.obolibrary.org/obo/ENVO_01000252", "http://purl.obolibrary.org/obo/ENVO_01000687", "http://purl.obolibrary.org/obo/ENVO_00000100", "http://purl.obolibrary.org/obo/ENVO_01000143", "http://purl.obolibrary.org/obo/ENVO_00000091", "http://purl.obolibrary.org/obo/ENVO_00000475");
-        /*
-        Then add the strings that are mapped to terms on the following worksheets:
-
+        /* Then add the strings that are mapped to terms on the following worksheets:
         - strings related to river/stream [river]
-        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
-
+            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
         - strings related to lake [lake]
-        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=974642361#gid=974642361
-
+            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=974642361#gid=974642361
         - strings related to mountain [mountain etc.]
-        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1677871921#gid=1677871921
-
+            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1677871921#gid=1677871921
         - strings related to coastal [coastal]
-        https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1687183186#gid=1687183186
-        */
+            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1687183186#gid=1687183186 */
         $params['spreadsheetID'] = '1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0';
         $params['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
 
@@ -43,7 +37,7 @@ class TextmineKeywordMapAPI
         $this->params['coastal'] = $params;
 
         require_library('connectors/GoogleClientAPI');
-        $this->func = new GoogleClientAPI(); //get_declared_classes(); will give you how to access all available classes
+        $this->func = new GoogleClientAPI();
     }
     function get_keyword_mappings($item = false)
     {

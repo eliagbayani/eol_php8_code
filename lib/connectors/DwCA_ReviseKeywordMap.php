@@ -21,20 +21,27 @@ class DwCA_ReviseKeywordMap
         $func->get_keyword_mappings();
         echo "\nuri_in_question 2: ".count($func->uri_in_question);
         echo "\nnew_keywords 2: ".count($func->new_keywords);
-        exit("\nEli 200\n");
+        // exit("\nEli 200\n");
     }
     function start($info)
     {
         self::initialize();
-        $tables = $info['harvester']->tables; // print_r($tables); exit;
+        $tables = $info['harvester']->tables; //print_r($tables); exit;
         $extensions = array_keys($tables); //print_r($extensions); exit;
+        /*Array(
+            [2] => http://rs.tdwg.org/dwc/terms/occurrence
+            [3] => http://rs.tdwg.org/dwc/terms/taxon
+            [4] => http://rs.tdwg.org/dwc/terms/measurementorfact
+        )*/
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
+        $meta = $tables[$tbl][0];
+        self::process_table($meta, 'evaluate_MoF');
+
+        /* writing taxa - copied template
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
         $meta = $tables[$tbl][0];
-
-        /*Array(
-            [0] => http://rs.tdwg.org/dwc/terms/taxon
-        )*/
         self::process_table($meta, 'write_archive');
+        */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function process_table($meta, $what)
@@ -49,10 +56,10 @@ class DwCA_ReviseKeywordMap
             $rec = array(); $k = 0;
             foreach($meta->fields as $field) {
                 if(!$field['term']) continue;
-                $rec[$field['term']] = $tmp[$k];
+                $rec[Functions::get_field_from_uri($field['term'])] = $tmp[$k];
                 $k++;
             }
-            // print_r($rec); exit;
+            print_r($rec); exit;
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/taxonID] => 12
                 [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
@@ -76,15 +83,16 @@ class DwCA_ReviseKeywordMap
             if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
             if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
             */
+            if($what == 'evaluate_MoF') { // print_r($rek); exit;
+                if($ret = self::evaluate_MoF($rek)) {}
+                {
+
+                }
+            }
+
+
 
             if($what == 'write_archive') {
-                /* assign canonical name
-                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-                $scientificName = $rec['http://rs.tdwg.org/dwc/terms/scientificName'];
-                $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];                
-                */
-
-                // print_r($rec); exit;
                 $o = new \eol_schema\Taxon();
                 $uris = array_keys($rec); // print_r($uris); //exit;
                 foreach($uris as $uri) {
@@ -95,6 +103,18 @@ class DwCA_ReviseKeywordMap
             }
             if($i >= 5) break;
         }
+    }
+    private function evaluate_MoF($rek)
+    {   /*Array(
+            [measurementID] => cf79b546359dea3915383ff3bc583c8c_617_ENV
+            [occurrenceID] => bce4fa8b6c08381b674c545409717a17_617_ENV
+            [measurementOfTaxon] => true
+            [measurementType] => http://purl.obolibrary.org/obo/RO_0002303
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_00000067
+            [measurementRemarks] => source text: "thicket a reed-bed a _cave_ or some other sheltered"
+            [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
+        )*/
+        
     }
 }
 ?>

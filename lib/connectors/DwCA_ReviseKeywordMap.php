@@ -73,7 +73,7 @@ class DwCA_ReviseKeywordMap
             if($what == 'evaluate_MoF') { // print_r($rek); exit;
                 $occurrenceID = $rec['occurrenceID'];
                 $ret = self::evaluate_MoF($rec);
-                if($ret == "Delete MoF") $this->delete_occurrence_ids[$occurrenceID] = '';
+                if($ret == "delete MoF") $this->delete_occurrence_ids[$occurrenceID] = '';
                 else self::write_MoF($rec);
             }
 
@@ -102,27 +102,38 @@ class DwCA_ReviseKeywordMap
             [measurementRemarks] => source text: "in a tree near _Lake_ Nakuru Lions may live"
             [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
         )*/
+        // http://purl.obolibrary.org/obo/ENVO_01000687	
+        // source text: "or raven in Northwest _Coast_ traditions.[97] Retrieved from "https"
+
         $measurementValue = $rec['measurementValue'];
+        // $measurementValue = 'http://purl.obolibrary.org/obo/ENVO_01000687'; //debug only force-assign
         // 1st case
         if(isset($this->uris_with_new_kwords[$measurementValue])) { //included in the list of 15 URIs. Please remove all keywords that currently map to these uris:
             if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
                 $measurementRemarks = $rec['measurementRemarks'];
                 // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
-                print_r($rec); //print_r($match_strings); echo(" --- huli ka 1\n");
+                // $measurementRemarks = 'source text: "or raven in Northwest _Coast_ traditions.[97] Retrieved from "https"';
+                // print_r($rec); print_r($match_strings); echo(" --- huli ka 1\n");
                 if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) echo "\nmatch_string found in mRemarks\n";
-                else { echo "\ndelete MoF 1\n"; return "delete MoF"; }
+                else { echo "\ndelete MoF 1\n"; return "delete MoF"; 
+                }
             }
-            else { echo "\ndelete MoF 2\n"; return "delete MoF"; }
+            else { echo "\ndelete MoF 2\n"; return "delete MoF"; 
+            }
         }
         // 2nd case: below block is copied above
         if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
             $measurementRemarks = $rec['measurementRemarks'];
             // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
-            print_r($rec); //print_r($match_strings); echo(" --- huli ka 2\n");
+            // $measurementRemarks = 'source text: "or raven in Northwest _Coast_ traditions.[97] Retrieved from "https"';
+            // print_r($rec); print_r($match_strings); echo(" --- huli ka 2\n");
             if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) echo "\nmatch_string found in mRemarks\n";
-            else { echo "\ndelete MoF 3\n"; return "delete MoF"; }
+            else { echo "\ndelete MoF 3\n"; return "delete MoF"; 
+            }
         }
-        else { echo "\ndelete MoF 4\n"; return "delete MoF"; }
+        else { echo "\ndelete MoF 4\n"; return "delete MoF"; 
+        }
+        // exit("\neli x\n");
     }
     private function is_suggested_keyword_match_YN($measurementRemarks, $match_strings)
     {

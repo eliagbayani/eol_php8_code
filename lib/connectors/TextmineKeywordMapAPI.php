@@ -52,7 +52,7 @@ class TextmineKeywordMapAPI
         }
         // print_r($this->uri_in_question); print_r($this->new_keywords_string_uri);
         echo "\nuri_in_question 1: ".count($this->uri_in_question);
-        echo "\nnew_keywords_string_uri 1: ".count($this->new_keywords_string_uri);
+        // echo "\nnew_keywords_string_uri 1: ".count($this->new_keywords_string_uri); //not used atm.
     }
     private function massage_result($arr, $what)
     {
@@ -83,7 +83,7 @@ class TextmineKeywordMapAPI
                     $this->uri_in_question[$uri][] = $match_string;
                     $this->uri_in_question[$uri] = array_unique($this->uri_in_question[$uri]); //make values unique
 
-                    $this->new_keywords_string_uri[$match_string] = $uri; 
+                    // $this->new_keywords_string_uri[$match_string] = $uri; //not used atm.
                 }
             }
         }

@@ -42,9 +42,19 @@ class DwCA_ReviseKeywordMap
             [3] => http://rs.tdwg.org/dwc/terms/taxon
             [4] => http://rs.tdwg.org/dwc/terms/measurementorfact
         )*/
+        // step 1
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
         $meta = $tables[$tbl][0];
         self::process_table($meta, 'evaluate_MoF');
+        // step 2
+        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";
+        $meta = $tables[$tbl][0];
+        self::process_table($meta, 'write_Occurrence');
+        // step 3: delete children of deleted parent MoF
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
+        $meta = $tables[$tbl][0];
+        self::process_table($meta, 'write_MoF');
+
 
         
 
@@ -70,11 +80,57 @@ class DwCA_ReviseKeywordMap
             if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
             if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
             */
-            if($what == 'evaluate_MoF') { // print_r($rek); exit;
+            if($what == 'evaluate_MoF') { //print_r($rec); exit("\nelix 100\n");
+                /*Array(
+                    [measurementID] => cf79b546359dea3915383ff3bc583c8c_617_ENV
+                    [occurrenceID] => bce4fa8b6c08381b674c545409717a17_617_ENV
+                    [measurementOfTaxon] => true
+                    [measurementType] => http://purl.obolibrary.org/obo/RO_0002303
+                    [measurementValue] => http://purl.obolibrary.org/obo/ENVO_00000067
+                    [measurementRemarks] => source text: "thicket a reed-bed a _cave_ or some other sheltered"
+                    [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
+                )*/
+                if(!self::an_MoF_child_record($rec)) {
+                    $occurrenceID = $rec['occurrenceID'];
+                    $measurementID = $rec['measurementID'];
+                    $ret = self::evaluate_MoF($rec);
+                    if($ret == "delete MoF") {
+                        $this->delete_occurrence_ids[$occurrenceID] = '';
+                        $this->delete_measurement_ids[$measurementID] = '';
+                    }
+                }
+            }
+            /* child record in MoF:
+                - doesn't have: occurrenceID | measurementOfTaxon
+                - has parentMeasurementID
+                - has also a unique measurementID, as expected.
+            minimum cols on a child record in MoF
+                - measurementID
+                - measurementType
+                - measurementValue
+                - parentMeasurementID */
+
+            elseif($what == 'write_Occurrence') { //print_r($rec); exit("\nelix 200\n");
+                /*Array(
+                    [occurrenceID] => bce4fa8b6c08381b674c545409717a17_617_ENV
+                    [taxonID] => Q140
+                )*/
                 $occurrenceID = $rec['occurrenceID'];
-                $ret = self::evaluate_MoF($rec);
-                if($ret == "delete MoF") $this->delete_occurrence_ids[$occurrenceID] = '';
-                else self::write_MoF($rec);
+                if(isset($this->delete_occurrence_ids[$occurrenceID])) {}
+                else self::write_extension($rec, 'occurrence');
+            }
+            elseif($what == 'write_MoF') { //processing MoF
+                $occurrenceID = $rec['occurrenceID'];
+                $measurementID = $rec['measurementID'];
+
+                if(self::an_MoF_child_record($rec)) {
+                    $parentMeasurementID = @$rec['parentMeasurementID'];
+                    if(isset($this->delete_measurement_ids[$parentMeasurementID])) continue; //don't write
+                }
+                else {
+                    if(isset($this->delete_measurement_ids[$measurementID])) continue; //don't write
+                }
+                self::write_extension($rec, 'mof');
             }
 
 
@@ -114,11 +170,15 @@ class DwCA_ReviseKeywordMap
                 // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
                 // $measurementRemarks = 'source text: "or raven in Northwest _Coast_ traditions.[97] Retrieved from "https"';
                 // print_r($rec); print_r($match_strings); echo(" --- huli ka 1\n");
-                if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) echo "\nmatch_string found in mRemarks\n";
-                else { echo "\ndelete MoF 1\n"; return "delete MoF"; 
+                if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {
+                    // echo "\nmatch_string found in mRemarks\n";
+                }
+                else { //echo "\ndelete MoF 1\n"; 
+                    return "delete MoF"; 
                 }
             }
-            else { echo "\ndelete MoF 2\n"; return "delete MoF"; 
+            else { //echo "\ndelete MoF 2\n"; 
+                return "delete MoF"; 
             }
         }
         // 2nd case: below block is copied above
@@ -127,28 +187,48 @@ class DwCA_ReviseKeywordMap
             // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
             // $measurementRemarks = 'source text: "or raven in Northwest _Coast_ traditions.[97] Retrieved from "https"';
             // print_r($rec); print_r($match_strings); echo(" --- huli ka 2\n");
-            if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) echo "\nmatch_string found in mRemarks\n";
-            else { echo "\ndelete MoF 3\n"; return "delete MoF"; 
+            if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {
+                // echo "\nmatch_string found in mRemarks\n";
+            }
+            else { //echo "\ndelete MoF 3\n"; 
+                return "delete MoF"; 
             }
         }
-        else { echo "\ndelete MoF 4\n"; return "delete MoF"; 
+        else { //echo "\ndelete MoF 4\n"; 
+            return "delete MoF"; 
         }
         // exit("\neli x\n");
     }
     private function is_suggested_keyword_match_YN($measurementRemarks, $match_strings)
     {
-        echo "\n[$measurementRemarks]\n";
+        // echo "\n[$measurementRemarks]\n";
         $measurementRemarks = str_replace("_", "", $measurementRemarks);
-        echo "\n[$measurementRemarks]\n"; //exit;
+        // echo "\n[$measurementRemarks]\n"; //exit;
         
         foreach($match_strings as $str) {
             if(stripos($measurementRemarks, " ".$str) !== false) return true; //string is found
         }
         return false;
     }
-    private function write_MoF($rec)
+    private function an_MoF_child_record($rec)
+    {   /* child record in MoF:
+            - doesn't have: occurrenceID | measurementOfTaxon
+            - has parentMeasurementID
+            - has also a unique measurementID, as expected.
+        minimum cols on a child record in MoF
+            - measurementID
+            - measurementType
+            - measurementValue
+            - parentMeasurementID */
+        $occurrenceID = @$rec['occurrenceID'];
+        $parentMeasurementID = @$rec['parentMeasurementID'];
+        if($parentMeasurementID && !$occurrenceID) return true; //an MoF child record
+        else return false;
+    }
+    private function write_extension($rec, $extension)
     {
-        $o = new \eol_schema\MeasurementOrFact_specific();
+        if($extension == 'mof')             $o = new \eol_schema\MeasurementOrFact_specific();
+        elseif($extension == 'occurrence')  $o = new \eol_schema\Occurrence();
         $fields = array_keys($rec); // print_r($uris); //exit;
         foreach($fields as $field) {
             $o->$field = $rec[$field];

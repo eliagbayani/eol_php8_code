@@ -52,10 +52,16 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $params['resource'] = "revise_keyword_map";
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
-    $preferred_rowtypes = array("http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 
+    $preferred_rowtypes = array("http://rs.tdwg.org/dwc/terms/taxon", "http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 
         "http://eol.org/schema/association", "http://eol.org/schema/agent/agent", "http://eol.org/schema/media/document");
     $preferred_rowtypes[] = "http://rs.gbif.org/terms/1.0/reference"; //just in case used by some DwCA
-    $excluded_rowtypes = array("http://rs.tdwg.org/dwc/terms/taxon", "http://rs.tdwg.org/dwc/terms/occurrence", "http://rs.tdwg.org/dwc/terms/measurementorfact");
+    $excluded_rowtypes = array("http://rs.tdwg.org/dwc/terms/occurrence", "http://rs.tdwg.org/dwc/terms/measurementorfact");
+
+    // /* dev only
+    $preferred_rowtypes[] = "http://rs.tdwg.org/dwc/terms/occurrence";
+    $preferred_rowtypes[] = "http://rs.tdwg.org/dwc/terms/measurementorfact";
+    $excluded_rowtypes = array();
+    // */
 
     /* This will be processed in DwCA_ReviseKeywordMap.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);

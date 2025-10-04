@@ -178,9 +178,7 @@ class DwCA_ReviseKeywordMap
                     return "delete MoF"; 
                 }
             }
-            else { //echo "\ndelete MoF 2\n"; 
-                return "delete MoF"; 
-            }
+            else {} //no acceptable list of keywords; then just ignore it but still accept the MoF record
         }
         // 2nd case: below block is copied above
         if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
@@ -195,9 +193,7 @@ class DwCA_ReviseKeywordMap
                 return "delete MoF"; 
             }
         }
-        else { //echo "\ndelete MoF 4\n"; 
-            return "delete MoF"; 
-        }
+        else {} //no acceptable list of keywords; then just ignore it but still accept the MoF record 
         // exit("\neli x\n");
     }
     private function is_suggested_keyword_match_YN($measurementRemarks, $match_strings)

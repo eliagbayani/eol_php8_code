@@ -57,11 +57,11 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $preferred_rowtypes[] = "http://rs.gbif.org/terms/1.0/reference"; //just in case used by some DwCA
     $excluded_rowtypes = array("http://rs.tdwg.org/dwc/terms/occurrence", "http://rs.tdwg.org/dwc/terms/measurementorfact");
 
-    // /* dev only
+    /* dev only
     $preferred_rowtypes[] = "http://rs.tdwg.org/dwc/terms/occurrence";
     $preferred_rowtypes[] = "http://rs.tdwg.org/dwc/terms/measurementorfact";
     $excluded_rowtypes = array();
-    // */
+    */
 
     /* This will be processed in DwCA_ReviseKeywordMap.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);

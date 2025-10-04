@@ -42,7 +42,7 @@ class DwCA_ReviseKeywordMap
             [3] => http://rs.tdwg.org/dwc/terms/taxon
             [4] => http://rs.tdwg.org/dwc/terms/measurementorfact
         )*/
-        /*
+        // /*
         // step 1
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
         $meta = $tables[$tbl][0];
@@ -55,9 +55,7 @@ class DwCA_ReviseKeywordMap
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
         $meta = $tables[$tbl][0];
         self::process_table($meta, 'write_MoF');
-        */
-
-        
+        // */
 
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }

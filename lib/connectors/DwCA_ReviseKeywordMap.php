@@ -113,8 +113,7 @@ class DwCA_ReviseKeywordMap
                     [taxonID] => Q140
                 )*/
                 $occurrenceID = $rec['occurrenceID'];
-                if(!isset($this->accepted_taxa[$rec['taxonID']])) {
-                    print_r($rec);
+                if(!isset($this->accepted_taxa[$rec['taxonID']])) { // print_r($rec);
                     $this->delete_occurrence_ids[$occurrenceID] = '';
                 }
             }
@@ -132,8 +131,8 @@ class DwCA_ReviseKeywordMap
                     $occurrenceID = $rec['occurrenceID'];
                     $measurementID = $rec['measurementID'];
 
-                    if(isset($this->delete_occurrence_ids[$occurrenceID])) { //from evaluate_Occurrence
-                        print_r($rec);
+                    if(isset($this->delete_occurrence_ids[$occurrenceID])) { //from evaluate_Occurrence: only include binomials
+                        // print_r($rec);
                         $this->delete_measurement_ids[$measurementID] = '';
                     }
 

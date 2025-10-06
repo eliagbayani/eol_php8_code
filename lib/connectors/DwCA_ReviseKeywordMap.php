@@ -112,8 +112,9 @@ class DwCA_ReviseKeywordMap
                     [occurrenceID] => bce4fa8b6c08381b674c545409717a17_617_ENV
                     [taxonID] => Q140
                 )*/
+                $taxonID = $rec['taxonID'];
                 $occurrenceID = $rec['occurrenceID'];
-                if(!isset($this->accepted_taxa[$rec['taxonID']])) { // print_r($rec);
+                if(!isset($this->accepted_taxa[$taxonID])) { // print_r($rec);
                     $this->delete_occurrence_ids[$occurrenceID] = '';
                 }
             }
@@ -128,21 +129,20 @@ class DwCA_ReviseKeywordMap
                     [measurementRemarks] => source text: "thicket a reed-bed a _cave_ or some other sheltered"
                     [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
                 )*/
-                    $occurrenceID = $rec['occurrenceID'];
-                    $measurementID = $rec['measurementID'];
+                $occurrenceID = $rec['occurrenceID'];
+                $measurementID = $rec['measurementID'];
 
-                    if(isset($this->delete_occurrence_ids[$occurrenceID])) { //from evaluate_Occurrence: only include binomials
-                        // print_r($rec);
-                        $this->delete_measurement_ids[$measurementID] = '';
-                    }
+                if(isset($this->delete_occurrence_ids[$occurrenceID])) { //from evaluate_Occurrence: only include binomials
+                    // print_r($rec);
+                    $this->delete_measurement_ids[$measurementID] = '';
+                }
 
-                    if(!self::an_MoF_child_record($rec)) {
+                if(!self::an_MoF_child_record($rec)) {
                     $ret = self::evaluate_MoF($rec);
                     if($ret == "delete MoF") {
                         $this->delete_occurrence_ids[$occurrenceID] = '';
                         $this->delete_measurement_ids[$measurementID] = '';
                     }
-
                 }
             }
             /* child record in MoF:

@@ -43,6 +43,17 @@ class DwCA_ReviseKeywordMap
             [4] => http://rs.tdwg.org/dwc/terms/measurementorfact
         )*/
         // /*
+
+        // step 0-a
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";
+        $meta = $tables[$tbl][0];
+        self::process_table($meta, 'evaluate_taxa');
+        // step 0-b
+        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";
+        $meta = $tables[$tbl][0];
+        self::process_table($meta, 'evaluate_Occurrence');
+
+
         // step 1
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
         $meta = $tables[$tbl][0];
@@ -79,6 +90,35 @@ class DwCA_ReviseKeywordMap
             if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
             if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
             */
+            if($what == 'evaluate_taxa') { //print_r($rec); exit("\nelix 100\n");
+                /*Array(
+                    [taxonID] => Q25243
+                    [source] => https://www.wikidata.org/wiki/Q25243
+                    [parentNameUsageID] => Q4085525
+                    [scientificName] => Betula
+                    [taxonRank] => genus
+                    [scientificNameAuthorship] => Carl Linnaeus, 1753
+                    [canonicalName] => 
+                )*/
+                if($taxonRank = strtolower(@$rec['taxonRank'])) {
+                    if($taxonRank == 'species') $this->accepted_taxa[$rec['taxonID']] = '';
+                }
+                if($scientificName = @$rec['scientificName']) {
+                    if(Functions::is_binomial($scientificName)) $this->accepted_taxa[$rec['taxonID']] = '';
+                }
+            }
+            elseif($what == 'evaluate_Occurrence') {
+                /*Array(
+                    [occurrenceID] => bce4fa8b6c08381b674c545409717a17_617_ENV
+                    [taxonID] => Q140
+                )*/
+                $occurrenceID = $rec['occurrenceID'];
+                if(!isset($this->accepted_taxa[$rec['taxonID']])) {
+                    print_r($rec);
+                    $this->delete_occurrence_ids[$occurrenceID] = '';
+                }
+            }
+
             if($what == 'evaluate_MoF') { //print_r($rec); exit("\nelix 100\n");
                 /*Array(
                     [measurementID] => cf79b546359dea3915383ff3bc583c8c_617_ENV
@@ -89,14 +129,21 @@ class DwCA_ReviseKeywordMap
                     [measurementRemarks] => source text: "thicket a reed-bed a _cave_ or some other sheltered"
                     [source] => http://en.wikipedia.org/w/index.php?title=Lion&oldid=1276469077
                 )*/
-                if(!self::an_MoF_child_record($rec)) {
                     $occurrenceID = $rec['occurrenceID'];
                     $measurementID = $rec['measurementID'];
+
+                    if(isset($this->delete_occurrence_ids[$occurrenceID])) { //from evaluate_Occurrence
+                        print_r($rec);
+                        $this->delete_measurement_ids[$measurementID] = '';
+                    }
+
+                    if(!self::an_MoF_child_record($rec)) {
                     $ret = self::evaluate_MoF($rec);
                     if($ret == "delete MoF") {
                         $this->delete_occurrence_ids[$occurrenceID] = '';
                         $this->delete_measurement_ids[$measurementID] = '';
                     }
+
                 }
             }
             /* child record in MoF:
@@ -172,11 +219,11 @@ class DwCA_ReviseKeywordMap
                 if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {
                     // echo "\nmatch_string found in mRemarks\n";
                 }
-                else { echo " [del MoF 1] "; 
+                else { //echo " [del MoF 1] "; 
                     return "delete MoF"; 
                 }
             }
-            else { echo " [del MoF 2] ";
+            else { //echo " [del MoF 2] ";
                 return "delete MoF"; 
             }
         }
@@ -189,7 +236,7 @@ class DwCA_ReviseKeywordMap
             if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {
                 // echo "\nmatch_string found in mRemarks\n";
             }
-            else { echo " [del MoF 3] ";
+            else { //echo " [del MoF 3] ";
                 return "delete MoF"; 
             }
         }

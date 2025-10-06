@@ -2780,5 +2780,23 @@ class Functions
         if(@$parts[1]) $field = $parts[1];
         return $field;
     }
+    public static function is_binomial($sciname)
+    {
+        $arr = explode(" ", trim($sciname));
+        if(count($arr) == 2) {
+            if(ctype_upper(self::first_char($arr[0]))) {
+                if(!ctype_upper(self::first_char($arr[1]))) {
+                    // echo "\n[$sciname] is binomial";
+                    return true;
+                }
+            }
+        }
+        // echo "\n[$sciname] is not binomial";
+        return false;
+    }
+    public static function first_char($str)
+    {
+        return substr(trim($str), 0, 1);
+    }
 }
 ?>

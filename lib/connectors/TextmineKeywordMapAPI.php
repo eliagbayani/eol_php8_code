@@ -15,13 +15,13 @@ class TextmineKeywordMapAPI
         $this->uris_with_new_kwords = array_flip($temp);
 
         /* Then add the strings that are mapped to terms on the following worksheets:
-        - strings related to river/stream [river]
+        - strings related to river/stream [river] n=422
             https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
-        - strings related to lake [lake]
+        - strings related to lake [lake] n=19
             https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=974642361#gid=974642361
-        - strings related to mountain [mountain etc.]
+        - strings related to mountain [mountain etc.] n=328
             https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1677871921#gid=1677871921
-        - strings related to coastal [coastal]
+        - strings related to coastal [coastal] n=89
             https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1687183186#gid=1687183186 */
         $params['spreadsheetID'] = '1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0';
         $params['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK

@@ -172,11 +172,13 @@ class DwCA_ReviseKeywordMap
                 if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {
                     // echo "\nmatch_string found in mRemarks\n";
                 }
-                else { //echo "\ndelete MoF 1\n"; 
+                else { echo " [del MoF 1] "; 
                     return "delete MoF"; 
                 }
             }
-            else {} //no acceptable list of keywords; then just ignore it but still accept the MoF record
+            else { echo " [del MoF 2] ";
+                return "delete MoF"; 
+            }
         }
         // 2nd case: below block is copied above
         if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
@@ -187,7 +189,7 @@ class DwCA_ReviseKeywordMap
             if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {
                 // echo "\nmatch_string found in mRemarks\n";
             }
-            else { //echo "\ndelete MoF 3\n"; 
+            else { echo " [del MoF 3] ";
                 return "delete MoF"; 
             }
         }

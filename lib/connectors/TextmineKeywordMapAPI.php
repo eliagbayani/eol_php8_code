@@ -32,7 +32,7 @@ class TextmineKeywordMapAPI
         $params['range'] = 'lake!A1:D30';
         $this->params['lake'] = $params;
 
-        $params['range'] = 'mountain etc.!A1:C340';
+        $params['range'] = 'mountain etc.!A1:D340';
         $this->params['mountain'] = $params;
 
         $params['range'] = 'coastal!A1:D100';

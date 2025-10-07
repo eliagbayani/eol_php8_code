@@ -1267,6 +1267,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         /*
         http://api.pensoft.net/annotator?text=West Sahara woodlands&ontologies=eol-geonames
         http://api.pensoft.net/annotator?text=ocean marine sanctuary&ontologies=envo
+        http://api.pensoft.net/annotator?text=overhang over a forest stream a rock fissure a&ontologies=envo
+        http://api.pensoft.net/annotator?text=C. alpina is a montane species occurring through most&ontologies=envo
         */
                 
         $this->pensoft_run_cnt++;

@@ -43,7 +43,7 @@ $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz";
 if ($resource_id == "WoRMS2EoL") $dwca_file = LOCAL_HOST . "/cp/WORMS/WoRMS2EoL.zip";
 */
 
-$resource_id .= "_revised_1"; //generates this file; latest implementation
+$resource_id .= "_revised"; //generates this file; latest implementation
 process_resource_url($dwca_file, $resource_id, $timestart);
 
 function process_resource_url($dwca_file, $resource_id, $timestart)

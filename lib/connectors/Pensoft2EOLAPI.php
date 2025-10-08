@@ -1,6 +1,7 @@
 <?php
 namespace php_active_record;
 /* connector: [environments_2_eol.php]
+Pensoft Annotator: https://annotator.pensoft.net/how-it-works
 
 This is for Pensoft annotator.
 While an old, close to obsolete version (Environments2EOLAPI.php) is for Vangelis tagger.

@@ -7,7 +7,7 @@ class TextmineKeywordMapAPI
 {
     public $params; // Declare the property
     public $func;
-    public $uri_in_question;
+    public $uri_in_question, $uri_in_question_current;
     public $new_keywords_string_uri, $uris_with_new_kwords;
     function __construct()
     {   /* Please remove all keywords that currently map to these uris: */
@@ -40,6 +40,8 @@ class TextmineKeywordMapAPI
 
         require_library('connectors/GoogleClientAPI');
         $this->func = new GoogleClientAPI();
+
+        $this->uri_in_question_current = array(); //temporary until spreadsheet adds 4th column.
     }
     function get_keyword_mappings($item = false)
     {
@@ -69,7 +71,8 @@ class TextmineKeywordMapAPI
                 }
                 @$ctr++;
                 $rek['new_uid'] = "NEW_".$ctr;
-                $rek = array_map('trim', $rek); // print_r($rek); exit("\nEli 100\n");
+                // $rek = array_map('trim', $rek); //works ok but needs all sheet columns filled up. Replaced by array_map_eol() below.
+                $rek = Functions::array_map_eol($rek); // print_r($rek);
                 if($what == 'coastal') $rek['uri'] = "http://purl.obolibrary.org/obo/ENVO_01000687";
                 /*Array(
                     [match string] => at forest stream

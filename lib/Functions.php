@@ -2798,7 +2798,7 @@ class Functions
     {
         return substr(trim($str), 0, 1);
     }
-    public static sub_resource_local_path()
+    public static function sub_resource_local_path()
     {
         return str_replace("/var/www/html/eol_php8_code", "", CONTENT_RESOURCE_LOCAL_PATH); //e.g. /applications/content_server/resources_3/
     }

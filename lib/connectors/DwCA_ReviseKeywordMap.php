@@ -218,27 +218,19 @@ class DwCA_ReviseKeywordMap
             if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
                 $measurementRemarks = $rec['measurementRemarks'];
                 // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
-                // $measurementRemarks = 'source text: "or raven in Northwest _Coast_ traditions.[97] Retrieved from "https"';
                 // print_r($rec); print_r($match_strings); echo(" --- huli ka 1\n");
                 if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {} // echo "\nmatch_string found in mRemarks\n";
-                else { //echo " [del MoF 1] "; 
-                    $delete_MoF_YN_1 = true;
-                }
+                else $delete_MoF_YN_1 = true; //echo " [del MoF 1] "; 
             }
-            else { //echo " [del MoF 2] ";
-                $delete_MoF_YN_1 = true;
-            }
+            else $delete_MoF_YN_1 = true; //echo " [del MoF 2] ";
         }
         // 2nd case: below block is copied above
         if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
             $measurementRemarks = $rec['measurementRemarks'];
             // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
-            // $measurementRemarks = 'source text: "or raven in Northwest _Coast_ traditions.[97] Retrieved from "https"';
             // print_r($rec); print_r($match_strings); echo(" --- huli ka 2\n");
             if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {} // echo "\nmatch_string found in mRemarks\n";
-            else { //echo " [del MoF 3] ";
-                $delete_MoF_YN_2 = true;
-            }
+            else $delete_MoF_YN_2 = true; //echo " [del MoF 3] ";
         }
         else {} //no acceptable list of keywords; then just ignore it but still accept the MoF record 
         // exit("\neli x\n");

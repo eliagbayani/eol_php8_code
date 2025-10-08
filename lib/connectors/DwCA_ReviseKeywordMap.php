@@ -22,12 +22,15 @@ class DwCA_ReviseKeywordMap
         // get vars from TextmineKeywordMapAPI(), then unset() it.
         $this->uris_with_new_kwords     = $func->uris_with_new_kwords; //n=15
         $this->uri_in_question          = $func->uri_in_question; //print_r($func->uri_in_question); exit;
+        $this->uri_in_question_current  = $func->uri_in_question_current;        
         // $this->new_keywords_string_uri  = $func->new_keywords_string_uri;
         unset($func->uris_with_new_kwords);
         unset($func->uri_in_question);
+        unset($func->uri_in_question_current);
         // unset($func->new_keywords_string_uri);
 
         echo "\nuri_in_question 2: ".count($this->uri_in_question);
+        echo "\nuri_in_question_current 2: ".count($this->uri_in_question_current);
         // echo "\nnew_keywords 2: ".count($this->new_keywords_string_uri);
         echo "\nuris_with_new_kwords: ".count($this->uris_with_new_kwords); //print_r($this->uris_with_new_kwords);
         // exit("\nEli 200\n");

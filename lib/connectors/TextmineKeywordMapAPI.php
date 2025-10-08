@@ -52,6 +52,7 @@ class TextmineKeywordMapAPI
         }
         // print_r($this->uri_in_question); print_r($this->new_keywords_string_uri);
         echo "\nuri_in_question 1: ".count($this->uri_in_question);
+        echo "\nuri_in_question_current 1: ".count($this->uri_in_question_current);
         // echo "\nnew_keywords_string_uri 1: ".count($this->new_keywords_string_uri); //not used atm.
     }
     private function massage_result($arr, $what)
@@ -74,16 +75,21 @@ class TextmineKeywordMapAPI
                     [match string] => at forest stream
                     [value] => riparian zone
                     [uri] => https://www.wikidata.org/entity/Q13360049
+                    [current_uri] => http....
                     [notes] => Other resources
                     [new_uid] => NEW_1
                 )*/
                 $uri = @$rek['uri'];
+                $current_uri = @$rek['current_uri'];
                 $match_string = @$rek['match string'];
                 if($uri && $match_string) {
                     $this->uri_in_question[$uri][] = $match_string;
                     $this->uri_in_question[$uri] = array_unique($this->uri_in_question[$uri]); //make values unique
-
                     // $this->new_keywords_string_uri[$match_string] = $uri; //not used atm.
+                }
+                if($current_uri && $match_string) {
+                    $this->uri_in_question_current[$current_uri][] = $match_string;
+                    $this->uri_in_question_current[$current_uri] = array_unique($this->uri_in_question_current[$current_uri]); //make values unique
                 }
             }
         }

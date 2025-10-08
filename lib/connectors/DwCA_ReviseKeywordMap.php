@@ -23,14 +23,22 @@ class DwCA_ReviseKeywordMap
         $this->uris_with_new_kwords     = $func->uris_with_new_kwords; //n=15
         $this->uri_in_question          = $func->uri_in_question; //print_r($func->uri_in_question); exit;
         $this->uri_in_question_current  = $func->uri_in_question_current;        
+        // $this->uri_currenturi_map       = $func->uri_currenturi_map;        
+        $this->uri_katjauri_map         = $func->uri_katjauri_map;        
+
         // $this->new_keywords_string_uri  = $func->new_keywords_string_uri;
         unset($func->uris_with_new_kwords);
         unset($func->uri_in_question);
         unset($func->uri_in_question_current);
+        // unset($func->uri_currenturi_map);
         // unset($func->new_keywords_string_uri);
+        unset($func->uri_katjauri_map);
 
         echo "\nuri_in_question 2: ".count($this->uri_in_question);
         echo "\nuri_in_question_current 2: ".count($this->uri_in_question_current);
+        // echo "\nuri_currenturi_map 2: ".count($this->uri_currenturi_map);
+        echo "\nuri_katjauri_map 2: ".count($this->uri_katjauri_map);
+
         // echo "\nnew_keywords 2: ".count($this->new_keywords_string_uri);
         echo "\nuris_with_new_kwords: ".count($this->uris_with_new_kwords); //print_r($this->uris_with_new_kwords);
         // exit("\nEli 200\n");
@@ -134,6 +142,7 @@ class DwCA_ReviseKeywordMap
                 )*/
                 $occurrenceID = $rec['occurrenceID'];
                 $measurementID = $rec['measurementID'];
+                $measurementValue = $rec['measurementValue'];
 
                 if(isset($this->delete_occurrence_ids[$occurrenceID])) { //from evaluate_Occurrence: only include binomials
                     // print_r($rec);
@@ -170,6 +179,11 @@ class DwCA_ReviseKeywordMap
             elseif($what == 'write_MoF') { //processing MoF
                 $occurrenceID = $rec['occurrenceID'];
                 $measurementID = $rec['measurementID'];
+                $measurementValue = $rec['measurementValue'];
+
+                // /* new
+                if($katja_uri = @$this->uri_katjauri_map[$measurementValue]) $rec['measurementValue'] = $katja_uri;
+                // */
 
                 if(self::an_MoF_child_record($rec)) {
                     $parentMeasurementID = @$rec['parentMeasurementID'];
@@ -224,18 +238,46 @@ class DwCA_ReviseKeywordMap
             }
             else $delete_MoF_YN_1 = true; //echo " [del MoF 2] ";
         }
-        // 2nd case: below block is copied above
-        if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
-            $measurementRemarks = $rec['measurementRemarks'];
-            // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
-            // print_r($rec); print_r($match_strings); echo(" --- huli ka 2\n");
-            if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {} // echo "\nmatch_string found in mRemarks\n";
-            else $delete_MoF_YN_2 = true; //echo " [del MoF 3] ";
+        else { //not the magic 15
+            // 2nd case: below block is copied above
+            if($match_strings = @$this->uri_in_question[$measurementValue]) { //this uri has a list of acceptable keywords/match_strings
+                $measurementRemarks = $rec['measurementRemarks'];
+                // $measurementRemarks = 'source text: "in a in this _Lake_ Nakuru Lions may live"'; //debug only force-assigne
+                // print_r($rec); print_r($match_strings); echo(" --- huli ka 2\n");
+                if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) {} // echo "\nmatch_string found in mRemarks\n";
+                else $delete_MoF_YN_2 = true; //echo " [del MoF 3] ";
+            }
+            else {} //no acceptable list of keywords; then just ignore it but still accept the MoF record 
         }
-        else {} //no acceptable list of keywords; then just ignore it but still accept the MoF record 
         // exit("\neli x\n");
-        if($delete_MoF_YN_1) return "delete MoF";
-        if($delete_MoF_YN_2) return "delete MoF";
+        // ============================================================================ needs to be reviewed...
+        if($delete_MoF_YN_1) { //here is the magic 15
+            // if($current_uri = @$this->uri_currenturi_map[$measurementValue]) {
+            //     if($match_strings = @$this->uri_in_question_current[$current_uri]) { //this uri has a list of acceptable keywords/match_strings
+            //         $measurementRemarks = $rec['measurementRemarks'];
+            //         if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) { $rec['measurementValue'] = $current_uri; } // echo "\nmatch_string found in mRemarks\n";
+            //         else return "delete MoF";
+            //     }
+            //     else return "delete MoF";
+            // }
+            // else return "delete MoF"; //new line
+            return "delete MoF";
+        }
+        // ============================================================================
+        if($delete_MoF_YN_2) {
+            // if($current_uri = @$this->uri_currenturi_map[$measurementValue]) {
+            //     if($match_strings = @$this->uri_in_question_current[$current_uri]) { //this uri has a list of acceptable keywords/match_strings
+            //         $measurementRemarks = $rec['measurementRemarks'];
+            //         if(self::is_suggested_keyword_match_YN($measurementRemarks, $match_strings)) { $rec['measurementValue'] = $current_uri; } // echo "\nmatch_string found in mRemarks\n";
+            //         else return "delete MoF";
+            //     }
+            //     else {} //no acceptable list of keywords; then just ignore it but still accept the MoF record 
+            // }
+            // else return "delete MoF";
+            return "delete MoF";
+        }
+        // ============================================================================
+        return $rec;
     }
     private function is_suggested_keyword_match_YN($measurementRemarks, $match_strings)
     {

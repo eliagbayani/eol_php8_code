@@ -7,7 +7,8 @@ class TextmineKeywordMapAPI
 {
     public $params; // Declare the property
     public $func;
-    public $uri_in_question, $uri_in_question_current, $current_uri_map;
+    public $uri_in_question, $uri_in_question_current, $uri_katjauri_map;
+    // $uri_currenturi_map;
     public $new_keywords_string_uri, $uris_with_new_kwords;
     function __construct()
     {   /* Please remove all keywords that currently map to these uris: */
@@ -42,7 +43,8 @@ class TextmineKeywordMapAPI
         $this->func = new GoogleClientAPI();
 
         $this->uri_in_question_current = array();   //temporary until spreadsheet adds 4th column.
-        $this->current_uri_map = array();           //temporary until spreadsheet adds 4th column.
+        // $this->uri_currenturi_map = array();           //temporary until spreadsheet adds 4th column.
+        $this->uri_katjauri_map = array();
     }
     function get_keyword_mappings($item = false)
     {
@@ -95,7 +97,9 @@ class TextmineKeywordMapAPI
                     $this->uri_in_question_current[$current_uri][] = $match_string;
                     $this->uri_in_question_current[$current_uri] = array_unique($this->uri_in_question_current[$current_uri]); //make values unique
 
-                    $this->current_uri_map[$current_uri] = $uri; 
+                    // $this->uri_currenturi_map[$uri] = $current_uri; //not used
+                    $this->uri_katjauri_map[$current_uri] = $uri; 
+
                 }
             }
         }

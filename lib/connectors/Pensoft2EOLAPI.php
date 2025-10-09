@@ -1535,7 +1535,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         // /* during dev only
         if(!Functions::is_production()) {
             if($this->param['resource_id'] == '617_ENV') {
-                $this->DwCA_URLs[$resource_name] = 'http://localhost/eol_php_code/applications/content_server/resources_3/80.tar.gz';
+                $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path(80);
                 print_r($this->DwCA_URLs);
                 return;
             }

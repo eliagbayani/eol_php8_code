@@ -45,11 +45,11 @@ exit("\n-end-\n");
 // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
 
 // $dwca_file = Functions::get_resource_url_path($resource_id); //works OK also
-// http://host.docker.internal:81/eol_php8_code/applications/content_server/resources_3/wikipedia_en_traits.tar.gz
+// http://host.docker.internal:81/eol_php8_code/applications/content_server/resources_x/wikipedia_en_traits.tar.gz
 
 
 $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //works OK
-// [/var/www/html/eol_php8_code/applications/content_server/resources_3/Brazilian_Flora.tar.gz]
+// [/var/www/html/eol_php8_code/applications/content_server/resources_x/Brazilian_Flora.tar.gz]
 
 /* copied template
 if ($resource_id == "WoRMS2EoL") $dwca_file = LOCAL_HOST . "/cp/WORMS/WoRMS2EoL.zip";

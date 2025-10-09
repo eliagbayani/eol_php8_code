@@ -2798,9 +2798,10 @@ class Functions
     {
         return substr(trim($str), 0, 1);
     }
-    public static function sub_resource_local_path()
+    public static function get_resource_url_path($resource_id)
     {
-        return str_replace("/var/www/html/eol_php8_code", "", CONTENT_RESOURCE_LOCAL_PATH); //e.g. /applications/content_server/resources_3/
+        $path = str_replace("/var/www/html/eol_php8_code/", "", CONTENT_RESOURCE_LOCAL_PATH); //e.g. /applications/content_server/resources_3/
+        return WEB_ROOT . $path . $resource_id . ".tar.gz";
     }
 }
 ?>

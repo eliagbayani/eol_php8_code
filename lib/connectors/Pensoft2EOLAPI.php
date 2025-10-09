@@ -1555,13 +1555,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             $tmp = str_replace("_ENV", "", $this->param['resource_id']);
             if(Functions::is_production()) $dwca_url = "https://editors.eol.org/eol_php_code/applications/content_server/resources/".$tmp.".tar.gz";
             else {
-                /* old: working for the longest time
-                $dwca_url = WEB_ROOT . "/applications/content_server/resources_3/".$tmp.".tar.gz";
-                */
                 // /* new
-                $path = Functions::sub_resource_local_path(); //e.g. /applications/content_server/resources_3/
-                $dwca_url = WEB_ROOT . $path . $tmp . ".tar.gz";
-                // [http://host.docker.internal:81/eol_php8_code//applications/content_server/resources_3/Brazilian_Flora.tar.gz]
+                $dwca_url = Functions::get_resource_url_path($tmp);
                 // */
             }
             echo "\nDwCA URL: $dwca_url\n".$this->param['resource_id']."\n";

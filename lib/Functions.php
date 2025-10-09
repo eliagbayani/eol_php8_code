@@ -2802,7 +2802,9 @@ class Functions
     {
         $path = str_replace("/var/www/html/eol_php8_code/", "", CONTENT_RESOURCE_LOCAL_PATH); //e.g. /applications/content_server/resources_x/
         if($resource_id) return WEB_ROOT . $path . $resource_id . ".tar.gz";
+        // [http://host.docker.internal:81/eol_php8_code/applications/content_server/resources_x/80.tar.gz]
         else             return WEB_ROOT . $path;
+        // [http://host.docker.internal:81/eol_php8_code/applications/content_server/resources_x/]
     }
 }
 ?>

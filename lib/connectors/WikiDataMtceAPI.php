@@ -1503,10 +1503,10 @@ class WikiDataMtceAPI extends WikiDataMtce_ResourceAPI
     }
     private function copy_2_folders_to_rowNum_resourceID($paths, $rec, $real_row)
     {   /*Array(
-        [0] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/cypher/26781a84311d6d09f25971b21516b796/
-        [1] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/cypher/bf64239ace12e4bd48f16387713bc309/
-        trait path:          [/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/cypher/95f89fd54344bb1630126a64b9cff1e3/]
-        inferred_trait path: [/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/cypher/da23f9319bb205e88bcdeab285f494d7/]
+        [0] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x/reports/cypher/26781a84311d6d09f25971b21516b796/
+        [1] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x/reports/cypher/bf64239ace12e4bd48f16387713bc309/
+        trait path:          [/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x/reports/cypher/95f89fd54344bb1630126a64b9cff1e3/]
+        inferred_trait path: [/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x/reports/cypher/da23f9319bb205e88bcdeab285f494d7/]
         )*/
         if($paths) { print_r($paths);
             // https://doi.org/10.1007/978-1-4020-6359-6_3929

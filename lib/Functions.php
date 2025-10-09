@@ -2798,10 +2798,11 @@ class Functions
     {
         return substr(trim($str), 0, 1);
     }
-    public static function get_resource_url_path($resource_id)
+    public static function get_resource_url_path($resource_id = false)
     {
         $path = str_replace("/var/www/html/eol_php8_code/", "", CONTENT_RESOURCE_LOCAL_PATH); //e.g. /applications/content_server/resources_x/
-        return WEB_ROOT . $path . $resource_id . ".tar.gz";
+        if($resource_id) return WEB_ROOT . $path . $resource_id . ".tar.gz";
+        else             return WEB_ROOT . $path;
     }
 }
 ?>

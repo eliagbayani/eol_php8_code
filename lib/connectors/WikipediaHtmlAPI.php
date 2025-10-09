@@ -64,13 +64,13 @@ class WikipediaHtmlAPI
             $filecount = count($files); echo "\nHTML count: [$filecount]\n";
             print_r($files);
             /* Array(
-                [0] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/wikipedia_html/80.html
-                [1] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/wikipedia_html/ceb.html
-                [2] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/wikipedia_html/nl.html
+                [0] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x/reports/wikipedia_html/80.html
+                [1] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x/reports/wikipedia_html/ceb.html
+                [2] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x/reports/wikipedia_html/nl.html
             )*/
 
             if(Functions::is_production())  $path = "https://editors.eol.org/eol_php_code/applications/content_server/resources/reports/wikipedia_html/";
-            else                            $path = WEB_ROOT."/applications/content_server/resources_3/reports/wikipedia_html/";
+            else                            $path = Functions::get_resource_url_path()."/reports/wikipedia_html/";
 
             $main_html = $dir."main.html";
 

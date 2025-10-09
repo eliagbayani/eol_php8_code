@@ -774,7 +774,7 @@ class TaxonomicValidationRules
     function prepare_download_link()
     {   // zip -r temp.zip Documents
         /* during dev - force assign
-        $this->temp_dir = "/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3//Taxonomic_Validation/174/";
+        $this->temp_dir = "/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_x//Taxonomic_Validation/174/";
         $this->resource_id = 174;
         */
         // echo "\n".$this->temp_dir."\n"; echo "\n".$this->resource_id."\n";

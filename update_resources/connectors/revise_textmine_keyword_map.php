@@ -32,15 +32,16 @@ $param                     = json_decode(@$argv[2], true); // print_r($param); e
 $resource_id = $param['resource_id'];
 
 
-/* test only
+// /* test only
 $dwca_file = Functions::get_resource_url_path($resource_id);
 echo "\n[$dwca_file]\n";
 
-$dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz";
+$dwca_file = Functions::get_resource_url_path();
 echo "\n[$dwca_file]\n";
 
+
 exit("\n-end-\n");
-*/
+// */
 
 // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
 

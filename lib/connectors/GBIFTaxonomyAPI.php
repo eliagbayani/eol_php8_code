@@ -22,7 +22,7 @@ class GBIFTaxonomyAPI
         $this->GBIF_Filters_GoogleSheet_ID = '1WB8nX4gaHv0naxg6tkXxMRGaLQIU4kYiuk57KXk9EAg';
         if($what) self::GBIF_filters_from_GoogleSheet($what);
         // /* Long list taxa VS continent checklists
-        $this->waterbody_taxa = "/Volumes/Crucial_2TB/resources_3/waterbody_compiled/taxon.tab";
+        $this->waterbody_taxa = CONTENT_RESOURCE_LOCAL_PATH . "/waterbody_compiled/taxon.tab";
         $this->country_taxa = "/Volumes/Crucial_4TB/other_files/GBIF_occurrence/Country_checklists/countries_unique_taxa v1.tsv";
         // */
     }

@@ -184,7 +184,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
     }
     function generate_eol_tags_pensoft($resource, $timestart = '', $download_options = array('timeout' => 172800, 'expire_seconds' => 60*60*24*30))
     {   print_r($this->param); //exit;
-        if(!self::test_is_passed()) exit("\nTest failed. Needed service is not available\n");
+        if(!self::Pensoft_is_up()) exit("\nTest failed. Needed service is not available\n");
         else echo "\nTest passed OK\n";
         
         // /* ------------------------- customize -------------------------
@@ -1804,7 +1804,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         // print_r($final); exit("\n\n");
         return $final;
     }
-    public function test_is_passed()
+    public function Pensoft_is_up()
     {
         $desc = "I live in a valley in Northern Philippines";
         $ontology = "envo";

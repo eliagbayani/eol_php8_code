@@ -14,7 +14,7 @@ $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "
 $func = new Pensoft2EOLAPI($param);
 
 // /* initial test: should pass this before it proceeds.
-if(!$func->test_is_passed()) exit("\nTest failed. Needed service is not available\n");
+if(!$func->Pensoft_is_up()) exit("\nTest failed. Needed service is not available\n");
 else echo "\nTest passed OK\n";
 // */
 

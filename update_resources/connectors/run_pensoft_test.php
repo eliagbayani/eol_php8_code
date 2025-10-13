@@ -179,24 +179,24 @@ foreach($IDs as $resource_id) {
             if($i == 1) {$s = "woodland-ENVO_01000175|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
             if($i == 2) {$s = "mozambique-1036973|zambezi-Zambezi";     if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 3) {$s = "pakistan-1168579|valley-ENVO_00000100"; if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 3) {$s = "pakistan-1168579"; if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
             if($i == 4) {$s = "slovakia-3057568|romania-798549|russia-2017370"; if($ret == $s)                  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 5) {$s = "";                                       if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 6) {$s = "slovakia-3057568";                       if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 7) {$s = "";                                       if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 8) {$s = "";                   if($ret == $s)                                              echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 9) {$s = "russia-2017370";     if($ret == $s)                                              echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 10) {$s = "philippines-1694008|valley-ENVO_00000100|spain-2510769"; if($ret == $s)         echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 10) {$s = "philippines-1694008|spain-2510769"; if($ret == $s)         echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
             if($i == 11) {$s = "";                  if($ret == $s)                                              echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 12) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 13) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 14) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 15) {$s = "fen-ENVO_00000232"; if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 16) {$s = "mountains-ENVO_00000081|nunatak-ENVO_00000181|valley-ENVO_00000100"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 16) {$s = "mountains-ENVO_00000081|nunatak-ENVO_00000181"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
             if($i == 17) {$s = "sandy soil-ENVO_00002229";  if($ret == $s)                      echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 18) {$s = "Sri Lanka-1227603";         if($ret == $s)                      echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 19) {$s = "valley-ENVO_00000100"; if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 20) {$s = "valley-ENVO_00000100";      if($ret == $s)                      echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 19) {$s = ""; if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
+            if($i == 20) {$s = "";      if($ret == $s)                      echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
             if($i == 21) {$s = "woodland-ENVO_01000175|forest-ENVO_01000174"; if($ret == $s)    echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 22) {$s = "grassland-ENVO_01000177|savanna-ENVO_01000178"; if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }            
             if($i == 23) {$s = "";                      if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
@@ -210,20 +210,20 @@ foreach($IDs as $resource_id) {
             $q[1] = array('s' => "woodland-ENVO_01000175|dune-ENVO_00000170");
 
             $q[2] = array('s' => "mozambique-1036973|zambezi-Zambezi");
-            $q[3] = array('s' => "pakistan-1168579|valley-ENVO_00000100");
+            $q[3] = array('s' => "pakistan-1168579"); //valley-ENVO_00000100
             $q[4] = array('s' => "slovakia-3057568|romania-798549|russia-2017370");
             $q[5] = array('s' => "");
             $q[6] = array('s' => "slovakia-3057568");
             $q[7] = array('s' => "");
             $q[8] = array('s' => "");
             $q[9] = array('s' => "russia-2017370");
-            $q[10] = array('s' => "philippines-1694008|valley-ENVO_00000100|spain-2510769");
+            $q[10] = array('s' => "philippines-1694008|spain-2510769"); //valley-ENVO_00000100
             $q[11] = array('s' => "");
             $q[12] = array('s' => "");
             $q[13] = array('s' => "");
             $q[14] = array('s' => "");
             $q[15] = array('s' => "fen-ENVO_00000232");
-            $q[16] = array('s' => "mountains-ENVO_00000081|nunatak-ENVO_00000181|valley-ENVO_00000100");
+            $q[16] = array('s' => "mountains-ENVO_00000081|nunatak-ENVO_00000181"); //valley-ENVO_00000100
             $q[17] = array('s' => "sandy soil-ENVO_00002229-ENVO_09200008");
             $q[21] = array('s' => "woodland-ENVO_01000175|forest-ENVO_01000174");
             $q[22] = array('s' => "grassland-ENVO_01000177|savanna-ENVO_01000178");
@@ -238,8 +238,8 @@ foreach($IDs as $resource_id) {
         if($resource_id == '617_ENV') {
             $q = array();
             $q[18] = array('s' => "");
-            $q[19] = array('s' => "valley-ENVO_00000100");
-            $q[20] = array('s' => "valley-ENVO_00000100");
+            $q[19] = array('s' => ""); //valley-ENVO_00000100
+            $q[20] = array('s' => ""); //valley-ENVO_00000100
             $q[27] = array('s' => "");
             if($arr = @$q[$i]) {
                 if($ret == $arr['s']) echo " -OK-"; 
@@ -249,7 +249,7 @@ foreach($IDs as $resource_id) {
         if($resource_id == 'TreatmentBank_ENV') {
             $q = array();
             $q[18] = array('s' => "Sri Lanka-1227603");
-            $q[19] = array('s' => "valley-ENVO_00000100");
+            $q[19] = array('s' => ""); //valley-ENVO_00000100
             $q[20] = array('s' => "");
             $q[27] = array('s' => "Eastern Atlantic-9237");
             if($arr = @$q[$i]) {

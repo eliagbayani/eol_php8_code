@@ -31,24 +31,17 @@ $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
 
-
-// /* test only
+/* test only
 $dwca_file = Functions::get_resource_url_path($resource_id);
 echo "\n[$dwca_file]\n";
-
 $dwca_file = Functions::get_resource_url_path();
 echo "\n[$dwca_file]\n";
-
-
 exit("\n-end-\n");
-// */
+*/
 
 // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
-
 // $dwca_file = Functions::get_resource_url_path($resource_id); //works OK also
 // http://host.docker.internal:81/eol_php8_code/applications/content_server/resources_x/wikipedia_en_traits.tar.gz
-
-
 $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //works OK
 // [/var/www/html/eol_php8_code/applications/content_server/resources_x/Brazilian_Flora.tar.gz]
 

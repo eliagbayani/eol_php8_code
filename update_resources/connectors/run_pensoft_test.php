@@ -13,6 +13,11 @@ $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "
 
 $func = new Pensoft2EOLAPI($param);
 
+// /* initial test: should pass this before it proceeds.
+if(!$func->test_is_passed()) exit("\nTest failed. Needed service is not available\n");
+else echo "\nTest passed OK\n";
+// */
+
 /* independent test: Nov 27, 2023 --- separate sections of Treatment text
 $str = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
 $ret = $func->format_TreatmentBank_desc($str);

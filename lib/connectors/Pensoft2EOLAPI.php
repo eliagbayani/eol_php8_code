@@ -1804,7 +1804,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         // print_r($final); exit("\n\n");
         return $final;
     }
-    private function test_is_passed()
+    public function test_is_passed()
     {
         $desc = "I live in a valley in Northern Philippines";
         $ontology = "envo";

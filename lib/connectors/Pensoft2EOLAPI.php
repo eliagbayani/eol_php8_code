@@ -1733,6 +1733,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
     }
     private function initialize_delete_uris()
     {
+        // print_r($this->remove_across_all_resources); echo "\ncount: ".count($this->remove_across_all_resources)."\n"; exit("\nstop muna\n");
+        // at this point $this->remove_across_all_resources still has no records.
         foreach($this->remove_across_all_resources as $uri) $this->delete_MoF_with_these_uris[$uri] = ''; //remove cloud, cut for all resources
 
         // commented so far: https://eol-jira.bibalex.org/browse/DATA-1713?focusedCommentId=65447&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65447

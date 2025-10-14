@@ -1721,6 +1721,14 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/del_MoF_with_these_labels.tsv";
         $labels = $this->load_github_dump($url);
         foreach($labels as $label) $this->delete_MoF_with_these_labels[$label] = '';
+
+        // /* remove list of labels
+        $str = Functions::lookup_with_cache($this->labels_to_remove_file, $this->download_options);
+        $arr = explode("\n", $str);
+        $arr = array_map('trim', $arr);
+        foreach($arr as $label) if($label) $this->labels_to_remove[$label] = '';
+        // print_r($this->labels_to_remove); exit("\nlabels_to_remove: ".count($this->labels_to_remove)."\n");
+        // */        
     }
     private function initialize_mRemark_assignments()
     {           
@@ -1764,9 +1772,9 @@ class Pensoft2EOLAPI extends Functions_Pensoft
 
         // /* NEW: remove descendants of ENVO_00000002: https://github.com/EOL/ContentImport/issues/21#issuecomment-2508735608
         $term = 'http://purl.obolibrary.org/obo/ENVO_00000002'; //a geographic feature resulting from the influence of human beings on nature
-        $url = SERVICE_TERM_DESCENDANTS . $term;
+        $url = SERVICE_TERM_DESCENDANTS . $term; echo ("\nservice url to get term descendants: [$url]\n");
         if($json = Functions::lookup_with_cache($url, $this->download_options)) {
-            $arr = json_decode($json, true);
+            $arr = json_decode($json, true); //print_r($arr); exit("\nito pala\n");
             foreach($arr as $uri) $this->delete_MoF_with_these_uris[$uri] = ''; 
         }
         // */
@@ -1782,15 +1790,6 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             foreach($uris as $uri) $this->delete_MoF_with_these_uris[$uri] = '';
         }
         // */
-
-        // /* remove list of labels
-        // $str = file_get_contents($this->labels_to_remove_file);
-        $str = Functions::lookup_with_cache($this->labels_to_remove_file, $this->download_options);
-        $arr = explode("\n", $str);
-        $arr = array_map('trim', $arr);
-        foreach($arr as $label) if($label) $this->labels_to_remove[$label] = '';
-        // print_r($this->labels_to_remove); exit("\nlabels_to_remove: ".count($this->labels_to_remove)."\n");
-        // */        
     }
     public function get_descendants_of_habitat_group($what)
     {

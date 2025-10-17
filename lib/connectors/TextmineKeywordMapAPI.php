@@ -2,6 +2,11 @@
 namespace php_active_record;
 /* task: Revision for textmining keyword mappings #36
 https://github.com/EOL/ContentImport/issues/36
+Worksheets related:
+- GoogleSpreadsheet
+- ReviseKeyWordMap
+- Environments_2_EOL_8
+- textmine_rules
 */
 class TextmineKeywordMapAPI
 {

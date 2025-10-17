@@ -1,6 +1,12 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from revise_textmine_keyword_map.php] */
+/* connector: [called from DwCA_Utility.php, which is called from revise_textmine_keyword_map.php] 
+Worksheets related:
+- GoogleSpreadsheet
+- ReviseKeyWordMap
+- Environments_2_EOL_8
+- textmine_rules
+*/
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_ReviseKeywordMap

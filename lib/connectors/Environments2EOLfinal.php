@@ -564,7 +564,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
         $context = str_replace("</b>", "</b> ", $context);
         $context = Functions::remove_whitespace($context);
 
-        // step 1:
+        // step 1: replace <b> tags with underscore _
         if(preg_match_all("/<b>(.*?)<\/b>/ims", $context, $a)) {
             foreach($a[1] as $substr) {
                 $new_substr = str_replace(" ", "_", $substr);

@@ -183,16 +183,16 @@ foreach($IDs as $resource_id) {
             // if($i == 1) {$s = "woodland-ENVO_01000175|orchard-ENVO_00000115|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 1) {$s = "woodland-ENVO_01000175|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
-            if($i == 2) {$s = "mozambique-1036973|zambezi-Zambezi";     if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 3) {$s = "pakistan-1168579"; if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
-            if($i == 4) {$s = "slovakia-3057568|romania-798549|russia-2017370"; if($ret == $s)                  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 5) {$s = "";                                       if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 6) {$s = "slovakia-3057568";                       if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 7) {$s = "";                                       if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 8) {$s = "";                   if($ret == $s)                                              echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 9) {$s = "russia-2017370";     if($ret == $s)                                              echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 10) {$s = "philippines-1694008|spain-2510769"; if($ret == $s)         echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
-            if($i == 11) {$s = "";                  if($ret == $s)                                              echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 2) {$s = "mozambique-1036973|zambezi-Zambezi";     if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 3) {$s = "pakistan-1168579";                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
+            if($i == 4) {$s = "slovakia-3057568|romania-798549|russia-2017370"; if($ret == $s)     echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 5) {$s = "";                                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 6) {$s = "slovakia-3057568";                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 7) {$s = "";                                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 8) {$s = "";                   if($ret == $s)                                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 9) {$s = "russia-2017370";     if($ret == $s)                                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            if($i == 10) {$s = "philippines-1694008|spain-2510769"; if($ret == $s)                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
+            if($i == 11) {$s = "";                  if($ret == $s)                                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 12) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 13) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             if($i == 14) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }

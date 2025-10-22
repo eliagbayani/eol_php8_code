@@ -103,7 +103,7 @@ class DwCA_UseEOLidInTaxa
                 }
 
                 if($parentNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID']) {
-                    if($new_taxonID = $this->taxonID_EOLid[$parentNameUsageID]) $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = $new_taxonID;
+                    if($new_taxonID = @$this->taxonID_EOLid[$parentNameUsageID]) $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = $new_taxonID;
                 }
 
                 self::write_2archive($rec, 'taxon'); continue;                

@@ -77,7 +77,7 @@ class GenerateCSV_4Neo4j
             // print_r($rec); //exit;
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
             elseif($what == 'generate-measurements-csv') {
-                if($rec['measurementOfTaxon'] == 'true' && !$rec['parentMeasurementID']) {
+                if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
                     self::generate_measurements_csv($rec);
                 }
             }
@@ -415,7 +415,8 @@ class GenerateCSV_4Neo4j
     }
     private function clean_csv_item($str)
     {
-        return str_replace('"', '""', $str);
+        if($str) return str_replace('"', '""', $str);
+        else return $str;
     }
     private function initialize_folders($resource_id)
     {

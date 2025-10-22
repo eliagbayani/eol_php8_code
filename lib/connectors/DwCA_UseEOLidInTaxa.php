@@ -1,6 +1,14 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from match_taxa_2DH.php] */
+/* connector: [called from DwCA_Utility.php, which is called from match_taxa_2DH.php] 
+These ff. workspaces work together:
+- generate_higherClassification_8.code-workspace
+- DHConnLib_8.code-workspace
+- GNParserAPI_8.code-workspace
+- DwCA_MatchTaxa2DH.code-workspace
+- UseEOLidInTaxon.code-workspace
+- GenerateCSV_4Neo4j.code-workspace
+*/
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_UseEOLidInTaxa

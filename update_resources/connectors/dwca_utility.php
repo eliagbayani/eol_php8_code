@@ -10,7 +10,6 @@ $ php dwca_utility.php jenkins '{"resource_id": "704", "task": "gen_hC_using_pID
 $ php dwca_utility.php _       '{"resource_id": "704", "task": "gen_hC_using_pID"}'      
 $ php dwca_utility.php _       '{"resource_id": "Brazilian_Flora_ancestry", "task": "gen_hC_using_ancestry"}'
 
-
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
 - DHConnLib_8.code-workspace

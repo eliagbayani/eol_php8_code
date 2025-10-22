@@ -4,10 +4,12 @@ namespace php_active_record;
 First client is: DATA-1818: aggregate map data from descendants, and cap "size" of taxa that get maps
 
 These ff. workspaces work together:
+- generate_higherClassification_8.code-workspace
 - DHConnLib_8.code-workspace
 - GNParserAPI_8.code-workspace
 - DwCA_MatchTaxa2DH.code-workspace
-- generate_higherClassification_8.code-workspace
+- UseEOLidInTaxon.code-workspace
+- GenerateCSV_4Neo4j.code-workspace
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/DHConnLib');

@@ -1,7 +1,6 @@
 <?php
 namespace php_active_record;
 /* connector: [DHconn.php]
-
 As of: DH version 2.2.6 -> https://zenodo.org/records/15399237
 Array(
     [accepted] => 2518007
@@ -15,8 +14,14 @@ Array(
             [not accepted] => 1784715
         )
 )
+These ff. workspaces work together:
+- generate_higherClassification_8.code-workspace
+- DHConnLib_8.code-workspace
+- GNParserAPI_8.code-workspace
+- DwCA_MatchTaxa2DH.code-workspace
+- UseEOLidInTaxon.code-workspace
+- GenerateCSV_4Neo4j.code-workspace
 */
-
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DHConnLib

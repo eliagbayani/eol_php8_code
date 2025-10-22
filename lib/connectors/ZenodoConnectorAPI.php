@@ -2039,7 +2039,7 @@ class ZenodoConnectorAPI extends ZenodoFunctions
         $right = "__ ---####";
         $desc = self::remove_all_in_between_inclusive($left, $right, $desc, true);
 
-        if($desc) {
+        if($desc && !is_null($desc)) {
             $arr = explode("\n", $desc); //print_r($arr);
             // echo "\nlast element is: [".end($arr)."]\n";
             if(end($arr) == "") {} //echo "\nlast element is nothing\n";

@@ -114,10 +114,10 @@ class DwCA_MatchTaxa2DH
         echo "\n -> Failed_synonym_match: [" . number_format($Failed_synonym_match) . "]";
 
         echo "\n\nD. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
-        $rems = array_keys($this->debug['without_OR_lacking']);
+        $rems = array_keys(@$this->debug['without_OR_lacking'] ?? array());
         $sum = 0; $i = 0;
         foreach($rems as $rem) { $i++;
-            $val = count($this->debug['without_OR_lacking'][$rem]);
+            $val = count(@$this->debug['without_OR_lacking'][$rem] ?? array());
             $sum += $val;
             echo "\n -> D$i. [$rem]: ".number_format($val);
         }

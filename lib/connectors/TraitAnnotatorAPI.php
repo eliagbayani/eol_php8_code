@@ -7,18 +7,13 @@ These ff. workspaces work together:
 // #[AllowDynamicProperties] //for PHP 8.2
 class TraitAnnotatorAPI
 {
-    // var $uri_in_question = array();
-    // var $uri_in_question_current = array();
-    // var $uri_katjauri_map = array();
-    // var $uris_with_new_kwords = array();
     public $initialized_YN;
     public $keyword_uri, $ontologies;
     public $download_options, $growth_ontology_file;
-
     function __construct()
     {
         $this->download_options = array(
-            'resource_id'        => 'Conservation_Evidence',
+            'resource_id'        => 'trait_annotator',
             'expire_seconds'     => 60*60*24*1, //1 day cache
             'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 0.5, 'cache' => 1);
         $this->growth_ontology_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/Pensoft_project/ontologies/ver_4/growth_form.csv';
@@ -32,8 +27,7 @@ class TraitAnnotatorAPI
     {
         print_r($params);
         if($val = @$params['ontologies']) {
-            $ontologies = explode(",", $val);
-            print_r($ontologies);
+            $ontologies = explode(",", $val); //print_r($ontologies);
         }
         else exit("\nERROR: Missing ontology.\n");
         echo "\nStart here...\n";
@@ -101,7 +95,7 @@ class TraitAnnotatorAPI
             } //main records
         }
         fclose($file);
-        $this->keyword_uri['growth'] = $temp;
+        $this->keyword_uri['growth'] = $temp; //print_r($temp);
         $this->initialized_YN['growth'] = true;
     }
 }

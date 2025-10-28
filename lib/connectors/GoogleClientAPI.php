@@ -38,8 +38,8 @@ class GoogleClientAPI
 
         // /* new: add expire to caching
         $use_cache_YN = self::evaluate_expire_param($params, $use_cache_YN);
-        if($use_cache_YN) echo "\nwill use cache\n";
-        else              echo "\nwill not use cache\n";
+        // if($use_cache_YN) echo "\nwill use cache\n";
+        // else              echo "\nwill not use cache\n";
         // */
 
         // /*
@@ -50,9 +50,9 @@ class GoogleClientAPI
         // /* New solution:
         $md5_id = md5(json_encode($params));
         if($use_cache_YN) {
-            if($records = $this->func->retrieve_json_obj($md5_id, false)) echo "\nCACHE EXISTS.\n"; //2nd param false means returned value is an array()
+            if($records = $this->func->retrieve_json_obj($md5_id, false)) echo " -> CACHE EXISTS."; //2nd param false means returned value is an array()
             else {
-                echo "\nNO CACHE YET\n";
+                echo " -> NO CACHE YET";
                 $records = self::do_the_google_thing($params);
                 $json = json_encode($records);
                 $this->func->save_json($md5_id, $json);

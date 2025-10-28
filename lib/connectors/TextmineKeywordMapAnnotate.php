@@ -57,15 +57,12 @@ class TextmineKeywordMapAnnotate
     {
         if(!$item) $items = array('river', 'lake', 'mountain', 'coastal');
         else       $items = array($item);
-        foreach($items as $what) { echo "\nAccessing [$what]...\n";
+        foreach($items as $what) { echo "\nAccessing [$what]...";
             $params = $this->params[$what]; //$what e.g. 'coastal'
             $arr = $this->func->access_google_sheet($params);
             self::massage_result($arr, $what);
         }
-        /* copied template
-        echo "\nuri_in_question 1: ".count($this->uri_in_question);
-        echo "\nuri_in_question_current 1: ".count($this->uri_in_question_current);
-        */
+        echo "\nkeyword_uri 1: ".count($this->keyword_uri); // print_r($this->keyword_uri);
     }
     private function massage_result($arr, $what)
     {

@@ -11,22 +11,25 @@ class TraitAnnotatorAPI
     // var $uri_in_question_current = array();
     // var $uri_katjauri_map = array();
     // var $uris_with_new_kwords = array();
-    public $initializedYN;
+    public $initialized_YN;
     public $keyword_uri, $ontologies;
+    public $download_options, $growth_ontology_file;
 
     function __construct()
     {
+        $this->download_options = array(
+            'resource_id'        => 'Conservation_Evidence',
+            'expire_seconds'     => 60*60*24*1, //1 day cache
+            'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 0.5, 'cache' => 1);
         $this->growth_ontology_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/Pensoft_project/ontologies/ver_4/growth_form.csv';
     }
-    function initialize($ontology)
+    private function initialize($ontology)
     {
-        if($ontology == 'envo') self::initialize_envo();
-        if($ontology == 'growth') self::initialize_growth();
+        if($ontology == 'envo') self::initialize_envo_ontology();
+        if($ontology == 'growth') self::initialize_growth_ontology();
     }
     function annotate($params)
     {
-        if($this->initializedYN) echo "\nInitialized OK\n";
-        else echo "\nNot yet initialized.\n";
         print_r($params);
         if($val = @$params['ontologies']) {
             $ontologies = explode(",", $val);
@@ -40,21 +43,65 @@ class TraitAnnotatorAPI
     }
     private function process_ontology($ontology)
     {
-        if(!$this->initialized_YN[$ontology]) self::initialize($ontology);
+        if(!@$this->initialized_YN[$ontology]) self::initialize($ontology);
     }
-    private function initialize_envo()
+    private function initialize_envo_ontology()
     {
-        echo "\nInitializing envo...\n";
-        $this->initialized_YN['envo'] = true;
+        echo "\nInitializing envo ontology...";
         require_library('connectors/TextmineKeywordMapAnnotate');
         $func = new TextmineKeywordMapAnnotate();
         $func->get_keyword_mappings();
         $this->keyword_uri['envo'] = $func->keyword_uri;
         unset($func);
         echo "\nkeyword_uri envo 2: ".count($this->keyword_uri['envo']);
+        $this->initialized_YN['envo'] = true;
     }
-    private function initialize_growth()
+    private function initialize_growth_ontology()
     {
-
+        echo "\nInitializing growth ontology...";
+        $tmp_file = Functions::save_remote_file_to_local($this->growth_ontology_file, $this->download_options);
+        self::loop_csv_file($tmp_file);
+        unlink($tmp_file);
+        echo "\nkeyword_uri growth 2: ".count($this->keyword_uri['growth'])."\n";
+    }
+    private function loop_csv_file($local_csv)
+    {
+        $i = 0;
+        $file = Functions::file_open($local_csv, "r");
+        while(!feof($file)) {
+            $row = fgetcsv($file);
+            if(!$row) break;
+            // $row = self::clean_html($row); // print_r($row); //copied template
+            $i++; 
+            if($i == 1) {
+                $fields = $row;
+                // $fields = self::fill_up_blank_fieldnames($fields); //copied template
+                $count = count($fields);
+            }
+            else { //main records
+                $values = $row;
+                if($count != count($values)) { //row validation - correct no. of columns
+                    echo("\nWrong CSV format for this row.\n"); exit;
+                    continue;
+                }
+                $k = 0;
+                $rec = array();
+                foreach($fields as $field) {
+                    $rec[$field] = $values[$k];
+                    $k++;
+                }
+                $rec = array_map('trim', $rec); // print_r($rec); exit;
+                /*Array(
+                    [value.name] => herb
+                    [value.uri] => http://purl.obolibrary.org/obo/FLOPO_0022142
+                )*/
+                $match_string = $rec['value.name'];
+                $temp[$match_string][] = $rec['value.uri'];
+                $temp[$match_string] = array_unique($temp[$match_string]); //make values unique
+            } //main records
+        }
+        fclose($file);
+        $this->keyword_uri['growth'] = $temp;
+        $this->initialized_YN['growth'] = true;
     }
 }

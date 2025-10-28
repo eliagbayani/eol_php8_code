@@ -57,7 +57,10 @@ class TraitAnnotatorAPI
         $position = strpos($haystack, $needle);
         if ($position !== false) {
             echo "\nSubstring ($needle) found at position: " . $position;
-            $this->results['data'][] = array('lbl' => $needle, 'id' => $this->keyword_uri[$ontology][$needle], 'context' => self::format_context($needle, $haystack), 'ontology' => $ontology);
+            $URIs = $this->keyword_uri[$ontology][$needle];
+            foreach($URIs as $uri) {
+                $this->results['data'][] = array('lbl' => $needle, 'id' => $uri, 'context' => self::format_context($needle, $haystack), 'ontology' => $ontology);
+            }
         } else {
             // echo "Substring not found.";
         }

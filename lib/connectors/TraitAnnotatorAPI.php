@@ -9,7 +9,7 @@ class TraitAnnotatorAPI
 {
     public $initialized_YN;
     public $keyword_uri, $ontologies;
-    public $download_options, $growth_ontology_file;
+    public $download_options, $growth_ontology_file, $results;
     function __construct()
     {
         $this->download_options = array(
@@ -25,19 +25,46 @@ class TraitAnnotatorAPI
     }
     function annotate($params)
     {
+        $this->results = array();
         print_r($params);
         if($val = @$params['ontologies']) {
-            $ontologies = explode(",", $val); //print_r($ontologies);
+            $ontologies = explode(",", $val);
+            $ontologies = array_map('trim', $ontologies);
         }
         else exit("\nERROR: Missing ontology.\n");
-        echo "\nStart here...\n";
+        echo "\nStart here...\n"; print_r($ontologies);
         foreach($ontologies as $ontology) {
-            self::process_ontology($ontology);
+            self::process_ontology($ontology, $params['text']);
         }
+        print_r($this->results);
+        // $json = json_encode($this->results); echo "\n$json\n";
     }
-    private function process_ontology($ontology)
+    private function process_ontology($ontology, $text)
     {
         if(!@$this->initialized_YN[$ontology]) self::initialize($ontology);
+        self::parse_text($ontology, $text);
+    }
+    private function parse_text($ontology, $text)
+    {
+        echo "\nsearching for ontology: [$ontology]\n";
+        $keywords = array_keys($this->keyword_uri[$ontology]); //print_r($keywords); exit;
+        foreach($keywords as $kw) {
+            $ret = self::find_needle_from_haystack($kw, $text, $ontology);
+        }
+    }
+    private function find_needle_from_haystack($needle, $haystack, $ontology)
+    {
+        $position = strpos($haystack, $needle);
+        if ($position !== false) {
+            echo "\nSubstring ($needle) found at position: " . $position;
+            $this->results['data'][] = array('lbl' => $needle, 'id' => $this->keyword_uri[$ontology][$needle], 'context' => self::format_context($needle, $haystack), 'ontology' => $ontology);
+        } else {
+            // echo "Substring not found.";
+        }
+    }
+    private function format_context($needle, $haystack)
+    {
+        return str_replace($needle, "<b>".$needle."</b>", $haystack);
     }
     private function initialize_envo_ontology()
     {

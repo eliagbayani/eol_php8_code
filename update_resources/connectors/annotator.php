@@ -19,7 +19,7 @@ $text = $params['text'];
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();
 $func->annotate($params);
-$func->annotate($params);
-$func->annotate($params);
+// $func->annotate($params);
+// $func->annotate($params);
 
 ?>

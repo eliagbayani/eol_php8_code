@@ -416,5 +416,12 @@ class Functions_Pensoft
         // */
         return $rek;
     }
+    function get_json_from_cmdline_output($cmdline_output)
+    {
+        if(preg_match("/elix1(.*?)elix2/ims", $cmdline_output, $arr)) {
+            $json = $arr[1];
+            return $json;
+        }
+    }
 }
 ?>

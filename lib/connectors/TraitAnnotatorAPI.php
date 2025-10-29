@@ -34,10 +34,12 @@ class TraitAnnotatorAPI
         else exit("\nERROR: Missing ontology.\n");
         echo "\nStart here...\n"; print_r($ontologies);
         foreach($ontologies as $ontology) {
+            if($ontology == 'eol-geonames') continue;
             self::process_ontology($ontology, $params['text']);
         }
         print_r($this->results);
-        // $json = json_encode($this->results); echo "\n$json\n";
+        $json = json_encode($this->results); 
+        echo "\nelix1".$json."elix2\n"; //IMPORTANT step; will use to capture json string from cmdline output.
     }
     private function process_ontology($ontology, $text)
     {

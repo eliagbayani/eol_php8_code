@@ -906,6 +906,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
     private function retrieve_partial($id, $desc, $loop)
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
+        // if(false) { //to force-bypass cache
         if($arr = self::retrieve_json($id, 'partial', $desc)) {
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); //exit; //good debug ***** this is the orig annotator output
@@ -1279,20 +1280,32 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         http://api.pensoft.net/annotator?text=overhang over a forest stream a rock fissure a&ontologies=envo
         http://api.pensoft.net/annotator?text=C. alpina is a montane species occurring through most&ontologies=envo
         */
-                
         $this->pensoft_run_cnt++;
+
+        /* using Pensoft Annotator
         $uri = str_replace("MY_DESC", urlencode($desc), $this->pensoft_service);
         $uri = str_replace("MY_ONTOLOGIES", $this->ontologies, $uri);
-        /* worked for the longest time. Just refactored for cleaner script.
-        $cmd = 'curl -s GET "http://api.pensoft.net/annotator?text='.urlencode($desc).'&ontologies='.$this->ontologies.'"';
-        */
+        // worked for the longest time. Just refactored for cleaner script.
+        // $cmd = 'curl -s GET "http://api.pensoft.net/annotator?text='.urlencode($desc).'&ontologies='.$this->ontologies.'"';
         $cmd = 'curl -s GET "'.$uri.'"';
         $cmd .= " 2>&1";
-        // sleep(2); //temporary
         $json = shell_exec($cmd); //echo "-C-"; //C for curl
         @$this->debug['counts']['C']++;
-        // echo "\n$desc\n---------"; // echo "\n$json\n-------------\n"; //exit("\n111\n");
         return $json;
+        */
+
+        // /* using EOL Annotator
+        $php_script = DOC_ROOT . 'update_resources/connectors/annotator.php';
+        $cmd = "/usr/bin/php $php_script _ '{\"text\": \"MY_DESC\", \"ontologies\": \"MY_ONTOLOGIES\"}'";
+        $cmd = str_replace("MY_DESC", $desc, $cmd);
+        $cmd = str_replace("MY_ONTOLOGIES", $this->ontologies, $cmd);
+        echo "\nditox eli\n[$cmd]\n";
+        $cmd .= " 2>&1";
+        $cmdline_output = shell_exec($cmd);                          // exit("\ncheck muna:\n-----\n$cmdline_output\n-----\nstop 1\n");
+        $json = self::get_json_from_cmdline_output($cmdline_output); // exit("\ncheck json:\n-----\n$json\n-----\nstop 2\n");
+        @$this->debug['counts']['C']++;
+        return $json;
+        // */
     }
     private function retrieve_path($id, $what) //$id is "$taxonID_$identifier"
     {

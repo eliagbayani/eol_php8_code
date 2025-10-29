@@ -11,6 +11,14 @@ ini_set('display_errors', true);
 $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // */
 $timestart = time_elapsed();
+
+/* test
+// cd /var/www/html/eol_php8_code/update_resources/connectors/
+$php_script = DOC_ROOT . 'update_resources/connectors/annotator.php';
+$cmd = "php $php_script _ '{\"text\": \"MY_DESC\", \"ontologies\": \"MY_ONTOLOGIES\"}'";
+exit("\n[".$cmd."]\n");
+*/
+
 print_r($argv);
 $jenkins_or_cron = @$argv[1]; //not needed here
 $params                     = json_decode(@$argv[2], true); // print_r($param); exit;

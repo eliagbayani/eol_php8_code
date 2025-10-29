@@ -146,6 +146,7 @@ $descs[] = "I went to 'Malabar Coast (India)'.";
 // $descs[] = "I went to Malabar in India";
 // $descs[] = "Malabar (New South Wales, Australia)";
 // $descs[] = "Malabar (Florida, USA)";
+$descs[] = "C. alpina a procumbent is a montane species occurring through most alpine birch forest and elsewhere";
 */
 
 // Good idea. I think it's best if we use WikiData uris:
@@ -180,7 +181,9 @@ foreach($IDs as $resource_id) {
         echo "\n[$resource_id $i] - "; echo("[$desc] [$ret]");
         // $i = 9; //force-assign
         if($resource_id == '24') {            
-            // if($i == 1) {$s = "woodland-ENVO_01000175|orchard-ENVO_00000115|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            /* using test subset
+            if($i == 1) {$s = "procumbent-PATO_0002389"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+            */
             if($i == 1) {$s = "woodland-ENVO_01000175|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
             if($i == 2) {$s = "mozambique-1036973|zambezi-Zambezi";     if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
@@ -211,8 +214,11 @@ foreach($IDs as $resource_id) {
         }
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();
-            // $q[1] = array('s' => "woodland-ENVO_01000175|orchard-ENVO_00000115|dune-ENVO_00000170");
             $q[1] = array('s' => "woodland-ENVO_01000175|dune-ENVO_00000170");
+
+            /* using test subset
+            $q[1] = array('s' => "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435");
+            */
 
             $q[2] = array('s' => "mozambique-1036973|zambezi-Zambezi");
             $q[3] = array('s' => "pakistan-1168579"); //valley-ENVO_00000100

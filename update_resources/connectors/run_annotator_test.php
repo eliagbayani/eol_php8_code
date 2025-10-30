@@ -224,7 +224,7 @@ foreach($IDs as $resource_id) {
             $q[1] = array('s' => "woodland-ENVO_01000175|dune-ENVO_00000170");
 
             // /* using test subset
-            $q[1] = array('s' => "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435");
+            $q[1] = array('s' => "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435|procumbent-PATO_0002389");
             // */
 
             $q[2] = array('s' => "mozambique-1036973|zambezi-Zambezi");

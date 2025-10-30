@@ -803,6 +803,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
     }
     private function initial_desc_format($desc)
     {
+        $desc = str_replace(array("\t", "\n"), " - ", $desc);
         $desc = strip_tags($desc);
         $desc = trim(Functions::remove_whitespace($desc));
         $desc = htmlentities($desc);

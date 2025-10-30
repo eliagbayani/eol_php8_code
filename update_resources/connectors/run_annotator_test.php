@@ -144,7 +144,7 @@ $descs[] = "Genova, Cosmo (11 January 2022). How to Preserve a Squirrel Pelt For
 $descs[] = "Many fish live in the stream.";
 $descs[] = "A taxon named Trifolium occidentale Coombe. I like to go to these places cwm, coombe, corrie";
 
-// /* 
+// /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
 // $descs[] = "I went to 'Malabar Coast (India)'.";
@@ -153,7 +153,8 @@ $descs = array();
 // $descs[] = "I went to Malabar in India";
 // $descs[] = "Malabar (New South Wales, Australia)";
 // $descs[] = "Malabar (Florida, USA)";
-$descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane species, occurring through; most alpine birch forest ' and along the Red Sea coast of the Atlantic";
+// $descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane species, occurring through; most alpine birch forest ' and along the Red Sea coast of the Atlantic";
+$descs[] = "Typex: materials_examined	mountain shrubland Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //[malabar-Malabar]
 // */
 
 /*
@@ -162,7 +163,6 @@ $descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane specie
 &#039; becomes ' (single quote)
 &lt; becomes < (less than)
 &gt; becomes > (greater than)
-
 */
 
 

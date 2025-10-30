@@ -801,34 +801,9 @@ class Annotator2EOLAPI extends Functions_Pensoft
             fclose($f);
         }
     }
-    /* OBSOLETE: had a hard limit of 2000. Replaced by one below.
     public function retrieve_annotation($id, $desc)
     {
-        $len = strlen($desc);
-        $loops = $len/2000; //echo("\n\n[$loops]");
-        $loops = ceil($loops);
-        $ctr = 0;
-        sleep(0.5);
-        for($loop = 1; $loop <= $loops; $loop++) { //echo "\n[$loop of $loops]";
-            $str = substr($desc, $ctr, 2000);
-            $str = utf8_encode($str);
-            // if($loop == 29) exit("\n--------\n[$str]\n---------\n");
-            
-            if($this->includeOntologiesYN)  $id = md5($str.$this->ontologies); //for now only for those SI PDFs/epubs
-            else                            $id = md5($str); //orig, the rest goes here...
-            
-            self::retrieve_partial($id, $str, $loop);
-            $ctr = $ctr + 2000;
-        }
-        // print_r($this->results); exit("\n[$loops]\n");
-        if(isset($this->results)) return $this->results; //the return value is used in AntWebAPI.php
-    }
-    */
-    public function retrieve_annotation($id, $desc)
-    {
-
         echo("\nwhat is id: [$id]\ndesc: [$desc]");
-
         // /* If has the word 'Acknowledgements', exclude
         if(stripos(substr($desc, 0, 100), "Acknowledgement") !== false) return; //string is found
         // */
@@ -882,7 +857,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             else                            $id = md5($str); //orig, the rest goes here...
             // echo "\nbatch feed for pensoft: [$str]\n"; //good debug
             if($str) {
-                echo("\ngoes here: [$str][$id][$loop]\n");
+                // echo("\ngoes here: [$str][$id][$loop]\n");
                 self::retrieve_partial($id, $str, $loop);
             }
             // */
@@ -921,8 +896,8 @@ class Annotator2EOLAPI extends Functions_Pensoft
     private function retrieve_partial($id, $desc, $loop)
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
-        if(false) { //to force-bypass cache
-        // if($arr = self::retrieve_json($id, 'partial', $desc)) {
+        // if(false) { //to force-bypass cache
+        if($arr = self::retrieve_json($id, 'partial', $desc)) { echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n";
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); //exit; //good debug ***** this is the orig annotator output
             if(isset($arr['data'])) self::select_envo($arr['data']);
@@ -932,12 +907,13 @@ class Annotator2EOLAPI extends Functions_Pensoft
                 echo("\n[---$id---]\n[---$desc---]\n");
                 echo("\n[".$arr['text'][0]."]\n");
                 echo("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
+                exit("\nSo it still goes here...\n");
                 return;
             }    
             // echo("\nretrieved partial OK\n"); //good debug
         }
         else { //echo "\n=====dito 100\n";
-            if($json = self::run_partial($desc)) { //echo "\n=====dito 200\n";
+            if($json = self::run_partial($desc)) { echo "\n==========\n[::EXECUTED FOR THE 1ST TIME]\n==========\n";
                 self::save_json($id, $json, 'partial');
                 // echo("\nSaved partial OK\n"); //good debug
                 /* now start access newly created. The var $this->results will now be populated. */
@@ -1011,14 +987,14 @@ class Annotator2EOLAPI extends Functions_Pensoft
             if(stripos($rek['context'], $needle) !== false) { //string is found
                 $needle = $rek['lbl'];
                 if($this->substri_count($rek['context'], $needle) > 1) {
-                    debug("\nExcluded: huli_2\n"); 
+                    // debug("\nExcluded: huli_2\n"); 
                     continue; } //meaning an abbreviation and the whole word was also found inside the context.
             }
             // */
 
             // /* new: Nov 22, 2023 - Eli's initiative. Until a better sol'n is found. e.g. "Cueva de Altamira"
             if(stripos($rek['lbl'], " de ") !== false) {
-                debug("\nExcluded: huli_3\n"); 
+                // debug("\nExcluded: huli_3\n"); 
                 continue; } //string is found
             // */
 
@@ -1029,7 +1005,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             }
             */
             if(isset($this->labels_to_remove[$rek['lbl']])) {
-                debug("\nExcluded: huli_4\n"); 
+                // debug("\nExcluded: huli_4\n");
                 continue; } //this started exclusive to Wikipedia and TreatmentBank. Now it is across the board 20Jun2024
 
             $rek['id'] = self::WoRMS_URL_format($rek['id']); # can be general, for all resources
@@ -1162,7 +1138,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
                 }
             } // ============================ end "eol-geonames"
             // */
-            echo "\nGoes- 102\n";
+            // echo "\nGoes- 102\n";
 
             // /* ----- New: Nov 8, 2022 - EOL Terms file ----- START
             // print_r($this->results);
@@ -1174,7 +1150,6 @@ class Annotator2EOLAPI extends Functions_Pensoft
                 echo "\nhulix ka! NOT FOUND IN EOL TERMS FILE: [".$rek['id']."]";
                 @$this->debug["NOT FOUND IN EOL TERMS FILE"][$rek['id']]++;
                 // print_r($rek); echo "-----------------\n";
-                // echo("\nhuli aaa\n");
                 continue;
             }
             // ----- New: Nov 8, 2022 - EOL Terms file ----- END */

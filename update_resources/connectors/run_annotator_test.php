@@ -153,7 +153,7 @@ $descs = array();
 // $descs[] = "I went to Malabar in India";
 // $descs[] = "Malabar (New South Wales, Australia)";
 // $descs[] = "Malabar (Florida, USA)";
-$descs[] = "Gadus morhua an 3, a procumbent, is a montane species, occurring through; most alpine birch forest and elsewhere";
+$descs[] = "Gadus xxmorhua an 3, a procumbent, is a montane species, occurring through; most alpine birch forest and along the Red Sea coast of the Atlantic";
 // */
 
 // Good idea. I think it's best if we use WikiData uris:
@@ -224,7 +224,7 @@ foreach($IDs as $resource_id) {
             $q[1] = array('s' => "woodland-ENVO_01000175|dune-ENVO_00000170");
 
             // /* using test subset
-            $q[1] = array('s' => "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435|procumbent-PATO_0002389");
+            $q[1] = array('s' => "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435|along the Red Sea coast-ENVO_01000687|procumbent-PATO_0002389");
             // */
 
             $q[2] = array('s' => "mozambique-1036973|zambezi-Zambezi");

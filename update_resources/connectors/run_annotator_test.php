@@ -144,7 +144,7 @@ $descs[] = "Genova, Cosmo (11 January 2022). How to Preserve a Squirrel Pelt For
 $descs[] = "Many fish live in the stream.";
 $descs[] = "A taxon named Trifolium occidentale Coombe. I like to go to these places cwm, coombe, corrie";
 
-/* 
+// /* 
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
 // $descs[] = "I went to 'Malabar Coast (India)'.";
@@ -153,8 +153,18 @@ $descs = array();
 // $descs[] = "I went to Malabar in India";
 // $descs[] = "Malabar (New South Wales, Australia)";
 // $descs[] = "Malabar (Florida, USA)";
-$descs[] = "Gadus xxmorhua an 3, a procumbent, is a montane species, occurring through; most alpine birch forest and along the Red Sea coast of the Atlantic";
+$descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane species, occurring through; most alpine birch forest ' and along the Red Sea coast of the Atlantic";
+// */
+
+/*
+&amp; becomes & (ampersand)
+&quot; becomes " (double quote)
+&#039; becomes ' (single quote)
+&lt; becomes < (less than)
+&gt; becomes > (greater than)
+
 */
+
 
 // Good idea. I think it's best if we use WikiData uris:
 //     Malabar Coast (India) https://www.wikidata.org/entity/Q473181
@@ -166,7 +176,7 @@ $final = array();
 $IDs = array('24', '617_ENV', 'TreatmentBank_ENV', '26_ENV'); //normal operation --- 617_ENV -> Wikipedia EN //24 -> AntWeb resource ID
 // $IDs = array('24');                                      //dev only
 // $IDs = array('TreatmentBank_ENV'); //or TreatmentBank    //dev only
-// $IDs = array('617_ENV'); //or Wikipedia EN               //dev only
+$IDs = array('617_ENV'); //or Wikipedia EN               //dev only
 // $IDs = array('26_ENV');                                  //dev only
 
 foreach($IDs as $resource_id) {
@@ -223,9 +233,9 @@ foreach($IDs as $resource_id) {
             $q = array();
             $q[1] = array('s' => "woodland-ENVO_01000175|dune-ENVO_00000170");
 
-            /* using test subset
+            // /* using test subset
             $q[1] = array('s' => "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435|along the Red Sea coast-ENVO_01000687|procumbent-PATO_0002389");
-            */
+            // */
 
             $q[2] = array('s' => "mozambique-1036973|zambezi-Zambezi");
             $q[3] = array('s' => "pakistan-1168579"); //valley-ENVO_00000100
@@ -332,8 +342,19 @@ echo "\n-end tests-\n";
 // */
 function run_desc($desc, $pensoft) {
     $basename = md5($desc);
+
+    /* moved to initial_desc_format()
     $desc = strip_tags($desc);
     $desc = trim(Functions::remove_whitespace($desc));
+    $desc = htmlentities($desc);
+    */
+
+    // htmlentities()
+    // html_entity_decode() -> this is the opposite of htmlentities()
+    // htmlspecialchars()
+    // htmlspecialchars_decode() -> this is the opposite of htmlspecialchars()
+    // php htmlentities() vs htmlspecialchars() -> htmlentities() is said to be better
+
     $pensoft->results = array();
     $final = array();
     if($arr = $pensoft->retrieve_annotation($basename, $desc)) {

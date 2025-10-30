@@ -801,8 +801,16 @@ class Annotator2EOLAPI extends Functions_Pensoft
             fclose($f);
         }
     }
+    private function initial_desc_format($desc)
+    {
+        $desc = strip_tags($desc);
+        $desc = trim(Functions::remove_whitespace($desc));
+        $desc = htmlentities($desc);
+        return $desc;
+    }
     public function retrieve_annotation($id, $desc)
     {
+        $desc = self::initial_desc_format($desc);
         echo("\nwhat is id: [$id]\ndesc: [$desc]");
         // /* If has the word 'Acknowledgements', exclude
         if(stripos(substr($desc, 0, 100), "Acknowledgement") !== false) return; //string is found
@@ -875,6 +883,9 @@ class Annotator2EOLAPI extends Functions_Pensoft
     }
     private function format_str($str) //manual intervention
     {   
+        // $str = escapeshellarg($str);
+        // $str = escapeshellcmd($str);
+        // $str = preg_quote($str, '/');
         return $str;
         /* per: https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67728&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67728
         I've only seen this in TreatmentBank. It would be a problem in any connector, but I'll bet there's something about the format of their service that makes 
@@ -897,7 +908,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
         // if(false) { //to force-bypass cache
-        if($arr = self::retrieve_json($id, 'partial', $desc)) { echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n";
+        if($arr = self::retrieve_json($id, 'partial', $desc)) { echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); //exit; //good debug ***** this is the orig annotator output
             if(isset($arr['data'])) self::select_envo($arr['data']);
@@ -933,9 +944,12 @@ class Annotator2EOLAPI extends Functions_Pensoft
                     // echo("\nretrieved (newly created) partial OK\n"); //good debug
                 }
                 else {
-                    echo("\nShould not go here, since record should be created now.\n[$id]\n[$desc]\n[$json]\n strlen: ".strlen($desc)."\n"); //should not go here. Previously exit().
-                    @$this->debug["Should not go here, since record should be created now"]++;
-                    // exit("\nstop muna\n[".$this->to_delete_file."]\n");
+                    if($json == "[]") {}
+                    else {
+                        echo("\nShould not go here, since record should be created now.\n[$id]\n[$desc]\n[$json]\n strlen: ".strlen($desc)."\n"); //should not go here. Previously exit().
+                        @$this->debug["Should not go here, since record should be created now"]++;
+                        // exit("\nstop muna\n[".$this->to_delete_file."]\n");
+                    }
                 }
             }
             else { //echo "\n=====dito 300\n";
@@ -1326,6 +1340,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
     }
     private function save_json($id, $json, $what)
     {
+        $json = html_entity_decode($json);
         $file = self::build_path($id, $what);
         if($f = Functions::file_open($file, "w")) {
             fwrite($f, $json);

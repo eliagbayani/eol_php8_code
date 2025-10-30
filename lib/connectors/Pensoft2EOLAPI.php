@@ -35,7 +35,7 @@ define("SERVICE_TERM_DESCENDANTS", "https://editors.eol.org/eol_php_code/update_
 class Pensoft2EOLAPI extends Functions_Pensoft
 {
     function __construct($param)
-    {
+    {   exit("\nPensoft not used anymore.\n");
         $GLOBALS['ENV_DEBUG'] = false; //true;
         $this->param = $param; // print_r($param); exit;
         /*Array(

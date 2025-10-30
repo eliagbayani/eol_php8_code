@@ -3,7 +3,8 @@ namespace php_active_record;
 /* connector: [environments_2_eol.php]
 Pensoft Annotator: https://annotator.pensoft.net/how-it-works
 
-This is for Pensoft annotator.
+This is lib is for the EOL Annotator version.
+Pensoft annotator is now obsolete.
 While an old, close to obsolete version (Environments2EOLAPI.php) is for Vangelis tagger.
 ----------------------------------------------
 Below is just for reference how to access OpenData resource: e.g. Amphibia Web text
@@ -32,7 +33,7 @@ https://github.com/EOL/textmine_rules
 
 define("SERVICE_TERM_DESCENDANTS", "https://editors.eol.org/eol_php_code/update_resources/connectors/get_descendants_of_term.php?term=");
 
-class Pensoft2EOLAPI extends Functions_Pensoft
+class Annotator2EOLAPI extends Functions_Pensoft
 {
     function __construct($param)
     {
@@ -825,6 +826,9 @@ class Pensoft2EOLAPI extends Functions_Pensoft
     */
     public function retrieve_annotation($id, $desc)
     {
+
+        echo("\nwhat is id: [$id]\ndesc: [$desc]");
+
         // /* If has the word 'Acknowledgements', exclude
         if(stripos(substr($desc, 0, 100), "Acknowledgement") !== false) return; //string is found
         // */
@@ -877,17 +881,27 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             if($this->includeOntologiesYN)  $id = md5($str.$this->ontologies); //for now only for those SI PDFs/epubs
             else                            $id = md5($str); //orig, the rest goes here...
             // echo "\nbatch feed for pensoft: [$str]\n"; //good debug
-            if($str) self::retrieve_partial($id, $str, $loop);
+            if($str) {
+                echo("\ngoes here: [$str][$id][$loop]\n");
+                self::retrieve_partial($id, $str, $loop);
+            }
             // */
             
             $ctr = $ctr + $batch_length;
             // echo "\nbatch $loop: [$str][$ctr][$batch_length]\n"; //good debug
             $batch_length = $orig_batch_length;
         } //end outer for loop
+
+        // echo("\n------------- check results START\n");
+        // print_r($this->results);
+        // exit("\n------------- check results END\n");
+
         if(isset($this->results)) return $this->results; //the return value is used in AntWebAPI.php
     }
     private function format_str($str) //manual intervention
-    {   /* per: https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67728&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67728
+    {   
+        return $str;
+        /* per: https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67728&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67728
         I've only seen this in TreatmentBank. It would be a problem in any connector, but I'll bet there's something about the format of their service that makes 
         TreatmentBank vulnerable: multiword terms should not be found where the words are separated by punctuation: ( or ) or / or , or ;
         eg: http://treatment.plazi.org/id/F7AB94E4F5B59F2C76DF9B7856BDFA5C "field soil"
@@ -907,8 +921,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
     private function retrieve_partial($id, $desc, $loop)
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
-        // if(false) { //to force-bypass cache
-        if($arr = self::retrieve_json($id, 'partial', $desc)) {
+        if(false) { //to force-bypass cache
+        // if($arr = self::retrieve_json($id, 'partial', $desc)) {
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); //exit; //good debug ***** this is the orig annotator output
             if(isset($arr['data'])) self::select_envo($arr['data']);
@@ -922,13 +936,16 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             }    
             // echo("\nretrieved partial OK\n"); //good debug
         }
-        else {
-            if($json = self::run_partial($desc)) {
+        else { echo "\n=====dito 100\n";
+            if($json = self::run_partial($desc)) { echo "\n=====dito 200\n";
                 self::save_json($id, $json, 'partial');
                 // echo("\nSaved partial OK\n"); //good debug
                 /* now start access newly created. The var $this->results will now be populated. */
-                if($arr = self::retrieve_json($id, 'partial', $desc)) {
-                    if(isset($arr['data'])) self::select_envo($arr['data']);
+                if($arr = self::retrieve_json($id, 'partial', $desc)) { echo "\n=====dito 400\n";
+                    if(isset($arr['data'])) { echo "\n=====dito 401\n";
+                        print_r($arr);
+                        self::select_envo($arr['data']);
+                    }
                     else {
                         echo "\n-=-=-=-=-=-=-=222\n[".$this->to_delete_file."]\n";
                         print_r($arr);
@@ -937,6 +954,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                         echo("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
                         return;
                     }
+                    echo "\n=====dito 500\n";
                     // echo("\nretrieved (newly created) partial OK\n"); //good debug
                 }
                 else {
@@ -945,7 +963,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                     // exit("\nstop muna\n[".$this->to_delete_file."]\n");
                 }
             }
-            else {
+            else { echo "\n=====dito 300\n";
                 /* working; good debug. I assume these cases are network hiccups from Pensoft.
                 echo("\n================\n -- nothing to save A...\n[$id]\n[$desc]\n[$loop] strlen: ".strlen($desc)."\n".$this->ontologies); //doesn't go here. Previously exit()
                 //for debug only: to investigate further
@@ -971,7 +989,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                     [hash] => dda9a35f1c55d220ce83d768af23bfd5
                 )
         */
-        foreach($arr as $rek) {
+        foreach($arr as $rek) {             echo "\n=====dito 890\n";
+
             // print_r($rek); //good debug NEW
             // /* general for all:
             
@@ -982,7 +1001,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
 
             // /* NEW: Jul 10, 2024 - Eli's initiative --- never use line with " A. " --- abbreviation of names
             if(!$this->is_context_valid($rek['context'])) { 
-                // debug("\nExcluded: Context not valid.\n"); 
+                debug("\nExcluded: Context not valid.\n"); 
                 continue; }
             // */
 
@@ -992,14 +1011,14 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             if(stripos($rek['context'], $needle) !== false) { //string is found
                 $needle = $rek['lbl'];
                 if($this->substri_count($rek['context'], $needle) > 1) {
-                    // debug("\nExcluded: huli_2\n"); 
+                    debug("\nExcluded: huli_2\n"); 
                     continue; } //meaning an abbreviation and the whole word was also found inside the context.
             }
             // */
 
             // /* new: Nov 22, 2023 - Eli's initiative. Until a better sol'n is found. e.g. "Cueva de Altamira"
             if(stripos($rek['lbl'], " de ") !== false) {
-                // debug("\nExcluded: huli_3\n"); 
+                debug("\nExcluded: huli_3\n"); 
                 continue; } //string is found
             // */
 
@@ -1010,11 +1029,11 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             }
             */
             if(isset($this->labels_to_remove[$rek['lbl']])) {
-                // debug("\nExcluded: huli_4\n"); 
+                debug("\nExcluded: huli_4\n"); 
                 continue; } //this started exclusive to Wikipedia and TreatmentBank. Now it is across the board 20Jun2024
 
             $rek['id'] = self::WoRMS_URL_format($rek['id']); # can be general, for all resources
-            // echo "\nGoes- 80\n"; print_r($rek);
+            // echo "\nGoes- 80\n";
 
             // =========================================================================
             if($rek['ontology'] == "eol-geonames") { //per https://eol-jira.bibalex.org/browse/DATA-1877?focusedCommentId=65861&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65861
@@ -1069,7 +1088,9 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                 continue; 
             }
             // */
-            
+
+            // echo("\nReached 100\n");
+
             /*
             guatemala               Panthea <b>guatemala</b>                        EXCLUDE
             niger                   Enoplochiton <b>niger</b>                       EXCLUDE
@@ -1097,6 +1118,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             New Zealand             and <b>New-Zealand</b>
             */
             
+
+
             // /* another customized for a resource
             if($this->param['resource_id'] == "20_ENV" && $rek['lbl'] == "mon") continue; //related to TO DO below
             // */
@@ -1139,7 +1162,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                 }
             } // ============================ end "eol-geonames"
             // */
-            // echo "\nGoes- 102\n";
+            echo "\nGoes- 102\n";
 
             // /* ----- New: Nov 8, 2022 - EOL Terms file ----- START
             // print_r($this->results);
@@ -1147,10 +1170,11 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             //     [http://purl.obolibrary.org/obo/ENVO_01000204] => array("lbl" => "tropical", "ontology" => "envo");
             // )
             if(!isset($this->allowed_terms_URIs[$rek['id']])) {
-                // echo "\nEOL Terms file: ".count($this->allowed_terms_URIs)."\n";
-                // echo "\nhulix ka! NOT FOUND IN EOL TERMS FILE: [".$rek['id']."]";
+                echo "\nEOL Terms file: ".count($this->allowed_terms_URIs)."\n";
+                echo "\nhulix ka! NOT FOUND IN EOL TERMS FILE: [".$rek['id']."]";
                 @$this->debug["NOT FOUND IN EOL TERMS FILE"][$rek['id']]++;
                 // print_r($rek); echo "-----------------\n";
+                // echo("\nhuli aaa\n");
                 continue;
             }
             // ----- New: Nov 8, 2022 - EOL Terms file ----- END */
@@ -1163,6 +1187,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             if($rek['id'] == "http://purl.obolibrary.org/obo/ENVO_00000040" || $rek['lbl'] == "linn") continue;
             // */
 
+            echo "\n=====dito 891\n";
+
             // /* Eli's initiative: applied this one early on. Before, it was applied later on the process.
             if($ret = self::apply_adjustments($rek['id'], $rek['lbl'])) {
                 $rek['id'] = $ret['uri'];
@@ -1170,6 +1196,9 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             }
             else continue;
             // */
+
+            echo "\n=====dito 892\n";
+
 
             // /* soil composition https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67736&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67736
             // These terms tend to be used for plants, though not always. I've never been very happy with the term "habitat" for them. 
@@ -1181,6 +1210,8 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             // */
             
             //============= below this point is where $this->results is populated =============
+            echo "\n=====dito 900\n";
+
             if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN
                 if(ctype_lower(substr($rek['lbl'],0,1))) { //bec. references has a lot like 'Urban C.' which are authors.
                     $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype'], "context" => $rek['context']);
@@ -1294,22 +1325,19 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         @$this->debug['counts']['C']++;
         return $json;
         */
-        exit("\ndesc at this point: [$desc]\n");
+        
+        // exit("\ndesc at this point: [$desc]\n");
+
         // /* using EOL Annotator
         $php_script = DOC_ROOT . 'update_resources/connectors/annotator.php';
-        // $cmd = "/usr/bin/php $php_script _ '{\"text\": \"MY_DESC\", \"ontologies\": \"MY_ONTOLOGIES\"}'";
+        // $cmd = "php $php_script _ '{"text": "MY_DESC", "ontologies": "MY_ONTOLOGIES"}'";
         $json = '{"text": "MY_DESC", "ontologies": "MY_ONTOLOGIES"}';
-        // $json = '{\"text\"\: \"MY_DESC\", \"ontologies\"\: \"MY_ONTOLOGIES\"}';
-
         $json = str_replace("MY_ONTOLOGIES", $this->ontologies, $json);
-        // $json = escapeshellarg($json);
         $json = str_replace("MY_DESC", $desc, $json);
-
-        $cmd = "php $php_script _ '".$json."'"; exit("\n[$cmd]\n");
-        echo "\nditox eli\n[$cmd]\n";
+        $cmd = "php $php_script _ '".$json."'";     //echo "\ndesc is now:\n[$cmd]\n"; //exit;
         $cmd .= " 2>&1";
-        $cmdline_output = shell_exec($cmd);                          exit("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n");
-        $json = self::get_json_from_cmdline_output($cmdline_output); exit("\ncheck json:\n-----\n$json\n-----\nstop 2\n");
+        $cmdline_output = shell_exec($cmd);                          echo("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n");
+        $json = self::get_json_from_cmdline_output($cmdline_output); echo("\ncheck json:\n-----\n$json\n-----\nstop 2\n");
         @$this->debug['counts']['C']++;
         return $json;
         // */

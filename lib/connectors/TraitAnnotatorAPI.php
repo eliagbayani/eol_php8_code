@@ -35,11 +35,18 @@ class TraitAnnotatorAPI
         echo "\nStart here...\n"; print_r($ontologies);
         foreach($ontologies as $ontology) {
             if($ontology == 'eol-geonames') continue;
-            self::process_ontology($ontology, $params['text']);
+            self::process_ontology($ontology, self::urldecode_and_more($params['text']));
         }
         print_r($this->results);
         $json = json_encode($this->results); 
         echo "\nelix1".$json."elix2\n"; //IMPORTANT step; will use to capture json string from cmdline output.
+    }
+    private function urldecode_and_more($str)
+    {
+        // $str = urldecode($str);
+        // $str = str_replace("\n", " ", $str);
+        // $str = Functions::remove_whitespace($str);
+        return $str;
     }
     private function process_ontology($ontology, $text)
     {

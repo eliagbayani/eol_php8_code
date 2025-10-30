@@ -3,20 +3,27 @@ namespace php_active_record;
 /* this is a utility to test Pensoft annotation */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 $GLOBALS['ENV_DEBUG'] = true;
-
 $timestart = time_elapsed();
 
 require_library('connectors/Functions_Pensoft');
-require_library('connectors/Pensoft2EOLAPI');
+require_library('connectors/Annotator2EOLAPI');
 
-$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo,eol-geonames");
+$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo,eol-geonames,growth");
 
-$func = new Pensoft2EOLAPI($param);
+$func = new Annotator2EOLAPI($param);
 
-// /* initial test: should pass this before it proceeds.
+// $str = "C. alpina a procumbent, is a montane species, occurring through most alpine birch forest and elsewhere";
+// echo("\n".$str."\n");
+// $str = urlencode($str);
+// echo("\n".$str."\n");
+// $str = urldecode($str);
+// exit("\n".$str."\n");
+
+
+/* initial test: should pass this before it proceeds.
 if(!$func->Pensoft_is_up()) exit("\nTest failed. Needed service is not available\n");
 else echo "\nTest passed OK\n";
-// */
+*/
 
 /* independent test: Nov 27, 2023 --- separate sections of Treatment text
 $str = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
@@ -146,7 +153,7 @@ $descs = array();
 // $descs[] = "I went to Malabar in India";
 // $descs[] = "Malabar (New South Wales, Australia)";
 // $descs[] = "Malabar (Florida, USA)";
-$descs[] = "C. alpina a procumbent, is a montane species occurring through most alpine birch forest and elsewhere";
+$descs[] = "Gadus morhua an 3, a procumbent, is a montane species, occurring through; most alpine birch forest and elsewhere";
 // */
 
 // Good idea. I think it's best if we use WikiData uris:
@@ -165,9 +172,9 @@ $IDs = array('617_ENV'); //or Wikipedia EN               //dev only
 foreach($IDs as $resource_id) {
     $param['resource_id'] = $resource_id;
     require_library('connectors/Functions_Pensoft');
-    require_library('connectors/Pensoft2EOLAPI');
-    $pensoft = new Pensoft2EOLAPI($param);
-    $pensoft->initialize_remaps_deletions_adjustments();
+    require_library('connectors/Annotator2EOLAPI');
+    $pensoft = new Annotator2EOLAPI($param);
+    $pensoft->initialize_remaps_deletions_adjustments(); //copied template
     // /* to test if these 4 variables are populated.
     // echo "\n From Pensoft Annotator:";
     // echo("\n remapped_terms: "              .count($pensoft->remapped_terms)."");
@@ -331,7 +338,7 @@ function run_desc($desc, $pensoft) {
     $final = array();
     if($arr = $pensoft->retrieve_annotation($basename, $desc)) {
         // echo "\n---start---\n";
-        // print_r($arr); //--- search ***** in Pensoft2EOLAPI.php
+        // print_r($arr); //--- search ***** in Annotator2EOLAPI.php
         // echo "\n---end---\n";
         foreach($arr as $uri => $rek) {
             $filename = pathinfo($uri, PATHINFO_FILENAME);
@@ -340,7 +347,7 @@ function run_desc($desc, $pensoft) {
             $final[] = $tmp;
         }
     }
-    // else echo "\n-No Results-\n";
+    else echo "\n-No Results-\n";
     return implode("|", $final);    
 }
 /*

@@ -918,8 +918,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
                 // echo("\nSaved partial OK\n"); //good debug
                 /* now start access newly created. The var $this->results will now be populated. */
                 if($arr = self::retrieve_json($id, 'partial', $desc)) { //echo "\n=====dito 400\n";
-                    if(isset($arr['data'])) { //echo "\n=====dito 401\n";
-                        print_r($arr);
+                    if(isset($arr['data'])) { //echo "\n=====dito 401\n"; // print_r($arr);
                         self::select_envo($arr['data']);
                     }
                     else {
@@ -927,7 +926,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
                         print_r($arr);
                         echo("\n222[---$id---]\n[---$desc---]\n[---$json---]\n");
                         echo("\n[".$arr['text'][0]."]\n");
-                        echo("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
+                        exit("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
                         return;
                     }
                     //echo "\n=====dito 500\n";

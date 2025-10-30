@@ -76,6 +76,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             // $this->root_path = '/Volumes/Macintosh HD/opt/homebrew/var/www/Pensoft_annotator/';          //might work but not used
             $this->root_path = '/var/www/html/Pensoft_annotator/';                                          //PHP 8.2
         }
+        if(!is_dir($this->root_path)) mkdir($this->root_path);
         
         if($this->param['resource_id'] == '617_ENV') {} //Wikipedia EN
         else { //rest of the resources
@@ -1282,7 +1283,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         */
         $this->pensoft_run_cnt++;
 
-        /* using Pensoft Annotator
+        // /* using Pensoft Annotator
         $uri = str_replace("MY_DESC", urlencode($desc), $this->pensoft_service);
         $uri = str_replace("MY_ONTOLOGIES", $this->ontologies, $uri);
         // worked for the longest time. Just refactored for cleaner script.
@@ -1292,20 +1293,24 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         $json = shell_exec($cmd); //echo "-C-"; //C for curl
         @$this->debug['counts']['C']++;
         return $json;
-        */
+        // */
 
-        // /* using EOL Annotator
+        /* using EOL Annotator
         $php_script = DOC_ROOT . 'update_resources/connectors/annotator.php';
-        $cmd = "/usr/bin/php $php_script _ '{\"text\": \"MY_DESC\", \"ontologies\": \"MY_ONTOLOGIES\"}'";
-        $cmd = str_replace("MY_DESC", $desc, $cmd);
-        $cmd = str_replace("MY_ONTOLOGIES", $this->ontologies, $cmd);
+        // $cmd = "/usr/bin/php $php_script _ '{\"text\": \"MY_DESC\", \"ontologies\": \"MY_ONTOLOGIES\"}'";
+        $json = '{"text": "MY_DESC", "ontologies": "MY_ONTOLOGIES"}';
+        // $json = '{\"text\"\: \"MY_DESC\", \"ontologies\"\: \"MY_ONTOLOGIES\"}';
+        $json = str_replace("MY_ONTOLOGIES", $this->ontologies, $json);
+        // $json = escapeshellarg($json);
+        $json = str_replace("MY_DESC", $desc, $json);
+        $cmd = "php $php_script _ '".$json."'"; exit("\n[$cmd]\n");
         echo "\nditox eli\n[$cmd]\n";
         $cmd .= " 2>&1";
-        $cmdline_output = shell_exec($cmd);                          // exit("\ncheck muna:\n-----\n$cmdline_output\n-----\nstop 1\n");
-        $json = self::get_json_from_cmdline_output($cmdline_output); // exit("\ncheck json:\n-----\n$json\n-----\nstop 2\n");
+        $cmdline_output = shell_exec($cmd);                          exit("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n");
+        $json = self::get_json_from_cmdline_output($cmdline_output); exit("\ncheck json:\n-----\n$json\n-----\nstop 2\n");
         @$this->debug['counts']['C']++;
         return $json;
-        // */
+        */
     }
     private function retrieve_path($id, $what) //$id is "$taxonID_$identifier"
     {

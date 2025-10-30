@@ -936,13 +936,13 @@ class Annotator2EOLAPI extends Functions_Pensoft
             }    
             // echo("\nretrieved partial OK\n"); //good debug
         }
-        else { echo "\n=====dito 100\n";
-            if($json = self::run_partial($desc)) { echo "\n=====dito 200\n";
+        else { //echo "\n=====dito 100\n";
+            if($json = self::run_partial($desc)) { //echo "\n=====dito 200\n";
                 self::save_json($id, $json, 'partial');
                 // echo("\nSaved partial OK\n"); //good debug
                 /* now start access newly created. The var $this->results will now be populated. */
-                if($arr = self::retrieve_json($id, 'partial', $desc)) { echo "\n=====dito 400\n";
-                    if(isset($arr['data'])) { echo "\n=====dito 401\n";
+                if($arr = self::retrieve_json($id, 'partial', $desc)) { //echo "\n=====dito 400\n";
+                    if(isset($arr['data'])) { //echo "\n=====dito 401\n";
                         print_r($arr);
                         self::select_envo($arr['data']);
                     }
@@ -954,7 +954,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
                         echo("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
                         return;
                     }
-                    echo "\n=====dito 500\n";
+                    //echo "\n=====dito 500\n";
                     // echo("\nretrieved (newly created) partial OK\n"); //good debug
                 }
                 else {
@@ -963,7 +963,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
                     // exit("\nstop muna\n[".$this->to_delete_file."]\n");
                 }
             }
-            else { echo "\n=====dito 300\n";
+            else { //echo "\n=====dito 300\n";
                 /* working; good debug. I assume these cases are network hiccups from Pensoft.
                 echo("\n================\n -- nothing to save A...\n[$id]\n[$desc]\n[$loop] strlen: ".strlen($desc)."\n".$this->ontologies); //doesn't go here. Previously exit()
                 //for debug only: to investigate further
@@ -989,7 +989,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
                     [hash] => dda9a35f1c55d220ce83d768af23bfd5
                 )
         */
-        foreach($arr as $rek) {             echo "\n=====dito 890\n";
+        foreach($arr as $rek) {             //echo "\n=====dito 890\n";
 
             // print_r($rek); //good debug NEW
             // /* general for all:
@@ -1187,7 +1187,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             if($rek['id'] == "http://purl.obolibrary.org/obo/ENVO_00000040" || $rek['lbl'] == "linn") continue;
             // */
 
-            echo "\n=====dito 891\n";
+            //echo "\n=====dito 891\n";
 
             // /* Eli's initiative: applied this one early on. Before, it was applied later on the process.
             if($ret = self::apply_adjustments($rek['id'], $rek['lbl'])) {
@@ -1197,7 +1197,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             else continue;
             // */
 
-            echo "\n=====dito 892\n";
+            //echo "\n=====dito 892\n";
 
 
             // /* soil composition https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67736&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67736
@@ -1210,7 +1210,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             // */
             
             //============= below this point is where $this->results is populated =============
-            echo "\n=====dito 900\n";
+            //echo "\n=====dito 900\n";
 
             if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN
                 if(ctype_lower(substr($rek['lbl'],0,1))) { //bec. references has a lot like 'Urban C.' which are authors.

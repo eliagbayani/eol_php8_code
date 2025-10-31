@@ -59,13 +59,40 @@ class TraitAnnotatorAPI
         $position = strpos($haystack, $needle);
         if ($position !== false) {
             // echo "\nSubstring ($needle) found at position: " . $position; //good debug
-            $URIs = $this->keyword_uri[$ontology][$needle];
-            foreach($URIs as $uri) {
-                $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 'ontology' => $ontology);
+            if(!self::boundary_chars_are_valid_YN($position, $needle, $haystack)) return;
+            if($URIs = $this->keyword_uri[$ontology][$needle]) {
+                foreach($URIs as $uri) {
+                    $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 'ontology' => $ontology);
+                }
             }
+            else exit("\nInvestigate: No URIs for ontology:[$ontology] | needle:[$needle]\n");
         } else {
             // echo "Substring not found.";
         }
+    }
+    private function boundary_chars_are_valid_YN($position, $needle, $haystack)
+    {
+        $haystack = html_entity_decode($haystack);
+        $boundary_chars = self::get_boundary_chars($position, $needle, $haystack);
+        $leftmost = $boundary_chars['left'];
+        $rightmost = $boundary_chars['right'];
+        if(ctype_digit($leftmost) || \IntlChar::isalpha($leftmost)) return false;
+        if(ctype_digit($rightmost) || \IntlChar::isalpha($rightmost)) return false;
+        return true;
+        // ctype_digit($char))      includes: 0-9
+        // ctype_alpha($char)       includes: a-z A-A
+        // IntlChar::isalpha($char) includes: with diacritimal markings e.g. "é" is still alpha
+    }
+    private function get_boundary_chars($position, $needle, $haystack)
+    {   //left:
+        if($position == 0) $leftmost = " ";
+        else               $leftmost = substr($haystack, $position - 1, 1);
+        //right:
+        $length_needle = strlen($needle);        
+        $rightmost = substr($haystack, $position + ($length_needle), 1);
+        echo "\nleftmost is: [$leftmost] from:[$needle][$haystack]\n";
+        echo "\nrightmost is: [$rightmost] from[$needle][$haystack]\n";
+        return array("left" => $leftmost, "right" => $rightmost);
     }
     private function format_context($needle, $haystack)
     {

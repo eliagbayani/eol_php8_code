@@ -23,6 +23,7 @@ print_r($argv);
 $jenkins_or_cron = @$argv[1]; //not needed here
 $params                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $text = $params['text'];
+print_r($params);
 
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();

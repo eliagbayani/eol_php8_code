@@ -154,7 +154,7 @@ $descs = array();
 // $descs[] = "Malabar (New South Wales, Australia)";
 // $descs[] = "Malabar (Florida, USA)";
 // $descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane species, occurring through; most alpine birch forest ' and along the Red Sea coast of the Atlantic";
-$descs[] = "Typex 8: materials_examined	mountain shrublandé Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //[malabar-Malabar]
+$descs[] = "Typex 10: materials_examined	mountain shrublandé Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //[malabar-Malabar]
 // */
 
 /*
@@ -343,19 +343,6 @@ echo "\n-end tests-\n";
 // */
 function run_desc($desc, $pensoft) {
     $basename = md5($desc);
-
-    /* moved to initial_desc_format()
-    $desc = strip_tags($desc);
-    $desc = trim(Functions::remove_whitespace($desc));
-    $desc = htmlentities($desc);
-    */
-
-    // htmlentities()
-    // html_entity_decode() -> this is the opposite of htmlentities()
-    // htmlspecialchars()
-    // htmlspecialchars_decode() -> this is the opposite of htmlspecialchars()
-    // php htmlentities() vs htmlspecialchars() -> htmlentities() is said to be better
-
     $pensoft->results = array();
     $final = array();
     if($arr = $pensoft->retrieve_annotation($basename, $desc)) {

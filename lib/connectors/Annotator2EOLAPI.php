@@ -806,8 +806,13 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $desc = str_replace(array("\t", "\n"), " - ", $desc);
         $desc = strip_tags($desc);
         $desc = trim(Functions::remove_whitespace($desc));
-        $desc = htmlentities($desc);
+        $desc = htmlentities($desc);        
         return $desc;
+        // htmlentities()
+        // html_entity_decode() -> this is the opposite of htmlentities()
+        // htmlspecialchars()
+        // htmlspecialchars_decode() -> this is the opposite of htmlspecialchars()
+        // php htmlentities() vs htmlspecialchars() -> htmlentities() is said to be better
     }
     public function retrieve_annotation($id, $desc)
     {
@@ -911,7 +916,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
         // if(false) { //to force-bypass cache
         if($arr = self::retrieve_json($id, 'partial', $desc)) { echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
             // if($loop == 29) { print_r($arr['data']); //exit; }
-            // print_r($arr); //exit; //good debug ***** this is the orig annotator output
+            // print_r($arr); exit("\nhere 100\n"); //good debug ***** this is the orig annotator output
             if(isset($arr['data'])) self::select_envo($arr['data']);
             else {
                 echo "\n-=-=-=-=-=-=-=111\n[".$this->to_delete_file."]\n";

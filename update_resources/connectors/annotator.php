@@ -13,9 +13,12 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 $timestart = time_elapsed();
 
 /* test
-$leftmost = "é";
-if(ctype_digit($leftmost)  || \IntlChar::isalpha($leftmost)  || ctype_alpha($leftmost) ) echo "\nis alpha or number\n";
-else echo "\nnot alpha nor a number\n";
+$desc = "& < > ' ,";
+echo "\n1. [$desc]\n";
+$desc = htmlentities($desc); //caused probs. for: & < > etc. //but fixed text with ' single quote
+echo "\n2. [$desc]\n";
+$desc = html_entity_decode($desc);
+echo "\n3. [$desc]\n";
 exit("\n-end test-\n");
 */
 

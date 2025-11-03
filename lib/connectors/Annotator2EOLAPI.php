@@ -37,7 +37,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
 {
     function __construct($param)
     {
-        $GLOBALS['ENV_DEBUG'] = false; //true;
+        // $GLOBALS['ENV_DEBUG'] = false; //true;
         $this->param = $param; // print_r($param); exit;
         /*Array(
             [task] => generate_eol_tags_pensoft
@@ -45,6 +45,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             [resource_id] => 834_ENV
             [subjects] => GeneralDescription|Distribution
         )*/
+        $this->single_quote_char = "-_=-_=";
         // /* add ontologies Yes/No in the id caching of Pensoft calls.
         if(in_array($this->param['resource_id'], array('617_ENV', '21_ENV', '26_ENV'))) $this->includeOntologiesYN = false; //Wikipedia EN | AmphibiaWeb text | WoRMS
         else $this->includeOntologiesYN = true; //the rest
@@ -806,18 +807,14 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $desc = str_replace(array("\t", "\n"), " - ", $desc);
         $desc = strip_tags($desc);
         $desc = trim(Functions::remove_whitespace($desc));
-        $desc = htmlentities($desc);        
+        // $desc = htmlentities($desc); //caused probs. for: & < > etc. //but fixed text with ' single quote and fixed text with 
+        $desc = str_replace("'", $this->single_quote_char, $desc);
         return $desc;
-        // htmlentities()
-        // html_entity_decode() -> this is the opposite of htmlentities()
-        // htmlspecialchars()
-        // htmlspecialchars_decode() -> this is the opposite of htmlspecialchars()
-        // php htmlentities() vs htmlspecialchars() -> htmlentities() is said to be better
     }
     public function retrieve_annotation($id, $desc)
     {
         $desc = self::initial_desc_format($desc);
-        echo("\nwhat is id: [$id]\ndesc: [$desc]");
+        // echo("\nwhat is id: [$id]\ndesc: [$desc]");
         // /* If has the word 'Acknowledgements', exclude
         if(stripos(substr($desc, 0, 100), "Acknowledgement") !== false) return; //string is found
         // */
@@ -1347,6 +1344,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
     private function save_json($id, $json, $what)
     {
         $json = html_entity_decode($json);
+        $json = str_replace($this->single_quote_char, "'", $json);
         $file = self::build_path($id, $what);
         if($f = Functions::file_open($file, "w")) {
             fwrite($f, $json);

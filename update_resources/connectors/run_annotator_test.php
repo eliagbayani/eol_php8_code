@@ -8,7 +8,7 @@ $timestart = time_elapsed();
 require_library('connectors/Functions_Pensoft');
 require_library('connectors/Annotator2EOLAPI');
 
-$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo,eol-geonames,growth");
+$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo");
 
 $func = new Annotator2EOLAPI($param);
 
@@ -56,95 +56,15 @@ else                                              exit("\n[$sciname] invalid\n")
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
 $descs = array();
-$descs[] = "(crops: peanuts, rice, sugarcane); (littoral: dune); (nest/prey: mud dauber nest [f]); (orchard: grapefruit, orange); (plants: bluebonnets, Indian paintbrush, miscellaneous vegetation, vegetation, next to cotton field); (soil/woodland: saltcedar)";
-$descs[] = "SAIAB 60874  , 19  (of 23) specimens, SL 6.6–9.8 cm, Mozambique: Zambezi System : Zambezi River: island bank off the Marromeu harbour, 18 ◦ 17 ′ 08.63 ′′ S, 35 ";
+$descs[] = "b4. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of the Atlantic"; //with & < >
+$descs[] = "b4: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
+$descs[] = "b4: materials_examined	mountain shrublandé Isaiah "; //with é exclude
+$descs[] = "b4: materials_examined	mountain shrubland é Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
+$descs[] = "b4: materials_examined	'mountain shrubland Holotype. ' AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture with ' single quote
 
-$descs[] = "female ( JRUC); same data, 1600 m, 20.ix.1971, 1 male, 2 females ( ZMAS); Nuristan province, Paprok [ca. 35°33'N 71°17'E], 2000 m, 25.ix.1971, O.N. Kabakov leg., 2 males ( ZMAS); Nuristan province, NWaygal [ca. 35°12'N 70°58'E], 3500 m, 2.vii.1972, O.N. Kabakov leg., 1 male, 2 females ( ZMAS), 1 male ( JRUC); NWaygal [ca. 35°12'N 70°59'E], 2700 m, 6.vii.1972, O.N. Kabakov leg., 2 males ( ZMAS); same data, 7.vii.1972, 2 females ( ZMAS); Pakistan: Azad Jammu and Kashmir, Muzaffarabad env., top of Leepa valley [ca. 34°20'N, 73°55'E], 3200–3300 m, 14.vi.1997, Heinz leg., 2 males, 3 females ( SMNS); Dir [= Khyber Pakhtunkhwa province], Gujar Levy Post env., Lawarai pass [ca. 35°21'N, 71°48'E], 2800–3100 m, 5.–7.vii.1997, Heinz leg., 1 female ( SMNS); Gilgit-Baltistan, Nanga Parbat Mt., Rama env. [ca. 35°20'N, 74°48'E], 3000–3500 m, 27.–30.vi.1997, Heinz leg., 1 male, 4 females ( SMNS); Northern Areas [= Gilgit-Baltistan], Gilgit district, Bagrot Valley, 36°02'32.6''N, 74°34'8.3''E, 2600 m, 250 m from Hinarki Glacier snout, pitfall trap, 25.x.–2.xi.2008, L. Latella leg., 2 males, 1 female ( MCSV); Northern Areas [= Gilgit-Baltistan], Gilgit district, Kargah Valley, 35°54'45.8''N, 74°15'26.9''E, 1611 m,  Myagdi Khola valley,  (river) Kali Gandaki valley, upper Lete [ca. 28°37'N, 83°38'E], 2900 m, 19.v.2002, J. Schmidt leg., 2 males ( SMNS); Annapurna Mts., South Himal, Dhasia Khola  ( SMNS); Mustang district, Dhaulagiri, SE slope, SW slope of Lete pass [ca. 28°24'N, 83°41'E], ], 4300–4500 m, 13.–16.vi.2000, Expedition I. Ghalé, S. Tamang, R. Santa & S. Gurung, 2 females ( SMNS);";
-// $descs[] = "Myślenice distr. , Osieczany, Stobiecki, 1 ex ( ISEA) ; Nowy S cz distr., Rytro­Radziejowa, Stobiecki, 4 exx ( ISEA) ; Nowy S cz distr., Stobiecki, 12 exx ( ISEA) ; Przemyśl, Kotula , 5 exx ( ISEA) ; Przemyśl, Trella , 31 exx ( ISEA) ; Przeworsk distr. , Rocibórz, Stobiecki, 1 ex ( ISEA) ; Racibórz , 1903, H. Nowotny, 2 exx ( USMB) ; Rzeszów distr. , Czudec, Stobiecki, 2 exx ( ISEA) ; Tarnów, Stobiecki , 1 ex ( ISEA) ; Warszawa­ Bielany , 23.V.1900, 6 exx ( USMB) ; 18.V.1901, 2 exx ( USMB) ; 21.IV.1902, 5 exx ( USMB) ; Warszawa­ Saska Kępa , 13.IX.1891, 1 ex ( USMB) ; 2.X.1901, 1 ex ( USMB) ; Warszawa­ Ṡwider , 2.VI.1900, 1 ex ( USMB) ; 3.VI.1902, 3 exx ( USMB) ; 20.VI.1904, 1 ex ( USMB) ; 9.VII.1904, 1 ex ( USMB) ; Warszawa­Zegrze , 1.VI.1933, Tenenbaum, 1 ex ( FMNH) ; Wrocław, Letzner , 1 ex ( DEI) . Romania: Cornutel , 6 exx ( NMW) ; Galatz, Letzner , 2 exx ( DEI) ; Sinaia Prahova­Tal , 900–1600 m, 11–17.VIII.1982 ,M. Schülke, 5 exx ( ZMHB). Russia: Poltava , VIII.1957, 1 ex ( MNHN) . Slovakia: Košice, 1924, Schüvalley";
+// $descs[] = "a2 a Gadus, is a  , . ; testing...  < > procumbent species";
 
-$descs[] = "Romania: Cornutel , 6 exx ( NMW) ; Galatz, Letzner , 2 exx ( DEI) ; Sinaia Prahova­Tal , 900–1600 m, 11–17.VIII.1982 , Schülke, 5 exx ( ZMHB). Russia: Poltava , VIII.1957, 1 ex ( MNHN) . Slovakia: Košice, 1924, Schüvalley";
-
-$descs[] = "sоmetimes аррeаring соmрletelу brоwn if lightсоlоured with соmрlete mediаn саrinа аnd unifоrmlу meshlike соriасeоus tо аlutасeоus.";
-$descs[] = " ; Mutìnice, Myślenice distr.  Slovakia: Košice, 1924";
-$descs[] = "usuаllу with соmрlete mediаn саrinа hаving а соmрletelу sсulрtured sсrоbаl а соmрlete mediаn саrinа";
-$descs[] = "Male genitalia: DISTINCTLY SHApED ( FIgS. 2E, f  ). TEgmEN ( FIg. 2E ) RATHER WIDE, WIDEST AT mIDDLE, mEDIAL DISTAL EXCISION DEEp, V-SHApED (RATIO DTIN/LETE = 0.32–0.33), INNER mARgINS WITHOUT ANY pROJECTION; RATIO LETE/WITE = 1.19–1.20. RATIO THLE/LETE = 0.21. MEDIAN LObE Of AEDEAgUS mODERATELY ELONgATE, RATIO LEAE/WIAE = 1.90– 1.95, EXHIbITINg mAXImUm WIDTH NEARLY AT DISTAL THIRD, WITH NARROWLY AND ObTUSELY SpATULATE ApEX ( FIg. 2f  ). MAIN SCLERITES Of INTERNAL SAC (ENDOpHALLUS) LONg AND ROD-SHApED IN bOTH DORSAL AND LATERAL vIEW.";
-$descs[] = "We wish to thank A.I. Golykov and B.I. Sirenko of the Institute of Zoology, Russian Academy of Science, for the planktonic material upon which this study was partially based and for the environmental data presented in station data herein. Also, we appreciate the comments and criticism of the manuscript by reviewers, especially by M.V. Angel and R. Matzke-Karasz, which helped us a lot. Beside, we wish to thank G.G. Stovbun (A.V. Zhirmunsky Institute of Marine Biology, Far East Branch of Russian Academy of Science, Vladivostok, Russia) for technical preparation of manuscript.";
-$descs[] = "Spain, Santander, Santillana del Mar, Cueva de Altamira. in the valley of the dead found in Philippines.";
-$descs[] = 'scientificNameAuthorship: Théel, 1882; ';
-$descs[] = "linn city house cliff pass ice mud transportation railroad cline biofilm sediment";
-$descs[] = "mesa laguna rapids ocean sea organ field well adhesive quarry reservoir umbrella plantation bar planktonic material";
-$descs[] = "Almost all of these are incorrect: e.g., (1) ‘‘fen. ov.’’ (fenestra ovalis, = f. vestibuli)";
-$descs[] = "Atlantic blanket bogs and fen";
-$descs[] = "I live in the mountains over the nunatak valley.";
-$descs[] = "I live in a sandy soil";
-$descs[] = "Distribution. Sri Lanka.";
-// $descs[] = "Notes. In Poorani’s (2002) checklist of the Indian Subcontinent, Brumus ceylonicus was listed with a note that ‘ it might be a Brumoides ’. 
-// Images of the two syntypes of ‘ Brumus ceylonicus ’ deposited at SDEI (obtained through the courtesy of Kevin Weissing, SDEI) below the valley show that this species 
-// indeed is a Brumoides and it is transferred here to Brumoides (comb. n.). The male syntype (abdomen and genitalia dissected and glued to a card) is 
-// hereby designated as a lectotype to ensure stability of nomenclature (lectotype designation). 
-// This is likely to be a synonym of either B. suturalis or B. lineatus, both of which are found in South India. 
-// The male genitalia could not be examined in detail for confirmation. yz";
-
-$descs[] = "below the valley show that this species indeed is a Brumoides and it is transferred here to Brumoides (comb. n.). This is likely to be a synonym of either B. Suturalis or B. Lineatus, both of which are found in south India";
-
-
-$descs[] = "the quick References: valley in the north.";
-$descs[] = "I drive to the  montane and mossy forest, just around the woodland trees.";
-$descs[] = "I drive to the savanna, just around the grassland.";
-$descs[] = "I work in the Marine Institue of Technology. This is a marine species.";
-$descs[] = "I work in arete ria belong to the organic material inside moor around harbor";
-$descs[] = "(Fenďa and Lukáš 2014). I visited the United States National Museum last year.";
-$descs[] = "I like to live in a plateau."; //test for WoRMS
-$descs[] = "Description. See Crosnier and Forest (1966) for description and figures of eastern Atlantic specimens."; 
-$descs[] = "Lives in the  montane atlantic forest of Brazil"; 
-$descs[] = "Zhang C, Stadler T, Klopfstein S, Heath TA, Ronquist F. 2016.";
-$descs[] = "Zhang, Stadler, Klopfstein, Heath, Ronquist 2016.";
-$descs[] = "Zhang, Stadler, Klopfstein, uncultivated heath, Ronquist 2016."; //[heath-ENVO_00000107]
-
-$descs[] = "This is likely to be a synonym of either B. suturalis or B. lineatus, both of which are found in south India";
-$descs[] = "This is likely to be a synonym of either B Suturalis or B Lineatus, both of which are found in south India";
-
-$descs[] = "Type: materials_examined	Holotype. AMS I. 19426 - 001, 414 mm, female, off Malabar "; //[malabar-Malabar]
-$descs[] = "It differs significantly from all but A. malabar in having more total vertebrae (160 vs. 131 – 145)"; //[]
-$descs[] = "(1836: 83) and on disturbed ground such as roadsides. 0 – 620 m elevation. Conservation Status: — C. antarctica is classed as Least Concern as it is widespread with stable populations";
-$descs[] = "A very cold place is Antarctica in the North Pole";
-$descs[] = "It is found in Ukraine in western marsh harrier Circus aeruginosus 1";
-
-$descs[] = "This is just the tip of the iceberg.";
-$descs[] = "This is just the tip x of the Iceberg.";
-$descs[] = "This is just the tip x of the iceberg.";
-
-$descs[] = "around the wall of the alimentary canal in segment chambers of the head region";
-$descs[] = "that Canal stretches a mile long.";
-$descs[] = "that canal stretches a mile long."; //canal-ENVO_00000014
-
-$descs[] = "transferred from USNM, used for SEM), Magic Mountain";
-$descs[] = "transferred from USNM, used for SEM), Magic Mountains";
-$descs[] = "transferred from USNM, used for SEM), Magic mountain";
-$descs[] = "transferred from USNM, used for SEM), Magic mountains";
-
-$descs[] = "They went to the Port Orchard.";
-$descs[] = "They went to the Port orchard."; //orchard-ENVO_00000115
-
-$descs[] = "They went to the Ida Bay";
-$descs[] = "They went to the Ida bay";
-
-$descs[] = "Habitat was with abundant bryozoan sponge and anthozoan cover adjacent to year-round kelp forest.";  //[kelp forest-ENVO_01000058]
-$descs[] = "Habitat was with abundant bryozoan sponge and anthozoan cover adjacent to year-round kelpx forest."; //forest-ENVO_01000174
-
-$descs[] = "Locality: Known from mangrove swamps at Luango, north to Pointe Noire, and from salt marsh creeks at Río San Pedro."; //salt marsh-ENVO_00000054
-$descs[] = "Locality: Known from mangrove swamps at Luango, north to Pointe Noire, and from saltx marsh creeks at Río San Pedro."; //marsh-ENVO_00000035
-// does not include 'salt marshes' or 'saltmarshes'.
-
-$descs[] = "Many animals live in the dense settlement biome."; //ENVO_01000248 (dense settlement biome), this is a descendant of ENVO_00000002. Which is now excluded.
-// dense settlement biome-ENVO_01000248 -> is now excluded
-
-// "Stream" exclude; "stream" acceptable
-$descs[] = "Genova, Cosmo (11 January 2022). How to Preserve a Squirrel Pelt For Fly Tying. Field & Stream. Retrieved 1 June 2024.";
-$descs[] = "Many fish live in the stream.";
-$descs[] = "A taxon named Trifolium occidentale Coombe. I like to go to these places cwm, coombe, corrie";
-
-// /* un-comment this block to test 1 record
+/* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
 // $descs[] = "I went to 'Malabar Coast (India)'.";
@@ -153,9 +73,9 @@ $descs = array();
 // $descs[] = "I went to Malabar in India";
 // $descs[] = "Malabar (New South Wales, Australia)";
 // $descs[] = "Malabar (Florida, USA)";
-// $descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane species, occurring through; most alpine birch forest ' and along the Red Sea coast of the Atlantic";
-$descs[] = "Typex 10: materials_examined	mountain shrublandé Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //[malabar-Malabar]
-// */
+$descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane species, occurring through; most alpine birch forest ' and along the Red Sea coast of the Atlantic";
+$descs[] = "Typex x19: materials_examined	mountain shrublandé Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar ";
+*/
 
 /*
 &amp; becomes & (ampersand)
@@ -198,140 +118,44 @@ foreach($IDs as $resource_id) {
         echo "\n[$resource_id $i] - "; echo("[$desc] [$ret]");
         // $i = 9; //force-assign
         if($resource_id == '24') {            
-            /* using test subset
+            /* specific to this resource
             if($i == 1) {$s = "procumbent-PATO_0002389"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             */
-            if($i == 1) {$s = "woodland-ENVO_01000175|dune-ENVO_00000170"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-            if($i == 2) {$s = "mozambique-1036973|zambezi-Zambezi";     if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 3) {$s = "pakistan-1168579";                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
-            if($i == 4) {$s = "slovakia-3057568|romania-798549|russia-2017370"; if($ret == $s)     echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 5) {$s = "";                                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 6) {$s = "slovakia-3057568";                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 7) {$s = "";                                       if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 8) {$s = "";                   if($ret == $s)                                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 9) {$s = "russia-2017370";     if($ret == $s)                                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 10) {$s = "philippines-1694008|spain-2510769"; if($ret == $s)                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
-            if($i == 11) {$s = "";                  if($ret == $s)                                 echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 12) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 13) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 14) {$s = "";                  if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 15) {$s = "fen-ENVO_00000232"; if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 16) {$s = "mountains-ENVO_00000081|nunatak-ENVO_00000181"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
-            if($i == 17) {$s = "sandy soil-ENVO_00002229";  if($ret == $s)                      echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 18) {$s = "Sri Lanka-1227603";         if($ret == $s)                      echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 19) {$s = ""; if($ret == $s)             echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
-            if($i == 20) {$s = "";      if($ret == $s)                      echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //valley-ENVO_00000100
-            if($i == 21) {$s = "woodland-ENVO_01000175|forest-ENVO_01000174"; if($ret == $s)    echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 22) {$s = "grassland-ENVO_01000177|savanna-ENVO_01000178"; if($ret == $s)  echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }            
-            if($i == 23) {$s = "";                      if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 24) {$s = "";                      if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 25) {$s = "";                      if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-            if($i == 27) {$s = "Eastern Atlantic-9237"; if($ret == $s)                          echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //exclude 'Forest'
         }
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();
-            $q[1] = array('s' => "woodland-ENVO_01000175|dune-ENVO_00000170");
-
-            // /* using test subset
             $q[1] = array('s' => "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435|along the Red Sea coast-ENVO_01000687|procumbent-PATO_0002389");
-            $q[1] = array('s' => "mountain shrubland-ENVO_01000216");
-            // */
+            $q[2] = array('s' => "mountain shrubland-ENVO_01000216");
+            $q[3] = array('s' => "");
+            $q[4] = array('s' => "mountain shrubland-ENVO_01000216");
+            $q[5] = array('s' => "mountain shrubland-ENVO_01000216");
 
-            $q[2] = array('s' => "mozambique-1036973|zambezi-Zambezi");
-            $q[3] = array('s' => "pakistan-1168579"); //valley-ENVO_00000100
-            $q[4] = array('s' => "slovakia-3057568|romania-798549|russia-2017370");
-            $q[5] = array('s' => "");
-            $q[6] = array('s' => "slovakia-3057568");
-            $q[7] = array('s' => "");
-            $q[8] = array('s' => "");
-            $q[9] = array('s' => "russia-2017370");
-            $q[10] = array('s' => "philippines-1694008|spain-2510769"); //valley-ENVO_00000100
-            $q[11] = array('s' => "");
-            $q[12] = array('s' => "");
-            $q[13] = array('s' => "");
-            $q[14] = array('s' => "");
-            $q[15] = array('s' => "fen-ENVO_00000232");
-            $q[16] = array('s' => "mountains-ENVO_00000081|nunatak-ENVO_00000181"); //valley-ENVO_00000100
-            $q[17] = array('s' => "sandy soil-ENVO_00002229-ENVO_09200008");
-            $q[21] = array('s' => "woodland-ENVO_01000175|forest-ENVO_01000174");
-            $q[22] = array('s' => "grassland-ENVO_01000177|savanna-ENVO_01000178");
-            $q[23] = array('s' => "");
-            $q[24] = array('s' => "");
-            $q[25] = array('s' => "");
-            if($arr = @$q[$i]) {
-                if($ret == $arr['s']) echo " -OK-"; 
-                else { echo " -ERROR- [$arr[s]]"; $errors++; }
-            }
+            // $q[3] = array('s' => "procumbent-PATO_0002389");
+
+            // if($arr = @$q[$i]) {
+            //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
+            // }
         }
         if($resource_id == '617_ENV') {
-            $q = array();
-            $q[18] = array('s' => "");
-            $q[19] = array('s' => ""); //valley-ENVO_00000100
-            $q[20] = array('s' => ""); //valley-ENVO_00000100
-            $q[27] = array('s' => "");
-            if($arr = @$q[$i]) {
-                if($ret == $arr['s']) echo " -OK-"; 
-                else { echo " -ERROR- [$arr[s]]"; $errors++; }
-            }
+            // $q = array();
+            // if($arr = @$q[$i]) {
+            //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
+            // }
         }
         if($resource_id == 'TreatmentBank_ENV') {
-            $q = array();
-            $q[18] = array('s' => "Sri Lanka-1227603");
-            $q[19] = array('s' => ""); //valley-ENVO_00000100
-            $q[20] = array('s' => "");
-            $q[27] = array('s' => "Eastern Atlantic-9237");
-            if($arr = @$q[$i]) {
-                if($ret == $arr['s']) echo " -OK-"; 
-                else { echo " -ERROR- [$arr[s]]"; $errors++; }
-            }
+            // $q = array();
+            // if($arr = @$q[$i]) {
+            //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
+            // }
         }
-        if($i == 26) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //exclude 'plateau' across the board
-        if($i == 28) {$s = "forest-ENVO_01000174|brazil-3469034";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} } //include 'forest'
-        if($i == 29) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 30) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 31) {$s = "heath-ENVO_00000107";                   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 32) {$s = "india-1269750";                         if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 33) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 34) {$s = "malabar-Malabar";                       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 35) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 36) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 37) {$s = "antarctica-6255152";                    if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 38) {$s = "ukraine-690791";                        if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        /* accross all resources */
+        if($i == 1) {$s = "alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 2) {$s = "mountain shrubland-ENVO_01000216";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 3) {$s = "";                                       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 4) {$s = "mountain shrubland-ENVO_01000216";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 5) {$s = "mountain shrubland-ENVO_01000216";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
-        if($i == 39) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 40) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 41) {$s = "iceberg-ENVO_00000298";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-        if($i == 42) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 43) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        // if($i == 44) {$s = "canal-ENVO_00000014";                   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 44) {$s = "";                   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        
-        if($i == 45) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 46) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 47) {$s = "mountain-ENVO_00000081";                if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 48) {$s = "mountains-ENVO_00000081";               if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-        if($i == 49) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        // if($i == 50) {$s = "orchard-ENVO_00000115";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 50) {$s = "";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-        if($i == 51) {$s = "";                                      if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        // if($i == 52) {$s = "bay-ENVO_00000032";                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 52) {$s = "";                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-
-        if($i == 53) {$s = "kelp forest-ENVO_01000058";             if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 54) {$s = "forest-ENVO_01000174";                  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-        if($i == 55) {$s = "salt marsh-ENVO_00000054";             if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 56) {$s = "marsh-ENVO_00000035";                  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 57) {$s = "";                                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-        if($i == 58) {$s = "";                                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 59) {$s = "in the stream-ENVO_01000253";                 if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 60) {$s = "";                                     if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // if($i == 4) {$s = "procumbent-PATO_0002389";                if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
     }
     echo "\nerrors: [$resource_id][$errors errors]";

@@ -17,6 +17,7 @@ class TraitAnnotatorAPI
             'expire_seconds'     => 60*60*24*1, //1 day cache
             'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 0.5, 'cache' => 1);
         $this->growth_ontology_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/Pensoft_project/ontologies/ver_4/growth_form.csv';
+        $this->single_quote_char = "-_=-_=";
     }
     private function initialize($ontology)
     {
@@ -32,7 +33,7 @@ class TraitAnnotatorAPI
             $ontologies = array_map('trim', $ontologies);
         }
         else exit("\nERROR: Missing ontology.\n");
-        echo "\nStart here...\n"; print_r($ontologies);
+        echo "\nStart here...\n"; echo "\nontologies: "; print_r($ontologies);
         foreach($ontologies as $ontology) {
             if($ontology == 'eol-geonames') continue;
             self::process_ontology($ontology, $params['text']);
@@ -76,8 +77,10 @@ class TraitAnnotatorAPI
         $boundary_chars = self::get_boundary_chars($position, $needle, $haystack);
         $leftmost = $boundary_chars['left'];
         $rightmost = $boundary_chars['right'];
-        if(ctype_digit($leftmost) || \IntlChar::isalpha($leftmost)) return false;
-        if(ctype_digit($rightmost) || \IntlChar::isalpha($rightmost)) return false;
+
+        // print_r($boundary_chars); //exit("\nstop muna 1\n");
+        if(ctype_digit($leftmost)  || \IntlChar::isalpha($leftmost)  || ctype_alpha($leftmost) ) return false;
+        if(ctype_digit($rightmost) || \IntlChar::isalpha($rightmost) || ctype_alpha($rightmost) ) return false;
         return true;
         // ctype_digit($char))      includes: 0-9
         // ctype_alpha($char)       includes: a-z A-A
@@ -86,10 +89,10 @@ class TraitAnnotatorAPI
     private function get_boundary_chars($position, $needle, $haystack)
     {   //left:
         if($position == 0) $leftmost = " ";
-        else               $leftmost = substr($haystack, $position - 1, 1);
+        else               $leftmost = mb_substr($haystack, $position - 1, 1);
         //right:
         $length_needle = strlen($needle);        
-        $rightmost = substr($haystack, $position + ($length_needle), 1);
+        $rightmost = mb_substr($haystack, $position + ($length_needle), 1);
         echo "\nleftmost is: [$leftmost] from:[$needle][$haystack]\n";
         echo "\nrightmost is: [$rightmost] from[$needle][$haystack]\n";
         return array("left" => $leftmost, "right" => $rightmost);

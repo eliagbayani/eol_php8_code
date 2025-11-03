@@ -13,10 +13,10 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 $timestart = time_elapsed();
 
 /* test
-// cd /var/www/html/eol_php8_code/update_resources/connectors/
-$php_script = DOC_ROOT . 'update_resources/connectors/annotator.php';
-$cmd = "php $php_script _ '{\"text\": \"MY_DESC\", \"ontologies\": \"MY_ONTOLOGIES\"}'";
-exit("\n[".$cmd."]\n");
+$leftmost = "é";
+if(ctype_digit($leftmost)  || \IntlChar::isalpha($leftmost)  || ctype_alpha($leftmost) ) echo "\nis alpha or number\n";
+else echo "\nnot alpha nor a number\n";
+exit("\n-end test-\n");
 */
 
 print_r($argv);

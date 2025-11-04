@@ -8,7 +8,7 @@ $timestart = time_elapsed();
 require_library('connectors/Functions_Pensoft');
 require_library('connectors/Annotator2EOLAPI');
 
-$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo");
+$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo,growth");
 
 $func = new Annotator2EOLAPI($param);
 
@@ -56,25 +56,20 @@ else                                              exit("\n[$sciname] invalid\n")
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
 $descs = array();
-$descs[] = "b4. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of the Atlantic"; //with & < >
-$descs[] = "b4: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
-$descs[] = "b4: materials_examined	mountain shrublandé Isaiah "; //with é exclude
-$descs[] = "b4: materials_examined	mountain shrubland é Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
-$descs[] = "b4: materials_examined	'mountain shrubland Holotype. ' AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture with ' single quote
-
-// $descs[] = "a2 a Gadus, is a  , . ; testing...  < > procumbent species";
+$descs[] = "b5. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of the Atlantic"; //with & < >
+$descs[] = "b5: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
+$descs[] = "b5: materials_examined	mountain shrublandé Isaiah "; //with é exclude
+$descs[] = "b5: materials_examined	mountain shrubland é Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
+$descs[] = "b5: materials_examined	'mountain shrubland Holotype. ' AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture with ' single quote
+$descs[] = "b5 a Gadus', is a  , . ; testing...  < > procumbent species";
+$descs[] = 'b5 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
+$descs[] = "4 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) "; //with backslash \
 
 /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
-// $descs[] = "I went to 'Malabar Coast (India)'.";
-// $descs[] = "I live in India, near the Malabar coast.";
-// $descs[] = "He lives in the coast";
-// $descs[] = "I went to Malabar in India";
-// $descs[] = "Malabar (New South Wales, Australia)";
-// $descs[] = "Malabar (Florida, USA)";
-$descs[] = "12. Gadus & morhua' < >  an 3, a procumbent, - is ' a montane species, occurring through; most alpine birch forest ' and along the Red Sea coast of the Atlantic";
-$descs[] = "Typex x19: materials_examined	mountain shrublandé Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar ";
+// $descs[] = "4 {\\\displaystyle";
+$descs[] = "b5 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) ";
 */
 
 /*
@@ -129,8 +124,9 @@ foreach($IDs as $resource_id) {
             $q[3] = array('s' => "");
             $q[4] = array('s' => "mountain shrubland-ENVO_01000216");
             $q[5] = array('s' => "mountain shrubland-ENVO_01000216");
-
-            // $q[3] = array('s' => "procumbent-PATO_0002389");
+            $q[6] = array('s' => "procumbent-PATO_0002389");
+            $q[7] = array('s' => "black water river-Q100649"); //with double quotes
+            $q[8] = array('s' => "procumbent-PATO_0002389"); //with backslash \
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
@@ -154,8 +150,9 @@ foreach($IDs as $resource_id) {
         if($i == 3) {$s = "";                                       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 4) {$s = "mountain shrubland-ENVO_01000216";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 5) {$s = "mountain shrubland-ENVO_01000216";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
-        // if($i == 4) {$s = "procumbent-PATO_0002389";                if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 6) {$s = "procumbent-PATO_0002389";                if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 7) {$s = "black water river-Q100649";              if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 8) {$s = "procumbent-PATO_0002389";                if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
     }
     echo "\nerrors: [$resource_id][$errors errors]";
@@ -180,7 +177,7 @@ function run_desc($desc, $pensoft) {
             $final[] = $tmp;
         }
     }
-    else echo "\n-No Results-\n";
+    // else echo "\n-No Results-\n";
     return implode("|", $final);    
 }
 /*

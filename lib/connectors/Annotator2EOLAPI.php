@@ -46,6 +46,9 @@ class Annotator2EOLAPI extends Functions_Pensoft
             [subjects] => GeneralDescription|Distribution
         )*/
         $this->single_quote_char = "-_=-_=";
+        $this->double_quote_char = "-_=-_=";
+        $this->slant_bar = "-_=-_=";
+
         // /* add ontologies Yes/No in the id caching of Pensoft calls.
         if(in_array($this->param['resource_id'], array('617_ENV', '21_ENV', '26_ENV'))) $this->includeOntologiesYN = false; //Wikipedia EN | AmphibiaWeb text | WoRMS
         else $this->includeOntologiesYN = true; //the rest
@@ -442,13 +445,16 @@ class Annotator2EOLAPI extends Functions_Pensoft
         echo "\nRun Pensoft annotator...\n";
         $i = 0; $saved = 0;
         // /* Used when caching. First client: 617_ENV
+        $m = Functions::show_totals($meta->file_uri); echo "\nTotal rows in media extension: [$m]";
+        $m_orig = $m;
         if($conn_run = @$this->param['conn_run']) {
-            $m = Functions::show_totals($meta->file_uri); echo "\nTotal rows in media extension: [$m]";
             $m = $m/6;                                    echo "\nDivided by 6: [$m]| conn_run: [".$conn_run."]\n";
         }
         // */
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
-            $i++; if(($i % $this->modulo) == 0) echo "\nxyz".number_format($i);
+            // $i++; if(($i % $this->modulo) == 0) echo "\nxyz".number_format($i). " of $m_orig";
+            $i++; if(($i % 1000) == 0) echo "\nxyz".number_format($i). " of ".number_format($m_orig);
+
             // if($GLOBALS['ENV_DEBUG']) echo " -[$i]- ";
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
@@ -809,6 +815,9 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $desc = trim(Functions::remove_whitespace($desc));
         // $desc = htmlentities($desc); //caused probs. for: & < > etc. //but fixed text with ' single quote and fixed text with 
         $desc = str_replace("'", $this->single_quote_char, $desc);
+        $desc = str_replace('"', $this->double_quote_char, $desc);
+        $desc = str_replace("\\", $this->slant_bar, $desc);
+
         return $desc;
     }
     public function retrieve_annotation($id, $desc)
@@ -880,7 +889,9 @@ class Annotator2EOLAPI extends Functions_Pensoft
 
         // echo("\n------------- check results START\n");
         // print_r($this->results);
-        // exit("\n------------- check results END\n");
+        // echo("\n------------- check results END\n");
+
+        Functions::start_print_debug($this->debug, $this->param['resource_id']);
 
         if(isset($this->results)) return $this->results; //the return value is used in AntWebAPI.php
     }
@@ -911,7 +922,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
         // if(false) { //to force-bypass cache
-        if($arr = self::retrieve_json($id, 'partial', $desc)) { echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
+        if($arr = self::retrieve_json($id, 'partial', $desc)) { //echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); exit("\nhere 100\n"); //good debug ***** this is the orig annotator output
             if(isset($arr['data'])) self::select_envo($arr['data']);
@@ -927,7 +938,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             // echo("\nretrieved partial OK\n"); //good debug
         }
         else { //echo "\n=====dito 100\n";
-            if($json = self::run_partial($desc)) { echo "\n==========\n[::EXECUTED FOR THE 1ST TIME]\n==========\n";
+            if($json = self::run_partial($desc)) { //echo "\n==========\n[::EXECUTED FOR THE 1ST TIME]\n==========\n";
                 self::save_json($id, $json, 'partial');
                 // echo("\nSaved partial OK\n"); //good debug
                 /* now start access newly created. The var $this->results will now be populated. */
@@ -1162,9 +1173,11 @@ class Annotator2EOLAPI extends Functions_Pensoft
             //     [http://purl.obolibrary.org/obo/ENVO_01000204] => array("lbl" => "tropical", "ontology" => "envo");
             // )
             if(!isset($this->allowed_terms_URIs[$rek['id']])) {
+                /* good debug
                 echo "\nEOL Terms file: ".count($this->allowed_terms_URIs)."\n";
                 echo "\nhulix ka! NOT FOUND IN EOL TERMS FILE: [".$rek['id']."]";
                 @$this->debug["NOT FOUND IN EOL TERMS FILE"][$rek['id']]++;
+                */
                 // print_r($rek); echo "-----------------\n";
                 continue;
             }
@@ -1327,8 +1340,14 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $json = str_replace("MY_DESC", $desc, $json);
         $cmd = "php $php_script _ '".$json."'";     //echo "\ndesc is now:\n[$cmd]\n"; //exit;
         $cmd .= " 2>&1";
-        $cmdline_output = shell_exec($cmd);                          echo("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n");
-        $json = self::get_json_from_cmdline_output($cmdline_output); echo("\ncheck json:\n-----\n$json\n-----\nstop 2\n");
+        $cmdline_output = shell_exec($cmd);
+        if($GLOBALS['ENV_DEBUG']) { echo("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n"); }
+
+        if(strpos($cmdline_output, "ERROR: ") !== false) {
+            exit("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 2\n");            
+        } //string is found
+
+        $json = self::get_json_from_cmdline_output($cmdline_output); //echo("\ncheck json:\n-----\n$json\n-----\nstop 3\n");
         @$this->debug['counts']['C']++;
         return $json;
         // */
@@ -1345,6 +1364,9 @@ class Annotator2EOLAPI extends Functions_Pensoft
     {
         $json = html_entity_decode($json);
         $json = str_replace($this->single_quote_char, "'", $json);
+        $json = str_replace($this->double_quote_char, '"', $json);
+        $json = str_replace($this->slant_bar, "\\", $json);
+
         $file = self::build_path($id, $what);
         if($f = Functions::file_open($file, "w")) {
             fwrite($f, $json);

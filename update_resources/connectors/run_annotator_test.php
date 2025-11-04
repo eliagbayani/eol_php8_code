@@ -2,7 +2,7 @@
 namespace php_active_record;
 /* this is a utility to test Pensoft annotation */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
-$GLOBALS['ENV_DEBUG'] = true;
+$GLOBALS['ENV_DEBUG'] = false; //true;
 $timestart = time_elapsed();
 
 require_library('connectors/Functions_Pensoft');
@@ -56,20 +56,21 @@ else                                              exit("\n[$sciname] invalid\n")
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
 $descs = array();
-$descs[] = "b5. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of the Atlantic"; //with & < >
-$descs[] = "b5: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
-$descs[] = "b5: materials_examined	mountain shrublandé Isaiah "; //with é exclude
-$descs[] = "b5: materials_examined	mountain shrubland é Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
-$descs[] = "b5: materials_examined	'mountain shrubland Holotype. ' AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture with ' single quote
-$descs[] = "b5 a Gadus', is a  , . ; testing...  < > procumbent species";
-$descs[] = 'b5 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
-$descs[] = "4 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) "; //with backslash \
+$descs[] = "b7. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
+$descs[] = "b7: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
+$descs[] = "b7: materials_examined	mountain shrublandé Isaiah "; //with é exclude
+$descs[] = "b7: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
+$descs[] = "b7: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture with ' single quote
+$descs[] = "b7 a Gadus', is a  , . ; testing...  < > procumbent species' ";
+$descs[] = 'b7 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
+$descs[] = "b7 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) \d "; //with backslash \
 
 /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
 // $descs[] = "4 {\\\displaystyle";
-$descs[] = "b5 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) ";
+// $descs[] = "b5 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) ";
+$descs[] = "b9: materials_examined é	mountain shrubland é Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
 */
 
 /*

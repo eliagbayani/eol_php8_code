@@ -900,6 +900,8 @@ class Annotator2EOLAPI extends Functions_Pensoft
         // $str = escapeshellarg($str);
         // $str = escapeshellcmd($str);
         // $str = preg_quote($str, '/');
+        $str = iconv("utf-8","ascii//TRANSLIT",$str); //works OK
+        // $str = iconv('utf-8','ASCII//IGNORE//TRANSLIT',$str); //works OK as well
         return $str;
         /* per: https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67728&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67728
         I've only seen this in TreatmentBank. It would be a problem in any connector, but I'll bet there's something about the format of their service that makes 

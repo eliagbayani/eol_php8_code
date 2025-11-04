@@ -2665,7 +2665,7 @@ class Functions
             }
         }
         fclose($WRITE);
-        echo "\nCheck debug file: [$file]\n";
+        // echo "\nCheck debug file: [$file]\n";
         // print_r($this->debug);
     }
     public static function get_middle_record_from_array($arr)

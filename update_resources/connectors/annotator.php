@@ -3,7 +3,6 @@ namespace php_active_record;
 /* Main starting point for annotating text
 php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "ontologies": "envo,growth"}'
 */
-
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
 ini_set('error_reporting', E_ALL);
@@ -21,12 +20,14 @@ $desc = html_entity_decode($desc);
 echo "\n3. [$desc]\n";
 exit("\n-end test-\n");
 */
-
-print_r($argv);
+if($GLOBALS['ENV_DEBUG']) print_r($argv);
 $jenkins_or_cron = @$argv[1]; //not needed here
-$params                     = json_decode(@$argv[2], true); // print_r($param); exit;
-$text = $params['text'];
-print_r($params);
+$params = json_decode(@$argv[2], true); // print_r($param); exit;
+if($GLOBALS['ENV_DEBUG']) { echo "\n+++++start"; print_r($params); echo "\n+++++end"; }
+echo "\ntext: [".$params['text']."]";
+echo "\nontologies: [".$params['ontologies']."]\n";
+if(!@$params['text'])       exit("ERROR: Cannot parse text");
+if(!@$params['ontologies']) exit("ERROR: Cannot parse ontologies");
 
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();

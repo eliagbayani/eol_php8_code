@@ -45,9 +45,9 @@ class Annotator2EOLAPI extends Functions_Pensoft
             [resource_id] => 834_ENV
             [subjects] => GeneralDescription|Distribution
         )*/
-        $this->single_quote_char = "-_=-_=";
-        $this->double_quote_char = "-_=-_=";
-        $this->slant_bar = "-_=-_=";
+        $this->single_quote_char = "_-_-_-"; //"-_=-_=";
+        $this->double_quote_char = "_-_-_-_-";
+        $this->slant_bar         = "_-_-_-_-_-";
 
         // /* add ontologies Yes/No in the id caching of Pensoft calls.
         if(in_array($this->param['resource_id'], array('617_ENV', '21_ENV', '26_ENV'))) $this->includeOntologiesYN = false; //Wikipedia EN | AmphibiaWeb text | WoRMS

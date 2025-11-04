@@ -9,7 +9,7 @@ class TraitAnnotatorAPI
 {
     public $initialized_YN;
     public $keyword_uri, $ontologies;
-    public $download_options, $growth_ontology_file, $results;
+    public $download_options, $growth_ontology_file, $results, $debug;
     function __construct()
     {
         $this->download_options = array(
@@ -17,7 +17,6 @@ class TraitAnnotatorAPI
             'expire_seconds'     => 60*60*24*1, //1 day cache
             'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 0.5, 'cache' => 1);
         $this->growth_ontology_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/Pensoft_project/ontologies/ver_4/growth_form.csv';
-        $this->single_quote_char = "-_=-_=";
     }
     private function initialize($ontology)
     {
@@ -33,12 +32,14 @@ class TraitAnnotatorAPI
             $ontologies = array_map('trim', $ontologies);
         }
         else exit("\nERROR: Missing ontology.\n");
-        echo "\nStart here...\n"; echo "\nontologies: "; print_r($ontologies);
+        if(!@$params['text']) exit("\nERROR: Missing text.\n");
+
+        // echo "\nStart here...\n"; echo "\nontologies: "; print_r($ontologies);
         foreach($ontologies as $ontology) {
             if($ontology == 'eol-geonames') continue;
             self::process_ontology($ontology, $params['text']);
         }
-        print_r($this->results);
+        if($GLOBALS['ENV_DEBUG']) { echo "\nResults: "; print_r($this->results); }
         $json = json_encode($this->results); 
         echo "\nelix1".$json."elix2\n"; //IMPORTANT step; will use to capture json string from cmdline output.
     }
@@ -50,7 +51,7 @@ class TraitAnnotatorAPI
     private function parse_text($ontology, $text)
     {
         echo "\nsearching for ontology: [$ontology]\n";
-        $keywords = array_keys($this->keyword_uri[$ontology]); //print_r($keywords); exit;
+        $keywords = array_keys($this->keyword_uri[$ontology]); //print_r($keywords);
         foreach($keywords as $kw) {
             $ret = self::find_needle_from_haystack($kw, $text, $ontology);
         }
@@ -66,7 +67,7 @@ class TraitAnnotatorAPI
                     $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 'ontology' => $ontology);
                 }
             }
-            else exit("\nInvestigate: No URIs for ontology:[$ontology] | needle:[$needle]\n");
+            else exit("\nERROR: Investigate: No URIs for ontology:[$ontology] | needle:[$needle]\n");
         } else {
             // echo "Substring not found.";
         }
@@ -78,7 +79,7 @@ class TraitAnnotatorAPI
         $leftmost = $boundary_chars['left'];
         $rightmost = $boundary_chars['right'];
 
-        // print_r($boundary_chars); //exit("\nstop muna 1\n");
+        // print_r($boundary_chars);
         if(ctype_digit($leftmost)  || \IntlChar::isalpha($leftmost)  || ctype_alpha($leftmost) ) return false;
         if(ctype_digit($rightmost) || \IntlChar::isalpha($rightmost) || ctype_alpha($rightmost) ) return false;
         return true;
@@ -137,7 +138,7 @@ class TraitAnnotatorAPI
             else { //main records
                 $values = $row;
                 if($count != count($values)) { //row validation - correct no. of columns
-                    echo("\nWrong CSV format for this row.\n"); exit;
+                    exit("\nERROR: Wrong CSV format for this row.\n");
                     continue;
                 }
                 $k = 0;
@@ -146,7 +147,7 @@ class TraitAnnotatorAPI
                     $rec[$field] = $values[$k];
                     $k++;
                 }
-                $rec = array_map('trim', $rec); // print_r($rec); exit;
+                $rec = array_map('trim', $rec); // print_r($rec);
                 /*Array(
                     [value.name] => herb
                     [value.uri] => http://purl.obolibrary.org/obo/FLOPO_0022142

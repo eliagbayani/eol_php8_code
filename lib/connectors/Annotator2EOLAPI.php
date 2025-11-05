@@ -1020,7 +1020,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
 
             // /* NEW: Jul 10, 2024 - Eli's initiative --- never use line with " A. " --- abbreviation of names
             if(!$this->is_context_valid($rek['context'])) { 
-                debug("\nExcluded: Context not valid.\n"); 
+                // debug("\nExcluded: Context not valid.\n"); //good debug
                 continue; }
             // */
 

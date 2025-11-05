@@ -7,9 +7,7 @@ $timestart = time_elapsed();
 
 require_library('connectors/Functions_Pensoft');
 require_library('connectors/Annotator2EOLAPI');
-
 $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo,growth");
-
 $func = new Annotator2EOLAPI($param);
 
 // $str = "C. alpina a procumbent, is a montane species, occurring through most alpine birch forest and elsewhere";
@@ -56,22 +54,20 @@ else                                              exit("\n[$sciname] invalid\n")
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
 $descs = array();
-$descs[] = "b9. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
-$descs[] = "b9: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
-$descs[] = "b9: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
-$descs[] = "b9: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
-$descs[] = "b9: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
-$descs[] = "b9 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
-$descs[] = 'b9 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
-$descs[] = "b9 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) {\displaystyle {\ce  \d "; //with backslash \
-$descs[] = "b9 test ´ ito:' /ˈliːtʃiː/ procumbent test ´ ito:' /ˈliːtʃiː/ "; 
+$descs[] = "b91. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
+$descs[] = "b91: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
+$descs[] = "b91: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
+$descs[] = "b91: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
+$descs[] = "b91: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
+$descs[] = "b91 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
+$descs[] = 'b91 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
+$descs[] = "b91 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) {\displaystyle {\ce  \d "; //with backslash \
+$descs[] = "b91 test ´ ito:' /ˈliːtʃiː/ procumbent test ´ ito:' /ˈliːtʃiː/ "; 
 
 /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
-// $descs[] = "4 {\\\displaystyle";
-// $descs[] = "b5 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) ";
-$descs[] = "1 test ito:' ´ /ˈliːtʃiː/ procumbent ´ test ito:' /ˈliːtʃiː/ "; 
+$descs[] = "b9 2: materials_examined é	mountain shrublandé lake bottom "; //with é exclude
 */
 
 /*

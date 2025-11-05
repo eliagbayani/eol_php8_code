@@ -938,17 +938,18 @@ class Annotator2EOLAPI extends Functions_Pensoft
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
         // if(false) { //to force-bypass cache
-        if($arr = self::retrieve_json($id, 'partial', $desc)) { //echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
+        if($json = self::retrieve_json($id, 'partial', $desc)) { //echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
+            $arr = json_decode($json, true);
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); exit("\nhere 100\n"); //good debug ***** this is the orig annotator output
             if(isset($arr['data'])) self::select_envo($arr['data']);
             else {
-                echo "\n-=-=-=-=-=-=-=111\n[".$this->to_delete_file."]\n";
-                print_r($arr);
-                echo("\n[---$id---]\n[---$desc---]\n");
-                echo("\n[".$arr['text'][0]."]\n");
-                echo("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
-                exit("\nSo it still goes here...\n");
+                // echo "\n-=-=-=-=-=-=-=111\n[".$this->to_delete_file."]\n";
+                // print_r($arr);
+                // echo("\n[---$id---]\n[---$desc---]\n");
+                // echo("\n[".$arr['text'][0]."]\n");
+                // echo("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
+                // exit("\nSo it still goes here...\n");
                 return;
             }    
             // echo("\nretrieved partial OK\n"); //good debug
@@ -958,19 +959,20 @@ class Annotator2EOLAPI extends Functions_Pensoft
                 self::save_json($id, $json, 'partial');
                 // echo("\nSaved partial OK\n"); //good debug
                 /* now start access newly created. The var $this->results will now be populated. */
-                if($arr = self::retrieve_json($id, 'partial', $desc)) { //echo "\n=====dito 400\n";
+                if($json = self::retrieve_json($id, 'partial', $desc)) { //echo "\n=====dito 400\n";
+                    $arr = json_decode($json, true);
                     if(isset($arr['data'])) { //echo "\n=====dito 401\n"; // print_r($arr);
                         self::select_envo($arr['data']);
                     }
                     else {
-                        echo "\n-=-=-=-=-=-=-=222\n[".$this->to_delete_file."]\n";
-                        print_r($arr);
-                        echo("\n222[---$id---]\n[---$desc---]\n[---$json---]\n");
-                        echo("\n[".$arr['text'][0]."]\n");
-                        exit("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
+                        // echo "\n-=-=-=-=-=-=-=222\n[".$this->to_delete_file."]\n";
+                        // print_r($arr);
+                        // echo("\n222[---$id---]\n[---$desc---]\n[---$json---]\n");
+                        // echo("\n[".$arr['text'][0]."]\n");
+                        // exit("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
                         return;
                     }
-                    //echo "\n=====dito 500\n";
+                    // echo "\n=====dito 500\n";
                     // echo("\nretrieved (newly created) partial OK\n"); //good debug
                 }
                 else {
@@ -1321,7 +1323,8 @@ class Annotator2EOLAPI extends Functions_Pensoft
             // echo "-R-"; //R for retrieved
             @$this->debug['counts']['R']++;
             // echo "\nfile: [$file]\n"; // good debug
-            return json_decode($json, true);
+            // return json_decode($json, true);
+            return $json;
         }
     }
     private function run_partial($desc)

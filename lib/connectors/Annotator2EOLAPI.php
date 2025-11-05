@@ -37,7 +37,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
 {
     function __construct($param)
     {
-        // $GLOBALS['ENV_DEBUG'] = false; //true;
+        $GLOBALS['ENV_DEBUG'] = false; //true;
         $this->param = $param; // print_r($param); exit;
         /*Array(
             [task] => generate_eol_tags_pensoft
@@ -810,6 +810,21 @@ class Annotator2EOLAPI extends Functions_Pensoft
     }
     private function initial_desc_format($desc)
     {
+        $desc = Functions::conv_to_utf8($desc);   // from below
+
+        $desc = str_replace("ˈ", "'", $desc);        
+
+        //below 4 kinds of single quotes
+        $desc = str_replace("‘", "'", $desc);
+        $desc = str_replace("’", "'", $desc);
+        $desc = str_replace("ʼ", "'", $desc);
+        $desc = str_replace("´", "'", $desc);
+
+        $desc = str_replace("–", "-", $desc);        
+        $desc = str_replace("“", "'", $desc);        
+        $desc = str_replace("”", "'", $desc);        
+        $desc = str_replace("»", ">>", $desc);        
+
         $desc = str_replace(array("\t", "\n"), " - ", $desc);
         $desc = strip_tags($desc);
         $desc = trim(Functions::remove_whitespace($desc));
@@ -817,7 +832,6 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $desc = str_replace("'", $this->single_quote_char, $desc);
         $desc = str_replace('"', $this->double_quote_char, $desc);
         $desc = str_replace("\\", $this->slant_bar, $desc);
-
         return $desc;
     }
     public function retrieve_annotation($id, $desc)
@@ -1343,7 +1357,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $cmd = "php $php_script _ '".$json."'";     //echo "\ndesc is now:\n[$cmd]\n"; //exit;
         $cmd .= " 2>&1";
         $cmdline_output = shell_exec($cmd);
-        if($GLOBALS['ENV_DEBUG']) { echo("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n"); }
+        // if($GLOBALS['ENV_DEBUG']) { echo("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n"); }
 
         if(strpos($cmdline_output, "ERROR: ") !== false) {
             exit("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 2\n");            

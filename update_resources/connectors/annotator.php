@@ -4,11 +4,12 @@ namespace php_active_record;
 php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "ontologies": "envo,growth"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
-// /* during development
+/* during development
 ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
-$GLOBALS['ENV_DEBUG'] = false; //true; //set to true during development
-// */
+$GLOBALS['ENV_DEBUG'] = true; //true; //set to true during development
+*/
+$GLOBALS['ENV_DEBUG'] = false;
 $timestart = time_elapsed();
 
 /* test
@@ -26,8 +27,8 @@ $params = json_decode(@$argv[2], true); // print_r($param); exit;
 if($GLOBALS['ENV_DEBUG']) { echo "\n+++++start"; print_r($params); echo "\n+++++end"; }
 echo "\ntext: [".$params['text']."]";
 echo "\nontologies: [".$params['ontologies']."]\n";
-if(!@$params['text'])       exit("ERROR: Cannot parse text");
-if(!@$params['ontologies']) exit("ERROR: Cannot parse ontologies");
+if(!@$params['text'])       { echo "\n+++++start2"; print_r($argv); exit("ERROR: Cannot parse [text] cmdline param"); echo "\n+++++end2";}
+if(!@$params['ontologies']) { echo "\n+++++start3"; print_r($argv); exit("ERROR: Cannot parse [ontologies] cmdline param"); echo "\n+++++end3"; }
 
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();

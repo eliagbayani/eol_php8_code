@@ -94,8 +94,10 @@ class TraitAnnotatorAPI
         //right:
         $length_needle = strlen($needle);        
         $rightmost = mb_substr($haystack, $position + ($length_needle), 1);
-        echo "\nleftmost is: [$leftmost] from:[$needle][$haystack]\n";
-        echo "\nrightmost is: [$rightmost] from[$needle][$haystack]\n";
+        if($GLOBALS['ENV_DEBUG']) {
+            echo "\nleftmost is: [$leftmost] from:[$needle][$haystack]\n";
+            echo "\nrightmost is: [$rightmost] from[$needle][$haystack]\n";
+        }
         return array("left" => $leftmost, "right" => $rightmost);
     }
     private function format_context($needle, $haystack)

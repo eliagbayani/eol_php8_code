@@ -521,6 +521,8 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 $GLOBALS['ENV_DEBUG'] = false; //true;
 ini_set('memory_limit','8096M'); //required
 
+if(!is_dir($GLOBALS['MAIN_TMP_PATH'])) mkdir($GLOBALS['MAIN_TMP_PATH']);
+
 /* test only
 $str = "of Kedah on the west coast of Peninsular Malaysia. It is associated with riparian habitats and can be found near <b>streams</b>. It has been only been found at elevations between 800 – 1200 m Quah et al. 2017 .";
 $source_text = parse_context($str);

@@ -60,9 +60,9 @@ class FilterTermGroupByTaxa
         }
 
         require_library('connectors/Functions_Pensoft');
-        require_library('connectors/Pensoft2EOLAPI');
+        require_library('connectors/Annotator2EOLAPI'); //Pensoft2EOLAPI
         $param['resource_id'] = 'nothing';
-        $this->pensoft = new Pensoft2EOLAPI($param);
+        $this->pensoft = new Annotator2EOLAPI($param);
         $this->descendants_of_saline_water = $this->pensoft->get_descendants_of_habitat_group($this->params['habitat_filter']); //e.g. param "saline water"
         /* e.g. Q1390, Q1357, and Q10908. i.e. no saltwater insects, spiders, or amphibians. */
         // print_r($this->descendants_of_saline_water); exit;("\n");

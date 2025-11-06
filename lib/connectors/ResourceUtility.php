@@ -24,6 +24,7 @@ class ResourceUtility
         
         /* For environments_names.tsv processing */
         $this->ontology['env_names'] = "https://github.com/eliagbayani/vangelis_tagger/raw/master/eol_tagger/environments_names.tsv";
+        $this->source_mValue = array();
     }
     /*============================================================ STARTS remove_MoF_for_taxonID =================================================*/
     function remove_MoF_for_taxonID($info, $resource_name) //Func #7

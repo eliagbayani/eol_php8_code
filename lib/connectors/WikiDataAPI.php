@@ -33,6 +33,8 @@ drwxr-xr-x 2 root root           10 Nov  6  2017 wikipedia
 [root@eol-archive wikidata]# 
 */
 /* For testing one image to write to DwCA for Wikimedia. Follow the 3 asterisk ***. Un-comment these block of codes. Worked OK. Works also now for Wikipedia */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class WikiDataAPI extends WikipediaAPI
 {
     function __construct($folder, $lang, $what = "wikipedia", $langs_with_multiple_connectors = array(), $debug_taxon = false, $archive_builder = false, $is_running_version_1_YN = true)

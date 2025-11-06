@@ -75,27 +75,28 @@ exit("\nFile permission update: [$status]\n");
 */
 
 if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$source_dwca.'.tar.gz';
-else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$source_dwca.'.tar.gz';
+else                           $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$source_dwca" . ".tar.gz";
 
 $ctr = 1;
 $undefined = process_resource_url($dwca_file, $resource_id, $timestart, $ctr, $param);
 
 while($undefined) { $ctr++;
     if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-    else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
+    else                           $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . ".tar.gz";
+
     $undefined = process_resource_url($dwca_file, $resource_id, $timestart, $ctr, $param);
 }
 echo "\n--------------------END: fillup missing parent entries--------------------\n";
 
 /* new: Oct 29,2024 - final step where Zenodo record should be updated. Because all iterations above have not updated Zenodo as intended. */
-// /* as of Sep 4, 2024: snippet to update corresponding Zenodo record
+/* as of Sep 4, 2024: snippet to update corresponding Zenodo record ---> UNCOMMENT IN REAL OPERATION. as of Nov 7, 2025
 $EOL_resource_id = $resource_id;
 require_library('connectors/ZenodoFunctions');
 require_library('connectors/ZenodoConnectorAPI');
 require_library('connectors/ZenodoAPI');
 $func = new ZenodoAPI();
 $func->update_Zenodo_record_using_EOL_resourceID($EOL_resource_id);
-// */
+*/
 
 function process_resource_url($dwca_file, $resource_id, $timestart, $ctr, $param)
 {

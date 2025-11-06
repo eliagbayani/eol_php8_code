@@ -27,8 +27,7 @@ if(Functions::is_production()) $dwca_file = '/u/scripts/eol_php_code/application
 else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
 */
 // /* for Pensoft
-if(Functions::is_production()) $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . ".tar.gz";
-else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
+$dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . ".tar.gz";
 // */
 
 // /* ---------- customize here ----------

@@ -20,8 +20,7 @@ $param                     = json_decode(@$argv[2], true);
 $resource_id = $param['resource_id'];
 print_r($param);
 
-if(Functions::is_production()) $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . ".tar.gz";
-else                           $dwca_file = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
+$dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . ".tar.gz";
 
 // /* ---------- customize here ---------- e.g. "wikipedia_en_traits_tmp1" is the source --- "wikipedia_en_traits" is the target resource
 if($resource_id == 'wikipedia_en_traits_tmp1') $resource_id = "wikipedia_en_traits_tmp2"; //"wikipedia_en_traits"; orig value

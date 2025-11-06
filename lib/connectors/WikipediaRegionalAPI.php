@@ -6,7 +6,8 @@ use \ForceUTF8\Encoding;  // It's namespaced now.
 */
 
 /* connector: [957 - German] */
-
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class WikipediaRegionalAPI
 {
     function __construct($resource_id, $language_code)

@@ -26,7 +26,11 @@ class Environments2EOLfinal extends ContributorsMapAPI
         // /* NEW - Pensoft
         if(Functions::is_production()) $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/html/Pensoft_annotator/';
         else                           $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/opt/homebrew/var/www/Pensoft_annotator/';
+
+        if(Functions::is_production()) $this->root_path = '/var/www/html/EOL_annotator/';
+        else                           $this->root_path = '/var/www/html/EOL_annotator/';
         
+
         if($resource_id == '617_ENV') {} //Wikipedia EN
         else { //rest of the resources
             $tmp = str_replace('_ENV', '', $resource_id);
@@ -184,7 +188,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
         // */
         
         $this->func = new TraitGeneric($resource_id, $this->archive_builder);
-        $tsv = $this->eol_tags_path.'eol_tags_noParentTerms.tsv'; echo "\neol_tags_path: [$tsv]\n";
+        $tsv = $this->eol_tags_path.'eol_tags_noParentTerms.tsv'; echo "\neol_tags_path dito Eli: [$tsv]\n";
         $i = 0;
         foreach(new FileIterator($tsv) as $line_number => $row) {
             if(!$row) continue;

@@ -581,7 +581,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
                 // $this->debug['titles'][$rec['http://purl.org/dc/terms/title']] = ''; //debug only
                 // $saved++; //debug only
                 $this->results = array();
-                // $this->eli = array(); //good debug
+                // $this->eli = array(); //good debug - works OK - uncomment all rows with $this->eli if u want to test.
 
                 /* debug only; during dev only --- force assignment of string to textmine
                 $rec['http://purl.org/dc/terms/description'] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
@@ -592,8 +592,14 @@ class Annotator2EOLAPI extends Functions_Pensoft
             }
             // else { echo "\ninvalid rec\n"; print_r($rec); } //good debug
             // break; //get only 1 record, during dev only
-            // if($i >= 10) break; //debug only         --- limit the no. of records processed
-            if($saved >= 20) break; //debug only     --- limit the no. of records processed
+            // if($i >= 100000) break; //debug only         --- limit the no. of records processed
+            // if($saved >= 20) break; //debug only     --- limit the no. of records processed
+
+            /* debug only
+            $test = array_keys($this->eli);
+            if(count($test) >= 3) { print_r($this->eli); echo "\nearly exit during dev.\n"; break; } //debug only
+            */
+
         } //end loop
         if($this->param['resource_id'] == '26_ENV') echo("\n text_that_are_habitat: ".$this->text_that_are_habitat."\n");
         // print_r($this->debug); //good debug
@@ -823,7 +829,8 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $desc = str_replace("–", "-", $desc);        
         $desc = str_replace("“", "'", $desc);        
         $desc = str_replace("”", "'", $desc);        
-        $desc = str_replace("‟", "'", $desc);        
+        $desc = str_replace("‟", "'", $desc);
+        $desc = str_replace("＂", "'", $desc);
 
         $desc = str_replace("»", ">>", $desc);        
 
@@ -1245,6 +1252,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             }
             else { //rest of the resources --> Just be sure the citation, reference, biblio parts of text is not included as input to Pensoft
                 $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype'], "context" => $rek['context']);
+                // $this->eli[$rek['id']][] = $rek['lbl']; //good debug
             }
             // echo "\nGoes- 103\n";
 

@@ -1948,10 +1948,18 @@ class Functions
 
     public static function generate_measurementID($m, $resource_id, $extension = 'measurement', $properties = false)
     {
-        $url['measurement'] = "https://editors.eol.org/other_files/ontology/measurement_extension.xml";
         $url['measurement_specific'] = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/ontology/measurement_extension_specific.xml";
-        $url['occurrence'] = "https://editors.eol.org/other_files/ontology/occurrence_extension.xml"; //not used for now coz it will generate many many records both for occurrence and measurement extensions...
-        $url['association'] = "https://editors.eol.org/other_files/ontology/association_extension.xml";
+
+        /* moved to github.com bec editors.eol.org is becoming erratic
+        $url['measurement']          = "https://editors.eol.org/other_files/ontology/measurement_extension.xml";
+        $url['occurrence']           = "https://editors.eol.org/other_files/ontology/occurrence_extension.xml"; //not used for now coz it will generate many many records both for occurrence and measurement extensions...
+        $url['association']          = "https://editors.eol.org/other_files/ontology/association_extension.xml";
+        */
+
+        $url['measurement']          = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/ontology/measurement_extension.xml";
+        $url['occurrence']           = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/ontology/occurrence_extension.xml"; 
+        $url['association']          = "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/ontology/association_extension.xml";
+
         $final = '';
         // if($extension == 'measurement') { //orig
         if(in_array($extension, array('measurement', 'measurement_specific'))) {

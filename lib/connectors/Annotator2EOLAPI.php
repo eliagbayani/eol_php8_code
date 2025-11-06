@@ -593,7 +593,7 @@ class Annotator2EOLAPI extends Functions_Pensoft
             // else { echo "\ninvalid rec\n"; print_r($rec); } //good debug
             // break; //get only 1 record, during dev only
             // if($i >= 10) break; //debug only         --- limit the no. of records processed
-            // if($saved >= 20) break; //debug only     --- limit the no. of records processed
+            if($saved >= 20) break; //debug only     --- limit the no. of records processed
         } //end loop
         if($this->param['resource_id'] == '26_ENV') echo("\n text_that_are_habitat: ".$this->text_that_are_habitat."\n");
         // print_r($this->debug); //good debug
@@ -823,6 +823,8 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $desc = str_replace("–", "-", $desc);        
         $desc = str_replace("“", "'", $desc);        
         $desc = str_replace("”", "'", $desc);        
+        $desc = str_replace("‟", "'", $desc);        
+
         $desc = str_replace("»", ">>", $desc);        
 
         $desc = str_replace(array("\t", "\n"), " - ", $desc);

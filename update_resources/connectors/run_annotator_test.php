@@ -64,11 +64,11 @@ $descs[] = 'b91 conceals an approximately "55" mm 0.20 inlong, black water river
 $descs[] = "b91 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) {\displaystyle {\ce  \d "; //with backslash \
 $descs[] = "b91 test ´ ito:' /ˈliːtʃiː/ procumbent test ´ ito:' /ˈliːtʃiː/ "; 
 
-/* un-comment this block to test 1 record
+// /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
-$descs[] = "b9 2: materials_examined é	mountain shrublandé lake bottom "; //with é exclude
-*/
+$descs[] = "Type material examined: RBINS; lectotype by present designation: ♂, with labels and data: yellow, handwritten in black ink “ Psilus acutipalpis P Birma. ” / white, handwritten in black ink and printed “ Psilus acutipalpis Putz dét. J. Putzeys ” / white, violet printed and framed “ Soc. Ent. Belg. Coll. Putzeys ” / white, handwritten in black ink and printed “ Psilus acutipalpis Putz Cotype H. E. Andrewes det. 1928 ” / red, framed, printed and handwritten in black ink “ Paratype de acutipalpis ” / white, handwritten in black ink and printed “ Psilus paradoxus Putz. = P. acutipalpis Putz. = P. trapezicollis Bates H. E. Andrewes det. ”. Additional material: RBINS; 1 ♂, with labels and data: yellow, handwritten in black ink “ Birma ”, white, handwritten in black ink “ Cl. Dyschirioides m. Birma ”, white, violet printed and framed “ Soc. Ent. Belg. Coll. Putzeys ”, white, black printed and handwritten in black ink “ Psilus acutipalpis Putz dét. H. E. Andrewes 1920 ‟. – NHMB; 1 ♀, handwritten and red framed: China, Lilong.";
+// */
 
 /*
 &amp; becomes & (ampersand)

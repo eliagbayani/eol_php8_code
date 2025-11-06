@@ -54,21 +54,21 @@ else                                              exit("\n[$sciname] invalid\n")
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
 $descs = array();
-$descs[] = "b91. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
-$descs[] = "b91: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
-$descs[] = "b91: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
-$descs[] = "b91: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
-$descs[] = "b91: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
-$descs[] = "b91 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
-$descs[] = 'b91 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
-$descs[] = "b91 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) {\displaystyle {\ce  \d "; //with backslash \
-$descs[] = "b91 test ´ ito:' /ˈliːtʃiː/ procumbent test ´ ito:' /ˈliːtʃiː/ "; 
+$descs[] = "b93. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
+$descs[] = "b93: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
+$descs[] = "b93: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
+$descs[] = "b93: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
+$descs[] = "b93: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
+$descs[] = "b93 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
+$descs[] = 'b93 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
+$descs[] = "b93 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) {\displaystyle {\ce  \d "; //with backslash \
+$descs[] = "b93 test ＂ c ´ ‟ ito:' /ˈliːtʃiː/ procumbent test ´ ito:' /ˈliːtʃi.‟ ː/ kj＂kj "; 
 
-// /* un-comment this block to test 1 record
+/* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
-$descs[] = "Type material examined: RBINS; lectotype by present designation: ♂, with labels and data: yellow, handwritten in black ink “ Psilus acutipalpis P Birma. ” / white, handwritten in black ink and printed “ Psilus acutipalpis Putz dét. J. Putzeys ” / white, violet printed and framed “ Soc. Ent. Belg. Coll. Putzeys ” / white, handwritten in black ink and printed “ Psilus acutipalpis Putz Cotype H. E. Andrewes det. 1928 ” / red, framed, printed and handwritten in black ink “ Paratype de acutipalpis ” / white, handwritten in black ink and printed “ Psilus paradoxus Putz. = P. acutipalpis Putz. = P. trapezicollis Bates H. E. Andrewes det. ”. Additional material: RBINS; 1 ♂, with labels and data: yellow, handwritten in black ink “ Birma ”, white, handwritten in black ink “ Cl. Dyschirioides m. Birma ”, white, violet printed and framed “ Soc. Ent. Belg. Coll. Putzeys ”, white, black printed and handwritten in black ink “ Psilus acutipalpis Putz dét. H. E. Andrewes 1920 ‟. – NHMB; 1 ♀, handwritten and red framed: China, Lilong.";
-// */
+$descs[] = 'Schott — The Plant List"</a>. <i>www.theplantlist.org</i><span>. Retrieved <span>2018-03-18</span></span>.</cite></span> </li> ';
+*/
 
 /*
 &amp; becomes & (ampersand)

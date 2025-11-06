@@ -825,12 +825,15 @@ class Annotator2EOLAPI extends Functions_Pensoft
         $desc = str_replace("’", "'", $desc);
         $desc = str_replace("ʼ", "'", $desc);
         $desc = str_replace("´", "'", $desc);
+        $desc = str_replace("‛", "'", $desc);
 
         $desc = str_replace("–", "-", $desc);        
         $desc = str_replace("“", "'", $desc);        
         $desc = str_replace("”", "'", $desc);        
         $desc = str_replace("‟", "'", $desc);
         $desc = str_replace("＂", "'", $desc);
+
+
 
         $desc = str_replace("»", ">>", $desc);        
 

@@ -62,7 +62,7 @@ $descs[] = "b93: materials_examined'	'mountain shrubland Holotype. ' AMS I. 1942
 $descs[] = "b93 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
 $descs[] = 'b93 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
 $descs[] = "b93 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate procumbent (S2O32-) {\displaystyle {\ce  \d "; //with backslash \
-$descs[] = "b93 test ＂ c ´ ‟ ito:' /ˈliːtʃiː/ procumbent test ´ ito:' /ˈliːtʃi.‟ ː/ kj＂kj "; 
+$descs[] = "b93 test ‛ ＂ c ´ ‟ ito:' /ˈliːtʃiː/ procumbent test ´ ito:' /ˈliːtʃi.‟ ː/ k ‛ j＂kj "; 
 
 /* un-comment this block to test 1 record
 $descs = array();

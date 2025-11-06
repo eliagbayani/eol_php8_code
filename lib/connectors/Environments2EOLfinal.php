@@ -31,13 +31,19 @@ class Environments2EOLfinal extends ContributorsMapAPI
         else                           $this->root_path = '/var/www/html/EOL_annotator/';
         
 
-        if($resource_id == '617_ENV') {} //Wikipedia EN
-        else { //rest of the resources
-            $tmp = str_replace('_ENV', '', $resource_id);
-            $this->root_path .= $tmp.'/';
-            if(!is_dir($this->root_path)) mkdir($this->root_path);
-            // exit("\n$this->root_path\n");
-        }
+        // obsolete
+        // if($resource_id == '617_ENV') {} //Wikipedia EN
+        // else { //rest of the resources
+        //     $tmp = str_replace('_ENV', '', $resource_id);
+        //     $this->root_path .= $tmp.'/';
+        //     if(!is_dir($this->root_path)) mkdir($this->root_path);
+        // }
+
+        // new
+        $tmp = str_replace('_ENV', '', $resource_id);
+        $this->root_path .= $tmp.'/';
+        if(!is_dir($this->root_path)) mkdir($this->root_path);
+
         // */
         $this->eol_tags_path        = $this->root_path.'eol_tags/';
         $this->json_temp_path       = $this->root_path.'temp_json/';

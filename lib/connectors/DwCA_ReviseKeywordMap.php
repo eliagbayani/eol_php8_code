@@ -86,6 +86,10 @@ class DwCA_ReviseKeywordMap
         // */
 
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+
+        echo "\ndelete_occurrence_ids: ".count($this->delete_occurrence_ids);
+        echo "\ndelete_measurement_ids: ".count($this->delete_measurement_ids);
+        echo "\ndelete MoF: ".$this->stats_only["delete MoF"]."\n";
     }
     private function process_table($meta, $what)
     {   //print_r($meta);
@@ -117,11 +121,12 @@ class DwCA_ReviseKeywordMap
                     [scientificNameAuthorship] => Carl Linnaeus, 1753
                     [canonicalName] => 
                 )*/
+                $taxonID = $rec['taxonID'];
                 if($taxonRank = strtolower(@$rec['taxonRank'])) {
-                    if($taxonRank == 'species') $this->accepted_taxa[$rec['taxonID']] = '';
+                    if($taxonRank == 'species') $this->accepted_taxa[$taxonID] = '';
                 }
                 if($scientificName = @$rec['scientificName']) {
-                    if(Functions::is_binomial($scientificName)) $this->accepted_taxa[$rec['taxonID']] = '';
+                    if(Functions::is_binomial($scientificName)) $this->accepted_taxa[$taxonID] = '';
                 }
             }
             elseif($what == 'evaluate_Occurrence') {
@@ -160,6 +165,7 @@ class DwCA_ReviseKeywordMap
                     if($ret == "delete MoF") {
                         $this->delete_occurrence_ids[$occurrenceID] = '';
                         $this->delete_measurement_ids[$measurementID] = '';
+                        @$this->stats_only["delete MoF"]++;
                     }
                 }
             }

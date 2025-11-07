@@ -186,7 +186,20 @@ class FillUpMissingParentsAPI
                 if($taxonID == "Q107694904")    $rec['http://rs.tdwg.org/dwc/terms/scientificName'] = "Trachipleistophora";
                 if($taxonID == "Q15657618")     $rec['http://rs.tdwg.org/dwc/terms/scientificName'] = "Hemaris thetis";
                 // */
+
+                // /* manual parent assignment: Nov 7, 2025
+                // assign Scomber as parent of Scomber scombrus
+                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+                if($taxonID == "Q30153") $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = "Q3593412";
                 
+                // another set of manual assignment
+                if($taxonID == "Q3325179") $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = "Q609477";
+                if($taxonID == "Q2630713") $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = "Q21229848";
+                if($taxonID == "Q1953659") $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = "Q21229848";
+
+                if($taxonID == "Q55168318") continue; //exclude this erratic taxon: "State Security Service of Kazakhstan"
+                // */
+
                 // /* New: Feb 16, 2022
                 if(!@$rec['http://rs.gbif.org/terms/1.0/canonicalName']) {
                     $scientificName = $rec['http://rs.tdwg.org/dwc/terms/scientificName'];

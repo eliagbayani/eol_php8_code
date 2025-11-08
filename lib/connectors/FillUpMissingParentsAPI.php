@@ -196,8 +196,11 @@ class FillUpMissingParentsAPI
                 if($taxonID == "Q3325179") $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = "Q609477";
                 if($taxonID == "Q2630713") $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = "Q21229848";
                 if($taxonID == "Q1953659") $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = "Q21229848";
-
-                if($taxonID == "Q55168318") continue; //exclude this erratic taxon: "State Security Service of Kazakhstan"
+                    
+                // exclude these seemingly orphan taxa:
+                $tmp = array("Q2116552", "Q20014035", "Q35133795", "Q1094218", "Q123878965", "Q4681517", "Q111209350", "Q15898960", "Q123910680", "Q118873929", "Q21373974", "Q10446");
+                $tmp[] = "Q55168318"; //exclude this erratic taxon: "State Security Service of Kazakhstan"
+                if(in_array($taxonID, $tmp)) continue;                
                 // */
 
                 // /* New: Feb 16, 2022

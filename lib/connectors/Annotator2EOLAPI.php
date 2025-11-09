@@ -33,7 +33,7 @@ https://github.com/EOL/textmine_rules
 
 define("SERVICE_TERM_DESCENDANTS", "https://editors.eol.org/eol_php_code/update_resources/connectors/get_descendants_of_term.php?term=");
 
-class Annotator2EOLAPI extends Functions_Pensoft
+class Annotator2EOLAPI extends Functions_Annotator
 {
     function __construct($param)
     {

@@ -3,9 +3,9 @@ namespace php_active_record;
 /* */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class Functions_Pensoft
+class Functions_Annotator
 {
-    function __construct() { exit("\nFunctions Pensoft not used anymore.\n"); }
+    function __construct() {}
     function initialize_new_patterns()
     {   // exit("\n[$this->new_patterns_4textmined_resources]\nelix1\n");
         // $str = file_get_contents($this->new_patterns_4textmined_resources); //too long

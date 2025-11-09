@@ -170,17 +170,16 @@ class Annotator2EOLAPI extends Functions_Annotator
         // */
     }
     public function initialize_remaps_deletions_adjustments()
-    {
+    {   /* copied template
         self::init_DATA_1841_terms_remapped();  //generates $this->remapped_terms               -> used in apply_adjustments()
         self::initialize_mRemark_assignments(); //generates $this->mRemarks                     -> used in apply_adjustments()
         self::initialize_delete_mRemarks();     //generates $this->delete_MoF_with_these_labels -> used in apply_adjustments()
         self::initialize_delete_uris();         //generates $this->delete_MoF_with_these_uris   -> used in apply_adjustments()
-        // /* echo "\nto test if these 4 variables are populated: ";
         echo("\n remapped_terms: "              .count($this->remapped_terms)."");
         echo("\n mRemarks: "                    .count($this->mRemarks)."");
         echo("\n delete_MoF_with_these_labels: ".count($this->delete_MoF_with_these_labels)."");
         echo("\n delete_MoF_with_these_uris: "  .count($this->delete_MoF_with_these_uris).""); echo("\n---------------\n");
-        // */
+        */
 
         $this->initialize_new_patterns();         //generates $this->new_patterns   -> from Functions_Pensoft.php --- DATA-1893
         echo("\n new_patterns: "  .count($this->new_patterns)."\n"); //print_r($this->new_patterns); exit;
@@ -1022,16 +1021,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                     [hash] => dda9a35f1c55d220ce83d768af23bfd5
                 )
         */
-        foreach($arr as $rek) {             //echo "\n=====dito 890\n";
-
-            // print_r($rek); //good debug NEW
-            // /* general for all:
-            
-            // /* new: Nov 22, 2023 - Eli's initiative -- never use this
-            // if($rek['is_word'] != "1") continue;
-            // if($rek['is_synonym'] == "1") continue;
-            // */
-
+        foreach($arr as $rek) {
             // /* NEW: Jul 10, 2024 - Eli's initiative --- never use line with " A. " --- abbreviation of names
             if(!$this->is_context_valid($rek['context'])) { 
                 // debug("\nExcluded: Context not valid.\n"); //good debug
@@ -1049,18 +1039,6 @@ class Annotator2EOLAPI extends Functions_Annotator
             }
             // */
 
-            // /* new: Nov 22, 2023 - Eli's initiative. Until a better sol'n is found. e.g. "Cueva de Altamira"
-            if(stripos($rek['lbl'], " de ") !== false) {
-                // debug("\nExcluded: huli_3\n"); 
-                continue; } //string is found
-            // */
-
-            // print_r($this->param); //exit;
-            /* new Nov 23, 2023 per https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67733&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67733
-            if(in_array($this->param['resource_id'], array('617_ENV', 'TreatmentBank_ENV'))) { //Wikipedia EN & TreatmentBank for now
-                if(isset($this->labels_to_remove[$rek['lbl']])) continue;
-            }
-            */
             if(isset($this->labels_to_remove[$rek['lbl']])) {
                 // debug("\nExcluded: huli_4\n");
                 continue; } //this started exclusive to Wikipedia and TreatmentBank. Now it is across the board 20Jun2024
@@ -1089,7 +1067,6 @@ class Annotator2EOLAPI extends Functions_Annotator
             } // ======================================================================== end growth ontology */
             
             // /* customize
-            // exit("\n".$this->param['resource_id']."\n");
             if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text
                 if($rek['id'] == 'http://purl.obolibrary.org/obo/ENVO_00002010') continue; //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
                 if(isset($this->descendants_of_saline_water[$rek['id']])) continue;
@@ -1768,132 +1745,93 @@ class Annotator2EOLAPI extends Functions_Annotator
     }
     public function apply_adjustments($uri, $label) //apply it here: ALL_remap_replace_remove.txt
     {
-        if(in_array($uri, array("http://purl.obolibrary.org/obo/ENVO_00000029", "http://purl.obolibrary.org/obo/ENVO_00000104")) && $label == 'ravine') $uri = "http://purl.obolibrary.org/obo/ENVO_00000100";
+        return array('label' => $label, 'uri' => $uri);
+
+        // if(in_array($uri, array("http://purl.obolibrary.org/obo/ENVO_00000029", "http://purl.obolibrary.org/obo/ENVO_00000104")) && $label == 'ravine') $uri = "http://purl.obolibrary.org/obo/ENVO_00000100";
             
         // /* Eli's initiative: mountain should take ENVO_00000081 and not ENVO_00000264
-        if(in_array($uri, array("http://purl.obolibrary.org/obo/ENVO_00000264")) && in_array($label, array('mountain', 'mountains'))) $uri = "http://purl.obolibrary.org/obo/ENVO_00000081";
+        // if(in_array($uri, array("http://purl.obolibrary.org/obo/ENVO_00000264")) && in_array($label, array('mountain', 'mountains'))) $uri = "http://purl.obolibrary.org/obo/ENVO_00000081";
         // */
                 
-        if($new_uri = @$this->mRemarks[$label]) $uri = $new_uri;
-        if($new_uri = @$this->remapped_terms[$uri]) $uri = $new_uri;
-        if(isset($this->delete_MoF_with_these_labels[$label])) return false;
-        if(isset($this->delete_MoF_with_these_uris[$uri])) return false;
+        // if($new_uri = @$this->mRemarks[$label]) $uri = $new_uri;
+        // if($new_uri = @$this->remapped_terms[$uri]) $uri = $new_uri;
+        // if(isset($this->delete_MoF_with_these_labels[$label])) return false;
+        // if(isset($this->delete_MoF_with_these_uris[$uri])) return false;
 
         // /* customize
-        if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text
-            if($uri == 'http://purl.obolibrary.org/obo/ENVO_00002010') return false; //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
-            if(isset($this->descendants_of_saline_water[$uri]))        return false; //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
-        }
-        if(in_array($uri, $this->remove_across_all_resources)) return false; //remove 'cloud', 'cut' for all resources
+        // if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text
+        //     if($uri == 'http://purl.obolibrary.org/obo/ENVO_00002010') return false; //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
+        //     if(isset($this->descendants_of_saline_water[$uri]))        return false; //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
+        // }
+        // if(in_array($uri, $this->remove_across_all_resources)) return false; //remove 'cloud', 'cut' for all resources
         // */
         
-        return array('label' => $label, 'uri' => $uri);
+        // return array('label' => $label, 'uri' => $uri);
     }
     private function init_DATA_1841_terms_remapped()
-    {
-        require_library('connectors/TropicosArchiveAPI');
+    {   /* copied template */
+        // require_library('connectors/TropicosArchiveAPI');
         /* START DATA-1841 terms remapping */
-        $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Terms_remapped/DATA_1841_terms_remapped.tsv";
-        $func = new TropicosArchiveAPI(NULL); //to initialize variable $this->uri_values in TropicosArchiveAPI
-        $this->remapped_terms = $func->add_additional_mappings(true, $url, 60*60*24); //*this is not add_additional_mappings() 60*60*24
-        echo "\nremapped_terms: ".count($this->remapped_terms)."\n";
+        // $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Terms_remapped/DATA_1841_terms_remapped.tsv";
+        // $func = new TropicosArchiveAPI(NULL); //to initialize variable $this->uri_values in TropicosArchiveAPI
+        // $this->remapped_terms = $func->add_additional_mappings(true, $url, 60*60*24); //*this is not add_additional_mappings() 60*60*24
+        // echo "\nremapped_terms: ".count($this->remapped_terms)."\n";
         /* END DATA-1841 terms remapping */
-        
-        /* this row now deleted in: "https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Terms_remapped/DATA_1841_terms_remapped.tsv"
-        per: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65470&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65470
-        http://purl.obolibrary.org/obo/ENVO_01000251	http://www.wikidata.org/entity/Q1342399
-        */
-        
+                
         // /* for WoRMS only: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65471&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65471
-        // http://purl.obolibrary.org/obo/ENVO_01000127 (canyon) => http://purl.obolibrary.org/obo/ENVO_00000267 (submarine canyon)
-        // http://purl.obolibrary.org/obo/ENVO_00000087 (cliff) => http://purl.obolibrary.org/obo/ENVO_00000088 (sea cliff)
-        // http://purl.obolibrary.org/obo/ENVO_00000182 (plateau) => discard. This could mean a few different things
-        if($this->param['resource_id'] == '26_ENV') { //WoRMS only
-            /* moved to text file below
-            $this->remapped_terms['http://purl.obolibrary.org/obo/ENVO_01000127'] = 'http://purl.obolibrary.org/obo/ENVO_00000267';
-            $this->remapped_terms['http://purl.obolibrary.org/obo/ENVO_00000087'] = 'http://purl.obolibrary.org/obo/ENVO_00000088'; */
-            $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Terms_remapped/WoRMS_only_terms_remapped.tsv";
-            $key_value_arr = $this->parse_github_dump($url, "key_value"); print_r($key_value_arr);
-            foreach($key_value_arr as $key => $value) $this->remapped_terms[$key] = $value;
-            echo "\nWoRMS added, remapped_terms: ".count($this->remapped_terms)."\n";
-        }
+        // if($this->param['resource_id'] == '26_ENV') { //WoRMS only
+        //     $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Terms_remapped/WoRMS_only_terms_remapped.tsv";
+        //     $key_value_arr = $this->parse_github_dump($url, "key_value"); print_r($key_value_arr);
+        //     foreach($key_value_arr as $key => $value) $this->remapped_terms[$key] = $value;
+        //     echo "\nWoRMS added, remapped_terms: ".count($this->remapped_terms)."\n";
+        // }
         // */
     }
     private function initialize_delete_mRemarks()
-    {   // if measurementRemarks is any of these, then delete MoF
-        $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/del_MoF_with_these_labels.tsv";
-        $labels = $this->load_github_dump($url);
-        foreach($labels as $label) $this->delete_MoF_with_these_labels[$label] = '';
+    {   /* copied template */
+        // if measurementRemarks is any of these, then delete MoF
+        // $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/del_MoF_with_these_labels.tsv";
+        // $labels = $this->load_github_dump($url);
+        // foreach($labels as $label) $this->delete_MoF_with_these_labels[$label] = '';
 
         // /* remove list of labels
-        $str = Functions::lookup_with_cache($this->labels_to_remove_file, $this->download_options);
-        $arr = explode("\n", $str);
-        $arr = array_map('trim', $arr);
-        foreach($arr as $label) if($label) $this->labels_to_remove[$label] = '';
-        // print_r($this->labels_to_remove); exit("\nlabels_to_remove: ".count($this->labels_to_remove)."\n");
+        // $str = Functions::lookup_with_cache($this->labels_to_remove_file, $this->download_options);
+        // $arr = explode("\n", $str);
+        // $arr = array_map('trim', $arr);
+        // foreach($arr as $label) if($label) $this->labels_to_remove[$label] = '';
         // */        
     }
     private function initialize_mRemark_assignments()
-    {           
-        // e.g. $mRemarks["open waters"] = "http://purl.obolibrary.org/obo/ENVO_00002030";
-        
+    {   /* copied template */
+        // e.g. $mRemarks["open waters"] = "http://purl.obolibrary.org/obo/ENVO_00002030";        
         /* read from tsv file, generate $mRemarks */
-        $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/mRemarks_assignments.tsv";
-        $mRemarks = $this->parse_github_dump($url, "key_value");
-        $this->mRemarks = $mRemarks;
+        // $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/mRemarks_assignments.tsv";
+        // $mRemarks = $this->parse_github_dump($url, "key_value");
+        // $this->mRemarks = $mRemarks;
     }
     private function initialize_delete_uris()
-    {
-        // print_r($this->remove_across_all_resources); echo "\ncount: ".count($this->remove_across_all_resources)."\n"; exit("\nstop muna\n");
+    {   /* copied template */
         // at this point $this->remove_across_all_resources still has no records.
-        foreach($this->remove_across_all_resources as $uri) $this->delete_MoF_with_these_uris[$uri] = ''; //remove cloud, cut for all resources
-
-        // commented so far: https://eol-jira.bibalex.org/browse/DATA-1713?focusedCommentId=65447&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65447
-        /* another set of excluded URIs. From Jen (AntWeb): https://eol-jira.bibalex.org/browse/DATA-1713?focusedCommentId=65443&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65443
-        $str = file_get_contents($this->another_set_exclude_URIs);
-        $arr = explode("\n", $str);
-        $arr = array_map('trim', $arr);
-        // print_r($arr); exit("\n".count($arr)."\n");
-        foreach($arr as $uri) $this->delete_MoF_with_these_uris[$uri] = '';
-        */
+        // foreach($this->remove_across_all_resources as $uri) $this->delete_MoF_with_these_uris[$uri] = ''; //remove cloud, cut for all resources
         
-        // /* 
-        $to_delete_sources = array($this->another_set_exclude_URIs_02,  //Jen: "I've found a bunch more measurementValue terms we should ALWAYS remove." : https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65451&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65451
-                                   $this->another_set_exclude_URIs_03); //Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65780&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65780
-        foreach($to_delete_sources as $source) {
-            // $str = file_get_contents($source); //too long
-            $str = Functions::lookup_with_cache($source, $this->download_options);
-            $arr = explode("\n", $str);
-            $arr = array_map('trim', $arr);
-            $arr = array_filter($arr); //remove null arrays
-            $arr = array_unique($arr); //make unique
-            $arr = array_values($arr); //reindex key
-            // print_r($arr); exit("\n".count($arr)."\n");
-            foreach($arr as $uri) $this->delete_MoF_with_these_uris[$uri] = '';
-        }
-        // */
+        // $to_delete_sources = array($this->another_set_exclude_URIs_02,  //Jen: "I've found a bunch more measurementValue terms we should ALWAYS remove." : https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65451&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65451
+        //                            $this->another_set_exclude_URIs_03); //Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65780&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65780
+        // foreach($to_delete_sources as $source) {
+        //     // $str = file_get_contents($source); //too long
+        //     $str = Functions::lookup_with_cache($source, $this->download_options);
+        //     $arr = explode("\n", $str);
+        //     $arr = array_map('trim', $arr);
+        //     $arr = array_filter($arr); //remove null arrays
+        //     $arr = array_unique($arr); //make unique
+        //     $arr = array_values($arr); //reindex key
+        //     foreach($arr as $uri) $this->delete_MoF_with_these_uris[$uri] = '';
+        // }
 
-        // commented for dev only:
-        /* NEW: remove descendants of ENVO_00000002: https://github.com/EOL/ContentImport/issues/21#issuecomment-2508735608
-        $term = 'http://purl.obolibrary.org/obo/ENVO_00000002'; //a geographic feature resulting from the influence of human beings on nature
-        $url = SERVICE_TERM_DESCENDANTS . $term; echo ("\nservice url to get term descendants: [$url]\n");
-        if($json = Functions::lookup_with_cache($url, $this->download_options)) {
-            $arr = json_decode($json, true); //print_r($arr); exit("\nito pala\n");
-            foreach($arr as $uri) $this->delete_MoF_with_these_uris[$uri] = ''; 
-        }
-        */
-        
-        // /* for WoRMS only: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65471&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65471
-        // http://purl.obolibrary.org/obo/ENVO_00000182 (plateau) => discard. This could mean a few different things
-        // if($this->param['resource_id'] == '26_ENV') { //WoRMS only
-        if(true) { //now across the board 20Jun2024
-            /* moved to text file below
-            $this->delete_MoF_with_these_uris['http://purl.obolibrary.org/obo/ENVO_00000182'] = ''; */
-            $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/WoRMS_only_delete_URIs.tsv";
-            $uris = $this->load_github_dump($url);
-            foreach($uris as $uri) $this->delete_MoF_with_these_uris[$uri] = '';
-        }
-        // */
+        // if(true) { //now across the board 20Jun2024
+        //     $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/WoRMS_only_delete_URIs.tsv";
+        //     $uris = $this->load_github_dump($url);
+        //     foreach($uris as $uri) $this->delete_MoF_with_these_uris[$uri] = '';
+        // }
     }
     public function get_descendants_of_habitat_group($what)
     {

@@ -5,7 +5,7 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 $GLOBALS['ENV_DEBUG'] = false; //true;
 $timestart = time_elapsed();
 
-require_library('connectors/Functions_Pensoft');
+require_library('connectors/Functions_Annotator');
 require_library('connectors/Annotator2EOLAPI');
 $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", "ontologies" => "envo,growth");
 $func = new Annotator2EOLAPI($param);
@@ -94,7 +94,7 @@ $IDs = array('617_ENV'); //or Wikipedia EN               //dev only
 
 foreach($IDs as $resource_id) {
     $param['resource_id'] = $resource_id;
-    require_library('connectors/Functions_Pensoft');
+    require_library('connectors/Functions_Annotator');
     require_library('connectors/Annotator2EOLAPI');
     $pensoft = new Annotator2EOLAPI($param);
     $pensoft->initialize_remaps_deletions_adjustments(); //copied template
@@ -107,6 +107,7 @@ foreach($IDs as $resource_id) {
     // ************************************
     $i = 0; $errors = 0;
     foreach($descs as $desc) { $i++;
+        $desc .= " ".date('Y-m-d H:i:s', time());
         $ret = run_desc($desc, $pensoft);
         echo "\n[$resource_id $i] - "; echo("[$desc] [$ret]");
         // $i = 9; //force-assign

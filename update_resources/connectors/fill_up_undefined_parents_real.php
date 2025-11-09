@@ -89,7 +89,7 @@ while($undefined) { $ctr++;
 echo "\n--------------------END: fillup missing parent entries--------------------\n";
 
 /* new: Oct 29,2024 - final step where Zenodo record should be updated. Because all iterations above have not updated Zenodo as intended. */
-/* as of Sep 4, 2024: snippet to update corresponding Zenodo record ---> UNCOMMENT IN REAL OPERATION. as of Nov 7, 2025
+/* as of Sep 4, 2024: snippet to update corresponding Zenodo record ---> UNCOMMENT IN REAL OPERATION. as of Nov 7, 2025. I'm not sure if needs to be UNCOMMENTED ?
 $EOL_resource_id = $resource_id;
 require_library('connectors/ZenodoFunctions');
 require_library('connectors/ZenodoConnectorAPI');

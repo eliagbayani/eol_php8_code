@@ -1,7 +1,21 @@
 <?php
 namespace php_active_record;
 /* Main starting point for annotating text
-php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "ontologies": "envo,growth"}'
+php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "ontologies": "envo,growth"}' => Obsolete
+
+php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "predicates": "ALL"}'
+php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "predicates": "habitat, reproduction"}'
+
+predicates: 7 as of 10Nov2025
+    behavioral circadian rhythm
+    developmental mode
+    habitat
+    life cycle habit
+    mating system
+    reproduction
+    sexual system
+
+
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 /* during development
@@ -26,9 +40,9 @@ $jenkins_or_cron = @$argv[1]; //not needed here
 $params = json_decode(@$argv[2], true); // print_r($param); exit;
 if($GLOBALS['ENV_DEBUG']) { echo "\n+++++start"; print_r($params); echo "\n+++++end"; }
 echo "\ntext: [".$params['text']."]";
-echo "\nontologies: [".$params['ontologies']."]\n";
+echo "\npredicates: [".$params['predicates']."]\n";
 if(!@$params['text'])       { echo "\n+++++start2"; print_r($argv); exit("ERROR: Cannot parse [text] cmdline param"); echo "\n+++++end2";}
-if(!@$params['ontologies']) { echo "\n+++++start3"; print_r($argv); exit("ERROR: Cannot parse [ontologies] cmdline param"); echo "\n+++++end3"; }
+if(!@$params['predicates']) { echo "\n+++++start3"; print_r($argv); exit("ERROR: Cannot parse [predicates] cmdline param"); echo "\n+++++end3"; }
 
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();

@@ -52,22 +52,20 @@ class TextmineKeywordMapAnnotator
                 @$ctr++;
                 $rek['new_uid'] = "NEW_".$ctr;
                 // $rek = array_map('trim', $rek); //works ok but needs all sheet columns filled up. Replaced by array_map_eol() below.
-                $rek = Functions::array_map_eol($rek); print_r($rek); exit("\nstop muna\n");
-                if($what == 'coastal') $rek['uri'] = "http://purl.obolibrary.org/obo/ENVO_01000687";
+                $rek = Functions::array_map_eol($rek); //print_r($rek); exit("\n[]\nstop muna\n");
                 /*Array(
-                    [match string] => at forest stream
-                    [value] => riparian zone
-                    [uri] => https://www.wikidata.org/entity/Q13360049
-                    [current_uri] => http....
-                    [notes] => Other resources
+                    [string] => a montane species
+                    [value] => montane
+                    [value uri] => https://www.wikidata.org/entity/Q1141462
+                    [predicate] => habitat
+                    [predicate uri] => http://purl.obolibrary.org/obo/RO_0002303
                     [new_uid] => NEW_1
                 )*/
-                $uri = @$rek['uri'];
-                $current_uri = @$rek['current_uri'];
-                $match_string = @$rek['match string'];
-                if($uri && $match_string) {
-                    $this->keyword_uri[$match_string][] = $uri;
-                    $this->keyword_uri[$match_string] = array_unique($this->keyword_uri[$match_string]); //make values unique
+                $string = @$rek['string'];
+                $value_uri = @$rek['value uri'];
+                if($value_uri && $string) {
+                    $this->keyword_uri[$string][] = $value_uri;
+                    $this->keyword_uri[$string] = array_unique($this->keyword_uri[$string]); //make values unique
                 }
             }
         }

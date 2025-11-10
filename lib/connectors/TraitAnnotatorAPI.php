@@ -20,8 +20,14 @@ class TraitAnnotatorAPI
     }
     private function initialize($ontology)
     {
+        /* Obsolete: using original white lists from: ticket #36: https://github.com/EOL/ContentImport/issues/36
         if($ontology == 'envo') self::initialize_envo_ontology();
         if($ontology == 'growth') self::initialize_growth_ontology();
+        */
+
+        // /* Latest: our one-place for textmining metadata
+        self::initialize_ontology($ontology); //$ontology is 'envo' or 'growth'
+        // */
     }
     function annotate($params)
     {
@@ -104,9 +110,19 @@ class TraitAnnotatorAPI
     {
         return str_replace($needle, "<b>".$needle."</b>", $haystack);
     }
+    private function initialize_ontology($ontology)
+    {   echo "\nInitializing envo ontology...";
+        require_library('connectors/TextmineKeywordMapAnnotator');
+        $func = new TextmineKeywordMapAnnotator();
+        $func->get_keyword_mappings();
+        $this->keyword_uri['envo'] = $func->keyword_uri;
+        unset($func);
+        echo "\nkeyword_uri envo 2: ".count($this->keyword_uri['envo']);
+        $this->initialized_YN['envo'] = true;
+    }
+    /* working but obsolete. Used in ticket #36
     private function initialize_envo_ontology()
-    {
-        echo "\nInitializing envo ontology...";
+    {   echo "\nInitializing envo ontology...";
         require_library('connectors/TextmineKeywordMapAnnotate');
         $func = new TextmineKeywordMapAnnotate();
         $func->get_keyword_mappings();
@@ -116,13 +132,13 @@ class TraitAnnotatorAPI
         $this->initialized_YN['envo'] = true;
     }
     private function initialize_growth_ontology()
-    {
-        echo "\nInitializing growth ontology...";
+    {   echo "\nInitializing growth ontology...";
         $tmp_file = Functions::save_remote_file_to_local($this->growth_ontology_file, $this->download_options);
         self::loop_csv_file($tmp_file);
         unlink($tmp_file);
         echo "\nkeyword_uri growth 2: ".count($this->keyword_uri['growth'])."\n";
     }
+    */
     private function loop_csv_file($local_csv)
     {
         $i = 0;

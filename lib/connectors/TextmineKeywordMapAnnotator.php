@@ -1,58 +1,35 @@
 <?php
 namespace php_active_record;
-/* copied from TextmineKeywordMapAPI.php
+/* copied from TextmineKeywordMapAnnotate.php
 
-This reads the white lists from ticket #36: https://github.com/EOL/ContentImport/issues/36
-This is now obsolete.
+This reads the final source of textmine keyword mapping metadata from ticket #37: https://github.com/EOL/ContentImport/issues/37
+This is latest as of 10Nov2025.
 
 task: trait annotation
 Worksheets related:
 - TraitAnnotator
 */
-class TextmineKeywordMapAnnotate
+class TextmineKeywordMapAnnotator
 {
     public $params; // Declare the property
     public $func;
     public $keyword_uri;
     function __construct()
-    {   exit("\nThis is now obsolete: [TextmineKeywordMapAnnotate]\n");
-        /* Please remove all keywords that currently map to these uris: */
-
-        /* copied template
-        $temp = array("http://purl.obolibrary.org/obo/ENVO_00000081", "http://purl.obolibrary.org/obo/ENVO_01000342", "http://purl.obolibrary.org/obo/ENVO_01000340", "http://purl.obolibrary.org/obo/ENVO_00000080", "http://purl.obolibrary.org/obo/ENVO_00000381", "http://purl.obolibrary.org/obo/ENVO_01000333", "http://purl.obolibrary.org/obo/ENVO_00000497", "http://purl.obolibrary.org/obo/ENVO_00000287", "http://purl.obolibrary.org/obo/ENVO_01000253", "http://purl.obolibrary.org/obo/ENVO_01000252", "http://purl.obolibrary.org/obo/ENVO_01000687", "http://purl.obolibrary.org/obo/ENVO_00000100", "http://purl.obolibrary.org/obo/ENVO_01000143", "http://purl.obolibrary.org/obo/ENVO_00000091", "http://purl.obolibrary.org/obo/ENVO_00000475");
-        $this->uris_with_new_kwords = array_flip($temp);
+    {   /* worksheet: [mapped strings]
+        https://docs.google.com/spreadsheets/d/1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA/edit?gid=0#gid=0        
         */
-
-        /* Then add the strings that are mapped to terms on the following worksheets:
-        - strings related to river/stream [river] n=422
-            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=653002583#gid=653002583
-        - strings related to lake [lake] n=19
-            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=974642361#gid=974642361
-        - strings related to mountain [mountain etc.] n=328
-            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1677871921#gid=1677871921
-        - strings related to coastal [coastal] n=89
-            https://docs.google.com/spreadsheets/d/1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0/edit?gid=1687183186#gid=1687183186 */
-        $params['spreadsheetID'] = '1G3vCRvoJsYijqvJXwOooKdGj-jEiBop2EOl3lUxEny0';
+        $params['spreadsheetID'] = '1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA';
         $params['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
 
-        $params['range'] = 'river!A1:D430'; //where "A" is the starting column, "D" is the ending column, and "1" is the starting row.
-        $this->params['river'] = $params;
-
-        $params['range'] = 'lake!A1:D30';
-        $this->params['lake'] = $params;
-
-        $params['range'] = 'mountain etc.!A1:D340';
-        $this->params['mountain'] = $params;
-
-        $params['range'] = 'coastal!A1:D100';
-        $this->params['coastal'] = $params;
+        $params['range'] = 'mapped strings!A1:E1400'; //where "A" is the starting column, "E" is the ending column, and "1" is the starting row.
+        $this->params['mapped strings'] = $params;
 
         require_library('connectors/GoogleClientAPI');
         $this->func = new GoogleClientAPI();
     }
     function get_keyword_mappings($item = false)
     {
-        if(!$item) $items = array('river', 'lake', 'mountain', 'coastal');
+        if(!$item) $items = array('mapped strings'); //array('river', 'lake', 'mountain', 'coastal');
         else       $items = array($item);
         foreach($items as $what) { echo "\nAccessing [$what]...";
             $params = $this->params[$what]; //$what e.g. 'coastal'
@@ -62,8 +39,7 @@ class TextmineKeywordMapAnnotate
         echo "\nkeyword_uri 1: ".count($this->keyword_uri); // print_r($this->keyword_uri);
     }
     private function massage_result($arr, $what)
-    {
-        //start massage array
+    {   //start massage array
         $i = 0;
         foreach($arr as $item) { $i++;
             if($i == 1) $fields = $item;
@@ -76,7 +52,7 @@ class TextmineKeywordMapAnnotate
                 @$ctr++;
                 $rek['new_uid'] = "NEW_".$ctr;
                 // $rek = array_map('trim', $rek); //works ok but needs all sheet columns filled up. Replaced by array_map_eol() below.
-                $rek = Functions::array_map_eol($rek); // print_r($rek);
+                $rek = Functions::array_map_eol($rek); print_r($rek); exit("\nstop muna\n");
                 if($what == 'coastal') $rek['uri'] = "http://purl.obolibrary.org/obo/ENVO_01000687";
                 /*Array(
                     [match string] => at forest stream
@@ -93,13 +69,6 @@ class TextmineKeywordMapAnnotate
                     $this->keyword_uri[$match_string][] = $uri;
                     $this->keyword_uri[$match_string] = array_unique($this->keyword_uri[$match_string]); //make values unique
                 }
-                /* copied template
-                if($current_uri && $match_string) {
-                    $this->uri_in_question_current[$current_uri][] = $match_string;
-                    $this->uri_in_question_current[$current_uri] = array_unique($this->uri_in_question_current[$current_uri]); //make values unique
-                    $this->uri_katjauri_map[$current_uri] = $uri; 
-                }
-                */
             }
         }
         // end massage array

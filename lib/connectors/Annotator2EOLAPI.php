@@ -756,7 +756,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 )*/
 
 
-                // print_r($rek); echo " ang rek...\n";
+                // print_r($rek); echo " ang rek2...\n";
                 /*Array(
                     [lbl] => cave
                     [ontology] => habitat
@@ -1178,7 +1178,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             //============= below this point is where $this->results is populated =============
             // echo "\n=====dito 900\n";
 
-            // print_r($rek); echo " ang rek...\n";
+            // print_r($rek); echo " ang rek1...\n";
             /*Array(
                 [id] => http://purl.obolibrary.org/obo/ENVO_00000067
                 [lbl] => cave

@@ -116,7 +116,7 @@ foreach($IDs as $resource_id) {
     // ************************************
     $i = 0; $errors = 0;
     foreach($descs as $desc) { $i++;
-        $desc .= " ".date('Y-m-d H:i:s', time()); //dev only
+        // $desc .= " ".date('Y-m-d H:i:s', time()); //dev only
         $ret = run_desc($desc, $pensoft);
         echo "\n[$resource_id $i] - "; echo("[$desc] [$ret]");
         // $i = 9; //force-assign

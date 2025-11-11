@@ -1,7 +1,7 @@
 <?php
 namespace php_active_record;
 /* connector: [environments_2_eol.php]
-Pensoft Annotator: https://annotator.pensoft.net/how-it-works
+EOL Annotator: https://github.com/EOL/ContentImport/issues/37
 
 This is lib is for the EOL Annotator version.
 Pensoft annotator is now obsolete.

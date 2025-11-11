@@ -135,7 +135,7 @@ class Annotator2EOLAPI extends Functions_Annotator
 
         $this->pensoft_run_cnt = 0;
         if($val = @$param['ontologies']) $this->ontologies = $val;      // 1st client is the utility run_partial.php
-        else                             $this->ontologies = "habitat, mating system"; //"envo";    // orig
+        else exit("\nERROR: Predicate(s) not found.\n");
         /* from DATA-1853 - exclude ranks for Wikipedia inferred records */
 
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Wikipedia_excluded_ranks.tsv";
@@ -482,18 +482,18 @@ class Annotator2EOLAPI extends Functions_Annotator
                 Wikipedia inferred => envo
                 TreatmentBank => envo
                 */
-                if(in_array($this->param['resource_id'], array("10088_5097_ENV"))) $this->ontologies = "envo,eol-geonames";             //Smithsonian Contributions to Zoology
-                elseif(in_array($this->param['resource_id'], array("10088_6943_ENV"))) $this->ontologies = "envo,eol-geonames,growth";  //Smithsonian Contributions to Botany
-                elseif(stripos($this->param['resource_id'], "SCtZ-") !== false)        $this->ontologies = "envo,eol-geonames"; //string is found           //SI Contributions to Zoology
-                elseif(stripos($this->param['resource_id'], "scb-") !== false)         $this->ontologies = "envo,eol-geonames,growth"; //string is found    //SI Contributions to Botany
-                elseif(stripos($this->param['resource_id'], "scz-") !== false)         $this->ontologies = "envo,eol-geonames"; //string is found           //SI Contributions to Zoology
+                if(in_array($this->param['resource_id'], array("10088_5097_ENV"))) $this->ontologies = "habitat,eol-geonames";             //Smithsonian Contributions to Zoology
+                elseif(in_array($this->param['resource_id'], array("10088_6943_ENV"))) $this->ontologies = "habitat,eol-geonames,growth";  //Smithsonian Contributions to Botany
+                elseif(stripos($this->param['resource_id'], "SCtZ-") !== false)        $this->ontologies = "habitat,eol-geonames"; //string is found           //SI Contributions to Zoology
+                elseif(stripos($this->param['resource_id'], "scb-") !== false)         $this->ontologies = "habitat,eol-geonames,growth"; //string is found    //SI Contributions to Botany
+                elseif(stripos($this->param['resource_id'], "scz-") !== false)         $this->ontologies = "habitat,eol-geonames"; //string is found           //SI Contributions to Zoology
                 elseif(in_array($this->param['resource_id'], array("118935_ENV")))     $this->ontologies = "eol-geonames";
                 if(in_array($this->param['resource_id'], array("120081_ENV", "120082_ENV", "118986_ENV", "118920_ENV", "120083_ENV", 
                     "118237_ENV", "MoftheAES_ENV", "30355_ENV", "27822_ENV", "30354_ENV", "119035_ENV", "118946_ENV", "118936_ENV", "118950_ENV", //MoftheAES_ENV: Memoirs of the American Entomological Society
                     "120602_ENV", "119187_ENV", "118978_ENV", "118941_ENV", "119520_ENV", "119188_ENV",
-                    "15423_ENV", "91155_ENV"))) $this->ontologies = "envo,eol-geonames";
-                elseif($this->param['resource'] == 'all_BHL') $this->ontologies = "envo,eol-geonames";
-                if(@$this->param['group'] == 'BHL_plants') $this->ontologies = "envo,eol-geonames,growth"; //overwrites prev value
+                    "15423_ENV", "91155_ENV"))) $this->ontologies = "habitat,eol-geonames";
+                elseif($this->param['resource'] == 'all_BHL') $this->ontologies = "habitat,eol-geonames";
+                if(@$this->param['group'] == 'BHL_plants') $this->ontologies = "habitat,eol-geonames,growth"; //overwrites prev value
                 
                 // /* DATA-1897: Pensoft journals (textmining)
                 if($this->param['resource_id'] == "TreatmentBank_ENV") {
@@ -504,21 +504,14 @@ class Annotator2EOLAPI extends Functions_Annotator
                     }
                 } //end TreatmentBank_ENV
 
-                if($this->param['resource_id'] == "20_ENV")             $this->ontologies = "envo,eol-geonames"; //ZooKeys
-                if($this->param['resource_id'] == "832_ENV")            $this->ontologies = "envo,eol-geonames"; //Subterranean Biology
-                if($this->param['resource'] == 'Pensoft_journals')      $this->ontologies = "envo,eol-geonames"; //DATA-1897 Pensoft journals (textmining)
+                if($this->param['resource_id'] == "20_ENV")         $this->ontologies = "habitat,eol-geonames"; //ZooKeys
+                if($this->param['resource_id'] == "832_ENV")        $this->ontologies = "habitat,eol-geonames"; //Subterranean Biology
+                if($this->param['resource'] == 'Pensoft_journals')  $this->ontologies = "habitat,eol-geonames"; //DATA-1897 Pensoft journals (textmining)
+                if($this->param['resource_id'] == "RunTests")       $this->ontologies = "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system"; //from Google spreadsheet
                 // */
-                
-                $this->ontologies = "habitat, mating system";
-                $this->ontologies = "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system"; //from Google spreadsheet
-
-
                 // exit("\nontologies: [$this->ontologies]\n");
                 // ---------------------- end customize ----------------------*/
-                
-                // print_r($rec); exit("\n[2]\n");
-                // echo "-valid ito";
-                
+                                
                 $this->debug['subjects'][$rec['http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm']] = '';
                 // $this->debug['titles'][$rec['http://purl.org/dc/terms/title']] = ''; //debug only
                 // $saved++; //debug only

@@ -404,8 +404,8 @@ class DwCA_Utility
         { //first 2 clients: Amphibiaweb, Wikipedia EN. Then all_BHL and Pensoft_journals...
             echo "\nGoes here really: [$this->resource_id]\n";
             require_library('connectors/ContributorsMapAPI');
-            require_library('connectors/Environments2EOLfinal');
-            $func = new Environments2EOLfinal($this->archive_builder, $this->resource_id, $this->params);
+            require_library('connectors/Environments2EOLmain'); //previously Environments2EOLfinal
+            $func = new Environments2EOLmain($this->archive_builder, $this->resource_id, $this->params);
             $func->start($info);
         }
         /*

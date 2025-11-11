@@ -8,7 +8,7 @@ $timestart = time_elapsed();
 require_library('connectors/Functions_Annotator');
 require_library('connectors/Annotator2EOLAPI');
 $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", 
-    "ontologies" => "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system");
+    "ontologies" => "behavioral circadian rhythm, eol-geonames, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system");
 
 $func = new Annotator2EOLAPI($param);
 

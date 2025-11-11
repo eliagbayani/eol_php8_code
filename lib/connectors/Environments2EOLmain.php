@@ -1,12 +1,12 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from Environments2EOLAPI.php; from environments_2_eol.php for DATA-1851] */
+/* connector: [called from DwCA_Utility.php, which is called from Annotator2EOLAPI.php; from environments_2_eol.php for DATA-1851] */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class Environments2EOLfinal extends ContributorsMapAPI
+class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is previously Environments2EOLfinal 
 {
     function __construct($archive_builder, $resource_id, $params = array())
-    {   exit("\nEnvironments2EOLfinal is now obsolete.\n");
+    {
         // exit("\nObsolete: Vangelis tagger 2.\n");
         $this->resource_id = $resource_id;
         $this->archive_builder = $archive_builder;
@@ -47,7 +47,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
         // */
         $this->eol_tags_path        = $this->root_path.'eol_tags/';
         $this->json_temp_path       = $this->root_path.'temp_json/';
-        echo "\nEnvironments2EOLfinal resource_id: [$this->resource_id]\n";
+        echo "\nEnvironments2EOLmain resource_id: [$this->resource_id]\n";
         if($this->resource_id == '617_ENV') $this->modulo = 50000; //Wikipedia EN
         else                                $this->modulo = 2000;
         
@@ -183,7 +183,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
     }
     private function add_environmental_traits()
     {
-        echo "\nProcessing...Environments2EOLfinal...$this->resource_id\n";
+        echo "\nProcessing...Environments2EOLmain...$this->resource_id\n";
         $old_func = self::borrow_data(); // print_r($this->excluded_uris); exit("\nexcluded uris\n");
         require_library('connectors/TraitGeneric');
         

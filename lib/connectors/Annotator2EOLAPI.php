@@ -142,9 +142,11 @@ class Annotator2EOLAPI extends Functions_Annotator
         // $this->excluded_ranks = array('class', 'infraclass', 'infrakingdom', 'infraorder', 'infraphylum', 'kingdom', 'order', 'phylum', 'subclass', 'subkingdom', 'suborder', 'subphylum', 'subtribe', 'superclass', 'superfamily', 'superkingdom', 'superorder', 'superphylum', 'division', 'domain', 'grandorder', 'parvorder', 'realm', 'subdivision', 'tribe');
         $this->excluded_ranks = $this->load_github_dump($url);
         $this->pensoft_service = "https://api.pensoft.net/annotator?text=MY_DESC&ontologies=MY_ONTOLOGIES";
-        /* DATA-1893: new patterns for all textmined resources: life history ontology */
+
+        /* DATA-1893: new patterns for all textmined resources: life history ontology --- copied template
         $this->new_patterns_4textmined_resources = "https://raw.githubusercontent.com/EOL/textmine_rules/main/life_history.tsv";
-        
+        */
+
         $this->to_delete_file = "";
         $this->debug = array();
 
@@ -160,14 +162,14 @@ class Annotator2EOLAPI extends Functions_Annotator
         $this->debug['detected_first_words'] = array();
         */
 
-        // /* soil compositions
+        /* soil compositions --- copied template
         // $labels = array('sandy soil', 'clay soil', 'dry soil', 'garden soil', 'forest soil', 'muddy soil', 'red soil', 'field soil', 'volcanic soil', 'surface soil', 
         // 'dune soil', 'arable soil', 'agricultural soil', 'meadow soil', 'orchard soil', 'alluvial soil', 'grassland soil', 'pasture soil', 'peat soil', 'steppe soil', 
         // 'farm soil', 'alpine soil', 'roadside soil', 'tropical soil', 'beech forest soil', 'fluvisol', 'luvisol', 'cambisol', 'regosol', 'leptosol', 'gleysol', 'vertisol');
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/soil_composition.tsv";
         $labels = $this->load_github_dump($url);
         foreach($labels as $label) $this->soil_compositions[$label] = '';
-        // */
+        */
     }
     public function initialize_remaps_deletions_adjustments()
     {   /* copied template
@@ -181,8 +183,10 @@ class Annotator2EOLAPI extends Functions_Annotator
         echo("\n delete_MoF_with_these_uris: "  .count($this->delete_MoF_with_these_uris).""); echo("\n---------------\n");
         */
 
+        /* copied template
         $this->initialize_new_patterns();         //generates $this->new_patterns   -> from Functions_Pensoft.php --- DATA-1893
         echo("\n new_patterns: "  .count($this->new_patterns)."\n"); //print_r($this->new_patterns); exit;
+        */
 
         $this->allowed_terms_URIs = self::get_allowed_value_type_URIs_from_EOL_terms_file(); //print_r($this->allowed_terms_URIs); -> from Functions_Pensoft.php
         // echo ("\nallowed_terms_URIs from EOL terms file: [".count($this->allowed_terms_URIs)."]\n");
@@ -507,7 +511,6 @@ class Annotator2EOLAPI extends Functions_Annotator
                 if($this->param['resource_id'] == "20_ENV")         $this->ontologies = "habitat,eol-geonames"; //ZooKeys
                 if($this->param['resource_id'] == "832_ENV")        $this->ontologies = "habitat,eol-geonames"; //Subterranean Biology
                 if($this->param['resource'] == 'Pensoft_journals')  $this->ontologies = "habitat,eol-geonames"; //DATA-1897 Pensoft journals (textmining)
-                if($this->param['resource_id'] == "RunTests")       $this->ontologies = "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system"; //from Google spreadsheet
                 // */
                 // exit("\nontologies: [$this->ontologies]\n");
                 // ---------------------- end customize ----------------------*/
@@ -719,13 +722,14 @@ class Annotator2EOLAPI extends Functions_Annotator
                 else $arr = array($basename, '', '', $label, $uri, $rek['ontology'], "", $rek['context']); //7th param is mType
                 
                 /*===== CUSTOMIZE START =====*/
-                // /* DATA-1893 - a provision to assign measurementType as early as this stage
+
+                /* DATA-1893 - a provision to assign measurementType as early as this stage --- copied template
                 if(!in_array($this->param['resource_id'], array('617_ENV'))) { //excluding Wikipedia EN for now
                     if($assignment = @$this->new_patterns[$label]) {
                         $arr = array($basename, '', '', $label, $assignment['mValue'], $rek['ontology'], $assignment['mType']);
                     }
                 }
-                // */
+                */
                 
                 // /* implement soil composition
                 if(in_array($this->param['resource_id'], array('617_ENV', 'TreatmentBank_ENV'))) { //Wikipedia EN & TreatmentBank

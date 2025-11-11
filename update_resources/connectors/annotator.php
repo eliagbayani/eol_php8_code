@@ -15,6 +15,12 @@ predicates: 7 as of 10Nov2025
     reproduction
     sexual system
 
+Related workspaces:
+- TraitAnnotator
+- Environments_2_EOL_8
+- WikipediaInferredTrait
+- ReviseKeyWordMap
+
 
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
@@ -47,7 +53,4 @@ if(!@$params['predicates']) { echo "\n+++++start3"; print_r($argv); exit("ERROR:
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();
 $func->annotate($params);
-// $func->annotate($params);
-// $func->annotate($params);
-
 ?>

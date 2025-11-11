@@ -135,7 +135,7 @@ class Annotator2EOLAPI extends Functions_Annotator
 
         $this->pensoft_run_cnt = 0;
         if($val = @$param['ontologies']) $this->ontologies = $val;      // 1st client is the utility run_partial.php
-        else                             $this->ontologies = "envo";    // orig
+        else                             $this->ontologies = "habitat, mating system"; //"envo";    // orig
         /* from DATA-1853 - exclude ranks for Wikipedia inferred records */
 
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Wikipedia_excluded_ranks.tsv";
@@ -185,7 +185,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         echo("\n new_patterns: "  .count($this->new_patterns)."\n"); //print_r($this->new_patterns); exit;
 
         $this->allowed_terms_URIs = self::get_allowed_value_type_URIs_from_EOL_terms_file(); //print_r($this->allowed_terms_URIs); -> from Functions_Pensoft.php
-        echo ("\nallowed_terms_URIs from EOL terms file: [".count($this->allowed_terms_URIs)."]\n");
+        // echo ("\nallowed_terms_URIs from EOL terms file: [".count($this->allowed_terms_URIs)."]\n");
     }
     function generate_eol_tags_pensoft($resource, $timestart = '', $download_options = array('timeout' => 172800, 'expire_seconds' => 60*60*24*30))
     {   print_r($this->param); //exit;
@@ -329,71 +329,10 @@ class Annotator2EOLAPI extends Functions_Annotator
         // ===================================== */
     }
     /* seems obsolete already
-    private function generate_difference_report() //utility report only, not part of main operation of textmining
-    {
-        // print_r($this->all_envo_terms); exit;
-        $old = $this->all_envo_terms;
-        print_r($old);
-        $this->all_envo_terms = array_keys($this->all_envo_terms);
-        // print_r($this->all_envo_terms); //exit;
-        foreach($this->all_envo_terms as $t) $pensoft_envo_terms[] = pathinfo($t, PATHINFO_BASENAME);
-        $envo_from_entities = self::get_envo_from_entities_file();
-        // print_r($envo_from_entities); exit;
-        $difference = array_diff($pensoft_envo_terms, $envo_from_entities);
-        echo "\n pensoft_envo_terms: ".count($pensoft_envo_terms);
-        echo "\n envo_from_entities: ".count($envo_from_entities);
-        echo "\n difference: ".count($difference)."\n";
-        $difference = array_values($difference); //reindex key
-        // print_r($difference);
-        //  $old e.g. Array(
-        //     [http://purl.obolibrary.org/obo/ENVO_01000739] => habitat
-        //     [http://purl.obolibrary.org/obo/ENVO_01001023] => radiation
-        //     [http://purl.obolibrary.org/obo/ENVO_00002164] => fossil        
-        $i = 0;
-        foreach($difference as $term) { $i++;
-            $uri = 'http://purl.obolibrary.org/obo/'.$term;
-            echo "\n[$i] $uri -> ".$old[$uri];
-        }
-        exit("\n-end difference report-\n");
-    }
-    private function get_envo_from_entities_file()
-    {
-        $local = Functions::save_remote_file_to_local($this->entities_file, array('cache' => 1, 'expire_seconds' => 60)); //60*60*24
-        foreach(new FileIterator($local) as $line => $row) {
-            if(!$row) continue;
-            $tmp = explode("\t", $row);
-            // print_r($tmp); //exit;
-            // Array(
-            //     [0] => 1009000003
-            //     [1] => -27
-            //     [2] => ENVO:01000057
-            // )
-            $final[str_replace('ENVO:', 'ENVO_', $tmp[2])] = '';
-        }
-        unlink($local);
-        // print_r($final); exit;
-        $final = array_keys($final);
-        echo "\nentities count 1: ".count($final);
-        $filter_out = self::filter_out_from_entities();
-        $final = array_diff($final, $filter_out);
-        echo "\nentities count 2: ".count($final);
-        return $final;
-    } 
-    private function filter_out_from_entities()
-    {   //from: https://eol-jira.bibalex.org/browse/DATA-1858?focusedCommentId=65359&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65359
-        return array('ENVO_00000026', 'ENVO_01000342', 'ENVO_00000241', 'ENVO_01000001', 'ENVO_00002982', 'ENVO_01000628', 'ENVO_00002053', 'ENVO_00000014', 'ENVO_01000018', 'ENVO_00000167', 
-        'ENVO_00002007', 'ENVO_00000856', 'ENVO_00000084', 'ENVO_00000040', 'ENVO_00000083', 'ENVO_01000155', 'ENVO_00000078', 'ENVO_00000444', 'ENVO_00000025', 'ENVO_00000032', 'ENVO_00002008', 
-        'ENVO_00000495', 'ENVO_00000101', 'ENVO_00002015', 'ENVO_00000255', 'ENVO_00002054', 'ENVO_00000418', 'ENVO_00000463', 'ENVO_00000247', 'ENVO_01000236', 'ENVO_00000284', 'ENVO_00002034', 
-        'ENVO_00000439', 'ENVO_00000115', 'ENVO_00000381', 'ENVO_00000133', 'ENVO_01000005', 'ENVO_00002140', 'ENVO_00000231', 'ENVO_00000166', 'ENVO_00012408', 'ENVO_00010505', 'ENVO_00002226', 
-        'ENVO_00000235', 'ENVO_00000275', 'ENVO_00002870', 'ENVO_00000475', 'ENVO_00002269', 'ENVO_00000138', 'ENVO_01000158', 'ENVO_00000195', 'ENVO_00001997', 'ENVO_02000059', 'ENVO_00000440', 
-        'ENVO_00002013', 'ENVO_00000102', 'ENVO_00005792', 'ENVO_00000298', 'ENVO_00010358', 'ENVO_01000002', 'ENVO_01000006', 'ENVO_00000085', 'ENVO_00000163', 'ENVO_00000520', 'ENVO_00002118', 
-        'ENVO_00002144', 'ENVO_00003982', 'ENVO_00000149', 'ENVO_00000110', 'ENVO_00000313', 'ENVO_00000429', 'ENVO_00000500', 'ENVO_00000236', 'ENVO_00000245', 'ENVO_00005754', 'ENVO_00000422', 
-        'ENVO_00000535', 'ENVO_00000120', 'ENVO_00000155', 'ENVO_01000019', 'ENVO_00000069', 'ENVO_00000139', 'ENVO_00000145', 'ENVO_00000473', 'ENVO_00000534', 'ENVO_00005742', 'ENVO_00005747', 
-        'ENVO_00000072', 'ENVO_00000287', 'ENVO_00000400', 'ENVO_00000496', 'ENVO_00000497', 'ENVO_00000544', 'ENVO_00002270', 'ENVO_00000036', 'ENVO_00000119', 'ENVO_00000140', 'ENVO_00000157', 
-        'ENVO_00000256', 'ENVO_00002063', 'ENVO_00003041', 'ENVO_00005799', 'ENVO_01000063', 'ENVO_00000042', 'ENVO_00000079', 'ENVO_00000152', 'ENVO_00000160', 'ENVO_00000252', 'ENVO_00000271', 
-        'ENVO_00000282', 'ENVO_00000289', 'ENVO_00000290', 'ENVO_00000470', 'ENVO_00000483', 'ENVO_00000522', 'ENVO_00000548', 'ENVO_00002231', 'ENVO_00005739', 'ENVO_00005756', 'ENVO_00005767', 
-        'ENVO_00005775', 'ENVO_01000219', 'ENVO_02000084');
-    }*/
+    private function generate_difference_report() {} //utility report only, not part of main operation of textmining
+    private function get_envo_from_entities_file() {} 
+    private function filter_out_from_entities() {}
+    */
     private function initialize_files()
     {
         // /* copied template, not needed in Pensoft yet
@@ -516,7 +455,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                     [http://purl.org/dc/terms/description] => intertidal to shallow infratidal
                 )*/
                 
-                $this->ontologies = "envo"; //always 'envo' unless WoRMS' distribution texts.
+                // $this->ontologies = "habitat"; //"envo"; //always 'envo' unless WoRMS' distribution texts.
                 
                 // /* -------------------- start customize --------------------
                 if($this->param['resource_id'] == '617_ENV') {
@@ -528,7 +467,7 @@ class Annotator2EOLAPI extends Functions_Annotator
 
                 if($this->param['resource_id'] == '26_ENV') { //for WoRMS only with title = 'habitat' and 'distribution' will be processed.
                     if(strtolower($rec['http://purl.org/dc/terms/title']) == 'habitat') @$this->text_that_are_habitat++;
-                    elseif(strtolower($rec['http://purl.org/dc/terms/title']) == 'distribution') $this->ontologies = "eol-geonames";
+                    elseif(strtolower($rec['http://purl.org/dc/terms/title']) == 'distribution') continue; //$this->ontologies = "eol-geonames";
                     else continue;
                 }
                 
@@ -570,6 +509,10 @@ class Annotator2EOLAPI extends Functions_Annotator
                 if($this->param['resource'] == 'Pensoft_journals')      $this->ontologies = "envo,eol-geonames"; //DATA-1897 Pensoft journals (textmining)
                 // */
                 
+                $this->ontologies = "habitat, mating system";
+                $this->ontologies = "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system"; //from Google spreadsheet
+
+
                 // exit("\nontologies: [$this->ontologies]\n");
                 // ---------------------- end customize ----------------------*/
                 
@@ -659,7 +602,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
                 if($measurementType == 'http://eol.org/schema/terms/Present' && $measurementValue) {
                     if($taxonID = @$this->occurrenceID_taxonID[$occurrenceID]) {
-                        $this->ontologies = "eol-geonames";
+                        $this->ontologies = "eol-geonames"; //WoRMS resource only
                         // print_r($rec); exit("\nfound 1\n");
                         $this->results = array();
                         self::save_article_2_txtfile_MoF($rec, $taxonID);    
@@ -967,19 +910,14 @@ class Annotator2EOLAPI extends Functions_Annotator
         }
         else { //echo "\n=====dito 100\n";
             if($json = self::run_partial($desc)) { //echo "\n==========\n[::EXECUTED FOR THE 1ST TIME]\n==========\n";
-                self::save_json($id, $json, 'partial');
-                // echo("\nSaved partial OK\n"); //good debug
+                self::save_json($id, $json, 'partial'); // echo("\nSaved partial OK\n"); //good debug
                 /* now start access newly created. The var $this->results will now be populated. */
                 if($json = self::retrieve_json($id, 'partial', $desc)) { //echo "\n=====dito 400\n";
                     $arr = json_decode($json, true);
-                    if(isset($arr['data'])) { //echo "\n=====dito 401\n"; // print_r($arr);
+                    if(isset($arr['data'])) { //echo "\n=====dito 401\n"; print_r($arr);
                         self::select_envo($arr['data']);
                     }
                     else {
-                        // echo "\n-=-=-=-=-=-=-=222\n[".$this->to_delete_file."]\n";
-                        // print_r($arr);
-                        // echo("\n222[---$id---]\n[---$desc---]\n[---$json---]\n");
-                        // echo("\n[".$arr['text'][0]."]\n");
                         // exit("\nInvestigate: might need to decrease orig_batch_length variable.\n strlen: ".strlen($desc)."\n");
                         return;
                     }
@@ -1024,7 +962,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         foreach($arr as $rek) {
             // /* NEW: Jul 10, 2024 - Eli's initiative --- never use line with " A. " --- abbreviation of names
             if(!$this->is_context_valid($rek['context'])) { 
-                // debug("\nExcluded: Context not valid.\n"); //good debug
+                echo("\nExcluded: Context not valid.\n"); //good debug
                 continue; }
             // */
 
@@ -1034,37 +972,31 @@ class Annotator2EOLAPI extends Functions_Annotator
             if(stripos($rek['context'], $needle) !== false) { //string is found
                 $needle = $rek['lbl'];
                 if($this->substri_count($rek['context'], $needle) > 1) {
-                    // debug("\nExcluded: huli_2\n"); 
+                    debug("\nExcluded: huli_2\n"); 
                     continue; } //meaning an abbreviation and the whole word was also found inside the context.
             }
             // */
 
-            if(isset($this->labels_to_remove[$rek['lbl']])) {
-                // debug("\nExcluded: huli_4\n");
-                continue; } //this started exclusive to Wikipedia and TreatmentBank. Now it is across the board 20Jun2024
+            /* copied template
+            if(isset($this->labels_to_remove[$rek['lbl']])) { continue; } //this started exclusive to Wikipedia and TreatmentBank. Now it is across the board 20Jun2024
+            */
 
             $rek['id'] = self::WoRMS_URL_format($rek['id']); # can be general, for all resources
             // echo "\nGoes- 80\n";
 
-            // =========================================================================
-            if($rek['ontology'] == "eol-geonames") { //per https://eol-jira.bibalex.org/browse/DATA-1877?focusedCommentId=65861&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65861
-                // echo "\nGoes- 81\n";
-                if($rek = self::ontology_geonames_process($rek)) {}
-                else continue;
-            } // ======================================================================= end "eol-geonames" ontology
-
-            // echo "\nGoes- 100\n";
-            // /* =======================================================================
+            // echo "\nGoes- 100\n"; print_r($rek);
+            /* ======================================================================= copied template
             if($rek['ontology'] == "envo") { //ontology habitat
                 if($rek = self::ontology_habitat_process($rek)) {}
                 else continue;
             } // ======================================================================== end "envo" habitat ontology
-            // */
+            */
             
-            // /* =======================================================================
+            /* ======================================================================= copied template
             if($rek['ontology'] == "growth") {
                 if(in_array($rek['id'], array('https://www.wikidata.org/entity/Q16868813'))) continue; //https://eol-jira.bibalex.org/browse/DATA-1877?focusedCommentId=66125&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66125
-            } // ======================================================================== end growth ontology */
+            } 
+            ======================================================================== end growth ontology */
             
             // /* customize
             if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text
@@ -1091,13 +1023,13 @@ class Annotator2EOLAPI extends Functions_Annotator
             nothing to add here...
             */
 
-            // /* another general for all: https://eol-jira.bibalex.org/browse/DATA-1897?focusedCommentId=66605&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66605
+            /* another general for all: https://eol-jira.bibalex.org/browse/DATA-1897?focusedCommentId=66605&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66605
             $context = strip_tags($rek['context']);
             if(stripos($context, "India ink") !== false && $rek['lbl'] == "india") { //string is found
                 // print_r($rek);
                 continue; 
             }
-            // */
+            */
 
             // echo("\nReached 100\n");
 
@@ -1136,69 +1068,27 @@ class Annotator2EOLAPI extends Functions_Annotator
                         
             // /* another general for all: https://eol-jira.bibalex.org/browse/DATA-1897?focusedCommentId=66606&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66606
             // if a string e.g. species "Enoplochiton niger", then annotator must not get 'niger' as a country name.
-            if($rek['ontology'] == 'eol-geonames') {
-                $lbl = $rek['lbl'];
-                if(ctype_upper($lbl[0])) {} //continue
-                else { //starts with small letter e.g. "chile", "niger"
-                    $context = $rek['context'];
-                    $needle = "<b>".ucfirst($lbl)."</b>";
-                    if(strpos($context, $needle) !== false) {} //e.g. "<b>Chile</b>" //continue //string is found
-                    else {
-                        $needle = "<b>".$lbl."</b>";
-                        $needle_tmp = "<b>".str_replace(" ", "_", $lbl)."</b>";
-                        $context_tmp = str_replace($needle, $needle_tmp, $context);
-                        if(strpos($context, $needle) !== false) { //e.g. 'niger' //string is found
-                            if($before_needle = self::get_word_before_needle($needle_tmp, $context_tmp)) {
-                                if(!ctype_alpha($before_needle[0])) {} //continue --- starts with "(" or any number
-                                else {
-                                    if(ctype_lower($before_needle[0])) {} //continue
-                                    else { // word before needle is alpha and capital letter
-                                        $possible_sciname = $before_needle." ".$lbl;
-                                        
-                                        /* commented Nov 4, 2022. Will investigate soon.
-                                        if(self::is_valid_taxon($possible_sciname)) {
-                                            // echo "\nNot a valid geonames: lbl: [$lbl] | possible_sciname: [$possible_sciname] | context: [$rek[context]]\n";  //good debug
-                                            // print_r($rek); //good debug
-                                            continue;
-                                        }
-                                        else {} //continue
-                                        */
-                                    }
-                                }
-                            }
-                            else {} //continue; --- case where the needle is the first word in the context
-                        }
-                    }
-                }
-            } // ============================ end "eol-geonames"
+            if($rek['ontology'] == 'eol-geonames') {} 
             // */
             // echo "\nGoes- 102\n";
 
-            // /* ----- New: Nov 8, 2022 - EOL Terms file ----- START
-            // print_r($this->results);
-            // Array(
-            //     [http://purl.obolibrary.org/obo/ENVO_01000204] => array("lbl" => "tropical", "ontology" => "envo");
-            // )
             if(!isset($this->allowed_terms_URIs[$rek['id']])) {
-                /* good debug
-                echo "\nEOL Terms file: ".count($this->allowed_terms_URIs)."\n";
-                echo "\nhulix ka! NOT FOUND IN EOL TERMS FILE: [".$rek['id']."]";
+                // /* good debug
+                echo "\n-----------------\nEOL Terms file: ".count($this->allowed_terms_URIs)."";
+                echo "\nNOT FOUND IN EOL TERMS FILE: [".$rek['id']."]";
                 @$this->debug["NOT FOUND IN EOL TERMS FILE"][$rek['id']]++;
-                */
-                // print_r($rek); echo "-----------------\n";
+                print_r($rek); echo "-----------------";
+                // */
+                /* now commented for the sake of continuity and tests. Since it is logged anyway.
                 continue;
+                */
             }
             // ----- New: Nov 8, 2022 - EOL Terms file ----- END */
 
-            // /* Already included in text files. But needed to put here still. 
-            // Nov 15, 2023: "linn" -> http://purl.obolibrary.org/obo/ENVO_00000040 
-            // Any output from this source string should be discarded. It's a common form of the author string "Linnaeus"
-            // https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67722&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67722
-            // http://purl.obolibrary.org/obo/ENVO_00000040	source text: "linn"
             if($rek['id'] == "http://purl.obolibrary.org/obo/ENVO_00000040" || $rek['lbl'] == "linn") continue;
             // */
 
-            //echo "\n=====dito 891\n";
+            // echo "\n=====dito 891\n";
 
             // /* Eli's initiative: applied this one early on. Before, it was applied later on the process.
             if($ret = self::apply_adjustments($rek['id'], $rek['lbl'])) {
@@ -1208,20 +1098,20 @@ class Annotator2EOLAPI extends Functions_Annotator
             else continue;
             // */
 
-            //echo "\n=====dito 892\n";
+            // echo "\n=====dito 892\n";
 
 
-            // /* soil composition https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67736&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67736
+            /* [copied template] soil composition https://eol-jira.bibalex.org/browse/DATA-1896?focusedCommentId=67736&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67736
             // These terms tend to be used for plants, though not always. I've never been very happy with the term "habitat" for them. 
             // I think I have a better idea now. Let me know if this is not practical: I'd like to keep their measurementValue mappings as they are, 
             // but change their measurementType to http://purl.obolibrary.org/obo/ENVO_09200008 (soil composition), for TreatmentBank and wikipedia textmining.
             if(in_array($this->param['resource_id'], array('617_ENV', 'TreatmentBank_ENV'))) { //Wikipedia EN & TreatmentBank
                 if(isset($this->soil_compositions[$rek['lbl']])) $rek['mtype'] = "http://purl.obolibrary.org/obo/ENVO_09200008";
             }
-            // */
+            */
             
             //============= below this point is where $this->results is populated =============
-            //echo "\n=====dito 900\n";
+            // echo "\n=====dito 900\n";
 
             if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN
                 if(ctype_lower(substr($rek['lbl'],0,1))) { //bec. references has a lot like 'Urban C.' which are authors.
@@ -1344,19 +1234,22 @@ class Annotator2EOLAPI extends Functions_Annotator
         // /* using EOL Annotator
         $php_script = DOC_ROOT . 'update_resources/connectors/annotator.php';
         // $cmd = "php $php_script _ '{"text": "MY_DESC", "ontologies": "MY_ONTOLOGIES"}'";
-        $json = '{"text": "MY_DESC", "ontologies": "MY_ONTOLOGIES"}';
+        $json = '{"text": "MY_DESC", "predicates": "MY_ONTOLOGIES"}';
         $json = str_replace("MY_ONTOLOGIES", $this->ontologies, $json);
         $json = str_replace("MY_DESC", $desc, $json);
         $cmd = "php $php_script _ '".$json."'";     //echo "\ndesc is now:\n[$cmd]\n"; //exit;
         $cmd .= " 2>&1";
         $cmdline_output = shell_exec($cmd);
-        // if($GLOBALS['ENV_DEBUG']) { echo("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n"); }
+        if($GLOBALS['ENV_DEBUG']) { echo("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 1\n"); }
 
         if(strpos($cmdline_output, "ERROR: ") !== false) {
             exit("\ncheck cmdline_output:\n-----\n$cmdline_output\n-----\nstop 2\n");            
         } //string is found
 
-        $json = self::get_json_from_cmdline_output($cmdline_output); //echo("\ncheck json:\n-----\n$json\n-----\nstop 3\n");
+        $json = self::get_json_from_cmdline_output($cmdline_output); 
+        
+        if($GLOBALS['ENV_DEBUG']) echo("\ncheck json:\n-----\n$json\n-----\nstop 3\n");
+        
         @$this->debug['counts']['C']++;
         return $json;
         // */

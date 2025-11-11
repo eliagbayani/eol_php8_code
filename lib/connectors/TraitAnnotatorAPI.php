@@ -8,72 +8,70 @@ These ff. workspaces work together:
 class TraitAnnotatorAPI
 {
     public $initialized_YN;
-    public $keyword_uri, $ontologies;
-    public $download_options, $growth_ontology_file, $results, $debug;
+    public $keyword_uri, $predicates;
+    public $download_options, $results, $debug;
+    public $predicates_list;
     function __construct()
     {
         $this->download_options = array(
             'resource_id'        => 'trait_annotator',
             'expire_seconds'     => 60*60*24*1, //1 day cache
             'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 0.5, 'cache' => 1);
-        $this->growth_ontology_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/Pensoft_project/ontologies/ver_4/growth_form.csv';
-    }
-    private function initialize($ontology)
-    {
-        /* Obsolete: using original white lists from: ticket #36: https://github.com/EOL/ContentImport/issues/36
-        if($ontology == 'envo') self::initialize_envo_ontology();
-        if($ontology == 'growth') self::initialize_growth_ontology();
-        */
-
-        // /* Latest: our one-place for textmining metadata
-        self::initialize_ontology($ontology); //$ontology is 'envo' or 'growth'
-        // */
+        $this->predicates_list = array("behavioral circadian rhythm", "developmental mode", "habitat", "life cycle habit", "mating system", "reproduction", "sexual system"); //from Google spreadsheet
     }
     function annotate($params)
     {
         $this->results = array();
         print_r($params);
-        if($val = @$params['ontologies']) {
-            $ontologies = explode(",", $val);
-            $ontologies = array_map('trim', $ontologies);
+        if($val = @$params['predicates']) {
+            if($val == 'ALL') $predicates = $this->predicates_list;
+            else {
+                $predicates = explode(",", $val);
+                $predicates = array_map('trim', $predicates);
+            }
         }
-        else exit("\nERROR: Missing ontology.\n");
+        else                  exit("\nERROR: Missing predicates.\n");
         if(!@$params['text']) exit("\nERROR: Missing text.\n");
 
-        // echo "\nStart here...\n"; echo "\nontologies: "; print_r($ontologies);
-        foreach($ontologies as $ontology) {
-            if($ontology == 'eol-geonames') continue;
-            self::process_ontology($ontology, $params['text']);
+        if($GLOBALS['ENV_DEBUG']) { echo "\nStart here...\n"; echo "\npredicates: "; print_r($predicates); }
+        foreach($predicates as $predicate) {
+            if(in_array($predicate, $this->predicates_list)) self::process_predicate($predicate, $params['text']);
         }
         if($GLOBALS['ENV_DEBUG']) { echo "\nResults: "; print_r($this->results); }
         $json = json_encode($this->results); 
         echo "\nelix1".$json."elix2\n"; //IMPORTANT step; will use to capture json string from cmdline output.
     }
-    private function process_ontology($ontology, $text)
+    private function process_predicate($predicate, $text)
     {
-        if(!@$this->initialized_YN[$ontology]) self::initialize($ontology);
-        self::parse_text($ontology, $text);
+        if(!@$this->initialized_YN[$predicate]) self::initialize($predicate);
+        self::parse_text($predicate, $text);
     }
-    private function parse_text($ontology, $text)
+    private function initialize($predicate)
     {
-        echo "\nsearching for ontology: [$ontology]\n";
-        $keywords = array_keys($this->keyword_uri[$ontology]); //print_r($keywords);
+        // /* Latest: our one-place for textmining metadata
+        self::initialize_predicate($predicate); //$predicate is 'habitat' or 'mating system', etc.
+        // */
+    }
+    private function parse_text($predicate, $text)
+    {
+        echo "\nsearching for predicate: [$predicate]\n";
+        $keywords = array_keys($this->keyword_uri[$predicate]); //print_r($keywords);
         foreach($keywords as $kw) {
-            $ret = self::find_needle_from_haystack($kw, $text, $ontology);
+            $ret = self::find_needle_from_haystack($kw, $text, $predicate);
         }
     }
-    private function find_needle_from_haystack($needle, $haystack, $ontology)
+    private function find_needle_from_haystack($needle, $haystack, $predicate)
     {
         $position = strpos($haystack, $needle);
         if ($position !== false) {
             // echo "\nSubstring ($needle) found at position: " . $position; //good debug
             if(!self::boundary_chars_are_valid_YN($position, $needle, $haystack)) return;
-            if($URIs = $this->keyword_uri[$ontology][$needle]) {
+            if($URIs = $this->keyword_uri[$predicate][$needle]) {
                 foreach($URIs as $uri) {
-                    $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 'ontology' => $ontology);
+                    $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 'ontology' => $predicate);
                 }
             }
-            else exit("\nERROR: Investigate: No URIs for ontology:[$ontology] | needle:[$needle]\n");
+            else exit("\nERROR: Investigate: No URIs for predicate:[$predicate] | needle:[$needle]\n");
         } else {
             // echo "Substring not found.";
         }
@@ -110,35 +108,17 @@ class TraitAnnotatorAPI
     {
         return str_replace($needle, "<b>".$needle."</b>", $haystack);
     }
-    private function initialize_ontology($ontology)
-    {   echo "\nInitializing envo ontology...";
+    private function initialize_predicate($predicate)
+    {   
+        echo "\nInitializing predicate [$predicate]...";
         require_library('connectors/TextmineKeywordMapAnnotator');
         $func = new TextmineKeywordMapAnnotator();
-        $func->get_keyword_mappings();
-        $this->keyword_uri['envo'] = $func->keyword_uri;
+        $func->get_keyword_mappings($predicate);
+        $this->keyword_uri[$predicate] = $func->keyword_uri;
         unset($func);
-        echo "\nkeyword_uri envo 2: ".count($this->keyword_uri['envo']);
-        $this->initialized_YN['envo'] = true;
+        echo "\nkeyword_uri [$predicate] 2: ".count($this->keyword_uri[$predicate]);
+        $this->initialized_YN[$predicate] = true;
     }
-    /* working but obsolete. Used in ticket #36
-    private function initialize_envo_ontology()
-    {   echo "\nInitializing envo ontology...";
-        require_library('connectors/TextmineKeywordMapAnnotate');
-        $func = new TextmineKeywordMapAnnotate();
-        $func->get_keyword_mappings();
-        $this->keyword_uri['envo'] = $func->keyword_uri;
-        unset($func);
-        echo "\nkeyword_uri envo 2: ".count($this->keyword_uri['envo']);
-        $this->initialized_YN['envo'] = true;
-    }
-    private function initialize_growth_ontology()
-    {   echo "\nInitializing growth ontology...";
-        $tmp_file = Functions::save_remote_file_to_local($this->growth_ontology_file, $this->download_options);
-        self::loop_csv_file($tmp_file);
-        unlink($tmp_file);
-        echo "\nkeyword_uri growth 2: ".count($this->keyword_uri['growth'])."\n";
-    }
-    */
     private function loop_csv_file($local_csv)
     {
         $i = 0;

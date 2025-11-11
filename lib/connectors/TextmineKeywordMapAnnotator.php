@@ -13,7 +13,7 @@ class TextmineKeywordMapAnnotator
 {
     public $params; // Declare the property
     public $func;
-    public $keyword_uri;
+    public $keyword_uri, $uri_predicate;
     function __construct()
     {   /* worksheet: [mapped strings]
         https://docs.google.com/spreadsheets/d/1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA/edit?gid=0#gid=0        
@@ -27,18 +27,20 @@ class TextmineKeywordMapAnnotator
         require_library('connectors/GoogleClientAPI');
         $this->func = new GoogleClientAPI();
     }
-    function get_keyword_mappings($item = false)
+    function get_keyword_mappings($predicate)
     {
-        if(!$item) $items = array('mapped strings'); //array('river', 'lake', 'mountain', 'coastal');
-        else       $items = array($item);
+        $items = array('mapped strings'); //'mapped strings' is the sheet name
         foreach($items as $what) { echo "\nAccessing [$what]...";
-            $params = $this->params[$what]; //$what e.g. 'coastal'
+            $params = $this->params[$what];
             $arr = $this->func->access_google_sheet($params);
-            self::massage_result($arr, $what);
+            self::massage_result($arr, $what, $predicate);
         }
-        echo "\nkeyword_uri 1: ".count($this->keyword_uri); // print_r($this->keyword_uri);
+        // if(isset($this->keyword_uri)) {
+            echo "\nkeyword_uri 1: ".count($this->keyword_uri); // print_r($this->keyword_uri);
+            echo "\nuri_predicate 1: ".count($this->uri_predicate); // print_r($this->uri_predicate);
+        // }
     }
-    private function massage_result($arr, $what)
+    private function massage_result($arr, $what, $sought_predicate)
     {   //start massage array
         $i = 0;
         foreach($arr as $item) { $i++;
@@ -53,6 +55,8 @@ class TextmineKeywordMapAnnotator
                 $rek['new_uid'] = "NEW_".$ctr;
                 // $rek = array_map('trim', $rek); //works ok but needs all sheet columns filled up. Replaced by array_map_eol() below.
                 $rek = Functions::array_map_eol($rek); //print_r($rek); exit("\n[]\nstop muna\n");
+                $predicate = @$rek['predicate'];
+                if($sought_predicate != $predicate) continue;
                 /*Array(
                     [string] => a montane species
                     [value] => montane
@@ -63,9 +67,12 @@ class TextmineKeywordMapAnnotator
                 )*/
                 $string = @$rek['string'];
                 $value_uri = @$rek['value uri'];
+                $predicate_uri = @$rek['predicate uri'];
+
                 if($value_uri && $string) {
                     $this->keyword_uri[$string][] = $value_uri;
                     $this->keyword_uri[$string] = array_unique($this->keyword_uri[$string]); //make values unique
+                    $this->uri_predicate[$value_uri] = $predicate_uri;
                 }
             }
         }

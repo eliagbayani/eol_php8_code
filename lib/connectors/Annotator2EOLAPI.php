@@ -731,14 +731,10 @@ class Annotator2EOLAPI extends Functions_Annotator
                 }
                 else continue;
                 
-                print_r($ret); echo " ang ret...\n";
+                // print_r($ret); echo " ang ret...\n";
                 /*Array(
-                    [label] => near river
-                    [uri] => https://www.wikidata.org/entity/Q13360049
-                )
-                Array(
-                    [label] => alpine tundra
-                    [uri] => http://purl.obolibrary.org/obo/ENVO_01000340
+                    [label] => along the Atlantic coast
+                    [uri] => http://purl.obolibrary.org/obo/ENVO_01000687
                 )*/
 
                 /* old scheme
@@ -748,7 +744,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 }
                 else $arr = array($basename, '', '', $label, $uri,              $rek['ontology'], "", $rek['context']); //7th param is mType
                 */
-                /*Array(
+                /*Array( OLD
                     [0] => Q14334_-_99e2bc6c377d2d0bc17a82b68396c07c
                     [1] => 
                     [2] => 
@@ -757,8 +753,12 @@ class Annotator2EOLAPI extends Functions_Annotator
                     [5] => envo
                     [6] => 
                     [7] =>  The wolverine is found primarily in remote reaches forests and subarctic and <b>alpine tundra</b> of the Northern Hemisphere, with
-                )*/
+                )
+                    
+                */
 
+
+                print_r($rek); echo " ang rek...\n";
                 // /* new scheme
                 $arr = array($basename, '', '', $label, $uri, $rek['ontology'], $rek['mtype'], $rek['context']); //7th param is mType
                 // */
@@ -1654,36 +1654,31 @@ class Annotator2EOLAPI extends Functions_Annotator
             $i++; //if(($i % $this->modulo) == 0) echo "\n".number_format($i);
             if(!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars
-            $tmp = explode("\t", $row); // print_r($tmp); exit;
-            /*Array(
+            $tmp = explode("\t", $row); print_r($tmp); echo " ang tmp...\n";
+            /*Array( OLD
                 [0] => Q140_-_3534a7422ad054e6972151018c05cb38
                 [1] => 
                 [2] => 
                 [3] => habitat
                 [4] => ENVO_01000739
                 [5] => envo
+            )
+            Array( NEW
+                [0] => Q140_-_3534a7422ad054e6972151018c05cb38
+                [1] => 
+                [2] => 
+                [3] => cave
+                [4] => http://purl.obolibrary.org/obo/ENVO_00000067
+                [5] => habitat
+                [6] => http://purl.obolibrary.org/obo/RO_0002303
+                [7] =>  those of other cats, the male lion's penis has spines that point backward. During withdrawal of the penis, the spines rake the walls of the female's vagina, which may cause ovulation.[160][161] A lioness may mate with more than one male when she is in heat.[162] Lions of both sexes may be involved in group homosexual and courtship activities. Males will also head-rub and roll around with each other before mounting each other.[163][164] Generation length of the lion is about seven years.[165] The average gestation period is around 110 days;[159] the female gives birth to a litter of between one and four cubs in a secluded den, which may be a thicket, a reed-bed, a <b>cave</b>, or some other sheltered area, usually away from the pride. She will often hunt alone while the cubs are still helpless, staying relatively close to the den.[166] Lion cubs are born blind, their eyes opening around seven days after birth. They weigh 1.2-2.1 kg (2.6-4.6 lb) at birth and are almost helpless, beginning to crawl a day or two after birth and walking around three weeks of age.[167] To avoid a buildup of scent attracting the attention of predators, the lioness moves her cubs to a new den site several times a month, carrying them one-by-one by the nape of the neck.[166] Usually, the mother does not integrate herself and her cubs back into the pride until the cubs are six to eight weeks old.[166] Sometimes the introduction to pride life occurs earlier, particularly if other lionesses have given birth at about the same time.[103][168] When first introduced to the rest of the pride, lion cubs lack confidence when confronted with adults other than their mother. They soon begin to immerse themselves in the pride life, however, playing among themselves or attempting to initiate play with the adults.[168] Lionesses with cubs of their own are more likely to be tolerant of another lioness's
             )*/
-            
-            if($tmp[5] == "envo") {
-                /* entities file now OBSOLETE
-                $envo_term = pathinfo($tmp[4], PATHINFO_BASENAME); //bec it can be "http://www.wikidata.org/entity/Q1342399" or "ENVO_01001082".
-                if(isset($envoFromEntities[$envo_term])) {
-                    $f = Functions::file_open($this->eol_tags_path."eol_tags_noParentTerms.tsv", "a");
-                    fwrite($f, $row."\n");
-                    fclose($f);
-                } */
-                if(!self::is_unique_row($tmp)) continue; //new 16Jun2022 to prevent duplicates
-                $f = Functions::file_open($this->eol_tags_path."eol_tags_noParentTerms.tsv", "a");
-                fwrite($f, $row."\n"); //echo "\n[$row]\n"; //good debug
-                fclose($f);
-            }
-            elseif(in_array($tmp[5], array('eol-geonames', 'growth'))) {
-                if(!self::is_unique_row($tmp)) continue; //new 16Jun2022 to prevent duplicates
-                $f = Functions::file_open($this->eol_tags_path."eol_tags_noParentTerms.tsv", "a");
-                fwrite($f, $row."\n");
-                fclose($f);
-            }
-            else exit("\nUndefined ontology: [".$tmp[5]."]\nWill terminate now (2).\n");
+
+            if(!self::is_unique_row($tmp)) continue; //new 16Jun2022 to prevent duplicates
+            $f = Functions::file_open($this->eol_tags_path."eol_tags_noParentTerms.tsv", "a");
+            fwrite($f, $row."\n");
+            fclose($f);
+                
         }
         $out = shell_exec("wc -l " . $this->eol_tags_path."eol_tags_noParentTerms.tsv.old"); echo "\n eol_tags_noParentTerms.tsv.old ($out)\n";
         $out = shell_exec("wc -l " . $this->eol_tags_path."eol_tags_noParentTerms.tsv");     echo "\n eol_tags_noParentTerms.tsv ($out)\n";

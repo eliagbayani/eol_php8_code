@@ -68,7 +68,8 @@ class TraitAnnotatorAPI
             if(!self::boundary_chars_are_valid_YN($position, $needle, $haystack)) return;
             if($URIs = $this->keyword_uri[$predicate][$needle]) {
                 foreach($URIs as $uri) {
-                    $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 'ontology' => $predicate);
+                    $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 
+                        'ontology' => $predicate, 'measurementType' => $this->uri_predicate[$uri]);
                 }
             }
             else exit("\nERROR: Investigate: No URIs for predicate:[$predicate] | needle:[$needle]\n");
@@ -115,8 +116,10 @@ class TraitAnnotatorAPI
         $func = new TextmineKeywordMapAnnotator();
         $func->get_keyword_mappings($predicate);
         $this->keyword_uri[$predicate] = $func->keyword_uri;
+        $this->uri_predicate           = $func->uri_predicate;
         unset($func);
         echo "\nkeyword_uri [$predicate] 2: ".count($this->keyword_uri[$predicate]);
+
         $this->initialized_YN[$predicate] = true;
     }
     private function loop_csv_file($local_csv)

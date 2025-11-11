@@ -51,17 +51,16 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
         if($this->resource_id == '617_ENV') $this->modulo = 50000; //Wikipedia EN
         else                                $this->modulo = 2000;
         
-        // /* Utility: reports for WoRMS
+        // /* =============== Utility: reports for WoRMS only
         if(Functions::is_production()) $this->source_tsv = '/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv'; //'/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';
         else {
             // $this->source_tsv = '/opt/homebrew/var/www/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';    //OBSOLETE only for PHP 5.6
             $this->source_tsv = '/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';               //for PHP 8.2
         }
-        // */
+        // =============== */
     }
     function report_for_WoRMS() //https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65762&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65762
-    {
-        $i = 0;
+    {   $i = 0;
         foreach(new FileIterator($this->source_tsv) as $line_number => $row) {
             if(!$row) continue;
             $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
@@ -199,7 +198,7 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
         foreach(new FileIterator($tsv) as $line_number => $row) {
             if(!$row) continue;
             $i++; if(($i % $this->modulo) == 0) echo "\n".number_format($i);
-            $arr = explode("\t", $row); //print_r($arr); exit("\nstop 01\n");
+            $arr = explode("\t", $row); print_r($arr); exit("\nstop 01\n");
             if(!$arr) continue;
             /* Array(
                 [0] => 1005_-_1005_distribution.txt

@@ -518,7 +518,7 @@ php environments_2_eol.php _ '{"task": "generate_eol_tags_pensoft", "resource":"
 php environments_2_eol.php _ '{"task": "generate_eol_tags_pensoft", "resource":"Raw English Wikipedia - initial step", "resource_id":"617", "subjects":"Description", "conn_run": "3"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
-$GLOBALS['ENV_DEBUG'] = false; //true;
+$GLOBALS['ENV_DEBUG'] = true; false; //true;
 ini_set('memory_limit','8096M'); //required
 
 if(!is_dir($GLOBALS['MAIN_TMP_PATH'])) mkdir($GLOBALS['MAIN_TMP_PATH']);
@@ -555,8 +555,9 @@ exit("\n-end-\n");
 
 if($task == 'generate_eol_tags_pensoft') {
     $param['resource_id'] .= "_ENV"; //e.g. 21_ENV 617_ENV (destination)
-    require_library('connectors/Functions_Pensoft');
+    // require_library('connectors/Functions_Pensoft'); //obsolete
     // require_library('connectors/Pensoft2EOLAPI'); //obsolete
+    require_library('connectors/Functions_Annotator');
     require_library('connectors/Annotator2EOLAPI');
     $func = new Annotator2EOLAPI($param);
     $download_options = array('timeout' => 172800, 'expire_seconds' => 60*60*24*10); //expires in 10 days. Mostly connector refreshes once a month.

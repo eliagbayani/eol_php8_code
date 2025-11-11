@@ -135,7 +135,11 @@ class Annotator2EOLAPI extends Functions_Annotator
 
         $this->pensoft_run_cnt = 0;
         if($val = @$param['ontologies']) $this->ontologies = $val;      // 1st client is the utility run_partial.php
-        else exit("\nERROR: Predicate(s) not found.\n");
+        else {
+            $this->ontologies = "habitat";
+            // print_r($param);
+            // exit("\nERROR: Predicate(s) not found 173.\n");
+        }
         /* from DATA-1853 - exclude ranks for Wikipedia inferred records */
 
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Wikipedia_excluded_ranks.tsv";
@@ -314,7 +318,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         
         $index = "Should not go here, since record should be created now";
         if($val = @$this->debug[$index]) echo "\n$index : [$val]\n";
-        $index = "NOT FOUND IN EOL TERMS FILE";
+        $index = "NOT FOUND IN EOL TERMS FILE*";
         if(isset($this->debug[$index])) {
             echo "\n$index: "; print_r($this->debug[$index]);
         }
@@ -393,7 +397,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             $m = $m/6;                                    echo "\nDivided by 6: [$m]| conn_run: [".$conn_run."]\n";
         }
         // */
-        foreach(new FileIterator($meta->file_uri) as $line => $row) {
+        foreach(new FileIterator($meta->file_uri) as $line => $row) { //main loop
             // $i++; if(($i % $this->modulo) == 0) echo "\nxyz".number_format($i). " of $m_orig";
             $i++; if(($i % 1000) == 0) echo "\nxyz".number_format($i). " of ".number_format($m_orig);
 
@@ -530,7 +534,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             }
             // else { echo "\ninvalid rec\n"; print_r($rec); } //good debug
             // break; //get only 1 record, during dev only
-            // if($i >= 100000) break; //debug only         --- limit the no. of records processed
+            if($i >= 1000) break; //debug only         --- limit the no. of records processed
             // if($saved >= 20) break; //debug only     --- limit the no. of records processed
 
             /* debug only
@@ -538,7 +542,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             if(count($test) >= 3) { print_r($this->eli); echo "\nearly exit during dev.\n"; break; } //debug only
             */
 
-        } //end loop
+        } //end main loop
         if($this->param['resource_id'] == '26_ENV') echo("\n text_that_are_habitat: ".$this->text_that_are_habitat."\n");
         // print_r($this->debug); //good debug
     }
@@ -705,6 +709,17 @@ class Annotator2EOLAPI extends Functions_Annotator
                      [http://purl.obolibrary.org/obo/ENVO_00000026] => well
             )*/
             // print_r($this->eli); //good debug
+            print_r($this->results); echo " ang results...\n";
+            /*Array(
+                [https://www.wikidata.org/entity/Q13360049] => Array(
+                        [lbl] => near river
+                        [ontology] => envo
+                        [mtype] => 
+                        [context] =>  more closely related to each other than male lions in the same area.[107] The evolution of sociability in lions was likely driven both by high population density and the clumped resources of savannah habitats. The larger the pride, the more high-quality territory they can defend; '_-hotspots'_- being <b>near river</b> confluences, where the cats have better access to water, prey and shelter (via vegetation).[108][109] The area occupied by a pride is called a '_-pride area'_- whereas that occupied by a nomad is a '_-range'_-.[97] Males associated with a pride patrol the fringes.[45] Both males and females defend the pride against intruders, but the male lion is better-suited for this purpose due to its stockier, more powerful build. Some individuals consistently lead the defence against intruders, while others lag behind.[110] Lions tend to assume specific roles in the pride; slower-moving individuals may provide other valuable services to the group.[111] Alternatively, there may be rewards associated with being a leader that fends off intruders; the rank of lionesses in the pride is reflected in these responses.[112] The male or males associated with the pride must defend their relationship with the pride from outside males who may attempt to usurp them.[103] Dominance hierarchies do not appear to exist among individuals of either sex in a pride.[113] Asiatic lion prides differ in group composition. Male Asiatic lions are solitary or associate with up to three males, forming a loose pride while females associate with up to 12 other females, forming a stronger pride together with their cubs. Female and male lions associate only when mating.[114] Coalitions of males hold territory for a longer time than single lions. Males in coalitions of three or four individuals exhibit a pronounced hierarchy, in which one male dominates the others and mates more
+                    )
+            )*/
+
+
             // /* NEW
             foreach($this->results as $uri => $rek) {
                 if($ret = self::apply_adjustments($uri, $rek['lbl'])) {
@@ -716,11 +731,39 @@ class Annotator2EOLAPI extends Functions_Annotator
                 }
                 else continue;
                 
+                print_r($ret); echo " ang ret...\n";
+                /*Array(
+                    [label] => near river
+                    [uri] => https://www.wikidata.org/entity/Q13360049
+                )
+                Array(
+                    [label] => alpine tundra
+                    [uri] => http://purl.obolibrary.org/obo/ENVO_01000340
+                )*/
+
+                /* old scheme
                 if(stripos($uri, "ENVO_") !== false) { //string is found
-                    $arr = array($basename, '', '', $label, pathinfo($uri, PATHINFO_FILENAME), $rek['ontology'], "", $rek['context']); //7th param is mType
+                    $pathinfo_filename = pathinfo($uri, PATHINFO_FILENAME);
+                    $arr = array($basename, '', '', $label, $pathinfo_filename, $rek['ontology'], "", $rek['context']); //7th param is mType
                 }
-                else $arr = array($basename, '', '', $label, $uri, $rek['ontology'], "", $rek['context']); //7th param is mType
-                
+                else $arr = array($basename, '', '', $label, $uri,              $rek['ontology'], "", $rek['context']); //7th param is mType
+                */
+                /*Array(
+                    [0] => Q14334_-_99e2bc6c377d2d0bc17a82b68396c07c
+                    [1] => 
+                    [2] => 
+                    [3] => alpine tundra
+                    [4] => ENVO_01000340
+                    [5] => envo
+                    [6] => 
+                    [7] =>  The wolverine is found primarily in remote reaches forests and subarctic and <b>alpine tundra</b> of the Northern Hemisphere, with
+                )*/
+
+                // /* new scheme
+                $mtype = 'eliboy';
+                $arr = array($basename, '', '', $label, $uri, $rek['ontology'], $mtype, $rek['context']); //7th param is mType
+                // */
+                    
                 /*===== CUSTOMIZE START =====*/
 
                 /* DATA-1893 - a provision to assign measurementType as early as this stage --- copied template
@@ -747,6 +790,8 @@ class Annotator2EOLAPI extends Functions_Annotator
                 // */
                 /*===== CUSTOMIZE END =====*/
                 
+                print_r($arr); echo "\ndito save...\n";
+
                 fwrite($f, implode("\t", $arr)."\n");
             }
             // */
@@ -888,8 +933,8 @@ class Annotator2EOLAPI extends Functions_Annotator
     private function retrieve_partial($id, $desc, $loop)
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
-        // if(false) { //to force-bypass cache
-        if($json = self::retrieve_json($id, 'partial', $desc)) { //echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
+        if(false) { //to force-bypass cache
+        // if($json = self::retrieve_json($id, 'partial', $desc)) { //echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
             $arr = json_decode($json, true);
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); exit("\nhere 100\n"); //good debug ***** this is the orig annotator output
@@ -956,6 +1001,16 @@ class Annotator2EOLAPI extends Functions_Annotator
                     [hash] => dda9a35f1c55d220ce83d768af23bfd5
                 )
         */
+        /*Array(
+            [0] => Array(
+                    [id] => http://purl.obolibrary.org/obo/ENVO_00000447
+                    [lbl] => marine
+                    [context] =>  vessel strikes on a single manatee.[55] Often, the lacerations lead to infections, which can prove fatal. Internal injuries stemming from being trapped between hulls and docks and impacts have also been fatal. Recent testing shows that manatees may be able to hear speed boats and other watercraft approaching, due to the frequency the boat makes. However, a manatee may not be able to hear the approaching boats when they are performing day-to-day activities or distractions. The manatee has a tested frequency range of 8 to 32 kilohertz.[56] Manatees hear on a higher frequency than would be expected for such large <b>marine</b> mammals. Many large boats emit very low frequencies, which confuse the manatee and explain their lack of awareness around boats. The Lloyd's mirror effect results in low frequency propeller sounds not being discernible near the surface, where most accidents occur. Research indicates that when a boat has a higher frequency the manatees rapidly swim away from danger.[57] In 2003, a population model was released by the United States Geological Survey that predicted an extremely grave situation confronting the manatee in both the Southwest and Atlantic regions where the vast majority of manatees are found. It states, In the absence of any new management action, that is, if boat mortality rates continue to increase at the rates observed since 1992, the situation in the Atlantic and Southwest regions is dire, with no chance of meeting recovery criteria within 100 years.[58] '_-Hurricanes, cold stress, red tide poisoning and a variety of other maladies threaten manatees, but by far their greatest danger is from watercraft strikes, which account for about a quarter of Florida manatee deaths,'_- said study curator John Jett.[59] Manatee bearing scars on its back from a boat propeller. According to <b>marine</b> mammal veterinarians: The severity of mutilations
+                    [ontology] => habitat
+                    [measurementType] => http://purl.obolibrary.org/obo/RO_0002303
+                )
+        )*/
+        // print_r($arr); echo " ang arr...\n";
         foreach($arr as $rek) {
             // /* NEW: Jul 10, 2024 - Eli's initiative --- never use line with " A. " --- abbreviation of names
             if(!$this->is_context_valid($rek['context'])) { 
@@ -1072,7 +1127,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             if(!isset($this->allowed_terms_URIs[$rek['id']])) {
                 // /* good debug
                 echo "\n-----------------\nEOL Terms file: ".count($this->allowed_terms_URIs)."";
-                echo "\nNOT FOUND IN EOL TERMS FILE: [".$rek['id']."]";
+                echo "\nNOT FOUND IN EOL TERMS FILE**: [".$rek['id']."]";
                 @$this->debug["NOT FOUND IN EOL TERMS FILE"][$rek['id']]++;
                 print_r($rek); echo "-----------------";
                 // */
@@ -1110,9 +1165,17 @@ class Annotator2EOLAPI extends Functions_Annotator
             //============= below this point is where $this->results is populated =============
             // echo "\n=====dito 900\n";
 
+            // print_r($rek); echo " ang rek...\n";
+            /*Array(
+                [id] => http://purl.obolibrary.org/obo/ENVO_00000067
+                [lbl] => cave
+                [context] =>  P. spelaea, or the <b>cave</b> lion, lived in Eurasia and Beringia during the Late Pleistocene. It became extinct due to climate warming or human expansion latest by 11,900 years ago.[24] Bone fragments excavated in European, North Asian, Canadian and Alaskan <b>cave</b>s indicate that it ranged from Europe across Siberia into western Alaska.[25] It likely derived from P. fossilis,[26] and was genetically isolated and highly distinct from the modern lion in Africa and Eurasia.[27][26] It is depicted in Paleolithic <b>cave</b> paintings, ivory carvings, and clay busts.[28] P. atrox, or the American lion, ranged in the Americas from Canada to possibly Patagonia during the Late Pleistocene.[29] It diverged from the <b>cave</b> lion around 165,000 years ago.[30] A fossil from Edmonton dates to 11,355 +- 55 years ago.[31] Evolution Skull of an American lion on display at the National Museum of Natural Historyred Panthera spelaeablue Panthera atroxgreen Panthera leoMaximal range of the modern lionand its prehistoric relativesin the late Pleistocene The Panthera lineage is estimated to have genetically diverged from the common ancestor of the Felidae around 9.32 to 4.47 million years ago to 11.75 to 0.97 million years ago.[6][32][33] Results of analyses differ in the phylogenetic relationship of the lion; it was thought to form a sister group with the jaguar that diverged 3.46 to 1.22 million years ago,[6] but also with the leopard that diverged 3.1 to 1.95 million years ago[8][9] to 4.32 to 0.02 million years ago. Hybridisation between lion and snow leopard ancestors possibly continued until about 2.1 million years ago.[33] The lion-leopard clade was distributed in the Asian and African Palearctic since at least the early Pliocene.[34] The earliest fossils recognisable as lions were found at Olduvai Gorge in Tanzania and are estimated to be up to 2 million years old.[32] Estimates for the divergence time
+                [ontology] => habitat
+                [measurementType] => http://purl.obolibrary.org/obo/RO_0002303
+            )*/
             if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN
                 if(ctype_lower(substr($rek['lbl'],0,1))) { //bec. references has a lot like 'Urban C.' which are authors.
-                    $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype'], "context" => $rek['context']);
+                    $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => $rek['measurementType'], "context" => $rek['context']);
                     // $this->eli[$rek['id']][] = $rek['lbl']; //good debug
                 }
                 // else exit("\nWent here...\n"); //means Wikipedia EN is strict. "Sri Lanka" will be excluded.
@@ -1738,13 +1801,13 @@ class Annotator2EOLAPI extends Functions_Annotator
         return $final;
     }
     public function Pensoft_is_up()
-    {
-        $desc = "I live in a valley in Northern Philippines";
-        $ontology = "envo";
+    {   return true; //to do
+        $desc = "I live in a valley glacier in Northern Sweden";
+        $ontology = "habitat";
         $uri = str_replace("MY_DESC", urlencode($desc), $this->pensoft_service);
         $uri = str_replace("MY_ONTOLOGIES", $ontology, $uri);
         $json = Functions::lookup_with_cache($uri, array('expire_seconds' => 60));
-        $arr = json_decode($json, true); //print_r($arr); exit;
+        $arr = json_decode($json, true); print_r($arr); exit("\ninvestigate now...\n");
         /*Array(
             [data] => Array(
                     [0] => Array(
@@ -1753,7 +1816,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                             [context] => I live in a <b>valley</b> in Northern Philippines
                             ...
         */
-        if($arr['data'][0]['id'] == 'http://purl.obolibrary.org/obo/ENVO_00000100' && $arr['data'][0]['lbl'] == 'valley') return true;
+        if($arr['data'][0]['id'] == 'http://purl.obolibrary.org/obo/ENVO_00000458' && $arr['data'][0]['lbl'] == 'valley glacier') return true;
         return false;
     }
 }

@@ -709,13 +709,13 @@ class Annotator2EOLAPI extends Functions_Annotator
                      [http://purl.obolibrary.org/obo/ENVO_00000026] => well
             )*/
             // print_r($this->eli); //good debug
-            print_r($this->results); echo " ang results...\n";
+            // print_r($this->results); echo " ang results...\n";
             /*Array(
-                [https://www.wikidata.org/entity/Q13360049] => Array(
-                        [lbl] => near river
-                        [ontology] => envo
-                        [mtype] => 
-                        [context] =>  more closely related to each other than male lions in the same area.[107] The evolution of sociability in lions was likely driven both by high population density and the clumped resources of savannah habitats. The larger the pride, the more high-quality territory they can defend; '_-hotspots'_- being <b>near river</b> confluences, where the cats have better access to water, prey and shelter (via vegetation).[108][109] The area occupied by a pride is called a '_-pride area'_- whereas that occupied by a nomad is a '_-range'_-.[97] Males associated with a pride patrol the fringes.[45] Both males and females defend the pride against intruders, but the male lion is better-suited for this purpose due to its stockier, more powerful build. Some individuals consistently lead the defence against intruders, while others lag behind.[110] Lions tend to assume specific roles in the pride; slower-moving individuals may provide other valuable services to the group.[111] Alternatively, there may be rewards associated with being a leader that fends off intruders; the rank of lionesses in the pride is reflected in these responses.[112] The male or males associated with the pride must defend their relationship with the pride from outside males who may attempt to usurp them.[103] Dominance hierarchies do not appear to exist among individuals of either sex in a pride.[113] Asiatic lion prides differ in group composition. Male Asiatic lions are solitary or associate with up to three males, forming a loose pride while females associate with up to 12 other females, forming a stronger pride together with their cubs. Female and male lions associate only when mating.[114] Coalitions of males hold territory for a longer time than single lions. Males in coalitions of three or four individuals exhibit a pronounced hierarchy, in which one male dominates the others and mates more
+                [http://purl.obolibrary.org/obo/ENVO_01000204] => Array(
+                        [lbl] => tropical
+                        [ontology] => habitat
+                        [mtype] => http://purl.obolibrary.org/obo/RO_0002303
+                        [context] =>  white when ripe, containing a single large seed inside. Cultivation Malay apple is a strictly <b>tropical</b> tree and will be damaged by freezing temperatures.[12] It thrives in humid climates with an annual rainfall of 152 cm (60 in) or more. It can grow at a variety of altitudes, from sea level up to 2,740 m (8,990 ft). The tree can grow to 12-18 m (39-59 ft) in height. It flowers in early summer, bearing fruit three months afterward. In Costa Rica, it flowers earlier, with ripe fruit in April. Coffee growers use the species to both divert birds and provide shade. In Hawaii, Syzygium malaccense is called mountain apple or 'Ohi'a 'ai.[13] When the Polynesians reached the Hawaiian Islands, they brought plants and animals that were important to them. The mountain apple was one of these '_-canoe plants,'_- arriving 1000-1700 years ago.[14] Nutrition The mountain apple is an edible fruit that can be consumed when raw and ripe. In Puerto Rico, the Malay apple is used to make wines, in Hawai'i, the fruits are consumed the same way a Pacific Northwest apple is eaten.[15] Indonesians consume the flowers of the tree in salads and in Guyana the skin of the mountain apple is cooked down to make a syrup.[15] A mountain apple has a white fleshy fruit that has a similar texture to a pear but less sweet than an apple. Below is a chart with more nutrition information derived from Malay apples found in Hawai'i, El Salvador, and Ghana. Due to the high water content, the Mountain Apple is lower in calories than a Gala apple or a Fuji apple and contains a moderate amount of vitamins and minerals. History In 1793, Captain William Bligh was commissioned to procure edible fruits from the Pacific Islands for Jamaica, including this species.[16] He brought back this from Tahiti (called Otaheite at the time). Retrieved from '_-https://en.wikipedia.org/w/index.php?title=Syzygium_malaccense&oldid=1271258771'_-
                     )
             )*/
 
@@ -760,8 +760,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 )*/
 
                 // /* new scheme
-                $mtype = 'eliboy';
-                $arr = array($basename, '', '', $label, $uri, $rek['ontology'], $mtype, $rek['context']); //7th param is mType
+                $arr = array($basename, '', '', $label, $uri, $rek['ontology'], $rek['mtype'], $rek['context']); //7th param is mType
                 // */
                     
                 /*===== CUSTOMIZE START =====*/
@@ -790,7 +789,17 @@ class Annotator2EOLAPI extends Functions_Annotator
                 // */
                 /*===== CUSTOMIZE END =====*/
                 
-                print_r($arr); echo "\ndito save...\n";
+                // print_r($arr); echo "\ndito save...\n";
+                /*Array(
+                    [0] => Q31866_-_2192bf35ce206ba7e33a2db8e41c8119
+                    [1] => 
+                    [2] => 
+                    [3] => tropical
+                    [4] => http://purl.obolibrary.org/obo/ENVO_01000204
+                    [5] => habitat
+                    [6] => http://purl.obolibrary.org/obo/RO_0002303
+                    [7] =>  and may refer to one returning individual.[21] A mainly aerial species, this swift is not limited to particular land habitats or climatic zones; it breeds from the Arctic to sub-<b>tropical</b> China, and from sea level to at least 3,000 m (9,800 ft) in Japan. It is often found around human habitation. It tends to winter in lowlands,[3] and in Australia it is found in arid areas as well as in towns and on the coast. Flocks of thousands may appear when there are hot strong winds. Pacific swifts often travel and feed with white-throated needletails. The Pacific swift probably sleeps in flight when not nesting, behaviour known to occur in the common swift and suspected in other Apus species, but there is an Australian record of these swifts roosting in a tree, and they are occasionally seen to land briefly on the ground or on vertical surfaces.[22] Behaviour Breeding Flying with nesting material near coastal cliffs in Japan Most Apus swift species nest in rocky areas, and the majority will accept human habitations as a substitute for natural sites. The Pacific swift is a colonial species that nests in sheltered locations such as caves, crevices in vertical rock faces (including sea-cliffs), or under the eaves of houses. The nest is a half-cup of feathers, dry grass and other light vegetation collected in flight, cemented with saliva and attached to a ledge or vertical surface with the same substance. Two or three eggs is the normal clutch, the number varying with geographical location. In areas where three eggs are usual, a fourth may occasionally be laid; no larger clutches are known.[23] The eggs are white, as with all swifts,[24] and 24-27.5 x 16-17 mm (0.95-1.08 x 0.63-0.67 in) in size. They are incubated by both parents for about 17 days prior to hatching as unfeathered and blind altricial chicks.[3][24] Both adults brood and feed the chicks, which fledge in an average 40.5
+                )*/
 
                 fwrite($f, implode("\t", $arr)."\n");
             }

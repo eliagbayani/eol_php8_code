@@ -120,7 +120,7 @@ foreach($IDs as $resource_id) {
         $ret = run_desc($desc, $pensoft);
         echo "\n[$resource_id $i] - "; echo("[$desc] [$ret]");
         // $i = 9; //force-assign
-        if($resource_id == '24') {            
+        if($resource_id == '24') {
             /* specific to this resource
             if($i == 1) {$s = "procumbent-PATO_0002389"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             */
@@ -185,7 +185,7 @@ foreach($IDs as $resource_id) {
         if($i == 13) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 14) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
-    }
+    } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";
     $final[] =     "[$resource_id][$errors errors]";
     // ************************************

@@ -5,22 +5,6 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 $GLOBALS['ENV_DEBUG'] = false; //true;
 $timestart = time_elapsed();
 
-/* was never used
-require_library('connectors/Functions_Annotator');
-require_library('connectors/Annotator2EOLAPI');
-$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", 
-    "ontologies" => "behavioral circadian rhythm, eol-geonames, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system");
-$func = new Annotator2EOLAPI($param);
-*/
-
-// $str = "C. alpina a procumbent, is a montane species, occurring through most alpine birch forest and elsewhere";
-// echo("\n".$str."\n");
-// $str = urlencode($str);
-// echo("\n".$str."\n");
-// $str = urldecode($str);
-// exit("\n".$str."\n");
-
-
 /* initial test: should pass this before it proceeds.
 if(!$func->Pensoft_is_up()) exit("\nTest failed. Needed service is not available\n");
 else echo "\nTest passed OK\n";
@@ -33,29 +17,9 @@ echo "\n[$ret]\n";
 exit("\n--end test--\n");
 */
 
-/* option 1 works, but it skips a lot of steps that is needed in real-world connector run.
-$json = $func->run_partial($desc);
-$arr = json_decode($json); print_r($arr);
-*/
-
-/* option 2 --- didn't get to work
-$basename = "ile_-_173"."ice";
-$desc = strip_tags($desc);
-$desc = trim(Functions::remove_whitespace($desc));
-// $func->results = array();
-$arr = $func->retrieve_annotation($basename, $desc); //it is in this routine where the pensoft annotator is called/run
-// $arr = json_decode($json); 
-print_r($arr);
-*/
-
-/*
-$sciname = "Gadur morhuaspp.";
-if(Functions::valid_sciname_for_traits($sciname)) exit("\n[$sciname] valid\n");
-else                                              exit("\n[$sciname] invalid\n");
-*/
 
 // /* option 3 from AntWebAPI.php --- worked OK!
-// /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
+// /* This is used for accessing EOL annotator to get ENVO URI given habitat string.
 $descs = array();
 $descs[] = "b94. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
 $descs[] = "b94: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
@@ -73,7 +37,6 @@ $descs[] = "Gadus morhua is polyandrous of the great outdoors."; //{mating syste
 $descs[] = "Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
 $descs[] = "Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
 
-
 /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
@@ -88,18 +51,11 @@ $descs[] = "b94. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurr
 &gt; becomes > (greater than)
 */
 
-
-// Good idea. I think it's best if we use WikiData uris:
-//     Malabar Coast (India) https://www.wikidata.org/entity/Q473181
-//     Malabar (New South Wales, Australia) https://www.wikidata.org/entity/Q2915709
-//     Malabar (Florida, USA) https://www.wikidata.org/wiki/Q1022772
-
-
 $final = array();
 $IDs = array('24', '617_ENV', 'TreatmentBank_ENV', '26_ENV'); //normal operation --- 617_ENV -> Wikipedia EN //24 -> AntWeb resource ID
 // $IDs = array('24');                                      //dev only
 // $IDs = array('TreatmentBank_ENV'); //or TreatmentBank    //dev only
-$IDs = array('617_ENV'); //or Wikipedia EN               //dev only
+$IDs = array('617_ENV'); //or Wikipedia EN                  //dev only
 // $IDs = array('26_ENV');                                  //dev only
 
 
@@ -111,13 +67,6 @@ foreach($IDs as $resource_id) {
     require_library('connectors/Annotator2EOLAPI');
     $pensoft = new Annotator2EOLAPI($param);
     $pensoft->initialize_remaps_deletions_adjustments(); //copied template
-    // /* to test if these 4 variables are populated.
-    // echo "\n From Pensoft Annotator:";
-    // echo("\n remapped_terms: "              .count($pensoft->remapped_terms)."");
-    // echo("\n mRemarks: "                    .count($pensoft->mRemarks)."");
-    // echo("\n delete_MoF_with_these_labels: ".count($pensoft->delete_MoF_with_these_labels)."");
-    // echo("\n delete_MoF_with_these_uris: "  .count($pensoft->delete_MoF_with_these_uris)."\n");
-    // ************************************
     $i = 0; $errors = 0;
     foreach($descs as $desc) { $i++;
         // $desc .= " ".date('Y-m-d H:i:s', time()); //dev only

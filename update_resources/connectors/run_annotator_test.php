@@ -5,12 +5,13 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 $GLOBALS['ENV_DEBUG'] = false; //true;
 $timestart = time_elapsed();
 
+/* was never used
 require_library('connectors/Functions_Annotator');
 require_library('connectors/Annotator2EOLAPI');
 $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "resource_id" => "TreatmentBank", "subjects" => "Uses", 
     "ontologies" => "behavioral circadian rhythm, eol-geonames, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system");
-
 $func = new Annotator2EOLAPI($param);
+*/
 
 // $str = "C. alpina a procumbent, is a montane species, occurring through most alpine birch forest and elsewhere";
 // echo("\n".$str."\n");
@@ -101,6 +102,9 @@ $IDs = array('24', '617_ENV', 'TreatmentBank_ENV', '26_ENV'); //normal operation
 $IDs = array('617_ENV'); //or Wikipedia EN               //dev only
 // $IDs = array('26_ENV');                                  //dev only
 
+
+$param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "subjects" => "Uses", 
+    "ontologies" => "behavioral circadian rhythm, eol-geonames, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system");
 foreach($IDs as $resource_id) {
     $param['resource_id'] = $resource_id;
     require_library('connectors/Functions_Annotator');
@@ -128,13 +132,13 @@ foreach($IDs as $resource_id) {
 
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();
-            $q[1] = array('s' => "montane species-Q1141462-RO_0002303|alpine birch forest-ENVO_01000340-RO_0002303|alpine birch forest-ENVO_01000435-RO_0002303|forest-ENVO_01000174-RO_0002303");
-            $q[2] = array('s' => "mountain shrubland-ENVO_01000216-RO_0002303|shrubland-ENVO_01000176-RO_0002303");
+            $q[1] = array('s' => "montane species-Q1141462->RO_0002303|alpine birch forest-ENVO_01000340->RO_0002303|alpine birch forest-ENVO_01000435->RO_0002303|forest-ENVO_01000174->RO_0002303");
+            $q[2] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");
             $q[3] = array('s' => "");
-            $q[4] = array('s' => "mountain shrubland-ENVO_01000216-RO_0002303|shrubland-ENVO_01000176-RO_0002303");
-            $q[5] = array('s' => "mountain shrubland-ENVO_01000216-RO_0002303|shrubland-ENVO_01000176-RO_0002303");
+            $q[4] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");
+            $q[5] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");
             $q[6] = array('s' => "");
-            $q[7] = array('s' => "black water river-Q100649-RO_0002303"); //with double quotes
+            $q[7] = array('s' => "black water river-Q100649->RO_0002303"); //with double quotes
             /* Samples for the 7 predicates group
             nocturnal {behavioral circadian rhythm} {http://www.wikidata.org/entity/Q309179}
             precocial {developmental mode} {http://eol.org/schema/terms/precocial}
@@ -144,13 +148,13 @@ foreach($IDs as $resource_id) {
             oviparous {reproduction} {http://www.marinespecies.org/traits/Oviparous}
             dioecious {sexual system} {https://www.wikidata.org/entity/Q148681}
             */
-            $q[8] = array('s' => "nocturnal-Q309179-VT_0001502"); //with backslash \
-            $q[9] = array('s' => "precocial-precocial-DevelopmentalMode");
-            $q[10] = array('s' => "in fast-flowing stream-ENVO_01000253-RO_0002303");
-            $q[11] = array('s' => "biennial-TO_0002725-FLOPO_0980073");
-            $q[12] = array('s' => "polyandrous-ECOCORE_00000064-MatingSystem");
-            $q[13] = array('s' => "oviparous-Oviparous-GO_0000003");
-            $q[14] = array('s' => "dioecious-Q148681-SexualSystem");
+            $q[8] = array('s' => "nocturnal-Q309179->VT_0001502"); //with backslash \
+            $q[9] = array('s' => "precocial-precocial->DevelopmentalMode");
+            $q[10] = array('s' => "in fast-flowing stream-ENVO_01000253->RO_0002303");
+            $q[11] = array('s' => "biennial-TO_0002725->FLOPO_0980073");
+            $q[12] = array('s' => "polyandrous-ECOCORE_00000064->MatingSystem");
+            $q[13] = array('s' => "oviparous-Oviparous->GO_0000003");
+            $q[14] = array('s' => "dioecious-Q148681->SexualSystem");
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
@@ -204,7 +208,7 @@ function run_desc($desc, $pensoft) {
         foreach($arr as $uri => $rek) {
             $filename = pathinfo($uri, PATHINFO_FILENAME);
             $tmp = $rek['lbl']."-$filename";
-            if($mtype = @$rek['mtype']) $tmp .= "-".pathinfo($mtype, PATHINFO_FILENAME);
+            if($mtype = @$rek['mtype']) $tmp .= "->".pathinfo($mtype, PATHINFO_FILENAME);
             $final[] = $tmp;
         }
     }

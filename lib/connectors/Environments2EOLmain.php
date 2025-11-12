@@ -198,9 +198,9 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
         foreach(new FileIterator($tsv) as $line_number => $row) {
             if(!$row) continue;
             $i++; if(($i % $this->modulo) == 0) echo "\n".number_format($i);
-            $arr = explode("\t", $row); print_r($arr); exit("\nstop 01\n");
+            $arr = explode("\t", $row);
             if(!$arr) continue;
-            /* Array(
+            /* Array( OLD
                 [0] => 1005_-_1005_distribution.txt
                 [1] => 117
                 [2] => 122
@@ -209,9 +209,20 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 [5] => envo
                 [6] =>                      --- this is new, a placeholder for measurementType (DATA-1893)
                 [7] => {new} this is where the context is saved...
+            )
+            Array( NEW
+                [0] => Q140_-_3534a7422ad054e6972151018c05cb38
+                [1] => 
+                [2] => 
+                [3] => cave
+                [4] => http://purl.obolibrary.org/obo/ENVO_00000067
+                [5] => habitat
+                [6] => http://purl.obolibrary.org/obo/RO_0002303
+                [7] => and four cubs in a secluded den, which may be a thicket, a reed-bed, a <b>cave</b>, or some other sheltered area, usually away from the pride.
             )*/
-            // print_r($arr); exit("\n-stop muna-\n"); //DATA-1893
+            // print_r($arr); exit("\n-stop muna-\n");
 
+            /* ----- OLD
                 if($val = @$arr[6])            $mType = $val; //DATA-1893
             elseif(@$arr[5] == "envo")         $mType = 'http://purl.obolibrary.org/obo/RO_0002303';
             elseif(@$arr[5] == "eol-geonames") $mType = 'http://eol.org/schema/terms/Present';
@@ -219,7 +230,14 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
             else {
                 print_r($arr);
                 exit("\nERROR: Undefined ontology: [".@$arr[5]."]\nWill terminate now (1).\n");
+            } ----- */
+            // /* ----- NEW
+            if($val = $arr[6]) $mType = $val;
+            else {
+                echo "\n==========\n"; print_r($arr);
+                exit("\nERROR: Cannot detect measurementType, given predicate: [".@$arr[5]."].\n==========\n");
             }
+            // ----- */
             
             $arr[0] = str_replace('.txt', '', $arr[0]);
             $a = explode("_-_", $arr[0]);
@@ -279,11 +297,17 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 }
                 */
                 
+                /* OLD
                 $basename = $arr[4]; //e.g. 'ENVO:00000300'
                 if(stripos($basename, "ENVO") !== false) { //string is found
                     $string_uri = 'http://purl.obolibrary.org/obo/'.str_replace(':', '_', $basename);
                 }
                 else $string_uri = $basename;
+                */
+                // /* NEW
+                $string_uri = $arr[4];
+                // */
+
 
                 // /* from legacy filters: EnvironmentsEOLDataConnector.php
                 if(in_array($string_uri, $this->excluded_uris)) {

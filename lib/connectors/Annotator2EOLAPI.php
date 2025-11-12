@@ -946,8 +946,8 @@ class Annotator2EOLAPI extends Functions_Annotator
     private function retrieve_partial($id, $desc, $loop)
     {   // echo "\n[$id]\n";
         // echo("\nstrlen: ".strlen($desc)."\n"); // good debug
-        if(false) { //to force-bypass cache
-        // if($json = self::retrieve_json($id, 'partial', $desc)) { //echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
+        // if(false) { //to force-bypass cache
+        if($json = self::retrieve_json($id, 'partial', $desc)) { //echo "\n==========\n[::CAN NOW BE RETRIEVED]\n==========\n"; //print_r($arr);
             $arr = json_decode($json, true);
             // if($loop == 29) { print_r($arr['data']); //exit; }
             // print_r($arr); exit("\nhere 100\n"); //good debug ***** this is the orig annotator output
@@ -1072,14 +1072,14 @@ class Annotator2EOLAPI extends Functions_Annotator
             // */
             // echo "\nGoes- 101\n";
 
-            // /* customize: remove all records with measurementValue = http://purl.obolibrary.org/obo/ENVO_00000447
+            /* customize: remove all records with measurementValue = http://purl.obolibrary.org/obo/ENVO_00000447 --- copied template
             // for all resources of: Memoirs of the American Entomological Society
             if(in_array($this->param['resource_id'], array("118935_ENV", "120081_ENV", "120082_ENV", "118986_ENV", "118920_ENV", 
                     "120083_ENV", "118237_ENV", "MoftheAES_ENV", "30355_ENV", "27822_ENV", "30354_ENV", "119035_ENV", "118946_ENV", "118936_ENV", "118950_ENV",
                     "120602_ENV", "119187_ENV", "118978_ENV", "118941_ENV", "119520_ENV", "119188_ENV"))) {
                 if($rek['id'] == 'http://purl.obolibrary.org/obo/ENVO_00000447') continue; //remove 'ocean' Per Jen: https://eol-jira.bibalex.org/browse/DATA-1887?focusedCommentId=66228&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66228
             }
-            // */
+            */
             
             $validTraitYN = self::John_Hill_vs_hill_mountain($rek);
             if(!$validTraitYN) continue;
@@ -1150,7 +1150,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             }
             // ----- New: Nov 8, 2022 - EOL Terms file ----- END */
 
-            if($rek['id'] == "http://purl.obolibrary.org/obo/ENVO_00000040" || $rek['lbl'] == "linn") continue;
+            // if($rek['id'] == "http://purl.obolibrary.org/obo/ENVO_00000040" || $rek['lbl'] == "linn") continue; //copied template
             // */
 
             // echo "\n=====dito 891\n";
@@ -1658,7 +1658,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             $i++; //if(($i % $this->modulo) == 0) echo "\n".number_format($i);
             if(!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars
-            $tmp = explode("\t", $row); print_r($tmp); echo " ang tmp...\n";
+            $tmp = explode("\t", $row); //print_r($tmp); echo " ang tmp...\n";
             /*Array( OLD
                 [0] => Q140_-_3534a7422ad054e6972151018c05cb38
                 [1] => 

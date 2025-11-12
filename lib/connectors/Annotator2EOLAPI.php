@@ -1025,8 +1025,9 @@ class Annotator2EOLAPI extends Functions_Annotator
         // print_r($arr); echo " ang arr...\n";
         foreach($arr as $rek) {
             // /* NEW: Jul 10, 2024 - Eli's initiative --- never use line with " A. " --- abbreviation of names
-            if(!$this->is_context_valid($rek['context'])) { 
-                echo("\nExcluded: Context not valid.\n"); //good debug
+            if(!$this->is_context_valid($rek['context'])) {
+                // echo("\nExcluded: Context not valid.\n"); //good debug
+                @$this->debug["Excluded: Context not valid"][$rek['id']]++;
                 continue; }
             // */
 
@@ -1137,12 +1138,15 @@ class Annotator2EOLAPI extends Functions_Annotator
             // echo "\nGoes- 102\n";
 
             if(!isset($this->allowed_terms_URIs[$rek['id']])) {
-                // /* good debug
-                echo "\n-----------------\nEOL Terms file: ".count($this->allowed_terms_URIs)."";
-                echo "\nNOT FOUND IN EOL TERMS FILE**: [".$rek['id']."]";
                 @$this->debug["NOT FOUND IN EOL TERMS FILE"][$rek['id']]++;
-                print_r($rek); echo "-----------------";
-                // */
+
+                /* good debug
+                echo "\n-----------------\nEOL Terms file: ".count($this->allowed_terms_URIs)."";
+                echo "\nNOT FOUND IN EOL TERMS FILE**: [".$rek['id']."] ";
+                print_r($rek); 
+                echo "-----------------";
+                */
+
                 /* now commented for the sake of continuity and tests. Since it is logged anyway.
                 continue;
                 */

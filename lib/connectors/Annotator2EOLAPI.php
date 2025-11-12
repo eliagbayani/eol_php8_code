@@ -318,7 +318,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         
         $index = "Should not go here, since record should be created now";
         if($val = @$this->debug[$index]) echo "\n$index : [$val]\n";
-        $index = "NOT FOUND IN EOL TERMS FILE*";
+        $index = "NOT FOUND IN EOL TERMS FILE";
         if(isset($this->debug[$index])) {
             echo "\n$index: "; print_r($this->debug[$index]);
         }
@@ -786,8 +786,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 $uri = self::WoRMS_URL_format($uri); # can be general, for all resources
 
                 // /* for all resources: exclude terms not in EOL terms file
-                if(!isset($this->allowed_terms_URIs[$uri])) {
-                    // echo "\n-----------------\nhuli ka! NOT FOUND IN EOL TERMS FILE\n"; print_r($rek); print_r($ret); print_r($arr); echo "-----------------\n";
+                if(!isset($this->allowed_terms_URIs[$uri])) { //not found in EOL terms file
                     continue;
                 }
                 // */

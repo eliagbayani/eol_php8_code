@@ -534,7 +534,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             }
             // else { echo "\ninvalid rec\n"; print_r($rec); } //good debug
             // break; //get only 1 record, during dev only
-            if($i >= 1000) break; //debug only         --- limit the no. of records processed
+            // if($i >= 1000) break; //debug only         --- limit the no. of records processed
             // if($saved >= 20) break; //debug only     --- limit the no. of records processed
 
             /* debug only

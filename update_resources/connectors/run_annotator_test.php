@@ -116,7 +116,7 @@ foreach($IDs as $resource_id) {
     // ************************************
     $i = 0; $errors = 0;
     foreach($descs as $desc) { $i++;
-        $desc .= " ".date('Y-m-d H:i:s', time()); //dev only
+        // $desc .= " ".date('Y-m-d H:i:s', time()); //dev only
         $ret = run_desc($desc, $pensoft);
         echo "\n[$resource_id $i] - "; echo("[$desc] [$ret]");
         // $i = 9; //force-assign
@@ -125,9 +125,6 @@ foreach($IDs as $resource_id) {
             if($i == 1) {$s = "procumbent-PATO_0002389"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             */
         }
-
-
-        
 
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();

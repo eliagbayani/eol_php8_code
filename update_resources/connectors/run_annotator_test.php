@@ -125,15 +125,19 @@ foreach($IDs as $resource_id) {
             if($i == 1) {$s = "procumbent-PATO_0002389"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             */
         }
+
+
+        
+
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();
-            $q[1] = array('s' => "montane species-Q1141462|alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435|forest-ENVO_01000174");
-            $q[2] = array('s' => "mountain shrubland-ENVO_01000216|shrubland-ENVO_01000176");
+            $q[1] = array('s' => "montane species-Q1141462-RO_0002303|alpine birch forest-ENVO_01000340-RO_0002303|alpine birch forest-ENVO_01000435-RO_0002303|forest-ENVO_01000174-RO_0002303");
+            $q[2] = array('s' => "mountain shrubland-ENVO_01000216-RO_0002303|shrubland-ENVO_01000176-RO_0002303");
             $q[3] = array('s' => "");
-            $q[4] = array('s' => "mountain shrubland-ENVO_01000216|shrubland-ENVO_01000176");
-            $q[5] = array('s' => "mountain shrubland-ENVO_01000216|shrubland-ENVO_01000176");
+            $q[4] = array('s' => "mountain shrubland-ENVO_01000216-RO_0002303|shrubland-ENVO_01000176-RO_0002303");
+            $q[5] = array('s' => "mountain shrubland-ENVO_01000216-RO_0002303|shrubland-ENVO_01000176-RO_0002303");
             $q[6] = array('s' => "");
-            $q[7] = array('s' => "black water river-Q100649"); //with double quotes
+            $q[7] = array('s' => "black water river-Q100649-RO_0002303"); //with double quotes
             /* Samples for the 7 predicates group
             nocturnal {behavioral circadian rhythm} {http://www.wikidata.org/entity/Q309179}
             precocial {developmental mode} {http://eol.org/schema/terms/precocial}
@@ -143,13 +147,13 @@ foreach($IDs as $resource_id) {
             oviparous {reproduction} {http://www.marinespecies.org/traits/Oviparous}
             dioecious {sexual system} {https://www.wikidata.org/entity/Q148681}
             */
-            $q[8] = array('s' => "nocturnal-Q309179"); //with backslash \
-            $q[9] = array('s' => "precocial-precocial");
-            $q[10] = array('s' => "in fast-flowing stream-ENVO_01000253");
-            $q[11] = array('s' => "biennial-TO_0002725");
-            $q[12] = array('s' => "polyandrous-ECOCORE_00000064");
-            $q[13] = array('s' => "oviparous-Oviparous");
-            $q[14] = array('s' => "dioecious-Q148681");
+            $q[8] = array('s' => "nocturnal-Q309179-VT_0001502"); //with backslash \
+            $q[9] = array('s' => "precocial-precocial-DevelopmentalMode");
+            $q[10] = array('s' => "in fast-flowing stream-ENVO_01000253-RO_0002303");
+            $q[11] = array('s' => "biennial-TO_0002725-FLOPO_0980073");
+            $q[12] = array('s' => "polyandrous-ECOCORE_00000064-MatingSystem");
+            $q[13] = array('s' => "oviparous-Oviparous-GO_0000003");
+            $q[14] = array('s' => "dioecious-Q148681-SexualSystem");
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
@@ -168,21 +172,21 @@ foreach($IDs as $resource_id) {
             // }
         }
         /* accross all resources */
-        if($i == 1) {$s = "montane species-Q1141462|alpine birch forest-ENVO_01000340|alpine birch forest-ENVO_01000435|forest-ENVO_01000174"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 2) {$s = "mountain shrubland-ENVO_01000216|shrubland-ENVO_01000176";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 3) {$s = "";                                       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 4) {$s = "mountain shrubland-ENVO_01000216|shrubland-ENVO_01000176";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 5) {$s = "mountain shrubland-ENVO_01000216|shrubland-ENVO_01000176";       if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 6) {$s = "";                if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 7) {$s = "black water river-Q100649";              if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 1) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 2) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 3) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 4) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 5) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 6) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 7) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         /* the 7 predicates */
-        if($i == 8) {$s = "nocturnal-Q309179";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 9) {$s = "precocial-precocial";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 10) {$s = "in fast-flowing stream-ENVO_01000253";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 11) {$s = "biennial-TO_0002725";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 12) {$s = "polyandrous-ECOCORE_00000064";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 13) {$s = "oviparous-Oviparous";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 14) {$s = "dioecious-Q148681";   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 8) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 9) {$s = $q[$i]['s'];   if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 10) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 11) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 12) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 13) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 14) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
     }
     echo "\nerrors: [$resource_id][$errors errors]";

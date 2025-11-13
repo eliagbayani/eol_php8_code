@@ -250,7 +250,7 @@ class FillUpMissingParentsAPI
             }
         }
         $t->taxonRank                = $rec['rank'];
-        $t->parentNameUsageID        = $rec['parent']['id'];
+        $t->parentNameUsageID        = @$rec['parent']['id'];
         $t->source = "https://www.wikidata.org/wiki/".$t->taxonID;
         if(!isset($this->taxon_ids[$t->taxonID])) {
             $this->taxon_ids[$t->taxonID] = '';

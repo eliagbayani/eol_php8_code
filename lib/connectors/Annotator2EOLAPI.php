@@ -787,6 +787,7 @@ class Annotator2EOLAPI extends Functions_Annotator
 
                 // /* for all resources: exclude terms not in EOL terms file
                 if(!isset($this->allowed_terms_URIs[$uri])) { //not found in EOL terms file
+                    @$this->debug["NOT FOUND IN EOL TERMS FILE"][$uri]++;
                     continue;
                 }
                 // */
@@ -1147,7 +1148,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 echo "-----------------";
                 */
 
-                /* now commented for the sake of continuity and tests. Since it is logged anyway.
+                /* Now commented only for the sake of continuity and tests. But same filter exists when generating DwCA, so these URIs will be excluded.
                 continue;
                 */
             }

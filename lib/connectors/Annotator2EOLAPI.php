@@ -388,7 +388,7 @@ class Annotator2EOLAPI extends Functions_Annotator
     private function process_table($meta) //parses document extension //generates individual text files & runs environment tagger
     {   //print_r($meta);
         echo "\nprocess ".$meta->file_uri."...\n";
-        echo "\nRun Pensoft annotator...\n";
+        echo "\nRun EOL annotator...\n";
         $i = 0; $saved = 0;
         // /* Used when caching. First client: 617_ENV
         $m = Functions::show_totals($meta->file_uri); echo "\nTotal rows in media extension: [$m]";

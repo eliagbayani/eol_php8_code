@@ -59,7 +59,7 @@ class FilterTermGroupByTaxa
             fclose($handle);
         }
 
-        require_library('connectors/Functions_Pensoft');
+        require_library('connectors/Functions_Annotator');
         require_library('connectors/Annotator2EOLAPI'); //Pensoft2EOLAPI
         $param['resource_id'] = 'nothing';
         $this->pensoft = new Annotator2EOLAPI($param);

@@ -41,8 +41,8 @@ class AntWebDataAPI
     function start($harvester, $row_type)
     {
         // /* New: strict use of URIs only from EOL terms file
-        require_library('connectors/Functions_Pensoft');
-        $func = new Functions_Pensoft();
+        require_library('connectors/Functions_Annotator');
+        $func = new Functions_Annotator();
         $this->allowed_terms_URIs = $func->get_allowed_value_type_URIs_from_EOL_terms_file($this->download_options);
         echo ("\nallowed_terms_URIs from EOL terms file: [".count($this->allowed_terms_URIs)."]\n");
         // */

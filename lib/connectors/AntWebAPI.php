@@ -38,7 +38,7 @@ class AntWebAPI
     {
         // /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
         $param['resource_id'] = 24; //AntWeb resource ID
-        require_library('connectors/Functions_Pensoft');
+        require_library('connectors/Functions_Annotator');
         require_library('connectors/Pensoft2EOLAPI');
         $this->pensoft = new Pensoft2EOLAPI($param);
         $this->pensoft->initialize_remaps_deletions_adjustments();

@@ -2587,8 +2587,8 @@ class Functions
     }
     private static function consolidate_with_EOL_Terms_File($mappings)
     {
-        require_library('connectors/Functions_Pensoft');
-        $func = new Functions_Pensoft();
+        require_library('connectors/Functions_Annotator');
+        $func = new Functions_Annotator();
         $ret = $func->consolidate_with_EOL_Terms($mappings);
         return $ret;
     }

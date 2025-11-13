@@ -34,8 +34,8 @@ class Clean_MoF_Habitat_API
         */
         
         /* not used here. Info from terms.yml is formatted differently here.
-        require_library('connectors/Functions_Pensoft');
-        $func = new Functions_Pensoft();
+        require_library('connectors/Functions_Annotator');
+        $func = new Functions_Annotator();
         $this->allowed_terms_URIs = $func->get_allowed_value_type_URIs_from_EOL_terms_file($this->download_options); print_r($this->allowed_terms_URIs);
         echo ("\nallowed_terms_URIs from EOL terms file: [".count($this->allowed_terms_URIs)."]\n");
         */

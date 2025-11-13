@@ -188,11 +188,11 @@ class Annotator2EOLAPI extends Functions_Annotator
         */
 
         /* copied template
-        $this->initialize_new_patterns();         //generates $this->new_patterns   -> from Functions_Pensoft.php --- DATA-1893
+        $this->initialize_new_patterns();         //generates $this->new_patterns   -> from Functions_Annotator.php --- DATA-1893
         echo("\n new_patterns: "  .count($this->new_patterns)."\n"); //print_r($this->new_patterns); exit;
         */
 
-        $this->allowed_terms_URIs = self::get_allowed_value_type_URIs_from_EOL_terms_file(); //print_r($this->allowed_terms_URIs); -> from Functions_Pensoft.php
+        $this->allowed_terms_URIs = self::get_allowed_value_type_URIs_from_EOL_terms_file(); //print_r($this->allowed_terms_URIs); -> from Functions_Annotator.php
         // echo ("\nallowed_terms_URIs from EOL terms file: [".count($this->allowed_terms_URIs)."]\n");
     }
     function generate_eol_tags_pensoft($resource, $timestart = '', $download_options = array('timeout' => 172800, 'expire_seconds' => 60*60*24*30))

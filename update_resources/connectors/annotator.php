@@ -5,6 +5,8 @@ php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox",
 
 php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "predicates": "ALL"}'
 php update_resources/connectors/annotator.php _ '{"text": "the quick brown fox", "predicates": "habitat, reproduction"}'
+php                             annotator.php _ '{"text": "a whole bunch of text", "predicates": "habitat, mating system, xyz"}'
+
 
 predicates: 7 as of 10Nov2025
     behavioral circadian rhythm

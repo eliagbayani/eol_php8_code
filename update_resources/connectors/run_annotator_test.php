@@ -54,13 +54,16 @@ $descs[] = "b94. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurr
 $final = array();
 $IDs = array('24', '617_ENV', 'TreatmentBank_ENV', '26_ENV'); //normal operation --- 617_ENV -> Wikipedia EN //24 -> AntWeb resource ID
 // $IDs = array('24');                                      //dev only
-// $IDs = array('TreatmentBank_ENV'); //or TreatmentBank    //dev only
-$IDs = array('617_ENV'); //or Wikipedia EN                  //dev only
+$IDs = array('TreatmentBank_ENV'); //or TreatmentBank    //dev only
+// $IDs = array('617_ENV'); //or Wikipedia EN                  //dev only
 // $IDs = array('26_ENV');                                  //dev only
 
 
 $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "subjects" => "Uses", 
-    "ontologies" => "behavioral circadian rhythm, eol-geonames, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system");
+    // "ontologies" => "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system, xyz"
+    "ontologies" => "ALL"
+    // "ontologies" => "habitat" //with 6 errors
+    );
 foreach($IDs as $resource_id) {
     $param['resource_id'] = $resource_id;
     require_library('connectors/Functions_Annotator');

@@ -516,7 +516,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 if($this->param['resource_id'] == "832_ENV")        $this->ontologies = "habitat,eol-geonames"; //Subterranean Biology
                 if($this->param['resource'] == 'Pensoft_journals')  $this->ontologies = "habitat,eol-geonames"; //DATA-1897 Pensoft journals (textmining)
                 // */
-                // exit("\nontologies: [$this->ontologies]\n");
+                // exit("\nresource_id: [".$this->param['resource_id']."] | ontologies: [$this->ontologies]\n");
                 // ---------------------- end customize ----------------------*/
                                 
                 $this->debug['subjects'][$rec['http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm']] = '';
@@ -1197,7 +1197,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 // else exit("\nWent here...\n"); //means Wikipedia EN is strict. "Sri Lanka" will be excluded.
             }
             else { //rest of the resources --> Just be sure the citation, reference, biblio parts of text is not included as input to Pensoft
-                $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => @$rek['mtype'], "context" => $rek['context']);
+                $this->results[$rek['id']] = array("lbl" => $rek['lbl'], "ontology" => $rek['ontology'], "mtype" => $rek['measurementType'], "context" => $rek['context']);
                 // $this->eli[$rek['id']][] = $rek['lbl']; //good debug
             }
             // echo "\nGoes- 103\n";

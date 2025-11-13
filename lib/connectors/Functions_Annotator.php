@@ -168,8 +168,8 @@ class Functions_Annotator
         $title            = $rec['http://purl.org/dc/terms/title'];
         // $this->ontologies = "envo,eol-geonames"; //orig
         if($title == 'Title for eol-geonames')                                      {$this->ontologies = "eol-geonames"; @$this->debug['Title for eol-geonames']++;}
-        elseif(in_array($description_type, array("distribution", "conservation")))  $this->ontologies = "envo,eol-geonames";
-        elseif(in_array($description_type, array("description", "biology_ecology", "diagnosis", "materials_examined"))) $this->ontologies = "envo"; //the rest
+        elseif(in_array($description_type, array("distribution", "conservation")))  $this->ontologies = "ALL"; //$this->ontologies = "envo,eol-geonames";
+        elseif(in_array($description_type, array("description", "biology_ecology", "diagnosis", "materials_examined"))) $this->ontologies = "ALL"; //$this->ontologies = "envo"; //the rest
         else { 
             // echo "R1 [$title] [$description_type]"; 
             $this->debug['unused data type'][$description_type] = ''; 

@@ -8,7 +8,7 @@ These ff. workspaces work together:
 class TraitAnnotatorAPI
 {
     public $initialized_YN;
-    public $keyword_uri, $predicates;
+    public $keyword_uri, $uri_predicate, $predicates;
     public $download_options, $results, $debug;
     public $predicates_list;
     function __construct()
@@ -49,7 +49,7 @@ class TraitAnnotatorAPI
     private function initialize($predicate)
     {
         // /* Latest: our one-place for textmining metadata
-        self::initialize_predicate($predicate); //$predicate is 'habitat' or 'mating system', etc.
+        self::initialize_predicate($predicate); //$predicate is 'habitat' or 'mating system', etc. OR false to get all records
         // */
     }
     private function parse_text($predicate, $text)
@@ -119,8 +119,30 @@ class TraitAnnotatorAPI
         $this->uri_predicate           = $func->uri_predicate;
         unset($func);
         echo "\nkeyword_uri [$predicate] 2: ".count($this->keyword_uri[$predicate]);
-
         $this->initialized_YN[$predicate] = true;
+    }
+    function validate_term_uris()
+    {
+        // step 1: get all term URIs from our new Textmining Strings
+        self::initialize_predicate(false); //$predicate is 'habitat' or 'mating system', etc. OR false to get all records
+        // print_r($this->uri_predicate); 
+        echo "\nuri_predicate count: ".count($this->uri_predicate)."\n";
+        $term_uris = array_keys($this->uri_predicate);
+        echo "\nterm_uris count: ".count($term_uris)."\n";
+
+        // step 2: get all term URIs from our EOL terms file
+        require_library('connectors/Functions_Annotator');
+        $func = new Functions_Annotator();
+        $term_from_EolTermsFile = $func->get_allowed_value_type_URIs_from_EOL_terms_file(array('expire_seconds' => 60*60*24*1));
+        echo "\nterm_from_EolTermsFile count: ".count($term_from_EolTermsFile)."\n"; // print_r($term_from_EolTermsFile);
+
+        // step 3: main
+        foreach($term_uris as $uri) {
+            if(!isset($term_from_EolTermsFile[$uri])) $not_found[$uri] = '';
+        }
+        echo "\nTerm URIs not found in EOL terms file: ".count($not_found)."\n";
+        print_r($not_found);
+
     }
     private function loop_csv_file($local_csv)
     {

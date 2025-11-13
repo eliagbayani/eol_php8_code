@@ -56,7 +56,9 @@ class TextmineKeywordMapAnnotator
                 // $rek = array_map('trim', $rek); //works ok but needs all sheet columns filled up. Replaced by array_map_eol() below.
                 $rek = Functions::array_map_eol($rek); //print_r($rek); exit("\n[]\nstop muna\n");
                 $predicate = @$rek['predicate'];
-                if($sought_predicate != $predicate) continue;
+                if($sought_predicate) { //$sought_predicate can be null/false, which means get all records
+                    if($sought_predicate != $predicate) continue;
+                }
                 /*Array(
                     [string] => a montane species
                     [value] => montane

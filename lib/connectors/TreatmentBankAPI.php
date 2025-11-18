@@ -196,6 +196,13 @@ class TreatmentBankAPI
     }
     private function run_wget_download($source, $destination, $url = '')
     {
+        // /* New: 18Nov2025
+        if(@$this->debug['Cannot download zip'][$source] >= 2) {
+            echo "\nTried 2x already, will ignore: [$source]";
+            return;
+        }
+        // */
+
         if(!file_exists($destination) || filesize($destination) == 0) {
             $cmd = "wget --no-check-certificate ".$source." -O $destination"; $cmd .= " 2>&1";
             $cmd = "wget ".$source." -O $destination"; $cmd .= " 2>&1";
@@ -205,11 +212,12 @@ class TreatmentBankAPI
                 debug("\n".$destination." downloaded successfully");
                 echo " OK ";
             }
-            else echo("\n[$url]\nERROR: Cannot download [$source].\n");
+            else {
+                echo("\n[$url]\nERROR: Cannot download [$source].\n");
+                @$this->debug['Cannot download zip'][$source]++;
+            }
         }
-        else {
-            debug("\nFile already exists: [$destination] - ".filesize($destination)."\n");
-        }
+        // else debug("\nFile already exists: [$destination] - ".filesize($destination)."\n"); //good debug; but not needed
     }
     function build_up_dwca_list() //main 2nd step
     {        

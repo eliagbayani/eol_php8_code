@@ -93,7 +93,7 @@ if(!defined('CONTENT_LOCAL_PATH'))          define('CONTENT_LOCAL_PATH',        
 if(!defined('CONTENT_TEMP_PREFIX'))         define('CONTENT_TEMP_PREFIX',           DOC_ROOT . 'applications/content_server/tmp/');
 # where resource XML files will be downloaded to
 if(!defined('CONTENT_RESOURCE_LOCAL_PATH')) define('CONTENT_RESOURCE_LOCAL_PATH',   DOC_ROOT . 'applications/content_server/resources_3/');
-if(!defined('CONTENT_GNI_RESOURCE_PATH'))   define('CONTENT_GNI_RESOURCE_PATH',     DOC_ROOT . 'applications/content_server/gni_tcs_files/');
+// if(!defined('CONTENT_GNI_RESOURCE_PATH'))   define('CONTENT_GNI_RESOURCE_PATH',     DOC_ROOT . 'applications/content_server/gni_tcs_files/'); //seems obsolete
 # where datasets prepared by app servers will reside (must be web accessible)
 if(!defined('CONTENT_DATASET_PATH'))        define('CONTENT_DATASET_PATH',          DOC_ROOT . 'applications/content_server/datasets/');
 

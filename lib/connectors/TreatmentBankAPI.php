@@ -41,12 +41,14 @@ class TreatmentBankAPI
         $this->download_TB_options = array(
             'resource_id'        => "TreatmentBank",
             'expire_seconds'     => 60*60*24*30, //false, //expires set to false for now
-            'download_wait_time' => 2000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'cache' => 1);
+            'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'cache' => 1);
         $this->service['Plazi Treatments'] = "http://tb.plazi.org/GgServer/xml.rss.xml";
         $this->service['DwCA zip download'] = "tb.plazi.org/GgServer/dwca/masterDocId.zip";
-        if(Functions::is_production()) $this->path['main'] = '/extra/dumps/TreatmentBank/';
-        // else                        $this->path['main'] = '/Volumes/AKiTiO4/other_files/dumps/TreatmentBank/';       //old
-        else                           $this->path['main'] = '/Volumes/Crucial_2TB/other_files2/dumps/TreatmentBank/';  //new
+
+        // if(Functions::is_production()) $this->path['main'] = '/extra/dumps/TreatmentBank/';
+        // else                           $this->path['main'] = '/Volumes/Crucial_2TB/other_files2/dumps/TreatmentBank/';  //new
+        $this->path['main'] = DUMPS_LOCAL_PATH . '/TreatmentBank/';
+
 
         $this->path['xml.rss'] = $this->path['main']."xml.rss.xml";
         // $this->path['xml.rss'] = $this->path['main']."xml.rss_OK.xml";
@@ -116,7 +118,7 @@ class TreatmentBankAPI
                     
                     if($purpose == "download all dwca") {
                         if($i >= $from && $i <= $to) {
-                            if(($i % 1000) == 0) echo "\n[$i] ";
+                            if(($i % 1000) == 0) echo "\nCount [".number_format($i)."]-> ";
                             self::process_item($xml);
                             // if($i == 6) break; //debug only
                         }
@@ -124,7 +126,7 @@ class TreatmentBankAPI
                     }
                     elseif($purpose == "build-up local dwca list") {
                         // /* main operation - uncomment in real operation
-                        if(($i % 5000) == 0) echo "[$i] ";
+                        if(($i % 5000) == 0) echo "[".number_format($i)."] ";
                         self::process_item_buildup_list($xml);
                         // if($i == 10) break; //debug only                        
                         // */
@@ -162,23 +164,24 @@ class TreatmentBankAPI
         $url = $xml->link.".xml";
         debug("".$url."");
         $xml_string = Functions::lookup_with_cache($url, $this->download_TB_options);
-        $hash = simplexml_load_string($xml_string); // print_r($hash); 
-        if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {
-            // echo "\ndocType: [".$hash["docType"]."]";
-            // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
+        if($hash = simplexml_load_string($xml_string)) { //print_r($hash);
+            if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") {
+                // echo "\ndocType: [".$hash["docType"]."]";
+                // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
 
-            $masterDocId = (string) $hash["masterDocId"];
-            $this->stats['masterDocId'][$masterDocId] = '';
-            // ---------------------
-            $ret = self::generate_source_destination($masterDocId);
-            $source = $ret['source']; $destination = $ret['destination'];
-            // ---------------------
-            self::run_wget_download($source, $destination, $url);
+                $masterDocId = (string) $hash["masterDocId"];
+                $this->stats['masterDocId'][$masterDocId] = '';
+                // ---------------------
+                $ret = self::generate_source_destination($masterDocId);
+                $source = $ret['source']; $destination = $ret['destination'];
+                // ---------------------
+                self::run_wget_download($source, $destination, $url);
+            }
+            else {
+                // print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n");
+            }
+            // exit("\n-exit hash-\n");
         }
-        else {
-            // print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n");
-        }
-        // exit("\n-exit hash-\n");
     }
     private function generate_source_destination($masterDocId)
     {
@@ -197,8 +200,8 @@ class TreatmentBankAPI
     private function run_wget_download($source, $destination, $url = '')
     {
         // /* New: 18Nov2025
-        if(@$this->debug['Cannot download zip'][$source] >= 2) {
-            echo "\nTried 2x already, will ignore: [$source]";
+        if(@$this->debug['Cannot download zip'][$source] >= 1) {
+            // echo "\nTried 1x already, will ignore: [$source]"; //good debug
             return;
         }
         // */
@@ -207,14 +210,15 @@ class TreatmentBankAPI
             $cmd = "wget --no-check-certificate ".$source." -O $destination"; $cmd .= " 2>&1";
             $cmd = "wget ".$source." -O $destination"; $cmd .= " 2>&1";
             debug("\nDownloading...[$cmd]\n");
-            $output = shell_exec($cmd); sleep(2); //echo "\n----------\n$output\n----------\n"; //too many lines
+            $output = shell_exec($cmd); sleep(1); //echo "\n----------\n$output\n----------\n"; //too many lines
             if(file_exists($destination) && filesize($destination)) {
                 debug("\n".$destination." downloaded successfully");
-                echo " OK ";
+                echo " [OK] ";
             }
             else {
                 echo("\n[$url]\nERROR: Cannot download [$source].\n");
                 @$this->debug['Cannot download zip'][$source]++;
+                // todo: add to text file all $source that is offline, so we don't try it again.
             }
         }
         // else debug("\nFile already exists: [$destination] - ".filesize($destination)."\n"); //good debug; but not needed

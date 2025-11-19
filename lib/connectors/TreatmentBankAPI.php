@@ -59,6 +59,7 @@ class TreatmentBankAPI
         $path = CONTENT_RESOURCE_LOCAL_PATH."/reports/TreatmentBank";
         if(!is_dir($path)) mkdir($path);
         $this->dwca_list_txt = $path . "/Plazi_DwCA_list.txt";
+        $this->offline_urls_file = $path . "/TreatmentBank_offline_URLs.txt";
 
         /* source text: "reef" -> marine reef
         Many erroneous mappings for non-marine species. 
@@ -100,8 +101,30 @@ class TreatmentBankAPI
         tb.plazi.org/GgServer/dwca/BB61FFDEED243846C05F9C498E34FFF6.zip
         */
     }
+    private function save_offline_url($url)
+    {
+        $WRITE = fopen($this->offline_urls_file, "a");
+        fwrite($WRITE, $url."\n");
+        fclose($WRITE);
+    }
+    private function retrieve_offline_urls_list()
+    {
+        if(is_file($this->offline_urls_file)) {
+            if($rows = file($this->offline_urls_file)) {
+                $rows = array_unique($rows); //make unique
+                $rows = array_map('trim', $rows);
+                foreach($rows as $row) $this->offline_urls[$row] = '';
+            }
+        }
+        else { //script will only go here once
+            $WRITE = fopen($this->offline_urls_file, "w");
+            fclose($WRITE);
+            $this->offline_urls = array();
+        }
+    }
     function start($from, $to)
-    {   //exit("\n[$from] [$to]\n");
+    {   
+        self::retrieve_offline_urls_list();
         self::download_XML_treatments_list();
         self::read_xml_rss($from, $to);
     }
@@ -204,6 +227,7 @@ class TreatmentBankAPI
             // echo "\nTried 1x already, will ignore: [$source]"; //good debug
             return;
         }
+        if(isset($this->offline_urls[$source])) return;
         // */
 
         if(!file_exists($destination) || filesize($destination) == 0) {
@@ -219,6 +243,7 @@ class TreatmentBankAPI
                 echo("\n[$url]\nERROR: Cannot download [$source].\n");
                 @$this->debug['Cannot download zip'][$source]++;
                 // todo: add to text file all $source that is offline, so we don't try it again.
+                self::save_offline_url($source);
             }
         }
         // else debug("\nFile already exists: [$destination] - ".filesize($destination)."\n"); //good debug; but not needed

@@ -133,16 +133,18 @@ class TraitAnnotatorAPI
         // step 2: get all term URIs from our EOL terms file
         require_library('connectors/Functions_Annotator');
         $func = new Functions_Annotator();
-        $term_from_EolTermsFile = $func->get_allowed_value_type_URIs_from_EOL_terms_file(array('expire_seconds' => 60*60*24*1));
+        $seconds = 60*60*24*1; //0; //use 0 to force expire cache
+        $term_from_EolTermsFile = $func->get_allowed_value_type_URIs_from_EOL_terms_file(array('expire_seconds' => $seconds));
         echo "\nterm_from_EolTermsFile count: ".count($term_from_EolTermsFile)."\n"; // print_r($term_from_EolTermsFile);
 
         // step 3: main
+        $not_found = array();
         foreach($term_uris as $uri) {
             if(!isset($term_from_EolTermsFile[$uri])) $not_found[$uri] = '';
         }
         echo "\nTerm URIs not found in EOL terms file: ".count($not_found)."\n";
         print_r($not_found);
-
+        // print_r($term_uris); print_r($term_from_EolTermsFile); //debug only
     }
     private function loop_csv_file($local_csv)
     {

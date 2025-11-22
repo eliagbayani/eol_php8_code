@@ -11,5 +11,5 @@ $timestart = time_elapsed();
 
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();
-$func->validate_term_uris($params);
+$func->validate_term_uris();
 ?>

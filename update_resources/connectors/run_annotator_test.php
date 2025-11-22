@@ -54,8 +54,8 @@ $descs[] = "b94. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurr
 $final = array();
 $IDs = array('24', '617_ENV', 'TreatmentBank_ENV', '26_ENV'); //normal operation --- 617_ENV -> Wikipedia EN //24 -> AntWeb resource ID
 // $IDs = array('24');                                      //dev only
-$IDs = array('TreatmentBank_ENV'); //or TreatmentBank    //dev only
-// $IDs = array('617_ENV'); //or Wikipedia EN                  //dev only
+// $IDs = array('TreatmentBank_ENV'); //or TreatmentBank    //dev only
+$IDs = array('617_ENV'); //or Wikipedia EN                  //dev only
 // $IDs = array('26_ENV');                                  //dev only
 
 
@@ -84,7 +84,7 @@ foreach($IDs as $resource_id) {
 
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();
-            $q[1] = array('s' => "montane species-Q1141462->RO_0002303|alpine birch forest-ENVO_01000340->RO_0002303|alpine birch forest-ENVO_01000435->RO_0002303|forest-ENVO_01000174->RO_0002303");
+            $q[1] = array('s' => "forest-ENVO_01000174->RO_0002303|alpine birch forest-ENVO_01000340->RO_0002303|alpine birch forest-ENVO_01000435->RO_0002303|montane species-Q1141462->RO_0002303");
             $q[2] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");
             $q[3] = array('s' => "");
             $q[4] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");
@@ -103,7 +103,7 @@ foreach($IDs as $resource_id) {
             $q[8] = array('s' => "nocturnal-Q309179->VT_0001502"); //with backslash \
             $q[9] = array('s' => "precocial-precocial->DevelopmentalMode");
             $q[10] = array('s' => "in fast-flowing stream-ENVO_01000253->RO_0002303");
-            $q[11] = array('s' => "biennial-TO_0002725->FLOPO_0980073");
+            $q[11] = array('s' => "biennial-Q189774->TO_0002725");
             $q[12] = array('s' => "polyandrous-ECOCORE_00000064->MatingSystem");
             $q[13] = array('s' => "oviparous-Oviparous->GO_0000003");
             $q[14] = array('s' => "dioecious-Q148681->SexualSystem");

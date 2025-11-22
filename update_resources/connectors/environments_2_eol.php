@@ -518,7 +518,7 @@ php environments_2_eol.php _ '{"task": "generate_eol_tags_pensoft", "resource":"
 php environments_2_eol.php _ '{"task": "generate_eol_tags_pensoft", "resource":"Raw English Wikipedia - initial step", "resource_id":"617", "subjects":"Description", "conn_run": "3"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
-$GLOBALS['ENV_DEBUG'] = true; false; //true;
+$GLOBALS['ENV_DEBUG'] = false; //true;
 ini_set('memory_limit','8096M'); //required
 
 if(!is_dir($GLOBALS['MAIN_TMP_PATH'])) mkdir($GLOBALS['MAIN_TMP_PATH']);

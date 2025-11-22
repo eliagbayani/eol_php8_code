@@ -137,6 +137,9 @@ class Annotator2EOLAPI extends Functions_Annotator
         if($val = @$param['ontologies']) $this->ontologies = $val;      // 1st client is the utility run_partial.php
         else {
             $this->ontologies = "habitat";
+            $this->ontologies = "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system"; //from Google spreadsheet
+
+
             // print_r($param);
             // exit("\nERROR: Predicate(s) not found 173.\n");
         }
@@ -394,7 +397,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         $m = Functions::show_totals($meta->file_uri); echo "\nTotal rows in media extension: [$m]";
         $m_orig = $m;
         if($conn_run = @$this->param['conn_run']) {
-            $m = $m/6;                                    echo "\nDivided by 6: [$m]| conn_run: [".$conn_run."]\n";
+            $m = $m/6;      echo "\nDivided by 6: [$m]| conn_run: [".$conn_run."]\n";
         }
         // */
         foreach(new FileIterator($meta->file_uri) as $line => $row) { //main loop
@@ -532,7 +535,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             }
             // else { echo "\ninvalid rec\n"; print_r($rec); } //good debug
             // break; //get only 1 record, during dev only
-            // if($i >= 1000) break; //debug only         --- limit the no. of records processed
+            // if($i >= 100) break; //debug only         --- limit the no. of records processed; limit records
             // if($saved >= 20) break; //debug only     --- limit the no. of records processed
 
             /* debug only
@@ -1304,6 +1307,18 @@ class Annotator2EOLAPI extends Functions_Annotator
         return $json;
         */
         
+        /* force assignment
+        $descs = array();
+        $descs[] = "b956 Many species utilize thiosulfate nocturnal "; //with backslash \ {behavioral circadian rhythm} {http://www.wikidata.org/entity/Q309179}
+        $descs[] = "b956  precocial test  "; //{developmental mode} {http://eol.org/schema/terms/precocial}
+        $descs[] = "b956 Gadus morhua is in fast-flowing stream of the great outdoors."; //{habitat} {http://purl.obolibrary.org/obo/ENVO_01000253}
+        $descs[] = "b956 Gadus morhua is biennial of the great outdoors."; //{life cycle habit} {http://purl.obolibrary.org/obo/TO_0002725}
+        $descs[] = "b956 Gadus morhua is polyandrous of the great outdoors."; //{mating system} {http://purl.obolibrary.org/obo/ECOCORE_00000064}
+        $descs[] = "b956 Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
+        $descs[] = "b956 Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
+        $desc = implode(". ", $descs);
+        */
+        echo "\nontologies: "; print_r($this->ontologies);
         // exit("\ndesc at this point: [$desc]\n");
 
         // /* using EOL Annotator

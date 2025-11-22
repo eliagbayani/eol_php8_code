@@ -54,5 +54,6 @@ if(!@$params['predicates']) { echo "\n+++++start3"; print_r($argv); exit("ERROR:
 
 require_library('connectors/TraitAnnotatorAPI');
 $func = new TraitAnnotatorAPI();
+// $params['predicates'] = "ALL"; //added but didn't work atm. So it is now commented.
 $func->annotate($params);
 ?>

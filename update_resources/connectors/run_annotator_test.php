@@ -21,21 +21,21 @@ exit("\n--end test--\n");
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing EOL annotator to get ENVO URI given habitat string.
 $descs = array();
-$descs[] = "b94. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
-$descs[] = "b94: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
-$descs[] = "b94: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
-$descs[] = "b94: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
-$descs[] = "b94: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
-$descs[] = "b94 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
-$descs[] = 'b94 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
+$descs[] = "b95. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
+$descs[] = "b95: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
+$descs[] = "b95: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
+$descs[] = "b95: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
+$descs[] = "b95: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
+$descs[] = "b95 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
+$descs[] = 'b95 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
 /* start of the 7 predicates group */ 
-$descs[] = "b94 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate nocturnal (S2O32-) {\displaystyle {\ce  \d "; //with backslash \ {behavioral circadian rhythm} {http://www.wikidata.org/entity/Q309179}
-$descs[] = "b94 test ‛ ＂ c ´ ‟ ito:' /ˈliːtʃiː/ precocial test ´ ito:' /ˈliːtʃi.‟ ː/ k ‛ j＂kj "; //{developmental mode} {http://eol.org/schema/terms/precocial}
-$descs[] = "Gadus morhua is in fast-flowing stream of the great outdoors."; //{habitat} {http://purl.obolibrary.org/obo/ENVO_01000253}
-$descs[] = "Gadus morhua is biennial of the great outdoors."; //{life cycle habit} {http://purl.obolibrary.org/obo/TO_0002725}
-$descs[] = "Gadus morhua is polyandrous of the great outdoors."; //{mating system} {http://purl.obolibrary.org/obo/ECOCORE_00000064}
-$descs[] = "Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
-$descs[] = "Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
+$descs[] = "b95 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate nocturnal (S2O32-) {\displaystyle {\ce  \d "; //with backslash \ {behavioral circadian rhythm} {http://www.wikidata.org/entity/Q309179}
+$descs[] = "b95 test ‛ ＂ c ´ ‟ ito:' /ˈliːtʃiː/ precocial test ´ ito:' /ˈliːtʃi.‟ ː/ k ‛ j＂kj "; //{developmental mode} {http://eol.org/schema/terms/precocial}
+$descs[] = "b95 Gadus morhua is in fast-flowing stream of the great outdoors."; //{habitat} {http://purl.obolibrary.org/obo/ENVO_01000253}
+$descs[] = "b95 Gadus morhua is biennial of the great outdoors."; //{life cycle habit} {http://purl.obolibrary.org/obo/TO_0002725}
+$descs[] = "b95 Gadus morhua is polyandrous of the great outdoors."; //{mating system} {http://purl.obolibrary.org/obo/ECOCORE_00000064}
+$descs[] = "b95 Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
+$descs[] = "b95 Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
 
 /* un-comment this block to test 1 record
 $descs = array();

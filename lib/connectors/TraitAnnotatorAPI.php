@@ -134,6 +134,7 @@ class TraitAnnotatorAPI
         require_library('connectors/Functions_Annotator');
         $func = new Functions_Annotator();
         $seconds = 60*60*24*1; //0; //use 0 to force expire cache
+        // $seconds = 0;
         $term_from_EolTermsFile = $func->get_allowed_value_type_URIs_from_EOL_terms_file(array('expire_seconds' => $seconds));
         echo "\nterm_from_EolTermsFile count: ".count($term_from_EolTermsFile)."\n"; // print_r($term_from_EolTermsFile);
 

@@ -334,8 +334,9 @@ class WikipediaHtmlAPI
                 }
             }
             if(!$start_section) {
-                echo("\nCannot find start section.\n"); print_r(@$rec['furtherInformationURL']);
-                print_r($arr2);
+                if($GLOBALS['ENV_DEBUG']) {
+                    echo("\nCannot find start section.\n"); print_r(@$rec['furtherInformationURL']); print_r($arr2);
+                }
                 @$this->debug['no start section']++;
             }
             else {

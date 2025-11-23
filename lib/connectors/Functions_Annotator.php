@@ -214,7 +214,7 @@ class Functions_Annotator
         return $rec;      
     }
     function load_github_dump($url) //another func parse_github_dump()
-    {
+    {   echo "\ngithub dump url: [$url]\n";
         $local = Functions::save_remote_file_to_local($url, array('cache' => 1, 'expire_seconds' => 60*60*24)); //1 day expires
         $arr = explode("\n", file_get_contents($local));
         $arr = array_map('trim', $arr);

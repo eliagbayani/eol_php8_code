@@ -133,6 +133,8 @@ class Annotator2EOLAPI extends Functions_Annotator
         $this->another_set_exclude_URIs_03 = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/geo_synonyms.txt';
         $this->labels_to_remove_file = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/blacklist_labels.txt'; //for now Wikipedia inferred and TreatmentBank only
 
+
+
         $this->pensoft_run_cnt = 0;
         if($val = @$param['ontologies']) $this->ontologies = $val;      // 1st client is the utility run_partial.php
         else {
@@ -143,6 +145,10 @@ class Annotator2EOLAPI extends Functions_Annotator
             // print_r($param);
             // exit("\nERROR: Predicate(s) not found 173.\n");
         }
+
+        print_r($param); echo("\n[".$this->ontologies."]\nelix 1\n");
+
+
         /* from DATA-1853 - exclude ranks for Wikipedia inferred records */
 
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Wikipedia_excluded_ranks.tsv";
@@ -897,8 +903,13 @@ class Annotator2EOLAPI extends Functions_Annotator
             // $str = utf8_encode($str);            // commented Nov 20, 2023
             $str = Functions::conv_to_utf8($str);   // added Nov 20, 2023
             $str = self::format_str($str);
+
+            /* obsolete: this is wrong. It messes up caching.
             if($this->includeOntologiesYN)  $id = md5($str.$this->ontologies); //for now only for those SI PDFs/epubs
             else                            $id = md5($str); //orig, the rest goes here...
+            */
+            $id = md5($str.$this->ontologies);
+
             // echo "\nbatch feed for pensoft: [$str]\n"; //good debug
             if($str) {
                 // echo("\ngoes here: [$str][$id][$loop]\n");
@@ -1318,7 +1329,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         $descs[] = "b956 Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
         $desc = implode(". ", $descs);
         */
-        echo "\nontologies: "; print_r($this->ontologies);
+        // echo "\nontologies: "; print_r($this->ontologies); //dev only
         // exit("\ndesc at this point: [$desc]\n");
 
         // /* using EOL Annotator

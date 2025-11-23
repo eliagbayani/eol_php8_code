@@ -62,7 +62,8 @@ $IDs = array('617_ENV'); //or Wikipedia EN                  //dev only
 $param = array("task" => "generate_eol_tags_pensoft", "resource" => "all_BHL", "subjects" => "Uses", 
     // "ontologies" => "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system, xyz"
     "ontologies" => "ALL"
-    // "ontologies" => "habitat" //with 6 errors
+    // "ontologies" => "habitat, mating system, life cycle habit" //with 6 errors
+    // "ontologies" => "mating system"
     );
 foreach($IDs as $resource_id) {
     $param['resource_id'] = $resource_id;

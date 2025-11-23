@@ -112,8 +112,9 @@ class TraitAnnotatorAPI
     private function initialize_predicate($predicate)
     {   
         echo "\nInitializing predicate [$predicate]...";
-        require_library('connectors/TextmineKeywordMapAnnotator');
-        $func = new TextmineKeywordMapAnnotator();
+        require_library('connectors/LocalTextmineKeywordMapAnnotator');
+        /* $func = new TextmineKeywordMapAnnotator(); */ //uses Google Spreadsheet
+        $func = new LocalTextmineKeywordMapAnnotator(); //uses a local TSV file based from the orig Google Spreadsheet.
         $func->get_keyword_mappings($predicate);
         $this->keyword_uri[$predicate] = $func->keyword_uri;
         $this->uri_predicate           = $func->uri_predicate;

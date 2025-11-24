@@ -36,6 +36,10 @@ $descs[] = "b95 Gadus morhua is biennial of the great outdoors."; //{life cycle 
 $descs[] = "b95 Gadus morhua is polyandrous of the great outdoors."; //{mating system} {http://purl.obolibrary.org/obo/ECOCORE_00000064}
 $descs[] = "b95 Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
 $descs[] = "b95 Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
+// word boundaries
+$descs[] = "b95 alpine forestry ; alpine forest0 ";
+$descs[] = "b95 &alpine forest; ";
+$descs[] = "b95 Zalpine forest ; 6alpine forest ";
 
 /* un-comment this block to test 1 record
 $descs = array();
@@ -108,6 +112,11 @@ foreach($IDs as $resource_id) {
             $q[12] = array('s' => "polyandrous-ECOCORE_00000064->MatingSystem");
             $q[13] = array('s' => "oviparous-Oviparous->GO_0000003");
             $q[14] = array('s' => "dioecious-Q148681->SexualSystem");
+            // word boundary
+            $q[15] = array('s' => "");
+            $q[16] = array('s' => "forest-ENVO_01000174->RO_0002303|alpine forest-ENVO_01000340->RO_0002303|alpine forest-ENVO_01000435->RO_0002303");
+            $q[17] = array('s' => "forest-ENVO_01000174->RO_0002303");
+
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
@@ -141,6 +150,9 @@ foreach($IDs as $resource_id) {
         if($i == 12) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 13) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 14) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // word boundaries
+        if($i == 15) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 16) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";

@@ -894,9 +894,11 @@ class Annotator2EOLAPI extends Functions_Annotator
             }
             // ----- block check end -----
             if(!isset($str)) {
-                echo "\nINVESTIGATE: str var not defined. [$id]\n[$desc]\n"; // rare case where char_ahead has always a value
                 $str = substr($desc, $ctr, $batch_length);
+                /* dev only - good debug - commented Nov 2025
+                echo "\nINVESTIGATE: str var not defined. [$id]\n[$desc]\n"; // rare case where char_ahead has always a value
                 echo "\nWill now proceed with: [$id]\n[$str]\n";
+                */
             }
             
             // /* sub main operation

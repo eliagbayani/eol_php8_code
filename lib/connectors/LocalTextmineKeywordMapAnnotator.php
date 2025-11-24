@@ -30,7 +30,7 @@ class LocalTextmineKeywordMapAnnotator
                     $rek[$fld] = $line[$k]; $k++;
                 } 
                 $rek = array_map('trim', $rek);
-                //print_r($rek); exit;
+                // print_r($rek); //exit;
                 /*Array( only these first 5 columns are relevant
                     [string] => crepuscular
                     [value] => crepuscular
@@ -40,8 +40,11 @@ class LocalTextmineKeywordMapAnnotator
                 )*/
 
                 $predicate = @$rek['predicate'];
-                if($sought_predicate != $predicate) continue;
-
+                if($sought_predicate == 'ALL') {}
+                elseif(!$sought_predicate) {} //sought_predicate is false or blank ''
+                else {
+                    if($sought_predicate != $predicate) continue;
+                }
                 
                 $string = @$rek['string'];
                 $value_uri = @$rek['value uri'];

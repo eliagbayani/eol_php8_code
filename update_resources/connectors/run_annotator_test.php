@@ -40,6 +40,9 @@ $descs[] = "b95 Gadus morhua is dioecious of the great outdoors."; //{sexual sys
 $descs[] = "b95 alpine forestry ; alpine forest0 ";
 $descs[] = "b95 &alpine forest; ";
 $descs[] = "b95 Zalpine forest ; 6alpine forest ";
+$descs[] = "b95 tropical ; subtropical , subalpine forest ";
+$descs[] = "b95 subalpine forest; ";
+
 
 /* un-comment this block to test 1 record
 $descs = array();
@@ -116,6 +119,8 @@ foreach($IDs as $resource_id) {
             $q[15] = array('s' => "");
             $q[16] = array('s' => "forest-ENVO_01000174->RO_0002303|alpine forest-ENVO_01000340->RO_0002303|alpine forest-ENVO_01000435->RO_0002303");
             $q[17] = array('s' => "forest-ENVO_01000174->RO_0002303");
+            $q[18] = array('s' => "forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303|subtropical-ENVO_01000205->RO_0002303|tropical-ENVO_01000204->RO_0002303");
+            $q[19] = array('s' => "");
 
 
             // if($arr = @$q[$i]) {
@@ -153,6 +158,9 @@ foreach($IDs as $resource_id) {
         // word boundaries
         if($i == 15) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 16) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 17) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 18) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 19) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";

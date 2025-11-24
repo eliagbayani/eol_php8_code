@@ -125,7 +125,7 @@ class TraitAnnotatorAPI
     function validate_term_uris()
     {
         // step 1: get all term URIs from our new Textmining Strings
-        self::initialize_predicate(false); //$predicate is 'habitat' or 'mating system', etc. OR false to get all records
+        self::initialize_predicate('ALL'); //$predicate is 'habitat' or 'mating system', etc. OR 'ALL' to get all records
         // print_r($this->uri_predicate); 
         echo "\nuri_predicate count: ".count($this->uri_predicate)."\n";
         $term_uris = array_keys($this->uri_predicate);

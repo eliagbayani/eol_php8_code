@@ -120,7 +120,7 @@ foreach($IDs as $resource_id) {
             $q[16] = array('s' => "forest-ENVO_01000174->RO_0002303|alpine forest-ENVO_01000340->RO_0002303|alpine forest-ENVO_01000435->RO_0002303");
             $q[17] = array('s' => "forest-ENVO_01000174->RO_0002303");
             $q[18] = array('s' => "forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303|subtropical-ENVO_01000205->RO_0002303|tropical-ENVO_01000204->RO_0002303");
-            $q[19] = array('s' => "");
+            $q[19] = array('s' => "forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303");
 
 
             // if($arr = @$q[$i]) {

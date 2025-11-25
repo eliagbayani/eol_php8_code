@@ -188,24 +188,25 @@ class TreatmentBankAPI
         debug("".$url."");
         $options = $this->download_TB_options;
         $options['expire_seconds'] = 500000; //1000000;
-        $xml_string = Functions::lookup_with_cache($url, $options);
-        if($hash = simplexml_load_string($xml_string)) { //print_r($hash);
-            if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") {
-                // echo "\ndocType: [".$hash["docType"]."]";
-                // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
+        if($xml_string = Functions::lookup_with_cache($url, $options)) {
+            if($hash = simplexml_load_string($xml_string)) { //print_r($hash);
+                if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") {
+                    // echo "\ndocType: [".$hash["docType"]."]";
+                    // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
 
-                $masterDocId = (string) $hash["masterDocId"];
-                $this->stats['masterDocId'][$masterDocId] = '';
-                // ---------------------
-                $ret = self::generate_source_destination($masterDocId);
-                $source = $ret['source']; $destination = $ret['destination'];
-                // ---------------------
-                self::run_wget_download($source, $destination, $url);
+                    $masterDocId = (string) $hash["masterDocId"];
+                    $this->stats['masterDocId'][$masterDocId] = '';
+                    // ---------------------
+                    $ret = self::generate_source_destination($masterDocId);
+                    $source = $ret['source']; $destination = $ret['destination'];
+                    // ---------------------
+                    self::run_wget_download($source, $destination, $url);
+                }
+                else {
+                    // print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n");
+                }
+                // exit("\n-exit hash-\n");
             }
-            else {
-                // print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n");
-            }
-            // exit("\n-exit hash-\n");
         }
     }
     private function generate_source_destination($masterDocId)
@@ -284,7 +285,7 @@ class TreatmentBankAPI
                     }
                 }
                 else { //print_r($xml); 
-                    echo("\nInvestigate, docType not a 'treatment' or not English but: [".$hash["docType"]."][".$hash["docLanguage"]."][".$hash["masterDocId"]."]\n"); 
+                    // echo("\nInvestigate, docType not a 'treatment' or not English but: [".$hash["docType"]."][".$hash["docLanguage"]."][".$hash["masterDocId"]."]\n"); 
                 }
             }
         }

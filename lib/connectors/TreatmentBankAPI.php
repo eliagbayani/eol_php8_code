@@ -266,23 +266,28 @@ class TreatmentBankAPI
             [guid] => 03FA87C50911FFB0FC2DFC79FB4AD551.xml
         )*/
         $url = $xml->link.".xml"; // debug("".$url."");
-        $xml_string = Functions::lookup_with_cache($url, $this->download_TB_options);
-        $hash = simplexml_load_string($xml_string); // print_r($hash); 
-        if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {
-            // echo "\ndocType: [".$hash["docType"]."]";
-            // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
-            $masterDocId = (string) $hash["masterDocId"];
-            // ---------------------
-            $ret = self::generate_source_destination($masterDocId);
-            $source = $ret['source']; $destination = $ret['destination'];
-            // ---------------------
-            if(file_exists($destination) && filesize($destination) && !isset($this->stats['masterDocId'][$masterDocId])) {
-                $this->stats['masterDocId'][$masterDocId] = '';
-                debug("\n$destination -- [".filesize($destination)."]");
-                fwrite($this->WRITE, $destination."\n");
+        // echo "\naccessing url... [$url]";
+        if($xml_string = Functions::lookup_with_cache($url, $this->download_TB_options)) {
+            if($hash = simplexml_load_string($xml_string)) { // print_r($hash);
+                if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {
+                    // echo "\ndocType: [".$hash["docType"]."]";
+                    // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
+                    $masterDocId = (string) $hash["masterDocId"];
+                    // ---------------------
+                    $ret = self::generate_source_destination($masterDocId);
+                    $source = $ret['source']; $destination = $ret['destination'];
+                    // ---------------------
+                    if(file_exists($destination) && filesize($destination) && !isset($this->stats['masterDocId'][$masterDocId])) {
+                        $this->stats['masterDocId'][$masterDocId] = '';
+                        debug("\n$destination -- [".filesize($destination)."]");
+                        fwrite($this->WRITE, $destination."\n");
+                    }
+                }
+                else { //print_r($xml); 
+                    echo("\nInvestigate, docType not a 'treatment' or not English but: [".$hash["docType"]."][".$hash["docLanguage"]."][".$hash["masterDocId"]."]\n"); 
+                }
             }
         }
-        // else { print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n"); }
     }
 
     /* copied template

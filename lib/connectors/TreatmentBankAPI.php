@@ -40,7 +40,7 @@ class TreatmentBankAPI
         $this->debug = array();
         $this->download_TB_options = array(
             'resource_id'        => "TreatmentBank",
-            'expire_seconds'     => 60*60*24*30, //false, //expires set to false for now
+            'expire_seconds'     => false, //60*60*24*30*12, //false, ideally this can be false
             'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'cache' => 1);
         $this->service['Plazi Treatments'] = "http://tb.plazi.org/GgServer/xml.rss.xml";
         $this->service['DwCA zip download'] = "tb.plazi.org/GgServer/dwca/masterDocId.zip";
@@ -140,7 +140,7 @@ class TreatmentBankAPI
                 if($xml = simplexml_load_string($string)) { $i++;
                     
                     if($purpose == "download all dwca") {
-                        if($i >= $from && $i <= $to) {
+                        if($i >= $from && $i <= $to) { //echo "-[$i]-";
                             if(($i % 1000) == 0) echo "\nCount [".number_format($i)."]-> ";
                             self::process_item($xml);
                             // if($i == 6) break; //debug only
@@ -186,7 +186,9 @@ class TreatmentBankAPI
         )*/
         $url = $xml->link.".xml";
         debug("".$url."");
-        $xml_string = Functions::lookup_with_cache($url, $this->download_TB_options);
+        $options = $this->download_TB_options;
+        $options['expire_seconds'] = 500000; //1000000;
+        $xml_string = Functions::lookup_with_cache($url, $options);
         if($hash = simplexml_load_string($xml_string)) { //print_r($hash);
             if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") {
                 // echo "\ndocType: [".$hash["docType"]."]";

@@ -21,27 +21,27 @@ exit("\n--end test--\n");
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing EOL annotator to get ENVO URI given habitat string.
 $descs = array();
-$descs[] = "b95. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
-$descs[] = "b95: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
-$descs[] = "b95: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
-$descs[] = "b95: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
-$descs[] = "b95: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
-$descs[] = "b95 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
-$descs[] = 'b95 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
+$descs[] = "ser.001. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
+$descs[] = "ser.001: materials_examined	mountain shrubland & Holotype. AMS I. 19426 - 001, 414 mm, female, off Maxlabar "; //regular capture
+$descs[] = "ser.001: materials_examined é	mountain shrublandé Isaiah "; //with é exclude
+$descs[] = "ser.001: materials_examined é	mountain shrubland é Holotype. AM I. 19426 - 001, 414 mm, female, off Maxlabar "; //with é include
+$descs[] = "ser.001: materials_examined'	'mountain shrubland Holotype. ' AMS I. 19426 - 001,'	' 414 mm, female, off Maxlabar "; //regular capture with ' single quote
+$descs[] = "ser.001 a Gadus', is a  , . ; testing...  < > procumbent 'species' ";
+$descs[] = 'ser.001 conceals an approximately "55" mm 0.20 inlong, black water river hard spine or "spur" composed of dermal papillae. ';
 /* start of the 7 predicates group */ 
-$descs[] = "b95 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate nocturnal (S2O32-) {\displaystyle {\ce  \d "; //with backslash \ {behavioral circadian rhythm} {http://www.wikidata.org/entity/Q309179}
-$descs[] = "b95 test ‛ ＂ c ´ ‟ ito:' /ˈliːtʃiː/ precocial test ´ ito:' /ˈliːtʃi.‟ ː/ k ‛ j＂kj "; //{developmental mode} {http://eol.org/schema/terms/precocial}
-$descs[] = "b95 Gadus morhua is in fast-flowing stream of the great outdoors."; //{habitat} {http://purl.obolibrary.org/obo/ENVO_01000253}
-$descs[] = "b95 Gadus morhua is biennial of the great outdoors."; //{life cycle habit} {http://purl.obolibrary.org/obo/TO_0002725}
-$descs[] = "b95 Gadus morhua is polyandrous of the great outdoors."; //{mating system} {http://purl.obolibrary.org/obo/ECOCORE_00000064}
-$descs[] = "b95 Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
-$descs[] = "b95 Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
+$descs[] = "ser.001 {\displaystyle {\ce {2CO2 + H2S + 2H2O -> 2CH2O + H2SO4}}} Many species utilize thiosulfate nocturnal (S2O32-) {\displaystyle {\ce  \d "; //with backslash \ {behavioral circadian rhythm} {http://www.wikidata.org/entity/Q309179}
+$descs[] = "ser.001 test ‛ ＂ c ´ ‟ ito:' /ˈliːtʃiː/ precocial test ´ ito:' /ˈliːtʃi.‟ ː/ k ‛ j＂kj "; //{developmental mode} {http://eol.org/schema/terms/precocial}
+$descs[] = "ser.001 Gadus morhua is in fast-flowing stream of the great outdoors."; //{habitat} {http://purl.obolibrary.org/obo/ENVO_01000253}
+$descs[] = "ser.001 Gadus morhua is biennial of the great outdoors."; //{life cycle habit} {http://purl.obolibrary.org/obo/TO_0002725}
+$descs[] = "ser.001 Gadus morhua is polyandrous of the great outdoors."; //{mating system} {http://purl.obolibrary.org/obo/ECOCORE_00000064}
+$descs[] = "ser.001 Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
+$descs[] = "ser.001 Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
 // word boundaries
-$descs[] = "b95 alpine forestry ; alpine forest0 ";
-$descs[] = "b95 &alpine forest; ";
-$descs[] = "b95 Zalpine forest ; 6alpine forest ";
-$descs[] = "b95 tropical ; subtropical , subalpine forest ";
-$descs[] = "b95 subalpine forest; ";
+$descs[] = "ser.001 alpine forestry ; alpine forest0 ";
+$descs[] = "ser.001 &alpine forest; ";
+$descs[] = "ser.001 Zalpine forest ; 6alpine forest ";
+$descs[] = "ser.001 tropical ; subtropical , subalpine forest ";
+$descs[] = "ser.001 subalpine forest; ";
 
 
 /* un-comment this block to test 1 record
@@ -92,7 +92,7 @@ foreach($IDs as $resource_id) {
 
         if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
             $q = array();
-            $q[1] = array('s' => "forest-ENVO_01000174->RO_0002303|alpine birch forest-ENVO_01000340->RO_0002303|alpine birch forest-ENVO_01000435->RO_0002303|montane species-Q1141462->RO_0002303");
+            $q[1] = array('s' => "montane species-Q1141462->RO_0002303|alpine birch forest-ENVO_01000340->RO_0002303|alpine birch forest-ENVO_01000435->RO_0002303|forest-ENVO_01000174->RO_0002303");
             $q[2] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");
             $q[3] = array('s' => "");
             $q[4] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");
@@ -117,11 +117,10 @@ foreach($IDs as $resource_id) {
             $q[14] = array('s' => "dioecious-Q148681->SexualSystem");
             // word boundary
             $q[15] = array('s' => "");
-            $q[16] = array('s' => "forest-ENVO_01000174->RO_0002303|alpine forest-ENVO_01000340->RO_0002303|alpine forest-ENVO_01000435->RO_0002303");
+            $q[16] = array('s' => "alpine forest-ENVO_01000340->RO_0002303|alpine forest-ENVO_01000435->RO_0002303|forest-ENVO_01000174->RO_0002303");
             $q[17] = array('s' => "forest-ENVO_01000174->RO_0002303");
-            $q[18] = array('s' => "forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303|subtropical-ENVO_01000205->RO_0002303|tropical-ENVO_01000204->RO_0002303");
+            $q[18] = array('s' => "tropical-ENVO_01000204->RO_0002303|forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303|subtropical-ENVO_01000205->RO_0002303");
             $q[19] = array('s' => "forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303");
-
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }

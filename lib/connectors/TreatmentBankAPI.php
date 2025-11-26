@@ -128,12 +128,31 @@ class TreatmentBankAPI
         self::download_XML_treatments_list();
         self::read_xml_rss($from, $to);
     }
-    private function read_xml_rss($from, $to, $purpose = "download all dwca")
+    private function get_items_count($local)
     {
-        $local = $this->path['xml.rss'];
+        $itemCount = 0;
         $reader = new \XMLReader();
         $reader->open($local);
+        while ($reader->read()) {
+            // Check if the current node is an element and has the desired name
+            if ($reader->nodeType === \XMLReader::ELEMENT && $reader->name === 'item') {
+                $itemCount++;
+            }
+        }
+        return $itemCount;
+    }
+    private function read_xml_rss($from, $to, $purpose = "download all dwca")
+    {
+        echo "\nFrom: [".number_format($from)."] | To: [".number_format($to)."] | Task: [$purpose]\n";
+        $local = $this->path['xml.rss'];
+        // /* new
+        $items_count = self::get_items_count($local);
+        $date = date('Y-m-d H:i:s', time());
+        echo "\nTotal <item>s as of [$date]: [".number_format($items_count)."]\n"; //exit; //Total <item>s as of [2025-11-25 20:36:27]: [1,079,139]
+        // */
         $i = 0;
+        $reader = new \XMLReader();
+        $reader->open($local);
         while(@$reader->read()) {
             if($reader->nodeType == \XMLReader::ELEMENT && $reader->name == "item") {
                 $string = $reader->readOuterXML();
@@ -164,7 +183,8 @@ class TreatmentBankAPI
                 }
             }
         }
-        echo "\nmasterDocIds: ".count(@$this->stats['masterDocId'])."\n";
+        $reader->close();
+        if(isset($this->stats['masterDocId'])) echo "\nmasterDocIds: ".count(@$this->stats['masterDocId'])."\n";
         exit("\n-stop muna-\n");
     }
     private function process_item($xml)
@@ -280,7 +300,7 @@ class TreatmentBankAPI
                     // ---------------------
                     if(file_exists($destination) && filesize($destination) && !isset($this->stats['masterDocId'][$masterDocId])) {
                         $this->stats['masterDocId'][$masterDocId] = '';
-                        debug("\n$destination -- [".filesize($destination)."]");
+                        // debug("\n$destination -- [".filesize($destination)."]");
                         fwrite($this->WRITE, $destination."\n");
                     }
                 }

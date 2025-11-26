@@ -209,23 +209,34 @@ class TreatmentBankAPI
         $options = $this->download_TB_options;
         $options['expire_seconds'] = 500000; //1000000;
         if($xml_string = Functions::lookup_with_cache($url, $options)) {
-            if($hash = simplexml_load_string($xml_string)) { //print_r($hash);
-                if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") {
-                    // echo "\ndocType: [".$hash["docType"]."]";
-                    // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
 
-                    $masterDocId = (string) $hash["masterDocId"];
-                    $this->stats['masterDocId'][$masterDocId] = '';
-                    // ---------------------
-                    $ret = self::generate_source_destination($masterDocId);
-                    $source = $ret['source']; $destination = $ret['destination'];
-                    // ---------------------
-                    self::run_wget_download($source, $destination, $url);
+            if(!Functions::isXmlWellFormed($xml_string)) {
+                echo "\nXML detected not to be well-formed. Will be ignored [$url].\n"; return;
+            }
+
+            $hash = simplexml_load_string($xml_string);
+            if($hash === false) {
+                echo "Failed to parse XML."; $i = 0;
+                foreach(libxml_get_errors() as $error) { $i++; echo "\nError $i. " . $error->message; }
+            } 
+            else {
+                if($hash = simplexml_load_string($xml_string)) { //print_r($hash);
+                    if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") {
+                        // echo "\ndocType: [".$hash["docType"]."]";
+                        // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
+
+                        $masterDocId = (string) $hash["masterDocId"];
+                        $this->stats['masterDocId'][$masterDocId] = '';
+                        // ---------------------
+                        $ret = self::generate_source_destination($masterDocId);
+                        $source = $ret['source']; $destination = $ret['destination'];
+                        // ---------------------
+                        self::run_wget_download($source, $destination, $url);
+                    }
+                    else {
+                        // print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n");
+                    }
                 }
-                else {
-                    // print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n");
-                }
-                // exit("\n-exit hash-\n");
             }
         }
     }
@@ -296,8 +307,8 @@ class TreatmentBankAPI
 
             $hash = simplexml_load_string($xml_string);
             if($hash === false) {
-                echo "Failed to parse XML.";
-                foreach(libxml_get_errors() as $error) echo "\n" . $error->message;
+                echo "Failed to parse XML."; $i = 0;
+                foreach(libxml_get_errors() as $error) { $i++; echo "\nError $i. " . $error->message; }
             } 
             else {
                 if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {

@@ -289,7 +289,17 @@ class TreatmentBankAPI
         $url = $xml->link.".xml"; // debug("".$url."");
         // echo "\naccessing url... [$url]";
         if($xml_string = Functions::lookup_with_cache($url, $this->download_TB_options)) {
-            if($hash = simplexml_load_string($xml_string)) { // print_r($hash);
+            
+            if(!Functions::isXmlWellFormed($xml_string)) {
+                echo "\nXML detected not to be well-formed. Will be ignored [$url].\n"; return;
+            }
+
+            $hash = simplexml_load_string($xml_string);
+            if($hash === false) {
+                echo "Failed to parse XML.";
+                foreach(libxml_get_errors() as $error) echo "\n" . $error->message;
+            } 
+            else {
                 if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {
                     // echo "\ndocType: [".$hash["docType"]."]";
                     // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
@@ -306,7 +316,7 @@ class TreatmentBankAPI
                 }
                 else { //print_r($xml); 
                     // echo("\nInvestigate, docType not a 'treatment' or not English but: [".$hash["docType"]."][".$hash["docLanguage"]."][".$hash["masterDocId"]."]\n"); 
-                }
+                }            
             }
         }
     }

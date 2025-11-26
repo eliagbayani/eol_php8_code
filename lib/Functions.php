@@ -2424,7 +2424,26 @@ class Functions
         fclose($OUT);
         debug("\n All XML compiled\n\n");
     }
+    public static function isXmlWellFormed(string $xmlString)
+    {
+        // Suppress XML errors to handle them programmatically
+        libxml_use_internal_errors(true);
 
+        $dom = new \DOMDocument();
+        // Attempt to load the XML string
+        $loaded = $dom->loadXML($xmlString);
+
+        // Get any errors that occurred during parsing
+        $errors = libxml_get_errors();
+
+        // Clear the error buffer
+        libxml_clear_errors();
+
+        // If loading failed or there are errors, it's not well-formed
+        if(!$loaded || !empty($errors)) return false;
+
+        return true;
+    }    
     function delete_temp_files($file_path, $file_extension = '*')
     {
         if(!$file_path) return;

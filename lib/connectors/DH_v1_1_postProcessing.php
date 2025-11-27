@@ -2,6 +2,8 @@
 namespace php_active_record;
 /* connector: [dwh_postproc_TRAM_807.php] - TRAM-807
 */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class DH_v1_1_postProcessing
 {
     function __construct($folder)

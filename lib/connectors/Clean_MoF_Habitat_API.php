@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from rem_marine_terr_desc.php] */
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
 class Clean_MoF_Habitat_API
 {
     function __construct($archive_builder, $resource_id)

@@ -133,9 +133,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         $this->another_set_exclude_URIs_02 = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/terms_to_remove.txt';
         $this->another_set_exclude_URIs_03 = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/geo_synonyms.txt';
         $this->labels_to_remove_file = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/blacklist_labels.txt'; //for now Wikipedia inferred and TreatmentBank only
-
         */
-
 
         $this->pensoft_run_cnt = 0;
         if($val = @$param['ontologies']) $this->ontologies = $val;      // 1st client is the utility run_partial.php

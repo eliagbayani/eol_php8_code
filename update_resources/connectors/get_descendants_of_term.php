@@ -4,11 +4,13 @@ include_once(dirname(__FILE__) . "/../../config/environment.php");
 // ini_set('memory_limit','7096M');
 $timestart = time_elapsed();
 
-print_r($argv);
-$params['jenkins_or_cron'] = @$argv[1]; //not needed here
-$param                     = json_decode(@$argv[2], true);
-$resource_id = $param['resource_id'];
-$source_dwca = $param['source_dwca'];
+if(isset($argv)) {
+    print_r($argv);
+    $params['jenkins_or_cron'] = @$argv[1]; //not needed here
+    $param                     = json_decode(@$argv[2], true);
+    $resource_id = $param['resource_id'];
+    $source_dwca = $param['source_dwca'];
+}
 
 if($term = @$_GET['term']) {}
 else exit("Invalid parameter.<p>Pass a [term] parameter with a valid value e.g. <a href='?term=http://purl.obolibrary.org/obo/ENVO_00000002'>?term=http://purl.obolibrary.org/obo/ENVO_00000002</a>"."<br><br>");

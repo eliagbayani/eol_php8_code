@@ -824,7 +824,7 @@ class Annotator2EOLAPI extends Functions_Annotator
 
         $desc = str_replace("ˈ", "'", $desc);        
 
-        //below 4 kinds of single quotes
+        //below 5 kinds of single quotes
         $desc = str_replace("‘", "'", $desc);
         $desc = str_replace("’", "'", $desc);
         $desc = str_replace("ʼ", "'", $desc);
@@ -836,8 +836,6 @@ class Annotator2EOLAPI extends Functions_Annotator
         $desc = str_replace("”", "'", $desc);        
         $desc = str_replace("‟", "'", $desc);
         $desc = str_replace("＂", "'", $desc);
-
-
 
         $desc = str_replace("»", ">>", $desc);        
 

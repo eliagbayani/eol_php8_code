@@ -15,7 +15,7 @@ class LocalTextmineKeywordMapAnnotator
     public $keyword_uri, $uri_predicate;
     function __construct()
     {   
-        $this->local_textmine_strings = DOC_ROOT . 'update_resources/connectors/files/Textmining_Strings_-_mapped_strings.tsv';
+        $this->local_textmine_strings = DOC_ROOT . 'update_resources/connectors/helpers/Textmining_Strings_-_mapped_strings.tsv';
     }
     function get_keyword_mappings($sought_predicate)
     {

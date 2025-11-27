@@ -671,7 +671,7 @@ class DH_v1_1_postProcessing
     private function get_descendantz($descendants)
     {
         $final = array(); $loops = 0;
-        while(true) { $loops++; echo "[$loops]";
+        while(true) { $loops++; //echo "[$loops]"; //good debug
             if($descendants) { $final = array_merge($final, $descendants);
                 $cumulative = array();
                 foreach($descendants as $child) {
@@ -690,7 +690,7 @@ class DH_v1_1_postProcessing
         $final = array_unique($final); //make unique
         asort($final);
         $final = array_values($final); //reindex key
-        echo "\nTotal: ".count($final)."\n"; //exit("\nstopped good OK\n");
+        // echo "\nTotal: ".count($final)."\n"; //exit("\nstopped good OK\n"); //good debug
         return $final;
     }
     function get_descendants_of_taxID($uid, $direct_descendants_only_YN = false, $this_descendants = array())

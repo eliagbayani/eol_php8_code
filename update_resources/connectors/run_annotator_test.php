@@ -44,6 +44,7 @@ $descs[] = "ser.001 tropical ; subtropical , subalpine forest ";
 $descs[] = "ser.001 subalpine forest; ";
 $descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853">https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853</a>"</div></div> </div> </main> </div> <div class="';
 $descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Asian_swamp_eel&oldid=1271391020">https://en.wikipedia.org/w/index.php?title=Asian_swamp_eel&oldid=1271391020</a>"</div></div> </div> </main> </div> <div class="';
+$descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Black_pond_turtle&oldid=1246771832">A forest https://en.wikipedia.org/w/index.php?title=Black_pond_turtle&oldid=1246771832</a>"</div></div> </div> </main> </div> <div class="';
 
 /* un-comment this block to test 1 record
 $descs = array();
@@ -125,6 +126,7 @@ foreach($IDs as $resource_id) {
             // URL source
             $q[20] = array('s' => "");
             $q[21] = array('s' => "");
+            $q[22] = array('s' => "forest-ENVO_01000174->RO_0002303");
 
 
             // if($arr = @$q[$i]) {

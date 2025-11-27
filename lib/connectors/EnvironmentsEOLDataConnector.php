@@ -410,7 +410,12 @@ class EnvironmentsEOLDataConnector
         return false;
     }
     function adjustments($rec) //https://eol-jira.bibalex.org/browse/DATA-1768
-    {   /*this is for https://opendata.eol.org/dataset/environments-eol-project/resource/f5cfda47-d73f-4535-b729-79c8523a5300
+    {   
+        // print_r($rec); echo " adjustments()\n";
+        return $rec;
+        // NOW OBSOLETE
+        
+        /*this is for https://opendata.eol.org/dataset/environments-eol-project/resource/f5cfda47-d73f-4535-b729-79c8523a5300
         The partner will someday be able to resume work at their end, at which point we'll pass them this mapping, but for now, we need to clean some things up. Three methods so far:
 
         current term -> replace with
@@ -643,7 +648,11 @@ class EnvironmentsEOLDataConnector
         return $rec;
     }
     private function more_to_delete($final)
-    {   //removed temporarily http://purl.obolibrary.org/obo/ENVO_00000022 Oct 5, 2020
+    {   
+        return $final;
+        // NOW OBSOLETE
+        
+        //removed temporarily http://purl.obolibrary.org/obo/ENVO_00000022 Oct 5, 2020
         $str = "http://purl.obolibrary.org/obo/ENVO_00000022, http://purl.obolibrary.org/obo/ENVO_00000113, http://purl.obolibrary.org/obo/ENVO_00002232, http://purl.obolibrary.org/obo/ENVO_02000047, http://purl.obolibrary.org/obo/ENVO_00003031, 
         http://purl.obolibrary.org/obo/ENVO_00002276, http://purl.obolibrary.org/obo/ENVO_00000121, http://purl.obolibrary.org/obo/ENVO_00000099, http://purl.obolibrary.org/obo/ENVO_00000377, 
         http://purl.obolibrary.org/obo/ENVO_00000165, http://purl.obolibrary.org/obo/ENVO_00003903, http://purl.obolibrary.org/obo/ENVO_02000054, http://purl.obolibrary.org/obo/ENVO_00010624, 

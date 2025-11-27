@@ -2583,7 +2583,7 @@ class Functions
         echo "\n".count($mappings)." - URIs were added from FishBaseArchiveAPI.php. \n";
         // if(@$mappings['male'] == 'male') exit("\nditox 6\n"); //debug
         
-        /* START DATA-1841 terms remapping */
+        /* START DATA-1841 terms remapping --- OBSOLETE since we are now using Textmining Strings
         echo "\n'Cura ao' OLD: ".$mappings['Cura ao']."\n"; //old value is: http://www.wikidata.org/entity/Q25279
         $url = "https://github.com/EOL/textmine_rules/raw/refs/heads/main/Terms_remapped/DATA_1841_terms_remapped.tsv";
         $func = new TropicosArchiveAPI(NULL); //to initialize variable $this->uri_values in TropicosArchiveAPI
@@ -2593,7 +2593,7 @@ class Functions
         $mappings = $func->data_1841_terms_remapping($mappings, $remapped_terms);
         echo "\nmappings: ".count($mappings)."\n";
         if($mappings['Cura ao'] == 'http://www.geonames.org/7626836') echo "\nRemapping OK. 'Cura ao' NEW: ".$mappings['Cura ao']."\n"; //new value should be http://www.geonames.org/7626836
-        /* END DATA-1841 terms remapping */
+        END DATA-1841 terms remapping */
         // if(@$mappings['male'] == 'male') exit("\nditox 7\n"); //debug
         // else exit("\nOK\n");
         

@@ -42,12 +42,13 @@ $descs[] = "ser.001 &alpine forest; ";
 $descs[] = "ser.001 Zalpine forest ; 6alpine forest ";
 $descs[] = "ser.001 tropical ; subtropical , subalpine forest ";
 $descs[] = "ser.001 subalpine forest; ";
+$descs[] = 'ser.001 <div data-nosnippet="">Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853">https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853</a>"</div></div> </div> </main> </div> <div class="';
 
 
 /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
-$descs[] = "b94. Gadus morhua & an 3 a < > ; ,   is  a montane species, x occurring through most alpine birch forest  and  of & an 3 a < > ; , the Atlantic"; //with & < >
+$descs[] = date('Y-m-d H:i:s', time()) . '1<div data-nosnippet="">Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853">https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853</a>"</div></div> </div> </main> </div> <div class="'; //with & < >
 */
 
 /*
@@ -121,6 +122,9 @@ foreach($IDs as $resource_id) {
             $q[17] = array('s' => "forest-ENVO_01000174->RO_0002303");
             $q[18] = array('s' => "tropical-ENVO_01000204->RO_0002303|forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303|subtropical-ENVO_01000205->RO_0002303");
             $q[19] = array('s' => "forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303");
+            // URL source
+            $q[20] = array('s' => "");
+
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
@@ -160,6 +164,8 @@ foreach($IDs as $resource_id) {
         if($i == 17) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 18) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         if($i == 19) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // URL source
+        if($i == 20) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";

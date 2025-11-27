@@ -128,11 +128,13 @@ class Annotator2EOLAPI extends Functions_Annotator
    
         $this->remove_across_all_resources = array(); //original contents have now been moved to terms_to_remove.txt and/or other txt files below
 
+        /* copied template
         $this->another_set_exclude_URIs = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/terms_implying_missing_filter.txt';
         $this->another_set_exclude_URIs_02 = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/terms_to_remove.txt';
         $this->another_set_exclude_URIs_03 = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/geo_synonyms.txt';
         $this->labels_to_remove_file = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/blacklist_labels.txt'; //for now Wikipedia inferred and TreatmentBank only
 
+        */
 
 
         $this->pensoft_run_cnt = 0;
@@ -1334,6 +1336,9 @@ class Annotator2EOLAPI extends Functions_Annotator
         $descs[] = "b956 Gadus morhua is polyandrous of the great outdoors."; //{mating system} {http://purl.obolibrary.org/obo/ECOCORE_00000064}
         $descs[] = "b956 Gadus morhua is oviparous of the great outdoors."; //{reproduction} {http://www.marinespecies.org/traits/Oviparous}
         $descs[] = "b956 Gadus morhua is dioecious of the great outdoors."; //{sexual system} {https://www.wikidata.org/entity/Q148681}
+
+        $time = date('Y-m-d H:i:s', time());
+        $descs[] = "[$time] do not usually enter brackish water and mostly montane .[12][13] The favored temperature";
         $desc = implode(". ", $descs);
         */
         // echo "\nontologies: "; print_r($this->ontologies); //dev only

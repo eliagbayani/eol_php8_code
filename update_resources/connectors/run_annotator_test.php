@@ -42,8 +42,8 @@ $descs[] = "ser.001 &alpine forest; ";
 $descs[] = "ser.001 Zalpine forest ; 6alpine forest ";
 $descs[] = "ser.001 tropical ; subtropical , subalpine forest ";
 $descs[] = "ser.001 subalpine forest; ";
-$descs[] = 'ser.001 <div data-nosnippet="">Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853">https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853</a>"</div></div> </div> </main> </div> <div class="';
-
+$descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853">https://en.wikipedia.org/w/index.php?title=Lesser_prairie-chicken&oldid=1273157853</a>"</div></div> </div> </main> </div> <div class="';
+$descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Asian_swamp_eel&oldid=1271391020">https://en.wikipedia.org/w/index.php?title=Asian_swamp_eel&oldid=1271391020</a>"</div></div> </div> </main> </div> <div class="';
 
 /* un-comment this block to test 1 record
 $descs = array();
@@ -124,6 +124,7 @@ foreach($IDs as $resource_id) {
             $q[19] = array('s' => "forest-ENVO_01000174->RO_0002303|subalpine forest-ENVO_01000435->RO_0002303");
             // URL source
             $q[20] = array('s' => "");
+            $q[21] = array('s' => "");
 
 
             // if($arr = @$q[$i]) {
@@ -166,6 +167,7 @@ foreach($IDs as $resource_id) {
         if($i == 19) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         // URL source
         if($i == 20) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 21) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
 
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";

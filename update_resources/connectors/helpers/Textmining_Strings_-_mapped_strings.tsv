@@ -1,0 +1,1297 @@
+string	value	value uri	predicate	predicate uri
+a montane species	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine area	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine belt	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine birch forest	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine birch forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine brushwood	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine brushwood	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine climate	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine communities	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine coniferous forest	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine coniferous forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine elevation	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine environment	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine forest	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine grassland	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine grassland	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine habitat	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine heath	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine heath	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine herbfield	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine meadow	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine moor	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine mountain zone	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine pasture	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine pasture	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine plant	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine prairies	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine prairies	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine region	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine scree	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine scrub	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine scrub	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine shrubland	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine shrubland	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine slope	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine steppe	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine steppe	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine terrain	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine tundra	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine tussock	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine tussock	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine valley	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine wetland	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine zone	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+an alpine species	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+arctic-alpine	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+at forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+at high altitudes in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+at higher elevations in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+at side of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+at stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a clear water stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a freshwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a rocky bottom stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a rocky stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a shallow stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a single small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a small ravine stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a stream valley	stream valley	http://purl.obolibrary.org/obo/ENVO_00000129	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in a very small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in an oligotrophic stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in backwaters of small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in bush stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in clean running stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in clear cold stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in clear fast flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in clear forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in clear rocky stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in clear stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in clear swift stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in coastal river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in coastal stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in cold fastflowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in cold stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in cold-water stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in cool stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in creek	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in different types of streams	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast flowing clear stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast flowing forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast flowing hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast-flowing low-altitude stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast-flowing river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast-flowing shaded stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in fast-moving stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in forested stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in freshwater river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in freshwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in high altitude stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in high mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in high mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in lakes and stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in large stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in larger stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in lowland river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in lowland stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in medium to large stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in moderately fast flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in montane stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in mountain areas	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in mountain habitat	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in mountain region	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in mountainous stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in mountains of	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in muddy stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in perennial stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in permanent stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in quiet stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in rainforest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in rapid stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in rocky stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in shallow fast flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in shallow flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in shallow slow-moving stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in shallow stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in slow flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in slow-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in slow-moving stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in slow-running and standing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in sluggish stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small coastal stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small rocky stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small temporary stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small to medium stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in small to medium-sized stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in smaller stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in springs stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in stream bed	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in stream pool	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in stream valley	stream valley	http://purl.obolibrary.org/obo/ENVO_00000129	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in stretches of stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in swift-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in temporary stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in the coastal stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in the freshwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in the lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in the main stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in the mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in the small-sized mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in the stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in this lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in torrential stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in tributary stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in tropical river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in underground stream	underground stream	http://purl.obolibrary.org/obo/ENVO_00000060	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in unpolluted stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in various types of mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+in very small forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+is a mountain species	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+is montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+luvisol	luvisol	http://purl.obolibrary.org/obo/ENVO_00002248	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane and mossy forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane area	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane atlantic forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane bamboo	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane belt	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane broad-leaved	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane broadleaf	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane chaparral	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane cloud	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane conifer forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane coniferous	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane deciduous	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane desert	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane dipterocarp forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane distribution	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane dry forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane ecosystem	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane elevation	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane environment	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane evergreen	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane fir forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane fynbos	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane gallery forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane grassland	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane habitat	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane heath	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane heath	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane humid forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane localities	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane location	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane meadow	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane mesic forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane mixed forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane moist forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane moorland	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane mossy forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane oak	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane open forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane open habitat	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane pine forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane pine-oak	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane primary forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane rain forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane rainforest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane region	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane riparian	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane river	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane savanna	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane scrub	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane secondary forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane shola forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane shrub	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane slope	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane specialist	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane species	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane steppe	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane streams	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane subtropical forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane temperate	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane tepui	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane terrain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane tropical forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane tundra	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane wet forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane wetland	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane woodland	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane zone	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+on a single mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+on mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical	tropical	http://purl.obolibrary.org/obo/ENVO_01000204	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical and subtropical coniferous forest	tropical and subtropical coniferous forest	http://purl.obolibrary.org/obo/ENVO_00005806	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical broadleaf forest	tropical broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000200	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical coniferous forest	tropical coniferous forest	http://purl.obolibrary.org/obo/ENVO_01000210	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical desert	tropical desert	http://purl.obolibrary.org/obo/ENVO_01000183	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical dry broadleaf forest	tropical dry broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000227	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical grassland	tropical grassland	http://purl.obolibrary.org/obo/ENVO_01000192	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical humid forest	tropical humid forests	http://purl.obolibrary.org/obo/ENVO_00002993	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical moist broadleaf forest	tropical moist broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000228	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical moist mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical mountain	tropical mountain	http://purl.obolibrary.org/obo/ENVO_01001456	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical rain forest	tropical moist broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000228	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical rainforest	tropical moist broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000228	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical savanna	tropical savanna	http://purl.obolibrary.org/obo/ENVO_01000188	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical semideciduous forest	tropical semideciduous forest	http://purl.obolibrary.org/obo/ENVO_01000388	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical shrubland	tropical shrubland	http://purl.obolibrary.org/obo/ENVO_01000214	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical soil	tropical soil	http://purl.obolibrary.org/obo/ENVO_00005778	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical woodland	tropical woodland	http://purl.obolibrary.org/obo/ENVO_01000220	habitat	http://purl.obolibrary.org/obo/RO_0002303
+viviparous	viviparous	http://www.marinespecies.org/traits/Viviparous	reproduction	http://purl.obolibrary.org/obo/GO_0000003
+above a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+above a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+above stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+above the stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+abyssal plain	abyssal plain	http://purl.obolibrary.org/obo/ENVO_01000027	habitat	http://purl.obolibrary.org/obo/RO_0002303
+abyssal zone	abyssal zone	http://purl.obolibrary.org/obo/ENVO_01000027	habitat	http://purl.obolibrary.org/obo/RO_0002303
+abyssalpelagic zone	abyssalpelagic zone	http://purl.obolibrary.org/obo/ENVO_00000212	habitat	http://purl.obolibrary.org/obo/RO_0002303
+acid habitat	acid habitat	http://purl.obolibrary.org/obo/ENVO_00002021	habitat	http://purl.obolibrary.org/obo/RO_0002303
+acid hot spring	acid hot spring	http://purl.obolibrary.org/obo/ENVO_00002120	habitat	http://purl.obolibrary.org/obo/RO_0002303
+across much of montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+active chimney	hydrothermal vent	http://purl.obolibrary.org/obo/ENVO_01000030	habitat	http://purl.obolibrary.org/obo/RO_0002303
+adjacent to a mountain stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+adjacent to a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+adjacent to river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+adjacent to small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+adjacent to stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+aerial habitat	aerial habitat	http://purl.obolibrary.org/obo/ENVO_00000568	habitat	http://purl.obolibrary.org/obo/RO_0002303
+algal material	algal material	http://purl.obolibrary.org/obo/ENVO_01001189	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alkaline environment	alkaline environment	http://purl.obolibrary.org/obo/ENVO_01000316	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alkaline flat	alkaline flat	http://purl.obolibrary.org/obo/ENVO_00000196	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alkaline habitat	alkaline habitat	http://purl.obolibrary.org/obo/ENVO_00002022	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alkaline hot spring	alkaline hot spring	http://purl.obolibrary.org/obo/ENVO_00002119	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alluvial fan	alluvial fan	http://purl.obolibrary.org/obo/ENVO_00000314	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alluvial plain	alluvial plain	http://purl.obolibrary.org/obo/ENVO_00000258	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alluvial soil	alluvial soil	http://purl.obolibrary.org/obo/ENVO_00002871	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along a fast-flowing stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along a mountain stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along a rocky stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along a small rocky stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along clear river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along creek	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along fast-flowing stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along forested stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along freshwater stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along hill stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along major stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along mountain creeks	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along mountain stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along mountain streams	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along rocky stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along seasonal stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along small clear rocky stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along small forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along small shaded forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along stream bed	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along stream margin	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along swampy stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the African coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the African east coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Antarctic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the arctic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the asian coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Atlantic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the baltic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the black sea coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the California coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the canadian coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Caribbean Coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the caspian coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Central Coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the east African coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the east coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the eastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the european coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the gulf coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Indian Coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Mediterranean coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the mid-Atlantic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the north coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the north-east coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the north-eastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the north-west coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the north-western coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the northeast coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the northeastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the northern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the northwest coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the northwestern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Norwegian Coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the oregon coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Pacific coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the queensland coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the Red Sea coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the south African coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the south american coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the south coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the south-east coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the south-eastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the south-west coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the south-western coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southeast coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southeastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southern Cape coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southern east coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southern pacific coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southwest coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the southwestern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the U.S. coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the U.S. east coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the U.S. pacific coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the washington coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the west African coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the west coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+along the western coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alongside a rocky stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alongside a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alongside river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alongside small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alongside stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alongside the stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine glacier	alpine glacier	http://purl.obolibrary.org/obo/ENVO_00000085	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine soil	alpine soil	http://purl.obolibrary.org/obo/ENVO_00005741	habitat	http://purl.obolibrary.org/obo/RO_0002303
+altricial	altricial	http://eol.org/schema/terms/altricial	developmental mode	http://eol.org/schema/terms/DevelopmentalMode
+anabranch	anabranch	http://purl.obolibrary.org/obo/ENVO_00000152	habitat	http://purl.obolibrary.org/obo/RO_0002303
+anaerobic mud	anaerobic mud	http://purl.obolibrary.org/obo/ENVO_00002133	habitat	http://purl.obolibrary.org/obo/RO_0002303
+anaerobic sediment	anaerobic sediment	http://purl.obolibrary.org/obo/ENVO_00002045	habitat	http://purl.obolibrary.org/obo/RO_0002303
+anoxic water	anoxic water	http://purl.obolibrary.org/obo/ENVO_01000173	habitat	http://purl.obolibrary.org/obo/RO_0002303
+aquatic	aquatic	http://purl.obolibrary.org/obo/ENVO_00002030	habitat	http://purl.obolibrary.org/obo/RO_0002303
+aquifer	aquifer	http://purl.obolibrary.org/obo/ENVO_00012408	habitat	http://purl.obolibrary.org/obo/RO_0002303
+arboreal habitat	arboreal habitat	http://purl.obolibrary.org/obo/ENVO_00000571	habitat	http://purl.obolibrary.org/obo/RO_0002303
+areas with stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+arid	arid	http://purl.obolibrary.org/obo/ENVO_01000230	habitat	http://purl.obolibrary.org/obo/RO_0002303
+around clear stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+around small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+around stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+associated with forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+associated with mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+associated with river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+associated with small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+associated with stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+atoll	atoll	http://purl.obolibrary.org/obo/ENVO_00000166	habitat	http://purl.obolibrary.org/obo/RO_0002303
+backwater	backwater	http://purl.obolibrary.org/obo/ENVO_00000472	habitat	http://purl.obolibrary.org/obo/RO_0002303
+badland	badland	http://purl.obolibrary.org/obo/ENVO_00000127	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bajada	bajada	http://purl.obolibrary.org/obo/ENVO_00000315	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bank of a mountain stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bank of a small stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bank of a stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bank of small stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bank of stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of a small stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of a stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of fast-flowing stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of forest stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of lakes and stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of meandering estuarine stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of river	river bank	http://purl.obolibrary.org/obo/ENVO_00000143	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of rocky stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of slow-flowing stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of small stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+banks of stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+basalt	basalt	http://purl.obolibrary.org/obo/ENVO_01000236	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bathyal zone	bathyal zone	http://purl.obolibrary.org/obo/ENVO_01000026	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bathypelagic zone	bathypelagic zone	http://purl.obolibrary.org/obo/ENVO_00000211	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bayou	bayou	http://purl.obolibrary.org/obo/ENVO_00000234	habitat	http://purl.obolibrary.org/obo/RO_0002303
+beach ridge	beach ridge	http://purl.obolibrary.org/obo/ENVO_00000529	habitat	http://purl.obolibrary.org/obo/RO_0002303
+beech forest soil	beech forest soil	http://purl.obolibrary.org/obo/ENVO_00005770	habitat	http://purl.obolibrary.org/obo/RO_0002303
+beside a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+beside a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+beside rainforest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+beside river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+beside stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+besides stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+biennial	biennial	https://www.wikidata.org/entity/Q189774	life cycle habit	http://purl.obolibrary.org/obo/TO_0002725
+biogenous sediment	biogenous sediment	http://purl.obolibrary.org/obo/ENVO_01000082	habitat	http://purl.obolibrary.org/obo/RO_0002303
+biological waste	biological waste	http://purl.obolibrary.org/obo/ENVO_01000373	habitat	http://purl.obolibrary.org/obo/RO_0002303
+black smoker	black smoker	http://purl.obolibrary.org/obo/ENVO_00000218	habitat	http://purl.obolibrary.org/obo/RO_0002303
+black water creek	blackwater river	https://www.wikidata.org/entity/Q100649	habitat	http://purl.obolibrary.org/obo/RO_0002303
+black water river	blackwater river	https://www.wikidata.org/entity/Q100649	habitat	http://purl.obolibrary.org/obo/RO_0002303
+black water stream	blackwater river	https://www.wikidata.org/entity/Q100649	habitat	http://purl.obolibrary.org/obo/RO_0002303
+blackwater creek	blackwater river	https://www.wikidata.org/entity/Q100649	habitat	http://purl.obolibrary.org/obo/RO_0002303
+blackwater river	blackwater river	https://www.wikidata.org/entity/Q100649	habitat	http://purl.obolibrary.org/obo/RO_0002303
+blackwater stream	blackwater river	https://www.wikidata.org/entity/Q100649	habitat	http://purl.obolibrary.org/obo/RO_0002303
+blanket bog	blanket bog	http://purl.obolibrary.org/obo/ENVO_00000511	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bodily fluid	bodily fluid	http://purl.obolibrary.org/obo/ENVO_02000019	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bordering stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+borders of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bore hole water	bore hole water	http://purl.obolibrary.org/obo/ENVO_00003097	habitat	http://purl.obolibrary.org/obo/RO_0002303
+boreal montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bottom of a lake	lake bed	http://purl.obolibrary.org/obo/ENVO_00000268	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bottom of lake	lake bed	http://purl.obolibrary.org/obo/ENVO_00000268	habitat	http://purl.obolibrary.org/obo/RO_0002303
+bottom of the lake	lake bed	http://purl.obolibrary.org/obo/ENVO_00000268	habitat	http://purl.obolibrary.org/obo/RO_0002303
+brackish estuary	brackish estuary	http://purl.obolibrary.org/obo/ENVO_00002137	habitat	http://purl.obolibrary.org/obo/RO_0002303
+brackish lake	brackish lake	http://purl.obolibrary.org/obo/ENVO_00000540	habitat	http://purl.obolibrary.org/obo/RO_0002303
+brackish pond	brackish pond	http://purl.obolibrary.org/obo/ENVO_00000541	habitat	http://purl.obolibrary.org/obo/RO_0002303
+brackish water	brackish water	http://purl.obolibrary.org/obo/ENVO_00002019	habitat	http://purl.obolibrary.org/obo/RO_0002303
+breeding stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+breeds in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+broadleaf forest	broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000197	habitat	http://purl.obolibrary.org/obo/RO_0002303
+burned soil	burned soil	http://purl.obolibrary.org/obo/ENVO_00005760	habitat	http://purl.obolibrary.org/obo/RO_0002303
+by a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+by forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+by river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+by stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+by the stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+caatinga	desert and xeric shrubland	http://purl.obolibrary.org/obo/ENVO_00000883	habitat	http://purl.obolibrary.org/obo/RO_0002303
+calanque	calanque	http://purl.obolibrary.org/obo/ENVO_00000567	habitat	http://purl.obolibrary.org/obo/RO_0002303
+calcareous mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+calcareous ooze	calcareous ooze	http://purl.obolibrary.org/obo/ENVO_02000046	habitat	http://purl.obolibrary.org/obo/RO_0002303
+caldera	caldera	http://purl.obolibrary.org/obo/ENVO_00000096	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cambisol	cambisol	http://purl.obolibrary.org/obo/ENVO_00002235	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cave	cave	http://purl.obolibrary.org/obo/ENVO_00000067	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cave floor	cave floor	http://purl.obolibrary.org/obo/ENVO_01000019	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cave stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cave stream	cave	http://purl.obolibrary.org/obo/ENVO_00000067	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cave system	cave system	http://purl.obolibrary.org/obo/ENVO_00000013	habitat	http://purl.obolibrary.org/obo/RO_0002303
+chaparral	chaparral	http://purl.obolibrary.org/obo/ENVO_00000301	habitat	http://purl.obolibrary.org/obo/RO_0002303
+chernozem	chernozem	http://purl.obolibrary.org/obo/ENVO_00002237	habitat	http://purl.obolibrary.org/obo/RO_0002303
+chott	chott	http://purl.obolibrary.org/obo/ENVO_00000271	habitat	http://purl.obolibrary.org/obo/RO_0002303
+clay sediment	clay sediment	http://purl.obolibrary.org/obo/ENVO_01000120	habitat	http://purl.obolibrary.org/obo/RO_0002303
+clay soil	clay soil	http://purl.obolibrary.org/obo/ENVO_00002262	habitat	http://purl.obolibrary.org/obo/RO_0002303
+close to a perennial stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+close to a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+close to a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+close to river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+close to small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+close to stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+close to the stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coarse beach sand	coarse beach sand	http://purl.obolibrary.org/obo/ENVO_00002148	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal dune	coastal dune	http://purl.obolibrary.org/obo/ENVO_00000416	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal inlet	coastal inlet	http://purl.obolibrary.org/obo/ENVO_00000137	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal land	coastal land	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal mountain range	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal plain	coastal plain	http://purl.obolibrary.org/obo/ENVO_00000090	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal scrubland	coastal scrubland	http://purl.obolibrary.org/obo/ENVO_01000237	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal water	coastal water	http://purl.obolibrary.org/obo/ENVO_00002150	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coastal wetland	coastal wetland	http://purl.obolibrary.org/obo/ENVO_00000230	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cobble sediment	cobble sediment	http://purl.obolibrary.org/obo/ENVO_01000115	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cold seep	cold seep	http://purl.obolibrary.org/obo/ENVO_01000127	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected at a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected at small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from a moderately-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from a montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from a mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from a slow-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from a small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from a stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from high altitude stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from high mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from shallow stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from small mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected from streams	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected in a stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected in clear water stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+collected in the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+common in montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+common in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+confined to the Kogelberg mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+confined to the mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+conifer woodland	coniferous forest	http://purl.obolibrary.org/obo/ENVO_01000196	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coniferous forest	coniferous forest	http://purl.obolibrary.org/obo/ENVO_01000196	habitat	http://purl.obolibrary.org/obo/RO_0002303
+continental rise	continental rise	http://purl.obolibrary.org/obo/ENVO_00000274	habitat	http://purl.obolibrary.org/obo/RO_0002303
+continental slope	continental slope	http://purl.obolibrary.org/obo/ENVO_00000273	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coral head	coral reef	http://purl.obolibrary.org/obo/ENVO_01000049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coral reef	coral reef	http://purl.obolibrary.org/obo/ENVO_01000049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coral reef back reef	coral reef back reef	http://purl.obolibrary.org/obo/ENVO_01000145	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coral reef crest	coral reef crest	http://purl.obolibrary.org/obo/ENVO_01000146	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coral reef flat zone	coral reef flat zone	http://purl.obolibrary.org/obo/ENVO_01000144	habitat	http://purl.obolibrary.org/obo/RO_0002303
+coral reef fore reef	coral reef fore reef	http://purl.obolibrary.org/obo/ENVO_01000147	habitat	http://purl.obolibrary.org/obo/RO_0002303
+crater lake	crater lake	http://purl.obolibrary.org/obo/ENVO_00000052	habitat	http://purl.obolibrary.org/obo/RO_0002303
+crepuscular	crepuscular	http://purl.obolibrary.org/obo/ECOCORE_00000078	behavioral circadian rhythm	http://purl.obolibrary.org/obo/VT_0001502
+cryosol	cryosol	http://purl.obolibrary.org/obo/ENVO_00002236	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cypress swamp	cypress swamp	http://purl.obolibrary.org/obo/ENVO_01000331	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dambo	dambo	http://purl.obolibrary.org/obo/ENVO_00000236	habitat	http://purl.obolibrary.org/obo/RO_0002303
+deciduous forest	deciduous forest	http://purl.obolibrary.org/obo/ENVO_01000816	habitat	http://purl.obolibrary.org/obo/RO_0002303
+deep marine sediment	deep marine sediment	http://purl.obolibrary.org/obo/ENVO_00002113	habitat	http://purl.obolibrary.org/obo/RO_0002303
+depth in lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+depths of the lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+desert	desert	http://purl.obolibrary.org/obo/ENVO_01000179	habitat	http://purl.obolibrary.org/obo/RO_0002303
+desert and xeric shrubland	desert and xeric shrubland	http://purl.obolibrary.org/obo/ENVO_00000883	habitat	http://purl.obolibrary.org/obo/RO_0002303
+desert oasis	desert oasis	http://purl.obolibrary.org/obo/ENVO_00000156	habitat	http://purl.obolibrary.org/obo/RO_0002303
+desert sand	desert sand	http://purl.obolibrary.org/obo/ENVO_00005800	habitat	http://purl.obolibrary.org/obo/RO_0002303
+desert scrubland	desert scrubland	http://purl.obolibrary.org/obo/ENVO_01000242	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dioecious	dioecious	https://www.wikidata.org/entity/Q148681	sexual system	http://eol.org/schema/terms/SexualSystem
+dioicous	dioicous	https://eol.org/schema/terms/dioicous	sexual system	http://eol.org/schema/terms/SexualSystem
+distributed in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+diurnal	diurnal	http://www.wikidata.org/entity/Q906470	behavioral circadian rhythm	http://purl.obolibrary.org/obo/VT_0001502
+dry lake bed	dry lake bed	http://purl.obolibrary.org/obo/ENVO_01000296	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dry river	dry river	http://purl.obolibrary.org/obo/ENVO_00000018	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dry river valley	dry river valley	http://purl.obolibrary.org/obo/ENVO_0010163	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dry stream	dry stream	http://purl.obolibrary.org/obo/ENVO_00000278	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dry valley	dry valley	http://purl.obolibrary.org/obo/ENVO_00000128	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dune	dune	http://purl.obolibrary.org/obo/ENVO_00000170	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dune slack	dune slack	http://purl.obolibrary.org/obo/ENVO_00000308	habitat	http://purl.obolibrary.org/obo/RO_0002303
+dune soil	dune soil	http://purl.obolibrary.org/obo/ENVO_00002260	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edge of a forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edge of a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edge of a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edge of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edges of cold fast stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edges of river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edges of small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+edges of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to a mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to a single mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to a single stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to freshwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to the Andes mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to the Carpathian mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to the stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to this mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endemic to upland stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endolithic habitat	endolithic habitat	http://purl.obolibrary.org/obo/ENVO_00000886	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endorheic basin	endorheic basin	http://purl.obolibrary.org/obo/ENVO_00000551	habitat	http://purl.obolibrary.org/obo/RO_0002303
+endorheic lake	endorheic lake	http://purl.obolibrary.org/obo/ENVO_00000197	habitat	http://purl.obolibrary.org/obo/RO_0002303
+epilimnion	epilimnion	http://purl.obolibrary.org/obo/ENVO_00002131	habitat	http://purl.obolibrary.org/obo/RO_0002303
+equatorial forest	tropical woodland	http://purl.obolibrary.org/obo/ENVO_01000220	habitat	http://purl.obolibrary.org/obo/RO_0002303
+equatorial rain forest	tropical moist broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000228	habitat	http://purl.obolibrary.org/obo/RO_0002303
+equatorial rainforest	tropical moist broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000228	habitat	http://purl.obolibrary.org/obo/RO_0002303
+escarpment	escarpment	http://purl.obolibrary.org/obo/ENVO_00000280	habitat	http://purl.obolibrary.org/obo/RO_0002303
+especially in mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+estuarine	estuarine	http://purl.obolibrary.org/obo/ENVO_01000020	habitat	http://purl.obolibrary.org/obo/RO_0002303
+estuarine mud	estuarine mud	http://purl.obolibrary.org/obo/ENVO_00002160	habitat	http://purl.obolibrary.org/obo/RO_0002303
+estuary	estuary	http://purl.obolibrary.org/obo/ENVO_01000020	habitat	http://purl.obolibrary.org/obo/RO_0002303
+eutrophic water	eutrophic water	http://purl.obolibrary.org/obo/ENVO_00002224	habitat	http://purl.obolibrary.org/obo/RO_0002303
+evergreen forest	evergreen forest	http://purl.obolibrary.org/obo/ENVO_01000843	habitat	http://purl.obolibrary.org/obo/RO_0002303
+evergreen montane	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+exclusive to the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+ferralsol	ferralsol	http://purl.obolibrary.org/obo/ENVO_00002246	habitat	http://purl.obolibrary.org/obo/RO_0002303
+field soil	field soil	http://purl.obolibrary.org/obo/ENVO_00005755	habitat	http://purl.obolibrary.org/obo/RO_0002303
+fine sand	fine sand	http://purl.obolibrary.org/obo/ENVO_06105273	habitat	http://purl.obolibrary.org/obo/RO_0002303
+fissure cave	fissure cave	http://purl.obolibrary.org/obo/ENVO_00000263	habitat	http://purl.obolibrary.org/obo/RO_0002303
+flood meadow	flood meadow	http://purl.obolibrary.org/obo/ENVO_00000154	habitat	http://purl.obolibrary.org/obo/RO_0002303
+flood plain	flood plain	http://purl.obolibrary.org/obo/ENVO_00000255	habitat	http://purl.obolibrary.org/obo/RO_0002303
+flooded grassland	flooded grassland	http://purl.obolibrary.org/obo/ENVO_01000195	habitat	http://purl.obolibrary.org/obo/RO_0002303
+flooded savanna	flooded savanna	http://purl.obolibrary.org/obo/ENVO_01000190	habitat	http://purl.obolibrary.org/obo/RO_0002303
+floodway	floodway	http://purl.obolibrary.org/obo/ENVO_00000256	habitat	http://purl.obolibrary.org/obo/RO_0002303
+fluvisol	fluvisol	http://purl.obolibrary.org/obo/ENVO_00002273	habitat	http://purl.obolibrary.org/obo/RO_0002303
+forest	forest	http://purl.obolibrary.org/obo/ENVO_01000174	habitat	http://purl.obolibrary.org/obo/RO_0002303
+forest reserve	forest	http://purl.obolibrary.org/obo/ENVO_01000174	habitat	http://purl.obolibrary.org/obo/RO_0002303
+forest soil	forest soil	http://purl.obolibrary.org/obo/ENVO_00002261	habitat	http://purl.obolibrary.org/obo/RO_0002303
+forested area	forested area	http://purl.obolibrary.org/obo/ENVO_01000174	habitat	http://purl.obolibrary.org/obo/RO_0002303
+forested mountain	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in a stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in alpine	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in headwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in several mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in small lowland stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in the Andes mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found in the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found on the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+found throughout the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+freshwater	freshwater	http://purl.obolibrary.org/obo/ENVO_00000873	habitat	http://purl.obolibrary.org/obo/RO_0002303
+freshwater habitat	freshwater habitat	http://purl.obolibrary.org/obo/ENVO_00000873	habitat	http://purl.obolibrary.org/obo/RO_0002303
+freshwater marsh	freshwater marsh	http://purl.obolibrary.org/obo/ENVO_00000053	habitat	http://purl.obolibrary.org/obo/RO_0002303
+freshwater wetland	freshwater wetland	http://purl.obolibrary.org/obo/ENVO_00000243	habitat	http://purl.obolibrary.org/obo/RO_0002303
+freshwaters such as stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a moderately flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a single mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a single stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a small hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a small lowland stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a small rocky stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a small shallow stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from a small unnamed stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from fast-flowing river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from mountain soil	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+from the mountains of	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+glacial lake	glacial lake	http://purl.obolibrary.org/obo/ENVO_00000488	habitat	http://purl.obolibrary.org/obo/RO_0002303
+glacial valley	glacial valley	http://purl.obolibrary.org/obo/ENVO_00000248	habitat	http://purl.obolibrary.org/obo/RO_0002303
+gleysol	gleysol	http://purl.obolibrary.org/obo/ENVO_00002244	habitat	http://purl.obolibrary.org/obo/RO_0002303
+granite mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+granitic mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+granular sediment	granular sediment	http://purl.obolibrary.org/obo/ENVO_01000117	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grassland	grassland	http://purl.obolibrary.org/obo/ENVO_01000177	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grassland area	grassland area	http://purl.obolibrary.org/obo/ENVO_01000177	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grassland soil	grassland soil	http://purl.obolibrary.org/obo/ENVO_00005750	habitat	http://purl.obolibrary.org/obo/RO_0002303
+gravel field	gravel field	http://purl.obolibrary.org/obo/ENVO_00000548	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grow in mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+growing in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grows in alpine	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grows in desert mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grows in montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grows in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+grows on the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+guyot	guyot	http://purl.obolibrary.org/obo/ENVO_00000265	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat includes stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat is mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat is small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat is stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat sandy bouldery stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitat such as stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+cold fast-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats are hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats are montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats are river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats are small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats are stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats include montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats including river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats including stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats such as river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+habitats such as stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hadal zone	hadal zone	http://purl.obolibrary.org/obo/ENVO_01000028	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hadalpelagic zone	hadalpelagic zone	http://purl.obolibrary.org/obo/ENVO_00000214	habitat	http://purl.obolibrary.org/obo/RO_0002303
+haline habitat	haline habitat	http://purl.obolibrary.org/obo/ENVO_00002024	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hammock	hammock	http://purl.obolibrary.org/obo/ENVO_00000516	habitat	http://purl.obolibrary.org/obo/RO_0002303
+heath	heath	http://purl.obolibrary.org/obo/ENVO_00000107	habitat	http://purl.obolibrary.org/obo/RO_0002303
+high alpine	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+high mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+high tide zone	high tide zone	http://purl.obolibrary.org/obo/ENVO_00000318	habitat	http://purl.obolibrary.org/obo/RO_0002303
+high-montane	upper montane	http://purl.obolibrary.org/obo/ENVO_01000345	habitat	http://purl.obolibrary.org/obo/RO_0002303
+higher mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+histosol	histosol	http://purl.obolibrary.org/obo/ENVO_00002243	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hot spring	hot spring	http://purl.obolibrary.org/obo/ENVO_00000051	habitat	http://purl.obolibrary.org/obo/RO_0002303
+humid montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+humid mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+humus	humus	http://purl.obolibrary.org/obo/ENVO_01000000	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hydrocarbon seep	hydrocarbon seep	http://purl.obolibrary.org/obo/ENVO_00002063	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hydrothermal vent	hydrothermal vent	http://purl.obolibrary.org/obo/ENVO_01000030	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hypersaline water	hypersaline water	http://purl.obolibrary.org/obo/ENVO_00002012	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hypolimnion	hypolimnion	http://purl.obolibrary.org/obo/ENVO_00002130	habitat	http://purl.obolibrary.org/obo/RO_0002303
+hypoxic water	hypoxic water	http://purl.obolibrary.org/obo/ENVO_01001064	habitat	http://purl.obolibrary.org/obo/RO_0002303
+ice shelf	ice shelf	http://purl.obolibrary.org/obo/ENVO_00000380	habitat	http://purl.obolibrary.org/obo/RO_0002303
+ice tongue	ice tongue	http://purl.obolibrary.org/obo/ENVO_00000392	habitat	http://purl.obolibrary.org/obo/RO_0002303
+ice-covered lake	ice-covered lake	http://purl.obolibrary.org/obo/ENVO_00000198	habitat	http://purl.obolibrary.org/obo/RO_0002303
+iceberg	iceberg	http://purl.obolibrary.org/obo/ENVO_00000298	habitat	http://purl.obolibrary.org/obo/RO_0002303
+impact crater	impact crater	http://purl.obolibrary.org/obo/ENVO_00000310	habitat	http://purl.obolibrary.org/obo/RO_0002303
+indigenous to the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabit fast-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabit montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabit river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabit small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabit stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabitant of clear stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabitant of forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabitant of stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabiting stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits alpine	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits clear gravelly stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits clear stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits fast-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits flowing and clear stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits forest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits freshwater river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits freshwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits high mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits large stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits larger stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits lowland stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits moderate to fast-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits mountain stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits rainforest stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits rapid stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits rocky fast-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits rocky stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits shallow stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits slow moving stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits small river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits the mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inhabits torrential stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inland cliff	inland cliff	http://purl.obolibrary.org/obo/ENVO_00000089	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inland mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+interfluve	interfluve	http://purl.obolibrary.org/obo/ENVO_00000527	habitat	http://purl.obolibrary.org/obo/RO_0002303
+intermittent lake	intermittent lake	http://purl.obolibrary.org/obo/ENVO_00000387	habitat	http://purl.obolibrary.org/obo/RO_0002303
+intermittent pond	intermittent pond	http://purl.obolibrary.org/obo/ENVO_00000504	habitat	http://purl.obolibrary.org/obo/RO_0002303
+intermittent saline lake	intermittent saline lake	http://purl.obolibrary.org/obo/ENVO_00000502	habitat	http://purl.obolibrary.org/obo/RO_0002303
+intermittent water body	intermittent water body	http://purl.obolibrary.org/obo/ENVO_00000549	habitat	http://purl.obolibrary.org/obo/RO_0002303
+intermittent wetland	intermittent wetland	http://purl.obolibrary.org/obo/ENVO_00000389	habitat	http://purl.obolibrary.org/obo/RO_0002303
+interstitial water	interstitial water	http://purl.obolibrary.org/obo/ENVO_03600009	habitat	http://purl.obolibrary.org/obo/RO_0002303
+intertidal sediment	intertidal sediment	http://purl.obolibrary.org/obo/ENVO_00002179	habitat	http://purl.obolibrary.org/obo/RO_0002303
+intertidal zone	intertidal zone	http://purl.obolibrary.org/obo/ENVO_00000316	habitat	http://purl.obolibrary.org/obo/RO_0002303
+inverse estuary	inverse estuary	http://purl.obolibrary.org/obo/ENVO_00000228	habitat	http://purl.obolibrary.org/obo/RO_0002303
+isolated from stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+iteroparous	iteroparous	http://polytraits.lifewatchgreece.eu/terms/STRAT_ITER	reproduction	http://purl.obolibrary.org/obo/GO_0000003
+its native stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+jungle	forest	http://purl.obolibrary.org/obo/ENVO_01000174	habitat	http://purl.obolibrary.org/obo/RO_0002303
+juniper woodland	juniper woodland	http://purl.obolibrary.org/obo/ENVO_01000241	habitat	http://purl.obolibrary.org/obo/RO_0002303
+karst cave	karst cave	http://purl.obolibrary.org/obo/ENVO_00012411	habitat	http://purl.obolibrary.org/obo/RO_0002303
+karst mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+kelp forest	kelp forest	http://purl.obolibrary.org/obo/ENVO_01000058	habitat	http://purl.obolibrary.org/obo/RO_0002303
+kipuka	kipuka	http://purl.obolibrary.org/obo/ENVO_00000410	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known from alpine	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known from clear stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known from montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known from mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known from stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known from the Carpathian mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known from the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known only from streams	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+known only from the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lagoon	lagoon	http://purl.obolibrary.org/obo/ENVO_00000038	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake at a depth	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake bed	lake bed	http://purl.obolibrary.org/obo/ENVO_00000268	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake bottom	lake bed	http://purl.obolibrary.org/obo/ENVO_00000268	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake bottom mud	lake bottom mud	http://purl.obolibrary.org/obo/ENVO_00005797	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake depth	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake inlet	lake inlet	http://purl.obolibrary.org/obo/ENVO_00000476	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake sediment	lake sediment	http://purl.obolibrary.org/obo/ENVO_00000546	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake shore	lake shore	http://purl.obolibrary.org/obo/ENVO_00000382	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake surface	lake surface	http://purl.obolibrary.org/obo/ENVO_00000105	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lake's bottom	lake bed	http://purl.obolibrary.org/obo/ENVO_00000268	habitat	http://purl.obolibrary.org/obo/RO_0002303
+landlocked sea	landlocked sea	http://purl.obolibrary.org/obo/ENVO_00000219	habitat	http://purl.obolibrary.org/obo/RO_0002303
+large lake	large lake	http://purl.obolibrary.org/obo/ENVO_00000891	habitat	http://purl.obolibrary.org/obo/RO_0002303
+large river	large river	http://purl.obolibrary.org/obo/ENVO_00000887	habitat	http://purl.obolibrary.org/obo/RO_0002303
+large river delta	large river delta	http://purl.obolibrary.org/obo/ENVO_00000889	habitat	http://purl.obolibrary.org/obo/RO_0002303
+largely montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lateral moraine	lateral moraine	http://purl.obolibrary.org/obo/ENVO_00000249	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lava cave	lava cave	http://purl.obolibrary.org/obo/ENVO_00000322	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lava field	lava field	http://purl.obolibrary.org/obo/ENVO_00000095	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lava tunnel	lava tunnel	http://purl.obolibrary.org/obo/ENVO_00000110	habitat	http://purl.obolibrary.org/obo/RO_0002303
+leafy wood soil	leafy wood soil	http://purl.obolibrary.org/obo/ENVO_00005783	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lentic	lentic	http://purl.obolibrary.org/obo/ENVO_01000617	habitat	http://purl.obolibrary.org/obo/RO_0002303
+leptosol	leptosol	http://purl.obolibrary.org/obo/ENVO_00002241	habitat	http://purl.obolibrary.org/obo/RO_0002303
+liman	liman	http://purl.obolibrary.org/obo/ENVO_00000453	habitat	http://purl.obolibrary.org/obo/RO_0002303
+limed soil	limed soil	http://purl.obolibrary.org/obo/ENVO_00005766	habitat	http://purl.obolibrary.org/obo/RO_0002303
+limestone mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+limited to the mountains of	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+litter layer	litter layer	http://purl.obolibrary.org/obo/ENVO_01000628	habitat	http://purl.obolibrary.org/obo/RO_0002303
+littoral	littoral zone	http://eol.org/schema/terms/littoralZone	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lives in montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lives in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+loam	loam	http://purl.obolibrary.org/obo/ENVO_00002258	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lost stream	lost stream	http://purl.obolibrary.org/obo/ENVO_00000517	habitat	http://purl.obolibrary.org/obo/RO_0002303
+low tide zone	low tide zone	http://purl.obolibrary.org/obo/ENVO_00000319	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lower montane	lower montane	http://purl.obolibrary.org/obo/ENVO_01000346	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lower mountain zone	lower montane	http://purl.obolibrary.org/obo/ENVO_01000346	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lower reaches of freshwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lower stream reaches	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lower-montane	lower montane	http://purl.obolibrary.org/obo/ENVO_01000346	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lowland montane	lower montane	http://purl.obolibrary.org/obo/ENVO_01000346	habitat	http://purl.obolibrary.org/obo/RO_0002303
+lysocline	lysocline	http://purl.obolibrary.org/obo/ENVO_01000261	habitat	http://purl.obolibrary.org/obo/RO_0002303
+m from a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+machair	machair	http://purl.obolibrary.org/obo/ENVO_00000417	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mafic lava	mafic lava	http://purl.obolibrary.org/obo/ENVO_01000234	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mainly in mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mallee scrub	shrubland	http://purl.obolibrary.org/obo/ENVO_01000176	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mangrove forest	mangrove swamp	http://purl.obolibrary.org/obo/ENVO_01000181	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mangrove island	mangrove island	http://purl.obolibrary.org/obo/ENVO_00000103	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mangrove swamp	mangrove swamp	http://purl.obolibrary.org/obo/ENVO_01000181	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mangrove-forest	mangrove swamp	http://purl.obolibrary.org/obo/ENVO_01000181	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margin of a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margin of a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margin of medium-sized mountainous stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margins of a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margins of creek	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margins of lakes and stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margins of river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margins of small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margins of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+margins of the stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine benthic	marine benthic	http://purl.obolibrary.org/obo/ENVO_01000024	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine cold-water sphere	marine cold-water sphere	http://purl.obolibrary.org/obo/ENVO_01000108	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine littoral zone	marine littoral zone	http://purl.obolibrary.org/obo/ENVO_01000125	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine mud	marine mud	http://purl.obolibrary.org/obo/ENVO_00005795	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine pelagic	marine pelagic	http://purl.obolibrary.org/obo/ENVO_01000023	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine sludge	marine sludge	http://purl.obolibrary.org/obo/ENVO_00005796	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine sub-littoral zone	marine sub-littoral zone	http://purl.obolibrary.org/obo/ENVO_01000126	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine supra-littoral zone	marine supra-littoral zone	http://purl.obolibrary.org/obo/ENVO_01000124	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine warm-water sphere	marine warm-water sphere	http://purl.obolibrary.org/obo/ENVO_01000109	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marine water mass	marine water mass	http://purl.obolibrary.org/obo/ENVO_01000686	habitat	http://purl.obolibrary.org/obo/RO_0002303
+marsh	marsh	http://purl.obolibrary.org/obo/ENVO_00000035	habitat	http://purl.obolibrary.org/obo/RO_0002303
+meadow	meadow	http://purl.obolibrary.org/obo/ENVO_00000108	habitat	http://purl.obolibrary.org/obo/RO_0002303
+meadow soil	meadow soil	http://purl.obolibrary.org/obo/ENVO_00005761	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mediterranean forest	mediterranean forest	http://purl.obolibrary.org/obo/ENVO_01000199	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mediterranean grassland	mediterranean grassland	http://purl.obolibrary.org/obo/ENVO_01000224	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mediterranean shrubland	mediterranean shrubland	http://purl.obolibrary.org/obo/ENVO_01000217	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mediterranean woodland	mediterranean woodland	http://purl.obolibrary.org/obo/ENVO_01000208	habitat	http://purl.obolibrary.org/obo/RO_0002303
+meromictic lake	meromictic lake	http://purl.obolibrary.org/obo/ENVO_00000199	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mesopelagic zone	mesopelagic zone	http://purl.obolibrary.org/obo/ENVO_00000213	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mesotrophic water	mesotrophic water	http://purl.obolibrary.org/obo/ENVO_00002225	habitat	http://purl.obolibrary.org/obo/RO_0002303
+metalimnion	metalimnion	http://purl.obolibrary.org/obo/ENVO_00002132	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mid-montane elevation	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mid-ocean ridge	mid-ocean ridge	http://purl.obolibrary.org/obo/ENVO_00000406	habitat	http://purl.obolibrary.org/obo/RO_0002303
+migrate to river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+migrates to river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mineral spring	mineral spring	http://purl.obolibrary.org/obo/ENVO_00000125	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mixed forest	mixed forest	http://purl.obolibrary.org/obo/ENVO_01000198	habitat	http://purl.obolibrary.org/obo/RO_0002303
+moist montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+monadnock	monadnock	http://purl.obolibrary.org/obo/ENVO_00000432	habitat	http://purl.obolibrary.org/obo/RO_0002303
+monoecious	monoecious	https://www.wikidata.org/entity/Q66368485	sexual system	http://eol.org/schema/terms/SexualSystem
+monoicous	monoicous	https://eol.org/schema/terms/monoicous	sexual system	http://eol.org/schema/terms/SexualSystem
+monsoon forest	tropical and subtropical moist broadleaf forest	http://purl.obolibrary.org/obo/ENVO_00000879	habitat	http://purl.obolibrary.org/obo/RO_0002303
+monsoon-forest	wet forest	http://eol.org/schema/terms/wet_forest	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane desert	montane desert	http://purl.obolibrary.org/obo/ENVO_01000185	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane grassland	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane savanna	montane savanna	http://purl.obolibrary.org/obo/ENVO_01000223	habitat	http://purl.obolibrary.org/obo/RO_0002303
+montane shrubland	montane shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+moraine	moraine	http://purl.obolibrary.org/obo/ENVO_00000177	habitat	http://purl.obolibrary.org/obo/RO_0002303
+moss-dominated vegetation	moss-dominated vegetation	http://purl.obolibrary.org/obo/ENVO_01000890	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mostly montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain area	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain broad-leaved	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain canyon	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain chaparral	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain cliff	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain cloud forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain coniferous forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain dweller	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain environment	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain evergreen	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain forest soil	mountain forest soil	http://purl.obolibrary.org/obo/ENVO_00005769	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain fynbos	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain grassland	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain habitat	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain mahogany shrub	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain meadow	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain mixed forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain oak forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain pasture	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain peak	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain primary forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain rain forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain rainforest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain range	mountain range	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain ravine	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain savanna	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain shrubland	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain side	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain slope	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain species	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain steppe	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain stony steppe	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain stony tundra	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain stream habitat	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain summit	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain top	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain tundra	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain valley	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain virgin mixed forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain wetland	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain woodland	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain woods	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain zone	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountain-steppe	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountains at elevation	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mountains slope	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mud volcano	mud volcano	http://purl.obolibrary.org/obo/ENVO_00000402	habitat	http://purl.obolibrary.org/obo/RO_0002303
+muddy soil	muddy soil	http://purl.obolibrary.org/obo/ENVO_00005771	habitat	http://purl.obolibrary.org/obo/RO_0002303
+muddy water	muddy water	http://purl.obolibrary.org/obo/ENVO_00005793	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mudflat	mudflat	http://purl.obolibrary.org/obo/ENVO_00000192	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mulga scrub	shrubland	http://purl.obolibrary.org/obo/ENVO_01000176	habitat	http://purl.obolibrary.org/obo/RO_0002303
+mussel reef	mussel reef	http://purl.obolibrary.org/obo/ENVO_01001386	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native range is the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to fast-flowing stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to freshwater stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to hills and mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the Andes mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the atlantic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the desert mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the eastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the gulf coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the Himalayan mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the northern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the pacific coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the south coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the southern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+native to the western coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+natural harbor	natural harbor	http://purl.obolibrary.org/obo/ENVO_00000465	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near a cold stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near a little stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near a rocky stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near a small forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near creek	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near fast-flowing small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near fast-flowing stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near freshwater stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near lakes and stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near lakes stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near mountain stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near mountain streams	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near mountain summit	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near permanent stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near rocky stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near slow-flowing stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near slow-moving stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near small forest stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near small river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near stream bed	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near swamps and streams	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near swift-flowing stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near temporary stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near the stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+near to stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+neritic pelagic zone	neritic pelagic zone	http://purl.obolibrary.org/obo/ENVO_01000032	habitat	http://purl.obolibrary.org/obo/RO_0002303
+neritic zone	neritic zone	http://purl.obolibrary.org/obo/ENVO_00000206	habitat	http://purl.obolibrary.org/obo/RO_0002303
+netted across a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+next to a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+next to stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+nocturnal	nocturnal	http://www.wikidata.org/entity/Q309179	behavioral circadian rhythm	http://purl.obolibrary.org/obo/VT_0001502
+nunatak	nunatak	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oak woodland	oak woodland	http://purl.obolibrary.org/obo/ENVO_01000239	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occupies montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occur in alpine habitat	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occur in montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occur in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occurring in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occurs in montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occurs in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+occurs only in lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic bathypelagic zone	oceanic bathypelagic zone	http://purl.obolibrary.org/obo/ENVO_01000037	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic benthopelagic zone	oceanic benthopelagic zone	http://purl.obolibrary.org/obo/ENVO_01000040	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic front	oceanic front	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic island	oceanic island	http://purl.obolibrary.org/obo/ENVO_00000222	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic pelagic zone	oceanic pelagic zone	http://purl.obolibrary.org/obo/ENVO_01000023	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic zone	oceanic zone	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+of hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the Atlantic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the east coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the eastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the Mediterranean coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the north coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the northern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the Pacific coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the southern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the west coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+off the western coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oligotrophic water	oligotrophic water	http://purl.obolibrary.org/obo/ENVO_00002223	habitat	http://purl.obolibrary.org/obo/RO_0002303
+on bank of small stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+only from the Gongga mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+only in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+open water	aquatic	http://purl.obolibrary.org/obo/ENVO_00002030	habitat	http://purl.obolibrary.org/obo/RO_0002303
+order stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+organic matter fall	organic matter fall	http://purl.obolibrary.org/obo/ENVO_01000137	habitat	http://purl.obolibrary.org/obo/RO_0002303
+organic waste	organic waste	http://purl.obolibrary.org/obo/ENVO_01000373	habitat	http://purl.obolibrary.org/obo/RO_0002303
+outwash fan	outwash fan	http://purl.obolibrary.org/obo/ENVO_00000434	habitat	http://purl.obolibrary.org/obo/RO_0002303
+over a slow flowing stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+over small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+over stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+overhanging stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oviparous	oviparous	http://www.marinespecies.org/traits/Oviparous	reproduction	http://purl.obolibrary.org/obo/GO_0000003
+ovoviviparous	ovoviviparous	http://www.marinespecies.org/traits/Ovoviviparous	reproduction	http://purl.obolibrary.org/obo/GO_0000003
+oxbow lake	oxbow lake	http://purl.obolibrary.org/obo/ENVO_00000202	habitat	http://purl.obolibrary.org/obo/RO_0002303
+palm grove	tropical woodland	http://purl.obolibrary.org/obo/ENVO_01000220	habitat	http://purl.obolibrary.org/obo/RO_0002303
+palsa	palsa	http://purl.obolibrary.org/obo/ENVO_00000489	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pantropical montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+part of stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+parts of river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+parts of stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+peat cut	peat cut	http://purl.obolibrary.org/obo/ENVO_00000157	habitat	http://purl.obolibrary.org/obo/RO_0002303
+peat soil	peat soil	http://purl.obolibrary.org/obo/ENVO_00005774	habitat	http://purl.obolibrary.org/obo/RO_0002303
+peat swamp	peat swamp	http://purl.obolibrary.org/obo/ENVO_00000189	habitat	http://purl.obolibrary.org/obo/RO_0002303
+peatland	peatland	http://purl.obolibrary.org/obo/ENVO_00000044	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pebble sediment	pebble sediment	http://purl.obolibrary.org/obo/ENVO_01000116	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pelagic zone	pelagic zone	http://purl.obolibrary.org/obo/ENVO_01000023	habitat	http://purl.obolibrary.org/obo/RO_0002303
+perennial	perennial	https://www.wikidata.org/entity/Q157957	life cycle habit	http://purl.obolibrary.org/obo/TO_0002725
+perennial alpine plant	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+phaeozem	phaeozem	http://purl.obolibrary.org/obo/ENVO_00002249	habitat	http://purl.obolibrary.org/obo/RO_0002303
+photic zone	photic zone	http://purl.obolibrary.org/obo/ENVO_00000209	habitat	http://purl.obolibrary.org/obo/RO_0002303
+phreatic zone	phreatic zone	http://purl.obolibrary.org/obo/ENVO_00000329	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pine grove	coniferous forest	http://purl.obolibrary.org/obo/ENVO_01000196	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pinegrove	coniferous forest	http://purl.obolibrary.org/obo/ENVO_01000196	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pinyon juniper woodland	pinyon juniper woodland	http://purl.obolibrary.org/obo/ENVO_01000244	habitat	http://purl.obolibrary.org/obo/RO_0002303
+plant litter	plant litter	http://purl.obolibrary.org/obo/ENVO_01000628	habitat	http://purl.obolibrary.org/obo/RO_0002303
+podzol	podzol	http://purl.obolibrary.org/obo/ENVO_00002257	habitat	http://purl.obolibrary.org/obo/RO_0002303
+polar	polar	http://purl.obolibrary.org/obo/ENVO_01000339	habitat	http://purl.obolibrary.org/obo/RO_0002303
+polar desert	polar desert	http://purl.obolibrary.org/obo/ENVO_01000186	habitat	http://purl.obolibrary.org/obo/RO_0002303
+polder	polder	http://purl.obolibrary.org/obo/ENVO_00000286	habitat	http://purl.obolibrary.org/obo/RO_0002303
+polje	polje	http://purl.obolibrary.org/obo/ENVO_00000325	habitat	http://purl.obolibrary.org/obo/RO_0002303
+polyandrous	polyandrous	http://purl.obolibrary.org/obo/ECOCORE_00000064	mating system	http://eol.org/schema/terms/MatingSystem
+polygynous	polygynous	http://purl.obolibrary.org/obo/ECOCORE_00000065	mating system	http://eol.org/schema/terms/MatingSystem
+polymetallic nodule	polymetallic nodule	http://purl.obolibrary.org/obo/ENVO_01000112	habitat	http://purl.obolibrary.org/obo/RO_0002303
+polynya	polynya	http://purl.obolibrary.org/obo/ENVO_00000484	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pond	pond	http://purl.obolibrary.org/obo/ENVO_00000033	habitat	http://purl.obolibrary.org/obo/RO_0002303
+pond bed	pond bed	http://purl.obolibrary.org/obo/ENVO_00000512	habitat	http://purl.obolibrary.org/obo/RO_0002303
+prairie	prairie	http://purl.obolibrary.org/obo/ENVO_00000260	habitat	http://purl.obolibrary.org/obo/RO_0002303
+precocial	precocial	http://eol.org/schema/terms/precocial	developmental mode	http://eol.org/schema/terms/DevelopmentalMode
+prefer rocky stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+prefer stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+preference for stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+prefers alpine	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+prefers small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+prefers stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+primarily montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+proglacial lake	proglacial lake	http://purl.obolibrary.org/obo/ENVO_00000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+proximity to stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rain forest	rainforest	https://www.wikidata.org/entity/Q9444	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rainforest	rainforest	https://www.wikidata.org/entity/Q9444	habitat	http://purl.obolibrary.org/obo/RO_0002303
+raised mire	raised mire	http://purl.obolibrary.org/obo/ENVO_00000185	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rapids	rapids	http://purl.obolibrary.org/obo/ENVO_00000034	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rare montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+reaches of river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+reaches of small stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+recorded from a stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+recorded from stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+recorded in montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+red soil	red soil	http://purl.obolibrary.org/obo/ENVO_00005790	habitat	http://purl.obolibrary.org/obo/RO_0002303
+reforested area	forest	http://purl.obolibrary.org/obo/ENVO_01000174	habitat	http://purl.obolibrary.org/obo/RO_0002303
+regosol	regosol	http://purl.obolibrary.org/obo/ENVO_00002256	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to a few mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to a single mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to a single stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the Andes mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the atlantic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the caribbean coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the central coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the eastern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the pacific coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the southern coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the west coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+restricted to the western coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+riffle	riffle	http://purl.obolibrary.org/obo/ENVO_00000148	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rift lake	rift lake	http://purl.obolibrary.org/obo/ENVO_00000203	habitat	http://purl.obolibrary.org/obo/RO_0002303
+riparian area	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+river bank	river bank	http://purl.obolibrary.org/obo/ENVO_00000143	habitat	http://purl.obolibrary.org/obo/RO_0002303
+river bed	river bed	http://purl.obolibrary.org/obo/ENVO_00000384	habitat	http://purl.obolibrary.org/obo/RO_0002303
+river island	river island	http://purl.obolibrary.org/obo/ENVO_00000423	habitat	http://purl.obolibrary.org/obo/RO_0002303
+river margin	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+river mouth	river mouth	http://purl.obolibrary.org/obo/ENVO_00000386	habitat	http://purl.obolibrary.org/obo/RO_0002303
+river valley	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+riverbank	river bank	http://purl.obolibrary.org/obo/ENVO_00000143	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rocks in a stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rocky desert	rocky desert	http://purl.obolibrary.org/obo/ENVO_00000173	habitat	http://purl.obolibrary.org/obo/RO_0002303
+rocky sand	rocky sand	http://purl.obolibrary.org/obo/ENVO_00005799	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sabkha	sabkha	http://purl.obolibrary.org/obo/ENVO_00000151	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sage brush	shrubland	http://purl.obolibrary.org/obo/ENVO_01000176	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sage-brush	shrubland	http://purl.obolibrary.org/obo/ENVO_01000176	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sagebrush	shrubland	http://purl.obolibrary.org/obo/ENVO_01000176	habitat	http://purl.obolibrary.org/obo/RO_0002303
+saline lake	saline lake	http://purl.obolibrary.org/obo/ENVO_00000019	habitat	http://purl.obolibrary.org/obo/RO_0002303
+saline marsh	marine salt marsh biome	http://purl.obolibrary.org/obo/ENVO_01000022	habitat	http://purl.obolibrary.org/obo/RO_0002303
+saline pan	saline pan	http://purl.obolibrary.org/obo/ENVO_00000279	habitat	http://purl.obolibrary.org/obo/RO_0002303
+saline water	saline water	http://purl.obolibrary.org/obo/ENVO_00002010	habitat	http://purl.obolibrary.org/obo/RO_0002303
+saline water environment	saline water environment	http://purl.obolibrary.org/obo/ENVO_00002010	habitat	http://purl.obolibrary.org/obo/RO_0002303
+saline wetland	saline wetland	http://purl.obolibrary.org/obo/ENVO_00000240	habitat	http://purl.obolibrary.org/obo/RO_0002303
+salt marsh	marine salt marsh biome	http://purl.obolibrary.org/obo/ENVO_01000022	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sand banks of mangrove stream	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sandstone mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sandur	sandur	http://purl.obolibrary.org/obo/ENVO_00000312	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sandy beach	sandy beach	http://purl.obolibrary.org/obo/ENVO_00002199	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sandy desert	sandy desert	http://purl.obolibrary.org/obo/ENVO_00000172	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sandy sediment	sandy sediment	http://purl.obolibrary.org/obo/ENVO_01000118	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sandy soil	sandy soil	http://purl.obolibrary.org/obo/ENVO_00002229	habitat	http://purl.obolibrary.org/obo/RO_0002303
+savanna	savanna	http://purl.obolibrary.org/obo/ENVO_01000178	habitat	http://purl.obolibrary.org/obo/RO_0002303
+savanna soil	savanna soil	http://purl.obolibrary.org/obo/ENVO_00005746	habitat	http://purl.obolibrary.org/obo/RO_0002303
+scrubland	scrubland	http://purl.obolibrary.org/obo/ENVO_00000300	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sea cave	sea cave	http://purl.obolibrary.org/obo/ENVO_00000326	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sea grass bed	sea grass bed	http://purl.obolibrary.org/obo/ENVO_01000059	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sea shore	sea shore	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sea vent	hydrothermal vent	http://purl.obolibrary.org/obo/ENVO_01000030	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sea-way	marine	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+seamount	seamount	http://purl.obolibrary.org/obo/ENVO_00000264	habitat	http://purl.obolibrary.org/obo/RO_0002303
+seaway	marine	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sections of river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sections of stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+shallow marine sediment	shallow marine sediment	http://purl.obolibrary.org/obo/ENVO_03000034	habitat	http://purl.obolibrary.org/obo/RO_0002303
+shingle beach	shingle beach	http://purl.obolibrary.org/obo/ENVO_00000545	habitat	http://purl.obolibrary.org/obo/RO_0002303
+shore of a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+shore of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+shores of river	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+shores of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+shrubland	shrubland	http://purl.obolibrary.org/obo/ENVO_01000176	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sides of mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sides of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+siliceous ooze	siliceous ooze	http://purl.obolibrary.org/obo/ENVO_02000044	habitat	http://purl.obolibrary.org/obo/RO_0002303
+silty sediment	silty sediment	http://purl.obolibrary.org/obo/ENVO_01000119	habitat	http://purl.obolibrary.org/obo/RO_0002303
+slope of the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+slopes of mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+snow field	snow field	http://purl.obolibrary.org/obo/ENVO_00000146	habitat	http://purl.obolibrary.org/obo/RO_0002303
+solonchak	solonchak	http://purl.obolibrary.org/obo/ENVO_00002252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+solonetz	solonetz	http://purl.obolibrary.org/obo/ENVO_00002255	habitat	http://purl.obolibrary.org/obo/RO_0002303
+spawning stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+speleothem	speleothem	http://purl.obolibrary.org/obo/ENVO_00000327	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sphagnum bog	sphagnum bog	http://purl.obolibrary.org/obo/ENVO_00002268	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sponge reef	sponge reef	http://purl.obolibrary.org/obo/ENVO_01000123	habitat	http://purl.obolibrary.org/obo/RO_0002303
+spruce forest soil	spruce forest soil	http://purl.obolibrary.org/obo/ENVO_00005784	habitat	http://purl.obolibrary.org/obo/RO_0002303
+steep mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+steppe	steppe	http://purl.obolibrary.org/obo/ENVO_00000262	habitat	http://purl.obolibrary.org/obo/RO_0002303
+steppe soil	steppe soil	http://purl.obolibrary.org/obo/ENVO_00005777	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stony desert	stony desert	http://purl.obolibrary.org/obo/ENVO_00000183	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream bank	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream bed	stream bed	http://purl.obolibrary.org/obo/ENVO_00000383	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream bench	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream border	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream breeder	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream dweller	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream dwelling	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream edge	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream habitat	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream it inhabits	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream margin	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream mouth	stream mouth	http://purl.obolibrary.org/obo/ENVO_00000385	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream sediment	stream sediment	http://purl.obolibrary.org/obo/ENVO_00002127	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream side	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream they inhabit	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream valley	stream valley	http://purl.obolibrary.org/obo/ENVO_00000129	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream-bank	stream bank	http://purl.obolibrary.org/obo/ENVO_00000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream-breeding	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream-dwelling	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+stream-side	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+streams in which it lives	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+streams they inhabit	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+string mire	string mire	http://purl.obolibrary.org/obo/ENVO_00000186	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sub-alpine zone	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine belt	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine climate	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine elevation	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine environment	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine forest	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine habitat	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine heath	mountain shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine mountain habitat	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine region	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine tundra	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine woodland	montane forest	http://purl.obolibrary.org/obo/ENVO_01000435	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subalpine zone	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+submarine canyon	submarine canyon	http://purl.obolibrary.org/obo/ENVO_00000267	habitat	http://purl.obolibrary.org/obo/RO_0002303
+submerged in a stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subpolar	subpolar	http://purl.obolibrary.org/obo/ENVO_01000251	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subterrestrial	subterrestrial	http://purl.obolibrary.org/obo/ENVO_00000572	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtidal rocky reef	subtidal rocky reef	http://purl.obolibrary.org/obo/ENVO_01000050	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical	subtropical	http://purl.obolibrary.org/obo/ENVO_01000205	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical broadleaf forest	subtropical broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000201	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical coniferous forest	subtropical coniferous forest	http://purl.obolibrary.org/obo/ENVO_01000209	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical desert	subtropical desert	http://purl.obolibrary.org/obo/ENVO_01000184	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical dry broadleaf forest	subtropical dry broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000225	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical grassland	subtropical grassland	http://purl.obolibrary.org/obo/ENVO_01000191	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical moist broadleaf forest	subtropical moist broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000226	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical savanna	subtropical savanna	http://purl.obolibrary.org/obo/ENVO_01000187	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical shrubland	subtropical shrubland	http://purl.obolibrary.org/obo/ENVO_01000213	habitat	http://purl.obolibrary.org/obo/RO_0002303
+subtropical woodland	subtropical woodland	http://purl.obolibrary.org/obo/ENVO_01000222	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sulfur spring	sulfur spring	http://purl.obolibrary.org/obo/ENVO_00000126	habitat	http://purl.obolibrary.org/obo/RO_0002303
+summit of mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+summits of mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+surface soil	surface soil	http://purl.obolibrary.org/obo/ENVO_02000059	habitat	http://purl.obolibrary.org/obo/RO_0002303
+swamp	swamp	http://purl.obolibrary.org/obo/ENVO_00000233	habitat	http://purl.obolibrary.org/obo/RO_0002303
+swamp forest	swamp forest	http://purl.obolibrary.org/obo/ENVO_01000432	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tadpoles to stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+taiga	boreal forests (taiga)	http://eol.org/schema/terms/boreal_forests_taiga	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate	temperate	http://purl.obolibrary.org/obo/ENVO_01000206	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate broadleaf forest	temperate broadleaf forest	http://purl.obolibrary.org/obo/ENVO_01000202	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate coniferous forest	temperate coniferous forest	http://purl.obolibrary.org/obo/ENVO_01000211	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate desert	temperate desert	http://purl.obolibrary.org/obo/ENVO_01000182	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate grassland	temperate grassland	http://purl.obolibrary.org/obo/ENVO_01000193	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate mixed forest	temperate mixed forest	http://purl.obolibrary.org/obo/ENVO_01000212	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate montane	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate mountain	temperate mountain	http://purl.obolibrary.org/obo/ENVO_01001455	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate rain forest	temperate rainforest	https://www.wikidata.org/entity/Q845725	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate rainforest	temperate rainforest	https://www.wikidata.org/entity/Q845725	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate savanna	temperate savanna	http://purl.obolibrary.org/obo/ENVO_01000189	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate shrubland	temperate shrubland	http://purl.obolibrary.org/obo/ENVO_01000215	habitat	http://purl.obolibrary.org/obo/RO_0002303
+temperate woodland	temperate woodland	http://purl.obolibrary.org/obo/ENVO_01000221	habitat	http://purl.obolibrary.org/obo/RO_0002303
+terrestrial	terrestrial biome	http://purl.obolibrary.org/obo/ENVO_00000446	habitat	http://purl.obolibrary.org/obo/RO_0002303
+terrestrial habitat	terrestrial habitat	http://purl.obolibrary.org/obo/ENVO_00000446	habitat	http://purl.obolibrary.org/obo/RO_0002303
+terrigenous sediment	terrigenous sediment	http://purl.obolibrary.org/obo/ENVO_01000070	habitat	http://purl.obolibrary.org/obo/RO_0002303
+throughout the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tidal creek	tidal creek	http://purl.obolibrary.org/obo/ENVO_00000041	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tidal pool	tidal pool	http://purl.obolibrary.org/obo/ENVO_00000317	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tidal watercourse	tidal watercourse	http://purl.obolibrary.org/obo/ENVO_00000412	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tide way	marine	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tidewater glacier	tidewater glacier	http://purl.obolibrary.org/obo/ENVO_00000456	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tideway	marine	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tombolo	tombolo	http://purl.obolibrary.org/obo/ENVO_00000420	habitat	http://purl.obolibrary.org/obo/RO_0002303
+top of mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tops of mountains	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tropical forest	tropical woodland	http://purl.obolibrary.org/obo/ENVO_01000220	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tundra	tundra	http://purl.obolibrary.org/obo/ENVO_01000180	habitat	http://purl.obolibrary.org/obo/RO_0002303
+turlough	turlough	http://purl.obolibrary.org/obo/ENVO_00000454	habitat	http://purl.obolibrary.org/obo/RO_0002303
+tuya	tuya	http://purl.obolibrary.org/obo/ENVO_00000370	habitat	http://purl.obolibrary.org/obo/RO_0002303
+umbrisol	umbrisol	http://purl.obolibrary.org/obo/ENVO_00002253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+underground lake	underground lake	http://purl.obolibrary.org/obo/ENVO_00000058	habitat	http://purl.obolibrary.org/obo/RO_0002303
+underground river	underground river	http://purl.obolibrary.org/obo/ENVO_00000059	habitat	http://purl.obolibrary.org/obo/RO_0002303
+underground stream	underground stream	http://purl.obolibrary.org/obo/ENVO_00000060	habitat	http://purl.obolibrary.org/obo/RO_0002303
+underground water body	underground water body	http://purl.obolibrary.org/obo/ENVO_00000061	habitat	http://purl.obolibrary.org/obo/RO_0002303
+understory	understory	http://purl.obolibrary.org/obo/ENVO_01000335	habitat	http://purl.obolibrary.org/obo/RO_0002303
+up river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+upland soil	upland soil	http://purl.obolibrary.org/obo/ENVO_00005786	habitat	http://purl.obolibrary.org/obo/RO_0002303
+upper montane	upper montane	http://purl.obolibrary.org/obo/ENVO_01000345	habitat	http://purl.obolibrary.org/obo/RO_0002303
+upper-montane	upper montane	http://purl.obolibrary.org/obo/ENVO_01000345	habitat	http://purl.obolibrary.org/obo/RO_0002303
+valley glacier	valley glacier	http://purl.obolibrary.org/obo/ENVO_00000458	habitat	http://purl.obolibrary.org/obo/RO_0002303
+various kinds of mountain streams	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+various types of mountain streams	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+vertisol	vertisol	http://purl.obolibrary.org/obo/ENVO_00002254	habitat	http://purl.obolibrary.org/obo/RO_0002303
+vicinity of a small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+vicinity of a stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+vicinity of small stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+vicinity of stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+volcanic cone	volcanic cone	http://purl.obolibrary.org/obo/ENVO_00000398	habitat	http://purl.obolibrary.org/obo/RO_0002303
+volcanic crater	volcanic crater	http://purl.obolibrary.org/obo/ENVO_00000246	habitat	http://purl.obolibrary.org/obo/RO_0002303
+warm deserts and semideserts	warm deserts and semideserts	http://purl.obolibrary.org/obo/ENVO_00002998	habitat	http://purl.obolibrary.org/obo/RO_0002303
+warm seep	warm seep	http://purl.obolibrary.org/obo/ENVO_00002926	habitat	http://purl.obolibrary.org/obo/RO_0002303
+water scum	water scum	http://purl.obolibrary.org/obo/ENVO_00005794	habitat	http://purl.obolibrary.org/obo/RO_0002303
+waters near the coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
+waters of lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+waters of river	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+waters of stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+waters of the lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+western boundary current	western boundary current	http://purl.obolibrary.org/obo/ENVO_01000103	habitat	http://purl.obolibrary.org/obo/RO_0002303
+wet meadow	wet meadow	http://purl.obolibrary.org/obo/ENVO_01000449	habitat	http://purl.obolibrary.org/obo/RO_0002303
+whale fall	whale fall	http://purl.obolibrary.org/obo/ENVO_01000140	habitat	http://purl.obolibrary.org/obo/RO_0002303
+widespread in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+widespread in the mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http://purl.obolibrary.org/obo/RO_0002303
+with slow-flowing stream	riparian zone	https://www.wikidata.org/entity/Q13360049	habitat	http://purl.obolibrary.org/obo/RO_0002303
+within stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+within the lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
+within the stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
+wood fall	wood fall	http://purl.obolibrary.org/obo/ENVO_01000142	habitat	http://purl.obolibrary.org/obo/RO_0002303
+woodland	woodland	http://purl.obolibrary.org/obo/ENVO_01000175	habitat	http://purl.obolibrary.org/obo/RO_0002303
+xeric shrubland	xeric shrubland	http://purl.obolibrary.org/obo/ENVO_01000218	habitat	http://purl.obolibrary.org/obo/RO_0002303

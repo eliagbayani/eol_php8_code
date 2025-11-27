@@ -141,20 +141,19 @@ class Annotator2EOLAPI extends Functions_Annotator
             $this->ontologies = "habitat";
             $this->ontologies = "behavioral circadian rhythm, developmental mode, habitat, life cycle habit, mating system, reproduction, sexual system"; //from Google spreadsheet
 
-
             // print_r($param);
             // exit("\nERROR: Predicate(s) not found 173.\n");
         }
 
         print_r($param); echo("\n[".$this->ontologies."]\nelix 1\n");
 
-
         /* from DATA-1853 - exclude ranks for Wikipedia inferred records */
-
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Wikipedia_excluded_ranks.tsv";
         // $this->excluded_ranks = array('class', 'infraclass', 'infrakingdom', 'infraorder', 'infraphylum', 'kingdom', 'order', 'phylum', 'subclass', 'subkingdom', 'suborder', 'subphylum', 'subtribe', 'superclass', 'superfamily', 'superkingdom', 'superorder', 'superphylum', 'division', 'domain', 'grandorder', 'parvorder', 'realm', 'subdivision', 'tribe');
         $this->excluded_ranks = $this->load_github_dump($url);
+        /* Now obsolete
         $this->pensoft_service = "https://api.pensoft.net/annotator?text=MY_DESC&ontologies=MY_ONTOLOGIES";
+        */
 
         /* DATA-1893: new patterns for all textmined resources: life history ontology --- copied template
         $this->new_patterns_4textmined_resources = "https://raw.githubusercontent.com/EOL/textmine_rules/main/life_history.tsv";

@@ -193,6 +193,8 @@ class TraitGeneric
     }
     public function initialize_terms_remapping($expire_seconds = 60*60*24*30)
     {
+        exit("\nThis is now obsolete [initialize_terms_remapping()]. \nWill terminate. \nPlease investigate and adjust accordingly.\n");
+
         /* START DATA-1841 terms remapping */
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Terms_remapped/DATA_1841_terms_remapped.tsv";
         require_library('connectors/TropicosArchiveAPI');

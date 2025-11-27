@@ -849,7 +849,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         $desc = str_replace('"', $this->double_quote_char, $desc);
         $desc = str_replace("\\", $this->slant_bar, $desc);
 
-        // /* remove URL entries from textmining
+        // /* remove URL entries from textmining | exclude URLs | exclude source URLs
         $desc = Functions::delete_all_between('href="', '"', $desc, false, false); //inclusiveYN 4th param; caseSensitiveYN 5th param
         $desc = Functions::delete_all_between("?title=", "&", $desc, false, false); //inclusiveYN 4th param; caseSensitiveYN 5th param --- seems for Wikipedia only
         // index.php?title=Lesser_prairie-chicken&oldid=1273157853</a>

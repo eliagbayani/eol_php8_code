@@ -41,7 +41,7 @@ class TreatmentBankAPI
         $this->download_TB_options = array(
             'resource_id'        => "TreatmentBank",
             'expire_seconds'     => false, //60*60*24*30*12, //false, ideally this can be false
-            'download_wait_time' => 1000000, 'timeout' => 60*5, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'cache' => 1);
+            'download_wait_time' => 500000, 'timeout' => 60*1, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'cache' => 1);
         $this->service['Plazi Treatments'] = "http://tb.plazi.org/GgServer/xml.rss.xml";
         $this->service['DwCA zip download'] = "tb.plazi.org/GgServer/dwca/masterDocId.zip";
 
@@ -161,7 +161,7 @@ class TreatmentBankAPI
                     if($purpose == "download all dwca") {
                         if($i >= $from && $i <= $to) { //echo "-[$i]-";
                             if(($i % 1000) == 0) echo "\nCount [".number_format($i)."]-> ";
-                            self::process_item($xml);
+                            self::process_item($xml, $i);
                             // if($i == 6) break; //debug only
                         }
                         else continue;
@@ -187,7 +187,7 @@ class TreatmentBankAPI
         if(isset($this->stats['masterDocId'])) echo "\nmasterDocIds: ".count(@$this->stats['masterDocId'])."\n";
         exit("\n-stop muna-\n");
     }
-    private function process_item($xml)
+    private function process_item($xml, $ctr)
     {   // print_r($xml); //exit;
         /*SimpleXMLElement Object(
             [title] => Cyrtodactylus majulah Grismer & Wood & Jr & Lim 2012, new species
@@ -207,7 +207,6 @@ class TreatmentBankAPI
         $url = $xml->link.".xml";
         debug("".$url."");
         $options = $this->download_TB_options;
-        $options['expire_seconds'] = 500000; //1000000;
         if($xml_string = Functions::lookup_with_cache($url, $options)) {
 
             if(!Functions::isXmlWellFormed($xml_string)) {
@@ -221,7 +220,7 @@ class TreatmentBankAPI
             } 
             else {
                 if($hash = simplexml_load_string($xml_string)) { //print_r($hash);
-                    if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") {
+                    if(@$hash["docType"] == "treatment" && @$hash["masterDocId"] && @$hash["docLanguage"] == "en") { echo "[T $ctr]";
                         // echo "\ndocType: [".$hash["docType"]."]";
                         // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
 
@@ -233,7 +232,7 @@ class TreatmentBankAPI
                         // ---------------------
                         self::run_wget_download($source, $destination, $url);
                     }
-                    else {
+                    else { echo "[X $ctr]";
                         // print_r($xml); echo("\nInvestigate, docType not a 'treatment'\n");
                     }
                 }

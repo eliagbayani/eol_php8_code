@@ -137,7 +137,7 @@ http://eol.org/schema/media/document:
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/TreatmentBankAPI');
-$GLOBALS["ENV_DEBUG"] = true; //false;
+$GLOBALS["ENV_DEBUG"] = false;
 $timestart = time_elapsed();
 
 /* test only

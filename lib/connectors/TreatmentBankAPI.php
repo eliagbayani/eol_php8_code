@@ -169,7 +169,7 @@ class TreatmentBankAPI
                     elseif($purpose == "build-up local dwca list") {
                         // /* main operation - uncomment in real operation
                         if(($i % 5000) == 0) echo "[".number_format($i)."] ";
-                        self::process_item_buildup_list($xml);
+                        self::process_item_buildup_list($xml, $i);
                         // if($i == 10) break; //debug only                        
                         // */
 
@@ -287,7 +287,7 @@ class TreatmentBankAPI
         self::read_xml_rss(false, false, "build-up local dwca list");
         fclose($this->WRITE);
     }
-    private function process_item_buildup_list($xml)
+    private function process_item_buildup_list($xml, $ctr)
     {   // print_r($xml); //exit;
         /*SimpleXMLElement Object(
             [title] => Cyrtodactylus majulah Grismer & Wood & Jr & Lim 2012, new species
@@ -310,7 +310,7 @@ class TreatmentBankAPI
                 foreach(libxml_get_errors() as $error) { $i++; echo "\nError $i. " . $error->message; }
             } 
             else {
-                if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") {
+                if($hash["docType"] == "treatment" && $hash["masterDocId"] && $hash["docLanguage"] == "en") { echo "[T $ctr]";
                     // echo "\ndocType: [".$hash["docType"]."]";
                     // echo "\nmasterDocId: [".$hash["masterDocId"]."]\n";
                     $masterDocId = (string) $hash["masterDocId"];
@@ -324,7 +324,7 @@ class TreatmentBankAPI
                         fwrite($this->WRITE, $destination."\n");
                     }
                 }
-                else { //print_r($xml); 
+                else { echo "[X $ctr]";
                     // echo("\nInvestigate, docType not a 'treatment' or not English but: [".$hash["docType"]."][".$hash["docLanguage"]."][".$hash["masterDocId"]."]\n"); 
                 }            
             }

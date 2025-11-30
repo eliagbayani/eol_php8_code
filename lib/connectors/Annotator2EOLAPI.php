@@ -221,7 +221,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             // */
         }
         // ------------------------- end customize ------------------------- */
-        
+
         self::lookup_opendata_resource();
         // /* un-comment in real operation
         self::initialize_files();
@@ -1418,8 +1418,13 @@ class Annotator2EOLAPI extends Functions_Annotator
     }
     */
     private function valid_record($rec)
-    {   if($rec['http://purl.org/dc/terms/type'] == 'http://purl.org/dc/dcmitype/Text' &&
-           in_array(@$rec['http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm'], $this->allowed_subjects) &&
+    {   
+        // echo "\n allowed_subjects: "; print_r($this->allowed_subjects);
+        if(!in_array(@$rec['http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm'], $this->allowed_subjects)) {
+            debug("\nInvalid subject\n");
+            return false;
+        }
+        if($rec['http://purl.org/dc/terms/type'] == 'http://purl.org/dc/dcmitype/Text' && 
            @$rec['http://purl.org/dc/terms/description'] && $rec['http://rs.tdwg.org/dwc/terms/taxonID'] && 
            $rec['http://purl.org/dc/terms/identifier']) return true;
         else return false;
@@ -1626,8 +1631,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         // /* during dev only
         if(!Functions::is_production()) {
             if($this->param['resource_id'] == '617_ENV') {
-                $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path(80);            //orig
-                // $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path('80_4dev');     //dev only
+                $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path(80);
                 print_r($this->DwCA_URLs);
                 return;
             }

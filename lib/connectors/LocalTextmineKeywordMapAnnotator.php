@@ -49,17 +49,33 @@ class LocalTextmineKeywordMapAnnotator
                 $string = @$rek['string'];
                 $value_uri = @$rek['value uri'];
                 $predicate_uri = @$rek['predicate uri'];
-                if($value_uri && $string) {
-                    $this->keyword_uri[$string][] = $value_uri;
-                    $this->keyword_uri[$string] = array_unique($this->keyword_uri[$string]); //make values unique
-                    $this->uri_predicate[$value_uri] = $predicate_uri;
-                }
+                self::do_assign($string, $value_uri, $predicate_uri);
+
+                // /* new: plural form
+                $new_string = self::get_plural_of_string($string);
+                if($new_string != $string) self::do_assign($new_string, $value_uri, $predicate_uri);
+                // */
             }
         }
         // if(isset($this->keyword_uri)) {
             echo "\nkeyword_uri 1: ".count($this->keyword_uri); // print_r($this->keyword_uri);
             echo "\nuri_predicate 1: ".count($this->uri_predicate); // print_r($this->uri_predicate);
         // }
+    }
+    private function do_assign($string, $value_uri, $predicate_uri)
+    {
+        if($value_uri && $string) {
+            $this->keyword_uri[$string][] = $value_uri;
+            $this->keyword_uri[$string] = array_unique($this->keyword_uri[$string]); //make values unique
+            $this->uri_predicate[$value_uri] = $predicate_uri;
+        }
+    }
+    private function get_plural_of_string($string)
+    {
+        $new_string = $string;
+        $lastChar = strtolower(substr($string, -1));
+        if($lastChar != 's') $new_string .= "s";
+        return $new_string;
     }
 }
 ?>

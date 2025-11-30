@@ -1419,7 +1419,7 @@ class Annotator2EOLAPI extends Functions_Annotator
     */
     private function valid_record($rec)
     {   
-        // echo "\n allowed_subjects: "; print_r($this->allowed_subjects);
+        // echo "\n allowed_subjects: "; print_r($this->allowed_subjects); //good debug
         if(!in_array(@$rec['http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm'], $this->allowed_subjects)) {
             debug("\nInvalid subject\n");
             return false;

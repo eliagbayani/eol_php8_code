@@ -676,7 +676,15 @@ class Annotator2EOLAPI extends Functions_Annotator
         // exit("\ntaxonID: ".$rec['http://rs.tdwg.org/dwc/terms/taxonID']."\n"); //debug only
         // exit("\n[".$this->param['resource_id']."]\n"); //e.g. '617_ENV'
         $basename = $rec['http://rs.tdwg.org/dwc/terms/taxonID']."_-_".$rec['http://purl.org/dc/terms/identifier'];
-        $desc = strip_tags($rec['http://purl.org/dc/terms/description']);
+        $desc = $rec['http://purl.org/dc/terms/description'];
+
+        /* dev only -- so it makes the desc unique so it will force the annotator to run and not use cache.
+        $time = date('Y-m-d H:i:s', time());
+        $desc .= $time." ";
+        */
+
+        $desc = $this->remove_references_from_text($desc);
+        $desc = strip_tags($desc);
         $desc = trim(Functions::remove_whitespace($desc));
 
         self::retrieve_annotation($basename, $desc); //it is in this routine where the pensoft annotator is called/run
@@ -1618,7 +1626,8 @@ class Annotator2EOLAPI extends Functions_Annotator
         // /* during dev only
         if(!Functions::is_production()) {
             if($this->param['resource_id'] == '617_ENV') {
-                $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path(80);
+                $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path(80);            //orig
+                // $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path('80_4dev');     //dev only
                 print_r($this->DwCA_URLs);
                 return;
             }

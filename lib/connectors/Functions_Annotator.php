@@ -423,5 +423,18 @@ class Functions_Annotator
             return $json;
         }
     }
+    function remove_references_from_text($desc)
+    {   /*
+        <sup id="cite_
+        </sup>
+        <li id="cite_
+        </li>
+        <cite id="CITEREF
+        </cite>
+        */
+        $desc = Functions::delete_all_between('<li id="cite_', "</li>", $desc, true, false); //inclusiveYN 4th param; caseSensitiveYN 5th param
+        $desc = Functions::delete_all_between("<cite ", "</cite>", $desc, true, false); //inclusiveYN 4th param; caseSensitiveYN 5th param
+        return $desc;
+    }
 }
 ?>

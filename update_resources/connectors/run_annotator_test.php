@@ -46,12 +46,15 @@ $descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/
 $descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Asian_swamp_eel&oldid=1271391020">https://en.wikipedia.org/w/index.php?title=Asian_swamp_eel&oldid=1271391020</a>"</div></div> </div> </main> </div> <div class="';
 $descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Black_pond_turtle&oldid=1246771832">A forest https://en.wikipedia.org/w/index.php?title=Black_pond_turtle&oldid=1246771832</a>"</div></div> </div> </main> </div> <div class="';
 $descs[] = "ser.001 do not usually enter brackish water and mostly montane .[12][13] The favored temperature";
+// plural form
+$descs[] = "The lion lives in may different forests.";
 
 /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
 $time = date('Y-m-d H:i:s', time());
-$descs[] = "[$time] do not usually enter brackish water and mostly montane .[12][13] The favored temperature";
+// $descs[] = "[$time] do not usually enter brackish water and mostly montane .[12][13] The favored temperature";
+$descs[] = 'The Madagascar pygmy kingfisher (Corythornis madagascariensis) is a species of bird in the family Alcedinidae. It is endemic to Madagascar and found in western dry decidu';
 */
 
 /*
@@ -131,6 +134,8 @@ foreach($IDs as $resource_id) {
             $q[22] = array('s' => "forest-ENVO_01000174->RO_0002303");
             // remnants of old mapping
             $q[23] = array('s' => "brackish water-ENVO_00002019->RO_0002303|mostly montane-Q1141462->RO_0002303");
+            // plural form
+            $q[24] = array('s' => "forests-ENVO_01000174->RO_0002303");
 
 
             // if($arr = @$q[$i]) {
@@ -177,6 +182,9 @@ foreach($IDs as $resource_id) {
         if($i == 22) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         // remnants of old mapping
         if($i == 23) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // plural form
+        if($i == 24) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+
 
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";
@@ -184,6 +192,7 @@ foreach($IDs as $resource_id) {
     // ************************************
 } //end foreach()
 echo "\n"; print_r($final);
+
 echo "\n-end tests-\n";
 // */
 function run_desc($desc, $pensoft) {
@@ -202,6 +211,7 @@ function run_desc($desc, $pensoft) {
         }
     }
     // else echo "\n[-No Results-]\n";
+    // print_r($pensoft->keyword_uri); exit("\nelix aaa\n");
     return implode("|", $final);    
 }
 ?>

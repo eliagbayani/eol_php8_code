@@ -75,6 +75,7 @@ class TraitAnnotatorAPI
             else exit("\nERROR: Investigate: No URIs for predicate:[$predicate] | needle:[$needle]\n");
         } else {
             // echo "Substring not found.";
+            // many records pass by here
         }
     }
     private function boundary_chars_are_valid_YN($position, $needle, $haystack)

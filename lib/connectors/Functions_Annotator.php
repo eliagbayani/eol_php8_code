@@ -277,6 +277,13 @@ class Functions_Annotator
                 }
             }
             
+            /* if a word is like " A.V. " */
+            if(strlen($part) == 4) {
+                $third_char = substr($part, 2, 1);
+                $forth_char = substr($part, 3, 1);
+                if(ctype_upper($first_char) && ctype_upper($third_char) && $second_char == "." && $forth_char == ".") return false;
+            }
+
             // if word lenght is 2 and both upper e.g. "TA"
             // if(strlen($part) == 2 && ctype_upper($part)) return false;
         }

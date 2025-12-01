@@ -612,7 +612,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
             return implode(" ", $final);
         }
         echo "\n===========================\n[$context]\n";
-        exit("\nERROR: Investigate cannot capture context properly.\n");    
+        exit("\nERROR: Investigate cannot capture context properly 01.\n");    
     }
 }
 ?>

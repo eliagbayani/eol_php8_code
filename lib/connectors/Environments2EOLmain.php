@@ -280,7 +280,7 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 // else                                $rec['measurementRemarks'] = "source text: \"" . $arr[3] . "\""; //obsolete
                 else {
                     if($val = @$arr[7]) {
-                        $rec['measurementRemarks'] = "source text: \"" . self::generate_new_mremarks($arr[7]) . "\""; //NEW: Feb 18, 2025
+                        $rec['measurementRemarks'] = "source text: \"" . self::generate_new_mremarks($arr) . "\""; //NEW: Feb 18, 2025
                     }
                     else {
                         $rec['measurementRemarks'] = "source text: \"" . $arr[3] . "\""; //obsolete
@@ -590,8 +590,9 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
             }
         }
     }
-    private function generate_new_mremarks($context)
+    private function generate_new_mremarks($arr)
     {   // [adult male found calling in leaf litter Heyer 1977 Hoogmoed and Lescure 1984 the juvenile female was also found in <b>leaf litter</b> Lynch 1986 .]
+        $context = $arr[7];
 
         // step 0: "forest to Afro-<b>alpine</b> moorland."
         $context = str_replace("<b>", " <b>", $context);
@@ -635,8 +636,8 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
             // print_r($final);
             return implode(" ", $final);
         }
-        echo "\n===========================\n[$context]\n";
-        exit("\nERROR: Investigate cannot capture context properly.\n");    
+        echo "\n===========================\n[$context]\n"; print_r($arr);
+        exit("\nERROR: Investigate cannot capture context properly 02.\n");    
     }
 }
 ?>

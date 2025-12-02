@@ -145,7 +145,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             // exit("\nERROR: Predicate(s) not found 173.\n");
         }
 
-        print_r($param); echo("\n[".$this->ontologies."]\nelix 1\n");
+        print_r($param); echo("\nThese ontologies: [".$this->ontologies."]\n");
 
         /* from DATA-1853 - exclude ranks for Wikipedia inferred records */
         $url = "https://raw.githubusercontent.com/EOL/textmine_rules/main/Wikipedia_excluded_ranks.tsv";

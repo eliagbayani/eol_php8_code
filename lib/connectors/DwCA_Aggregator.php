@@ -110,7 +110,7 @@ class DwCA_Aggregator extends DwCA_Aggregator_Functions
         foreach($DwCAs as $dwca_file) { $i++;
 
             /* during cache only | comment in normal operation | another similar block in DwCA_Aggregator_Functions.php
-            if($i < 39533) continue;
+            if($i < 52110) continue;
             */
 
             $this->zip_file = pathinfo($dwca_file, PATHINFO_BASENAME); 
@@ -121,7 +121,7 @@ class DwCA_Aggregator extends DwCA_Aggregator_Functions
             }
             else $ret['DwCA file does not exist'][$dwca_file] = '';
             // break; //debug only //good debug
-            // if($i >= 5) break; //debug only
+            // if($i >= 52130) break; //debug only
         }
         if($ret) print_r($ret);
         $this->archive_builder->finalize(TRUE);
@@ -130,7 +130,19 @@ class DwCA_Aggregator extends DwCA_Aggregator_Functions
     private function convert_archive($preferred_rowtypes = false, $dwca_file = 'always_has_value', $download_options = array('timeout' => 172800, 'expire_seconds' => 0))
     {   /* param $preferred_rowtypes is the option to include-only those row_types you want on your final DwCA.*/
         echo "\nConverting archive to EOL DwCA [$dwca_file]...\n";
+        if(!file_exists($dwca_file)) {
+            $this->debug["zip file does not exist"][$dwca_file] = '';
+            echo "\nzip file does not exist: [$dwca_file]\n";
+            return;
+        }
+        // else echo "\nFile exists: [$dwca_file]\n";
         $info = self::start($dwca_file, $download_options); //1 day expire -> 60*60*24*1
+        if(!$info) {
+            $this->debug["Corrupted zip file"][$dwca_file] = '';
+            echo "\nCorrupted zip file: [$dwca_file]\n";
+            return;
+        }
+
         $temp_dir = $info['temp_dir'];
         $this->temp_dir = $temp_dir; //first client is TreatmentBank. Used in reading eml.xml from the source DwCA
         $harvester = $info['harvester'];

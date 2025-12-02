@@ -188,7 +188,7 @@ class DwCA_Aggregator_Functions
                 $rec['http://purl.org/dc/terms/creator']                = $val['creator']; //POORANI, J.
                 $rec['http://purl.org/dc/terms/bibliographicCitation']  = $val['bibliographicCitation']; //POORANI, J. (2023): An illustrated guide to the lady beetles (Coleoptera: Coccinellidae) of the Indian Subcontinent. Part II. Tribe Chilocorini. Zootaxa 5378 (1): 1-108, DOI: 10.11646/zootaxa.5378.1.1, URL: https://www.mapress.com/zt/article/download/zootaxa.5378.1.1/52353
             }
-            else echo "\n[$taxon_id][-nothing-]\n";
+            // else echo "\n[$taxon_id][-nothing-]\n"; //good debug
             // */                        
         }
         // ===================== 2nd part TreatmentBank customization

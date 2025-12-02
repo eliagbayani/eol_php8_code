@@ -131,8 +131,8 @@ class DwCA_Aggregator extends DwCA_Aggregator_Functions
     {   /* param $preferred_rowtypes is the option to include-only those row_types you want on your final DwCA.*/
         echo "\nConverting archive to EOL DwCA [$dwca_file]...\n";
         if(!file_exists($dwca_file)) {
-            $this->debug["zip file does not exist"][$dwca_file] = '';
-            echo "\nzip file does not exist: [$dwca_file]\n";
+            $this->debug["Zip file does not exist"][$dwca_file] = '';
+            echo "\nZip file does not exist: [$dwca_file]\n";
             return;
         }
         // else echo "\nFile exists: [$dwca_file]\n";

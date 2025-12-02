@@ -46,7 +46,7 @@ class Clean_MoF_Habitat_API
         require_library('connectors/DH_v1_1_postProcessing');
         $this->func = new DH_v1_1_postProcessing(1);
         // */
-        self::get_descendants_info(); //generates $this->descendants
+        self::get_descendants_info(); //generates $this->descendants (terms descendants info; a parent-child info)
 
         $marine = 'http://purl.obolibrary.org/obo/ENVO_00000447';
         $descendants_of_marine = $this->func->get_descendants_of_taxID($marine, false, $this->descendants);

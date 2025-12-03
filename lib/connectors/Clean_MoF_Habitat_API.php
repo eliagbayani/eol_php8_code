@@ -94,7 +94,7 @@ class Clean_MoF_Habitat_API
             unset($this->descendants);
             unset($this->descendants_of_marine);
             unset($this->descendants_of_terrestrial);
-            unset($this->occurID_taxonID_info);
+            // unset($this->occurID_taxonID_info);
             /* start writing */
             self::process_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'write_occurrence'); //gen $this->occurrenceIDs_2delete
             self::process_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'write_MoF'); //gen $this->referenceIDs
@@ -136,7 +136,7 @@ class Clean_MoF_Habitat_API
             $i++; if(($i % 300000) == 0) echo "\n".number_format($i);
             // /* ----- writing headers for the report -----
             if($task == "write_MoF" && $i == 1) {
-                $file = CONTENT_RESOURCE_LOCAL_PATH.$this->resource_id."_MoF_removed.txt";
+                $file = CONTENT_RESOURCE_LOCAL_PATH.$this->resource_id."_MoF_removed.tsv";
                 $fhandle = Functions::file_open($file, "w");
                 // /* build headers array
                 foreach($meta->fields as $field) {
@@ -145,7 +145,9 @@ class Clean_MoF_Habitat_API
                 }
                 // */
                 print_r($fields);
-                fwrite($fhandle, implode("\t", $fields)."\n");
+                $fields_4_report = $fields;
+                array_unshift($fields_4_report, "taxonID"); print_r($fields_4_report);
+                fwrite($fhandle, implode("\t", $fields_4_report)."\n");
             }
             // ----- end ----- */
             if($meta->ignore_header_lines && $i == 1) continue;
@@ -219,8 +221,14 @@ class Clean_MoF_Habitat_API
                 elseif($taxonID_in_question = $this->occurID_taxonID_info[$child_occurrenceID]) {}
                 else { print_r($rec); exit("\nno link to taxonID 1\n"); }
                 if(self::is_habitat_YN($mType)) {
+                    /* orig - but it includes taxon with 'intertidal zone' trait as both marine and terrestrial even it is just one trait record.
                     if(self::is_mValue_descendant_of_marine($mValue)) $log[$taxonID_in_question]['marine'] = '';
                     if(self::is_mValue_descendant_of_terrestrial($mValue)) $log[$taxonID_in_question]['terrestrial'] = '';
+                    */
+                    // /* better solution
+                    if(self::is_mValue_descendant_of_marine($mValue)) $log[$taxonID_in_question]['marine'] = '';
+                    elseif(self::is_mValue_descendant_of_terrestrial($mValue)) $log[$taxonID_in_question]['terrestrial'] = '';
+                    // */
                 }
                 if(isset($log[$taxonID_in_question]['marine']) && isset($log[$taxonID_in_question]['terrestrial'])) $this->marine_and_terrestrial[$taxonID_in_question] = '';
             }
@@ -337,20 +345,23 @@ class Clean_MoF_Habitat_API
                 $mValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
                 $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
                 if(isset($this->occurrenceIDs_2delete[$occurrenceID])) { //don't save
-                    if(self::is_habitat_YN($mType)) {
-                        /* orig
+                    // print_r($this->occurID_taxonID_info); echo "\nexit muna: [".count($this->occurID_taxonID_info)."]\n"; exit;
+                    // if(self::is_habitat_YN($mType)) {
+                        // /* orig
+                        $taxonID = $this->occurID_taxonID_info[$occurrenceID];
+                        array_unshift($rec, $taxonID);
                         fwrite($fhandle, implode("\t", $rec)."\n"); //save removed record
                         continue;
-                        */
+                        // */
                         
-                        // /* new
+                        /* new - didn't save anything as of 2Dec2025
                         if(self::is_mValue_descendant_of_marine($mValue) || self::is_mValue_descendant_of_terrestrial($mValue)) {
                             fwrite($fhandle, implode("\t", $rec)."\n"); //save removed record
                             continue;
                         }
-                        // */
+                        */
                         
-                    }
+                    // }
                 }
                 else {
                     $o = new \eol_schema\MeasurementOrFact_specific();

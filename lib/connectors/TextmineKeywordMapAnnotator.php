@@ -15,7 +15,7 @@ class TextmineKeywordMapAnnotator
     public $func;
     public $local_textmine_strings, $new_file;
     function __construct()
-    {   
+    {   exit("\nObsolete TextmineKeywordMapAnnotator. Will terminate.\n");
         /* worksheet: [mapped strings]
         https://docs.google.com/spreadsheets/d/1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA/edit?gid=0#gid=0        
         */

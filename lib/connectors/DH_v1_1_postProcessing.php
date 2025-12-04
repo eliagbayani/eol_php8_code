@@ -666,7 +666,6 @@ class DH_v1_1_postProcessing
         require_library('connectors/DHSourceHierarchiesAPI_v2');
         $func = new DHSourceHierarchiesAPI_v2(null); //param supposed to be resource_id
         $func->save_all_ids_from_all_hierarchies_2MySQL('write2mysql_v2.txt', true); //2nd param true means it's a postProcess task
-        
     }
     private function get_descendantz($descendants)
     {
@@ -685,7 +684,6 @@ class DH_v1_1_postProcessing
             }
             else break;
         }
-
         $final = array_filter($final); //remove null arrays
         $final = array_unique($final); //make unique
         asort($final);

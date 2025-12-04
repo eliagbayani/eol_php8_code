@@ -991,10 +991,10 @@ occurs in mountain	montane	https://www.wikidata.org/entity/Q1141462	habitat	http
 occurs only in lake	lake	http://purl.obolibrary.org/obo/ENVO_01000252	habitat	http://purl.obolibrary.org/obo/RO_0002303
 oceanic bathypelagic zone	oceanic bathypelagic zone	http://purl.obolibrary.org/obo/ENVO_01000037	habitat	http://purl.obolibrary.org/obo/RO_0002303
 oceanic benthopelagic zone	oceanic benthopelagic zone	http://purl.obolibrary.org/obo/ENVO_01000040	habitat	http://purl.obolibrary.org/obo/RO_0002303
-oceanic front	oceanic front	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic front	marine	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
 oceanic island	oceanic island	http://purl.obolibrary.org/obo/ENVO_00000222	habitat	http://purl.obolibrary.org/obo/RO_0002303
 oceanic pelagic zone	oceanic pelagic zone	http://purl.obolibrary.org/obo/ENVO_01000023	habitat	http://purl.obolibrary.org/obo/RO_0002303
-oceanic zone	oceanic zone	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
+oceanic zone	marine	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303
 of hill stream	river	http://purl.obolibrary.org/obo/ENVO_01000253	habitat	http://purl.obolibrary.org/obo/RO_0002303
 off the Atlantic coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
 off the coast	coast	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303

@@ -71,7 +71,7 @@ class Clean_MoF_Habitat_API
         $this->pensoft = new Annotator2EOLAPI($param);
         $this->descendants_of_marine      = $this->pensoft->get_descendants_of_habitat_group('saline water'); //e.g. param "saline water"
         $this->descendants_of_terrestrial = $this->pensoft->get_descendants_of_habitat_group('terrestrial'); //e.g. param "terrestrial" meaning "incompatible_with_marine" by Katja
-        print_r($this->descendants_of_marine); print_r($this->descendants_of_terrestrial); exit("\nEyeball check first.\n");
+        // print_r($this->descendants_of_marine); print_r($this->descendants_of_terrestrial); exit("\nEyeball check first.\n");
         // =====end===== */
         
         /*

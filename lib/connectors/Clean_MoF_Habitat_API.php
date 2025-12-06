@@ -157,9 +157,11 @@ class Clean_MoF_Habitat_API
                 }
                 // */
                 print_r($fields);
+                // /* for reporting: wikipedia_en_traits_tmp3_MoF_removed.tsv
                 $fields_4_report = $fields;
                 array_unshift($fields_4_report, "taxonID"); print_r($fields_4_report);
                 fwrite($fhandle, implode("\t", $fields_4_report)."\n");
+                // */
             }
             // ----- end ----- */
             if($meta->ignore_header_lines && $i == 1) continue;
@@ -242,7 +244,15 @@ class Clean_MoF_Habitat_API
                     elseif(self::is_mValue_descendant_of_terrestrial($mValue)) $log[$taxonID_in_question]['terrestrial'] = '';
                     // */
                 }
-                if(isset($log[$taxonID_in_question]['marine']) && isset($log[$taxonID_in_question]['terrestrial'])) $this->marine_and_terrestrial[$taxonID_in_question] = '';
+                if(isset($log[$taxonID_in_question]['marine']) && isset($log[$taxonID_in_question]['terrestrial'])) {
+                    $this->marine_and_terrestrial[$taxonID_in_question] = '';
+                }
+
+                // /* to make sure that if taxon has other traits other than habitat, that the taxon won't be deleted
+                if(!self::is_habitat_YN($mType)) {
+                    if(isset($this->marine_and_terrestrial[$taxonID_in_question])) unset($this->marine_and_terrestrial[$taxonID_in_question]);
+                }
+                // */
             }
             //===================================================================================================================
             if($task == 'log_habitat_use_step2') { // print_r($rec); exit;

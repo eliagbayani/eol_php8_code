@@ -102,7 +102,8 @@ class Clean_MoF_Habitat_API
         echo "\ntaxonIDs with both marine and terrestrial habitats: ".$count."\n"; // print_r($this->marine_and_terrestrial);
 
 
-        if(in_array($this->resource_id, array('wikipedia_en_traits_tmp3'))) { //orig - Wikipedia En traits
+        // if(in_array($this->resource_id, array('wikipedia_en_traits_tmp3'))) { //orig - Wikipedia En traits
+        if(false) { //doesn't go here. All resources go to else:
             unset($this->descendants);
             unset($this->descendants_of_marine);
             unset($this->descendants_of_terrestrial);
@@ -119,7 +120,7 @@ class Clean_MoF_Habitat_API
             */
             self::process_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'log_habitat_use_step2'); //gen $this->occurrenceIDs_2delete
             unset($this->descendants);
-            unset($this->occurID_taxonID_info);
+            // unset($this->occurID_taxonID_info);
             /* start writing */
             self::process_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'write_occurrence_type2');
             self::process_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'write_MoF'); //gen $this->referenceIDs
@@ -247,12 +248,6 @@ class Clean_MoF_Habitat_API
                 if(isset($log[$taxonID_in_question]['marine']) && isset($log[$taxonID_in_question]['terrestrial'])) {
                     $this->marine_and_terrestrial[$taxonID_in_question] = '';
                 }
-
-                // /* to make sure that if taxon has other traits other than habitat, that the taxon won't be deleted
-                if(!self::is_habitat_YN($mType)) {
-                    if(isset($this->marine_and_terrestrial[$taxonID_in_question])) unset($this->marine_and_terrestrial[$taxonID_in_question]);
-                }
-                // */
             }
             //===================================================================================================================
             if($task == 'log_habitat_use_step2') { // print_r($rec); exit;

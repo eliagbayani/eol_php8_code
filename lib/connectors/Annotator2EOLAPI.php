@@ -124,7 +124,8 @@ class Annotator2EOLAPI extends Functions_Annotator
         // exclude descendants of 'saline water': Amphibiaweb
         $this->descendants_habitat_group['saline water'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_salt_water.tsv';   //old
         // /* New by Katja: 6Dec2025 -- This is also what is termed as "incompatible w/ non-marine" or "truly saline water"
-        $this->descendants_habitat_group['saline water'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_saline_water.tsv';
+        $this->descendants_habitat_group['saline water'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_saline_water.tsv'; //"incompatible w/ non-marine"
+        $this->descendants_habitat_group['terrestrial'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/incompatible_with_marine.tsv';
         // */
 
         // exclude descendants of 'aquatic': AntWeb

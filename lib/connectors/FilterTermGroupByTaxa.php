@@ -68,10 +68,10 @@ class FilterTermGroupByTaxa
         // print_r($this->descendants_of_saline_water); exit("\nEyeball check first.\n");
         /*Array(
             [t.uri] => 
-            [http://purl.obolibrary.org/obo/ENVO_00002010] => 
-            [http://purl.obolibrary.org/obo/ENVO_00002227] => 
-            [http://purl.obolibrary.org/obo/ENVO_01000307] => 
-            [http://purl.obolibrary.org/obo/ENVO_00002019] => 
+            [http://purl.obolibrary.org/obo/ENVO_00000206] => 
+            [http://purl.obolibrary.org/obo/ENVO_00000209] => 
+            [http://purl.obolibrary.org/obo/ENVO_00000211] => 
+            [http://purl.obolibrary.org/obo/ENVO_00000212] => 
         */
     }
     private function get_children_of_TaxaGroup($taxon_ids)

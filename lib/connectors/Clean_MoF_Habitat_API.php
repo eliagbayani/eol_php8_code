@@ -42,10 +42,11 @@ class Clean_MoF_Habitat_API
         echo ("\nallowed_terms_URIs from EOL terms file: [".count($this->allowed_terms_URIs)."]\n");
         */
 
-        // /* use external func for computation of descendants
+        /* =====start===== Not used anymore. Replaced by Katja's rule: https://github.com/EOL/ContentImport/issues/37#issuecomment-3618551859
+        // ----- use external func for computation of descendants
         require_library('connectors/DH_v1_1_postProcessing');
         $this->func = new DH_v1_1_postProcessing(1);
-        // */
+        // -----
         self::get_descendants_info(); //generates $this->descendants (terms descendants info; a parent-child info)
 
         $marine = 'http://purl.obolibrary.org/obo/ENVO_00000447';
@@ -61,6 +62,11 @@ class Clean_MoF_Habitat_API
         $this->descendants_of_terrestrial = self::re_orient($descendants_of_terrestrial); unset($descendants_of_terrestrial);
         $this->descendants_of_terrestrial[$terrestrial] = '';
         echo "\nDescendants of terrestrial ($terrestrial): ".count($this->descendants_of_terrestrial)."\n";
+        =====end===== */
+
+        /* =====start===== New: from Katja 6Dec2025. Will use: https://github.com/EOL/ContentImport/issues/37#issuecomment-3618551859
+
+        =====end===== */
         
         /*
         print_r($this->descendants_of_marine);

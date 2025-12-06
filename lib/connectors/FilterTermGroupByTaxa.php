@@ -65,7 +65,7 @@ class FilterTermGroupByTaxa
         $this->pensoft = new Annotator2EOLAPI($param);
         $this->descendants_of_saline_water = $this->pensoft->get_descendants_of_habitat_group($this->params['habitat_filter']); //e.g. param "saline water"
         /* e.g. Q1390, Q1357, and Q10908. i.e. no saltwater insects, spiders, or amphibians. */
-        // print_r($this->descendants_of_saline_water); exit;("\n");
+        // print_r($this->descendants_of_saline_water); exit("\nEyeball check first.\n");
         /*Array(
             [t.uri] => 
             [http://purl.obolibrary.org/obo/ENVO_00002010] => 

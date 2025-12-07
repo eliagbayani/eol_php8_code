@@ -2019,7 +2019,7 @@ class Functions
         else {
             echo "\n\n Cannot compute for $extension ID! Need to investigate. \n";
             print_r($m);
-            exit("\n\n");
+            exit("\n resource_id: [$resource_id]\n extension: [$extension]\n properties: [$properties]\n");
         }
     }
     public static function conv_to_utf8($string)

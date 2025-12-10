@@ -139,7 +139,7 @@ function environment_defined($environment_name)
 
 function prepare_jenkins($argv, $root)
 {
-    echo 'Current PHP version: ' . phpversion()."<br>";
+    // echo 'Current PHP version: ' . phpversion()."<br>";
     // echo "<hr>root 1: $root<hr>"; //debug only
     // print_r($argv); //good debug
     if($jenkins_or_cron = @$argv[1]) {

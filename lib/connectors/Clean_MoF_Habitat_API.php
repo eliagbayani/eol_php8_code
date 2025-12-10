@@ -421,16 +421,13 @@ class Clean_MoF_Habitat_API
             //===================================================================================================================
             if($task == 'write_taxon') { //print_r($rec); exit;
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-                if(isset($this->marine_and_terrestrial[$taxonID])) continue; //don't save
-                else {
-                    $o = new \eol_schema\Taxon();
-                    $uris = array_keys($rec);
-                    foreach($uris as $uri) {
-                        $field = pathinfo($uri, PATHINFO_BASENAME);
-                        $o->$field = $rec[$uri];
-                    }
-                    $this->archive_builder->write_object_to_file($o);
+                $o = new \eol_schema\Taxon();
+                $uris = array_keys($rec);
+                foreach($uris as $uri) {
+                    $field = pathinfo($uri, PATHINFO_BASENAME);
+                    $o->$field = $rec[$uri];
                 }
+                $this->archive_builder->write_object_to_file($o);
             }
             //===================================================================================================================
             //===================================================================================================================

@@ -74,6 +74,7 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     require_library('connectors/DWCADiagnoseAPI');
     $func = new DWCADiagnoseAPI();
     $undefined_parents = $func->check_if_all_parents_have_entries($resource_id, true); //2nd param true means output will write to text file
+    if($undefined_parents) echo "\nERROR: There are undefined parents\n";
     echo "\nTotal undefined parents:" . count($undefined_parents)."\n"; unset($undefined_parents);
 
     // New: check if all taxonID in occurrences have taxon entries.

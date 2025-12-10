@@ -36,6 +36,7 @@ if($resource_id == '617_final') $resource_id = "wikipedia_en_traits";
 */
     if($resource_id == '617_ENV')                 $resource_id = "wikipedia_en_traits"; //during Pensoft - OLD - OBSOLETE
 elseif($resource_id == 'wikipedia_en_traits_FTG') $resource_id = "wikipedia_en_traits_tmp1"; //during Pensoft - NEW LATEST
+elseif($resource_id == 'wikipedia_en_traits_tmp3') $resource_id = "wikipedia_en_traits_tmp4"; //New 10Dec2025
 else exit("\nERROR: resource_id not yet initialized. Will terminate.\n");
 // ----------------------------------------*/
 process_resource_url($dwca_file, $resource_id);

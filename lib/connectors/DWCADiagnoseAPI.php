@@ -270,6 +270,44 @@ class DWCADiagnoseAPI
         echo "\nTotal taxa: " . count($taxa) . "\n";
         echo "\nTotal objects: " . count($objects) . "\n";
     }
+    function check_if_all_occurrences_have_entries($resource_id, $write_2text_file = false, $url = false, $suggested_fields = false, $sought_field = false) //New: 10Dec2025
+    {   /* $suggested_fields -> not so much used here... */
+
+        $what['field'] = "taxonID";
+        $what['filename'] = "_undefined_OccurrenceTaxonIDs.txt"; //taxonIDs from occurrence tab that have missing taxon entries in taxon.tab
+        echo "\nChecking if all ".$what['field']." from OCCURRENCE.tab have entries in taxon.tab \n";
+
+        if($write_2text_file) $WRITE = fopen(CONTENT_RESOURCE_LOCAL_PATH . $resource_id . $what['filename'], "w");
+        
+        $var = self::get_fields_from_tab_file($resource_id, array("taxonID", $what['field']), $url, $suggested_fields, "taxon.tab");
+        /* old
+        $taxon_ids = array_keys($var['taxonID']);
+        $taxon_ids = array_map('trim', $taxon_ids);
+        */
+        // new
+        $taxon_ids = $var['taxonID'];
+        unset($var);
+
+        $var = self::get_fields_from_tab_file($resource_id, array("taxonID", $what['field']), $url, $suggested_fields, "occurrence_specific.tab");
+        $parent_ids = array_keys($var[$what['field']]);
+        $parent_ids = array_map('trim', $parent_ids);
+        unset($var);
+
+        $undefined = array();
+        foreach($parent_ids as $parent_id) {
+            if(!isset($taxon_ids[$parent_id])) $undefined[$parent_id] = '';
+        }
+        if($write_2text_file) {
+            foreach(array_keys($undefined) as $id) fwrite($WRITE, $id . "\n");
+            fclose($WRITE);
+        }
+        $undefined = array_keys($undefined);
+        if(!$undefined) {
+            $file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . $what['filename'];
+            if(file_exists($file)) unlink($file);
+        }
+        return $undefined;
+    }
     //============================================================ work in progress...
     function check_if_all_vernaculars_have_entries($resource_id, $write_2text_file = false, $url = false, $suggested_fields = false, $sought_field = false)
     {   /* $suggested_fields -> not so much used here... */
@@ -402,7 +440,7 @@ class DWCADiagnoseAPI
             */
             $rec = array_map('trim', $rec);
             foreach($cols as $col) {
-                if(@$rec[$col]) $var[$col][@$rec[$col]] = '';
+                if($val = @$rec[$col]) $var[$col][$val] = '';
             }
         } //end foreach()
         return $var;

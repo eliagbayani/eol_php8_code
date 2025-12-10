@@ -207,8 +207,7 @@ class CladeSpecificFilters4Habitats_API
                         if(self::is_mValue_Reasonably_Terrestrial($mValue)) {}
                         else $this->to_delete_occurID[$occurrenceID] = '';
                     }
-                    
-                    
+                                        
                     /*
                     class = Arachnida AND family NOT = Halacaridae, Selenoribatidae, Fortuyniidae, Ameronothridae, Pontarachnidae, or Hyadesiidae
                     Habitat=Reasonably Terrestrial
@@ -227,7 +226,6 @@ class CladeSpecificFilters4Habitats_API
                         else $this->to_delete_occurID[$occurrenceID] = '';
                     }
                     
-
                     /*
                     class = Maxillopoda
                     Habitat=Reasonably Aquatic

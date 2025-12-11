@@ -1748,10 +1748,27 @@ class Annotator2EOLAPI extends Functions_Annotator
         903E305AF00D922FFF7B0AC2D6C4F88A.taxon_-_903E305AF00D922FFF7B0AC2D6C4F88A.text			italy	http://www.geonames.org/3175395	eol-geonames	
         903E305AF00D922FFF7B0AC2D6C4F88A.taxon_-_04d3143bfe8a216c037d8a4c27394c75			italy	http://www.geonames.org/3175395	eol-geonames	
         */
+        // print_r($tmp);
+        /*Array(
+            [0] => Q140_-_Id-05
+            [1] => 
+            [2] => 
+            [3] => alpine meadow
+            [4] => http://purl.obolibrary.org/obo/ENVO_01000340
+            [5] => habitat
+            [6] => http://purl.obolibrary.org/obo/RO_0002303
+            [7] => [[[The lion lives near <b>alpine meadow</b> and sometimes other sea grass meadows.]]]2025-12-11 09:54:04
+        )*/
         $str = $tmp[0]; //903E305AF00D922FFF7B0AC2D6C4F88A.taxon_-_903E305AF00D922FFF7B0AC2D6C4F88A.text
         $arr = explode("_-_", $str);
+        // echo "\nexplode:\n"; print_r($arr);
+        /*Array(
+            [0] => Q140
+            [1] => Id-05
+        )*/
         $word1 = $arr[0]; //get the taxon part
-        $word2 = $tmp[3]; //italy
+        // $word2 = $tmp[3]; //alpine meadow -- this is now wrong. Since e.g. 'alpine meadow' has 2 trait URIs
+        $word2 = $tmp[4]; //term URI --- this is the correct 2nd word
         $md5 = md5($word1.$word2);
         if(isset($this->unique_rows[$md5])) return false;
         else {

@@ -49,7 +49,7 @@ $descs[] = "ser.001 do not usually enter brackish water and mostly montane .[12]
 // plural form
 $descs[] = "The lion lives in may different forests.";
 // removed 'meadow'; added 'alpine meadow' and 'sea grass meadow'
-$descs[] = "The lion lives near alpine meadow and sometimes sea grass meadows.";
+$descs[] = "The lion lives near alpine meadow and sometimes other sea grass meadows.";
 
 /* un-comment this block to test 1 record
 $descs = array();

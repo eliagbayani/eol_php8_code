@@ -141,6 +141,7 @@ alpine heath	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://
 alpine heath	montane shrubland	http://purl.obolibrary.org/obo/ENVO_01000216	habitat	http://purl.obolibrary.org/obo/RO_0002303
 alpine herbfield	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
 alpine meadow	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
+alpine meadow	montane grassland	http://purl.obolibrary.org/obo/ENVO_01000194	habitat	http://purl.obolibrary.org/obo/RO_0002303
 alpine moor	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
 alpine mountain zone	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
 alpine pasture	alpine	http://purl.obolibrary.org/obo/ENVO_01000340	habitat	http://purl.obolibrary.org/obo/RO_0002303
@@ -741,7 +742,6 @@ marine supra-littoral zone	marine supra-littoral zone	http://purl.obolibrary.org
 marine warm-water sphere	marine warm-water sphere	http://purl.obolibrary.org/obo/ENVO_01000109	habitat	http://purl.obolibrary.org/obo/RO_0002303
 marine water mass	marine water mass	http://purl.obolibrary.org/obo/ENVO_01000686	habitat	http://purl.obolibrary.org/obo/RO_0002303
 marsh	marsh	http://purl.obolibrary.org/obo/ENVO_00000035	habitat	http://purl.obolibrary.org/obo/RO_0002303
-meadow	meadow	http://purl.obolibrary.org/obo/ENVO_00000108	habitat	http://purl.obolibrary.org/obo/RO_0002303
 meadow soil	meadow soil	http://purl.obolibrary.org/obo/ENVO_00005761	habitat	http://purl.obolibrary.org/obo/RO_0002303
 mediterranean forest	mediterranean forest	http://purl.obolibrary.org/obo/ENVO_01000199	habitat	http://purl.obolibrary.org/obo/RO_0002303
 mediterranean grassland	mediterranean grassland	http://purl.obolibrary.org/obo/ENVO_01000224	habitat	http://purl.obolibrary.org/obo/RO_0002303
@@ -1105,6 +1105,7 @@ savanna soil	savanna soil	http://purl.obolibrary.org/obo/ENVO_00005746	habitat	h
 scrubland	scrubland	http://purl.obolibrary.org/obo/ENVO_00000300	habitat	http://purl.obolibrary.org/obo/RO_0002303
 sea cave	sea cave	http://purl.obolibrary.org/obo/ENVO_00000326	habitat	http://purl.obolibrary.org/obo/RO_0002303
 sea grass bed	sea grass bed	http://purl.obolibrary.org/obo/ENVO_01000059	habitat	http://purl.obolibrary.org/obo/RO_0002303
+sea grass meadow	sea grass bed	http://purl.obolibrary.org/obo/ENVO_01000059	habitat	http://purl.obolibrary.org/obo/RO_0002303
 sea shore	coastal	http://purl.obolibrary.org/obo/ENVO_01000687	habitat	http://purl.obolibrary.org/obo/RO_0002303
 sea vent	hydrothermal vent	http://purl.obolibrary.org/obo/ENVO_01000030	habitat	http://purl.obolibrary.org/obo/RO_0002303
 sea-way	marine	http://purl.obolibrary.org/obo/ENVO_00000447	habitat	http://purl.obolibrary.org/obo/RO_0002303

@@ -48,6 +48,8 @@ $descs[] = 'ser.001 Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/
 $descs[] = "ser.001 do not usually enter brackish water and mostly montane .[12][13] The favored temperature";
 // plural form
 $descs[] = "The lion lives in may different forests.";
+// removed 'meadow'; added 'alpine meadow' and 'sea grass meadow'
+$descs[] = "The lion lives near alpine meadow and sometimes sea grass meadows.";
 
 /* un-comment this block to test 1 record
 $descs = array();
@@ -135,6 +137,8 @@ foreach($IDs as $resource_id) {
             $q[23] = array('s' => "brackish water-ENVO_00002019->RO_0002303|mostly montane-Q1141462->RO_0002303");
             // plural form
             $q[24] = array('s' => "forests-ENVO_01000174->RO_0002303");
+            // removed 'meadow'; added 'alpine meadow' and 'sea grass meadow'
+            $q[25] = array('s' => "alpine meadow-ENVO_01000340->RO_0002303|alpine meadow-ENVO_01000194->RO_0002303|sea grass meadows-ENVO_01000059->RO_0002303");
 
 
             // if($arr = @$q[$i]) {
@@ -183,7 +187,9 @@ foreach($IDs as $resource_id) {
         if($i == 23) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         // plural form
         if($i == 24) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-
+        // removed 'meadow'; added 'alpine meadow' and 'sea grass meadow'
+        if($i == 25) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        
 
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";

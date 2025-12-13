@@ -437,7 +437,7 @@ class DwCA_Utility
         
         // /* remove all records for taxon with habitat value(s) that are descendants of both marine and terrestrial
         if((stripos($this->resource_id, "_cleaned_MoF_habitat") !== false) ||                //string is found
-           (in_array($this->resource_id, array('wikipedia_en_traits_tmp3', '26_delta_new')))
+           (in_array($this->resource_id, array('wikipedia_en_traits_tmp3', 'TreatmentBank_ENV_01', '26_delta_new')))
           ) {
             require_library('connectors/Clean_MoF_Habitat_API');
             $func = new Clean_MoF_Habitat_API($this->archive_builder, $this->resource_id);

@@ -215,6 +215,9 @@ class Annotator2EOLAPI extends Functions_Annotator
         
         // /* ------------------------- customize -------------------------
         if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text: entire resource was processed.
+            /* before:
+            $this->descendants_of_saline_water = self::get_descendants_of_habitat_group('saline water'); //This is for all resources. Below is for Amphibiaweb only.
+            */
             $this->descendants_of_saline_water = self::get_descendants_of_habitat_group('saline water Amphibiaweb'); //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
         }
         if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN -> creates a new DwCA    

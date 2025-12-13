@@ -122,14 +122,14 @@ class Annotator2EOLAPI extends Functions_Annotator
         */
 
         // exclude descendants of 'saline water': Amphibiaweb
-        $this->descendants_habitat_group['saline water Amphibiaweb'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_salt_water.tsv';   //old
+        $this->descendants_habitat_group_url['saline water Amphibiaweb'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_salt_water.tsv';   //old
         // /* New by Katja: 6Dec2025 -- This is also what is termed as "incompatible w/ non-marine" or "truly saline water"
-        $this->descendants_habitat_group['saline water'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_saline_water.tsv'; //"incompatible w/ non-marine"
-        $this->descendants_habitat_group['terrestrial'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/incompatible_with_marine.tsv';
+        $this->descendants_habitat_group_url['saline water'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_saline_water.tsv'; //"incompatible w/ non-marine"
+        $this->descendants_habitat_group_url['terrestrial'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/incompatible_with_marine.tsv';
         // */
 
         // exclude descendants of 'aquatic': AntWeb
-        $this->descendants_habitat_group['aquatic']    = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/AmphibiaWeb/descendants_of_aquatic.tsv';
+        $this->descendants_habitat_group_url['aquatic']    = 'https://raw.githubusercontent.com/EOL/textmine_rules/main/AmphibiaWeb/descendants_of_aquatic.tsv';
    
         $this->remove_across_all_resources = array(); //original contents have now been moved to terms_to_remove.txt and/or other txt files below
 
@@ -1871,7 +1871,7 @@ class Annotator2EOLAPI extends Functions_Annotator
     }
     public function get_descendants_of_habitat_group($what)
     {
-        $url = $this->descendants_habitat_group[$what];
+        $url = $this->descendants_habitat_group_url[$what];
         $local = Functions::save_remote_file_to_local($url, array('cache' => 1, 'expire_seconds' => 60*60*24));
         $arr = explode("\n", file_get_contents($local));
         $arr = array_map('trim', $arr);

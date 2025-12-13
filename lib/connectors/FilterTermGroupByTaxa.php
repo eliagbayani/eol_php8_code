@@ -30,12 +30,29 @@ class FilterTermGroupByTaxa
         $this->children_of_TaxaGroup = array();
         $taxonIDs = explode(',', $this->params['taxonIDs']);
         $taxonIDs = array_map('trim', $taxonIDs);
-        // print_r($taxonIDs); exit;
-        $children = self::get_children_of_TaxaGroup($taxonIDs); //e.g. $taxonIDs is insects = Q1390 | spiders = Q1357 | amphibians = Q10908
-        foreach($children as $child) $this->children_of_TaxaGroup[$child] = '';
+        // print_r($taxonIDs); exit("\nStop muna...\n");
+        /*Array(
+            [0] => Q1390
+            [1] => Q1357
+            [2] => Q10908
+        )*/
+
+        // /* ========== New: 13Dec2025:
+        // Arachnida AND family NOT = Halacaridae (Q1104692), Selenoribatidae (Q4654458), Fortuyniidae (Q4623995), Ameronothridae (Q4623692), Pontarachnidae (Q15729179), or Hyadesiidae (Q11844214)
+        $excluded_arachnids = array();
+        $spider_families_taxonIDs = array('Q1104692', 'Q4654458', 'Q4623995', 'Q4623692', 'Q15729179', 'Q11844214');
+        $children = self::get_children_of_TaxaGroup($spider_families_taxonIDs);
+        foreach($children as $child) $excluded_arachnids[$child] = '';
         unset($children);
-        // print_r($this->children_of_TaxaGroup);
-        // echo "\nChildren of IDs: ".count($this->children_of_TaxaGroup)."\n"; exit;
+        // ========== */
+
+        $children = self::get_children_of_TaxaGroup($taxonIDs); //e.g. $taxonIDs is insects = Q1390 | spiders = Q1357 | amphibians = Q10908
+        foreach($children as $child) {
+            if(!isset($excluded_arachnids[$child])) $this->children_of_TaxaGroup[$child] = '';
+        }
+        unset($children);
+
+        echo "\n children_of_TaxaGroup: ".count($this->children_of_TaxaGroup)."\n excluded_arachnids: ".count($excluded_arachnids)."\n";
         //----------------------------------------------------------------------------------------------
         
         $tables = $info['harvester']->tables;

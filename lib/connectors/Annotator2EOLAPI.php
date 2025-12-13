@@ -122,7 +122,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         */
 
         // exclude descendants of 'saline water': Amphibiaweb
-        $this->descendants_habitat_group['saline water'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_salt_water.tsv';   //old
+        $this->descendants_habitat_group['saline water Amphibiaweb'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_salt_water.tsv';   //old
         // /* New by Katja: 6Dec2025 -- This is also what is termed as "incompatible w/ non-marine" or "truly saline water"
         $this->descendants_habitat_group['saline water'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/descendants_of_saline_water.tsv'; //"incompatible w/ non-marine"
         $this->descendants_habitat_group['terrestrial'] = 'https://github.com/EOL/textmine_rules/raw/refs/heads/main/AmphibiaWeb/incompatible_with_marine.tsv';
@@ -215,7 +215,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         
         // /* ------------------------- customize -------------------------
         if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text: entire resource was processed.
-            $this->descendants_of_saline_water = self::get_descendants_of_habitat_group('saline water'); //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
+            $this->descendants_of_saline_water = self::get_descendants_of_habitat_group('saline water Amphibiaweb'); //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
         }
         if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN -> creates a new DwCA    
             // /* New: Dec 7, 2024

@@ -459,7 +459,7 @@ class DwCA_Utility
         // */
         
         // /* ====================== parts of a whole: will run one after the other ======================
-        if(in_array($this->resource_id, array("wikipedia_en_traits_FTG"))) { //calls FTG library
+        if(in_array($this->resource_id, array("wikipedia_en_traits_FTG"))) { //This is exclusively for Wikipedia Interred traits resource only.
             require_library('connectors/FilterTermGroupByTaxa');
             $func = new FilterTermGroupByTaxa($this->archive_builder, $this->resource_id, $this->params);
             $func->start($info);

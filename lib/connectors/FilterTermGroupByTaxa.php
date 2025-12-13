@@ -2,11 +2,12 @@
 namespace php_active_record;
 /* connector: called from DwCA_Utility.php, which is called from filter_term_group_by_taxa.php
 from: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65425&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65425
+THIS CONNECTOR IS EXCLUSIVELY FOR Wikipedia Inferred traits resource only.
 */
 class FilterTermGroupByTaxa
 {
     function __construct($archive_builder, $resource_id, $params)
-    {
+    {   if($resource_id != 'wikipedia_en_traits_FTG') exit("\nThis is exclusively for Wikipedia Inferred traits resource only. Will terminate.\n");
         $this->resource_id = $resource_id;
         $this->archive_builder = $archive_builder;
         $this->params = $params;

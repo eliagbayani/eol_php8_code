@@ -446,7 +446,7 @@ class DwCA_Utility
         // */
         
         // /*
-        if(in_array($this->resource_id, array('TreatmentBank_adjustment_02'))) {
+        if(in_array($this->resource_id, array('TreatmentBank_adjustment_02'))) { //seems exclusively for TreatmentBank
             require_library('connectors/CladeSpecificFilters4Habitats_API');
             $func = new CladeSpecificFilters4Habitats_API($this->archive_builder, $this->resource_id);
             $func->start($info);

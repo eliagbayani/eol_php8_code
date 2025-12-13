@@ -135,14 +135,6 @@ class FilterTermGroupByTaxa
                 $mValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
                 $mType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
                 if(isset($this->occurrence_id_TaxaGroup[$occurrenceID])) {
-                    /* copied template from RemoveAvesChildrenAPI.php
-                    per: https://eol-jira.bibalex.org/browse/DATA-1831?focusedCommentId=64595&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-64595
-                    For all descendants of TaxaGroup, (FurtherInformationURL=https://paleobiodb.org/classic/checkTaxonInfo?is_real_user=1&taxon_no=22826)
-                    please remove all records with measurementType= http://purl.obolibrary.org/obo/RO_0002303
-                    if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'http://purl.obolibrary.org/obo/RO_0002303') {
-                        $this->TaxaGroup_remove_occurrence_id[$rec['http://rs.tdwg.org/dwc/terms/occurrenceID']] = '';
-                    }
-                    */
                     /* per: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65425&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65425
                     I'd like to filter out the "descendants_of_salt_water" terms for taxa that are descendants of these taxon IDs in the wikipedia traits resource:
                     (I may think of more; I'll add them here)

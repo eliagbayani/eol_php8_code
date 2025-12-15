@@ -4,7 +4,8 @@ namespace php_active_record;
 task originated from: https://eol-jira.bibalex.org/browse/DATA-1917
 First client is: TreatmentBank
 
-php update_resources/connectors/clade_filters_4_habitats.php _ '{"resource_id":"TreatmentBank_adjustment_01"}'
+php update_resources/connectors/clade_filters_4_habitats.php _ '{"resource_id":"TreatmentBank_adjustment_01"}'  -> obsolete
+php update_resources/connectors/clade_filters_4_habitats.php _ '{"resource_id":"TreatmentBank_ENV_01"}'         -> New: as of 14Dec2025
 -> generates TreatmentBank_adjustment_02.tar.gz
 -> in Jenkins it is renamed to TreatmentBank_final.tar.gz
 
@@ -25,7 +26,8 @@ if(Functions::is_production())  $dwca_file = 'https://editors.eol.org/eol_php_co
 else                            $dwca_file = WEB_ROOT . '/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
 
 // /* ---------- CUSTOMIZE HERE: ----------
-if($resource_id == "TreatmentBank_adjustment_01") $resource_id = "TreatmentBank_adjustment_02";   //TreatmentBank between tasks
+// if($resource_id == "TreatmentBank_adjustment_01") $resource_id = "TreatmentBank_adjustment_02";   //obsolete
+if($resource_id == "TreatmentBank_ENV_01") $resource_id = "TreatmentBank_adjustment_02";   //New: TreatmentBank between tasks
 else exit("\nresource ID not yet initialized [$resource_id]\n");
 // ---------------------------------------- */
 

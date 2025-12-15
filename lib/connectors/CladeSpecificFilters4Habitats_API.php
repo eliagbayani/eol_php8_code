@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from rem_marine_terr_desc.php] */
+/* connector: [called from DwCA_Utility.php, which is called from clade_filters_4_habitats.php] 
+Seems EXCLUSIVELY for TreatmentBank for now; or other resources with same ancestry information in taxon.tab e.g. kingdom, phylum, class, order, family
+*/
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class CladeSpecificFilters4Habitats_API
@@ -13,6 +15,8 @@ class CladeSpecificFilters4Habitats_API
         else {}
         $this->download_options = array('expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 60*5, 'cache' => 1);
         $this->debug = array();
+        $this->report_utility_ON = true; // false means no report utility will be generated. True eats more memory.
+        $this->report_file = CONTENT_RESOURCE_LOCAL_PATH . "/reports/FTG_" . "TreatmentBank" . "_" . "removed_MoF" . ".tsv";
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initialize()
@@ -27,6 +31,29 @@ class CladeSpecificFilters4Habitats_API
         $func = new Clean_MoF_Habitat_API(false, false);
         $this->descendants = $func->get_descendants_info(); //generates $this->descendants
         // */
+
+        if($this->report_utility_ON) {
+            $handle = fopen($this->report_file, "w");
+            $fields = array("taxonID", "scientificName", "mType", "mValue", "mRemarks", "descendants_of");
+            fwrite($handle, implode("\t", $fields) . "\n");
+            fclose($handle);
+        }
+        // /* ========== 1st rule from Wikipedia Inferred traits was adapted here
+        require_library('connectors/Functions_Annotator');
+        require_library('connectors/Annotator2EOLAPI');
+        $param['resource_id'] = 'nothing';
+        $this->pensoft = new Annotator2EOLAPI($param);
+        $this->descendants_of_saline_water = $this->pensoft->get_descendants_of_habitat_group('saline water'); //e.g. param "saline water"
+        // no saltwater insects, spiders, or amphibians.
+        // print_r($this->descendants_of_saline_water); exit("\nEyeball check first 01.\n"); //list from: https://github.com/EOL/ContentImport/issues/37#issuecomment-3618161848
+        // Array(
+        //     [t.uri] => 
+        //     [http://purl.obolibrary.org/obo/ENVO_00000206] => 
+        //     [http://purl.obolibrary.org/obo/ENVO_00000209] => 
+        //     [http://purl.obolibrary.org/obo/ENVO_00000211] => 
+        //     [http://purl.obolibrary.org/obo/ENVO_00000212] => 
+        // ========== */
+
     }
     function get_all_descendants_of_a_term($term, $label, $output='screen') //e.g. http://purl.obolibrary.org/obo/ENVO_00000002
     {
@@ -72,6 +99,7 @@ class CladeSpecificFilters4Habitats_API
         /* generates:
         $this->Insecta[$taxonID]
         $this->Arachnida[$taxonID]
+        $this->Amphibia[$taxonID]
         $this->Malacostraca[$taxonID]
         $this->Maxillopoda[$taxonID]
         */
@@ -79,6 +107,7 @@ class CladeSpecificFilters4Habitats_API
         /* generates:
         $this->occur_Insecta[$occurrenceID]
         $this->occur_Arachnida[$occurrenceID]
+        $this->occur_Amphibia[$occurrenceID]
         $this->occur_Malacostraca[$occurrenceID]
         $this->occur_Maxillopoda[$occurrenceID]
         */
@@ -88,10 +117,12 @@ class CladeSpecificFilters4Habitats_API
         
         unset($this->Insecta);
         unset($this->Arachnida);
+        unset($this->Amphibia);
         unset($this->Malacostraca);
         unset($this->Maxillopoda);
         unset($this->occur_Insecta);
         unset($this->occur_Arachnida);
+        unset($this->occur_Amphibia);
         unset($this->occur_Malacostraca);
         unset($this->occur_Maxillopoda);
         
@@ -141,7 +172,7 @@ class CladeSpecificFilters4Habitats_API
                     [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
                     [http://rs.tdwg.org/dwc/terms/kingdom] => Animalia
                     [http://rs.tdwg.org/dwc/terms/phylum] => Arthropoda
-                    [http://rs.tdwg.org/dwc/terms/class] => Insecta
+                    [http://rs.tdwg.org/dwc/terms/class] => Insecta                  or Amphibia or xxx
                     [http://rs.tdwg.org/dwc/terms/order] => Coleoptera
                     [http://rs.tdwg.org/dwc/terms/family] => Curculionidae
                     [http://rs.tdwg.org/dwc/terms/genus] => Laemosaccus
@@ -153,6 +184,8 @@ class CladeSpecificFilters4Habitats_API
                     [http://rs.gbif.org/terms/1.0/canonicalName] => Laemosaccus rileyi
                 )*/
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+                $this->taxonID_info[$taxonID] = $rec['http://rs.tdwg.org/dwc/terms/scientificName']; //will be used if $this->report_utility_ON is true
+
                 $class = $rec['http://rs.tdwg.org/dwc/terms/class'];
                 $family = $rec['http://rs.tdwg.org/dwc/terms/family'];
                 
@@ -162,6 +195,10 @@ class CladeSpecificFilters4Habitats_API
                 if($class == 'Arachnida' && !in_array($family, array('Halacaridae', 'Selenoribatidae', 'Fortuyniidae', 'Ameronothridae', 'Pontarachnidae', 'Hyadesiidae'))) {
                     $this->Arachnida[$taxonID] = '';
                 }
+                // /* ========== New: added 15Dec2025
+                // class = Amphibia                          ---> based from: Wikipedia 1st rule https://github.com/EOL/ContentImport/issues/37#issuecomment-3618161848
+                if($class == 'Amphibia') $this->Amphibia[$taxonID] = '';
+                // ========== */
                 // class = Malacostraca AND family NOT =    ---> Habitat=Reasonably Aquatic
                 if($class == 'Malacostraca' && !in_array($family, array('Talitridae', 'Philosciidae', 'Trichoniscidae', 'Scleropactidae', 'Trachelipodidae', 'Armadillidae', 'Styloniscidae', 'Armadillidiidae', 'Porcellionidae', 'Eubelidae', 'Agnaridae', 'Pudeoniscidae', 'Platyarthridae', 'Bathytropidae', 'Olibrinidae', 'Oniscidae', 'Detonidae', 'Halophilosciidae', 'Scyphacidae', 'Cylisticidae', 'Mesoniscidae', 'Rhyscotidae', 'Spelaeoniscidae', 'Stenoniscidae'))) {
                     $this->Malacostraca[$taxonID] = '';
@@ -179,8 +216,13 @@ class CladeSpecificFilters4Habitats_API
                 $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
                 if(isset($this->Insecta[$taxonID])) $this->occur_Insecta[$occurrenceID] = '';
                 if(isset($this->Arachnida[$taxonID])) $this->occur_Arachnida[$occurrenceID] = '';
+                if(isset($this->Amphibia[$taxonID])) $this->occur_Amphibia[$occurrenceID] = ''; //New
                 if(isset($this->Malacostraca[$taxonID])) $this->occur_Malacostraca[$occurrenceID] = '';
                 if(isset($this->Maxillopoda[$taxonID])) $this->occur_Maxillopoda[$occurrenceID] = '';
+
+                if($this->report_utility_ON) {
+                    $this->occurrenceID_taxonID_info[$occurrenceID] = $taxonID;
+                }
             }
             //===================================================================================================================
             if($task == 'classify_MoF') {
@@ -199,40 +241,63 @@ class CladeSpecificFilters4Habitats_API
                 $mValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
                 $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
                 if($mType == $habitat_trait) { // is a habitat trait record
-                    /*
-                    class = Insecta
-                    Habitat=Reasonably Terrestrial
-                    */
-                    if(isset($this->occur_Insecta[$occurrenceID])) {
+
+                    /* Katja: I suggest we remove the first two rules regarding Insecta and Arachnida and replace them with the first filter we use for Wikipedia. 
+                    Eli then just added Amphibia as well */
+
+                    // class = Insecta => Habitat=Reasonably Terrestrial
+                    if(isset($this->occur_Insecta[$occurrenceID])) { $rec['taxa_group'] = 'Insecta';
+                        /* now removed by Katja
                         if(self::is_mValue_Reasonably_Terrestrial($mValue)) {}
                         else $this->to_delete_occurID[$occurrenceID] = '';
-                    }
-                                        
-                    /*
-                    class = Arachnida AND family NOT = Halacaridae, Selenoribatidae, Fortuyniidae, Ameronothridae, Pontarachnidae, or Hyadesiidae
-                    Habitat=Reasonably Terrestrial
-                    */
-                    if(isset($this->occur_Arachnida[$occurrenceID])) {
+                        */
+                        if(isset($this->descendants_of_saline_water[$mValue])) {
+                            $this->to_delete_occurID[$occurrenceID] = '';
+                            if($this->report_utility_ON) self::write_report($rec); //utility only
+                        }
+                    }                                        
+                    // class = Arachnida AND family NOT = Halacaridae, Selenoribatidae, Fortuyniidae, Ameronothridae, Pontarachnidae, or Hyadesiidae => Habitat=Reasonably Terrestrial
+                    if(isset($this->occur_Arachnida[$occurrenceID])) { $rec['taxa_group'] = 'Arachnida';
+                        /* now removed by Katja
                         if(self::is_mValue_Reasonably_Terrestrial($mValue)) {}
                         else $this->to_delete_occurID[$occurrenceID] = '';
+                        */
+                        if(isset($this->descendants_of_saline_water[$mValue])) {
+                            $this->to_delete_occurID[$occurrenceID] = '';
+                            if($this->report_utility_ON) self::write_report($rec); //utility only
+                        }
                     }
-                    
+                    // /* ========== New: Amphibia : from Wikipedia 1st rule
+                    if(isset($this->occur_Amphibia[$occurrenceID])) { $rec['taxa_group'] = 'Amphibia';
+                        if(isset($this->descendants_of_saline_water[$mValue])) {
+                            $this->to_delete_occurID[$occurrenceID] = '';
+                            if($this->report_utility_ON) self::write_report($rec); //utility only
+                        }
+                    }                                        
+                    // ========== */
+
                     /*
                     class = Malacostraca AND family NOT = Talitridae, Philosciidae, Trichoniscidae, Scleropactidae, Trachelipodidae, Armadillidae, Styloniscidae, Armadillidiidae, Porcellionidae, Eubelidae, Agnaridae, Pudeoniscidae, Platyarthridae, Bathytropidae, Olibrinidae, Oniscidae, Detonidae, Halophilosciidae, Scyphacidae, Cylisticidae, Mesoniscidae, Rhyscotidae, Spelaeoniscidae, Stenoniscidae
                     Habitat=Reasonably Aquatic
                     */
-                    if(isset($this->occur_Malacostraca[$occurrenceID])) {
+                    if(isset($this->occur_Malacostraca[$occurrenceID])) { $rec['taxa_group'] = 'Malacostraca';
                         if(self::is_mValue_Reasonably_Aquatic($mValue)) {}
-                        else $this->to_delete_occurID[$occurrenceID] = '';
+                        else {
+                            $this->to_delete_occurID[$occurrenceID] = '';
+                            if($this->report_utility_ON) self::write_report($rec); //utility only
+                        }
                     }
                     
                     /*
                     class = Maxillopoda
                     Habitat=Reasonably Aquatic
                     */
-                    if(isset($this->occur_Maxillopoda[$occurrenceID])) {
+                    if(isset($this->occur_Maxillopoda[$occurrenceID])) { $rec['taxa_group'] = 'Maxillopoda';
                         if(self::is_mValue_Reasonably_Aquatic($mValue)) {}
-                        else $this->to_delete_occurID[$occurrenceID] = '';
+                        else {
+                            $this->to_delete_occurID[$occurrenceID] = '';
+                            if($this->report_utility_ON) self::write_report($rec); //utility only
+                        }
                     }
                     
                 }
@@ -338,6 +403,34 @@ class CladeSpecificFilters4Habitats_API
         foreach($arr as $item) $final[$item] = '';
         return $final;
     }
+    private function write_report($rec)
+    {   //print_r($rec); exit("\nabc\n");
+        /*Array(
+            [http://rs.tdwg.org/dwc/terms/measurementID] => 531845a1071712e535a53d7854adc1ec_TreatmentB
+            [http://rs.tdwg.org/dwc/terms/occurrenceID] => f47092524d0e6aee9fdbf04ec2cfe319_TreatmentB
+            [http://eol.org/schema/measurementOfTaxon] => true
+            [http://rs.tdwg.org/dwc/terms/measurementType] => http://purl.obolibrary.org/obo/RO_0002303
+            [http://rs.tdwg.org/dwc/terms/measurementValue] => http://purl.obolibrary.org/obo/ENVO_00002150
+            [http://rs.tdwg.org/dwc/terms/measurementRemarks] => source text: "from Kuwait ' s _coastal waters_ and resolve the previous"
+            [http://purl.org/dc/terms/source] => https://treatment.plazi.org/id/DA5BB272BF38FFFA2D1D688BFC01FBEB
+            [http://purl.org/dc/terms/bibliographicCitation] => Al-Kandari, Research Article Manal, Saburova, Maria, Polikarpov, Igor, Larsen, Jacob, Lundholm, Nina, Hussain, Sumaiah (2025): Morphological and molecular characterization of Kareniaceae (Dinophyceae, Gymnodiniales) in Kuwait’s waters. Botanica Marina 68 (2): 155-173, DOI: 10.1515/bot-2024-0083, URL: https://doi.org/10.1515/bot-2024-0083
+        )*/        
+        $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
+        $taxonID = $this->occurrenceID_taxonID_info[$occurrenceID];
+        $sciname = $this->taxonID_info[$taxonID];
+        // print_r($rec); exit("\n[$taxonID] [$sciname]\n"); //[Q10038] [Desidae]
+        $mType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+        $mValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
+        $mRemarks = $rec['http://rs.tdwg.org/dwc/terms/measurementRemarks'];
+        self::write_to_text(array($taxonID, $sciname, $mType, $mValue, $mRemarks, $rec['taxa_group']));
+    }
+    private function write_to_text($arr)
+    {
+        $handle = fopen($this->report_file, "a");
+        fwrite($handle, implode("\t", $arr) . "\n");
+        fclose($handle);
+    }
+
     /* copied template 1st level
     private function is_mValue_descendant_of_marine($mValue)
     {

@@ -78,10 +78,10 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     if($undefined_parents) echo "\nERROR: There are undefined parents\n";
     echo "\nTotal undefined parents:" . count($undefined_parents)."\n"; unset($undefined_parents);
 
-    // New: check if all taxonID in occurrences have taxon entries.
+    // New integrity-check: check if all taxonID in occurrences have taxon entries.
     $undefined = $func->check_if_all_occurrences_have_entries($resource_id, true); //true means output will write to text file
-    if($undefined) echo "\nERROR: There is undefined taxonID(s) in OCCURRENCE.tab: ".count($undefined)."\n";
-    else           echo "\nOK: All taxonID(s) in OCCURRENCE.tab have TAXON entries.\n";
+    if($undefined) echo "\nERROR: integrity-check 1: There is undefined taxonID(s) in OCCURRENCE.tab: ".count($undefined)."\n";
+    else           echo "\nintegrity-check 1 OK: All taxonID(s) in OCCURRENCE.tab have TAXON entries.\n";
 
 
     recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH.$resource_id."/"); //we can now delete folder after check_if_all_parents_have_entries() - DWCADiagnoseAPI

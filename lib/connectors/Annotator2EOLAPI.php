@@ -419,7 +419,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         }
         // */
         foreach(new FileIterator($meta->file_uri) as $line => $row) { //main loop
-            $i++; if(($i % $this->modulo) == 0) echo "\nxyz".number_format($i). " of ".number_format($m_orig);
+            $i++; if(($i % $this->modulo) == 0) echo "\n-annotate ".number_format($i). " of ".number_format($m_orig);
             // if($GLOBALS['ENV_DEBUG']) echo " -[$i]- ";
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;

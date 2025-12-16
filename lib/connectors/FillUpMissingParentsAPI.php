@@ -267,9 +267,9 @@ class FillUpMissingParentsAPI
         // if($this->resource_id != "wikidata-hierarchy-final") return ""; //not sure why this line was added in the 1st place.
         $md5_id = md5($scientificName.$rank);
         if($obj = self::retrieve_json_obj($md5_id)) {
-            echo " [canonical R] "; //retrieved
+            // echo "[CN_R]"; //retrieved
         }
-        else { echo " [canonical C] "; //computed
+        else { echo "[CN_C]"; //computed
             // gnparser "Sarracenia flava 'Maxima'" -f pretty -C
             // $cmd = 'gnparser "'.$scientificName.'" -f compact -C > terminal_gnparser_wikidataTaxonomy.out'; //working OK, for testing
             $cmd = 'gnparser "'.$scientificName.'" -f compact -C'; //echo "\nrunning: [$cmd]\n";

@@ -376,6 +376,11 @@ class Annotator2EOLAPI extends Functions_Annotator
             mkdir($this->json_temp_path['metadata']);
         }
         else mkdir($this->json_temp_path['metadata']);
+
+        // /* New: Dec 16, 2025
+        require_library('connectors/FillUpMissingParentsAPI');
+        $this->gnparser = new FillUpMissingParentsAPI(false, false, false);
+        // */
     }
     private function parse_dwca($resource, $download_options)
     {   
@@ -667,7 +672,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             // /* New: Dec 16, 2025
             if($canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) {}
             elseif($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
-                $canonicalName = self::add_cannocial_using_gnparser($scientificName, $taxonRank);
+                $canonicalName = $this->gnparser->add_cannocial_using_gnparser($scientificName, $taxonRank);
             }
             else exit("\nERROR: No name for this taxon.\n");
             if(!Functions::is_binomial($canonicalName)) $this->exclude_taxonIDs[$taxonID] = '';

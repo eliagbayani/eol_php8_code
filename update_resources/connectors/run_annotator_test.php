@@ -17,6 +17,17 @@ echo "\n[$ret]\n";
 exit("\n--end test--\n");
 */
 
+/* for testing
+require_library('connectors/FillUpMissingParentsAPI');
+$func = new FillUpMissingParentsAPI(false, false, false);
+// $sciname = "Sarracenia flava 'Maxima'";
+//$sciname = "Adenanthos cuneatus ‘Flat Out’";
+$sciname = "Gadus morhua Linneaus 1969";
+// $canonical = $func->add_cannocial_using_gnparser($sciname, 'series');
+$canonical = $func->add_cannocial_using_gnparser($sciname, 'species');    echo("\n[$sciname] [$canonical]\n");
+exit;
+*/
+
 
 // /* option 3 from AntWebAPI.php --- worked OK!
 // /* This is used for accessing EOL annotator to get ENVO URI given habitat string.

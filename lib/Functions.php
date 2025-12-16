@@ -2779,9 +2779,6 @@ class Functions
                 if(substr($sciname, -(strlen($hit))) == $hit) return false; // "Gadus morhua sp" is invalid
             }
         }
-        // /* ----- additional criteria: should be binomial: 24Nov2025
-        if(!self::is_binomial($sciname)) return false;
-        // ----- */
         return true;
     }
     public static function is_binomial($sciname)
@@ -2790,7 +2787,7 @@ class Functions
         $arr = explode(" ", trim($sciname));
         if(count($arr) == 2) {
             if(ctype_upper(self::first_char($arr[0]))) {
-                if(!ctype_upper(self::first_char($arr[1]))) { //echo "\n[$sciname] is binomial";
+                if(ctype_lower(self::first_char($arr[1]))) { //echo "\n[$sciname] is binomial";
                     return true;
                 }
             }

@@ -25,7 +25,7 @@ $func = new FillUpMissingParentsAPI(false, false, false);
 $sciname = "Gadus morhua Linneaus 1969";
 // $canonical = $func->add_cannocial_using_gnparser($sciname, 'series');
 $canonical = $func->add_cannocial_using_gnparser($sciname, 'species');    echo("\n[$sciname] [$canonical]\n");
-exit;
+exit("\n-end test canonical-\n");
 */
 
 

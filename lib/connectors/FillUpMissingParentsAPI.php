@@ -264,14 +264,15 @@ class FillUpMissingParentsAPI
     }
     function add_cannocial_using_gnparser($scientificName, $rank)
     {
-        if($this->resource_id != "wikidata-hierarchy-final") return "";
+        // if($this->resource_id != "wikidata-hierarchy-final") return ""; //not sure why this line was added in the 1st place.
         $md5_id = md5($scientificName.$rank);
-        if($obj = self::retrieve_json_obj($md5_id)) {} //{echo "\nobj retrieved\n";}
-        else {
+        if($obj = self::retrieve_json_obj($md5_id)) {
+            echo " [canonical R] "; //retrieved
+        }
+        else { echo " [canonical C] "; //computed
             // gnparser "Sarracenia flava 'Maxima'" -f pretty -C
             // $cmd = 'gnparser "'.$scientificName.'" -f compact -C > terminal_gnparser_wikidataTaxonomy.out'; //working OK, for testing
-            $cmd = 'gnparser "'.$scientificName.'" -f compact -C';
-            // echo "\nrunning: [$cmd]\n";
+            $cmd = 'gnparser "'.$scientificName.'" -f compact -C'; //echo "\nrunning: [$cmd]\n";
             $json = shell_exec($cmd);
             $obj = json_decode($json);
             // /* for json object saving/retrieval routine

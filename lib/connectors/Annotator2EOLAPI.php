@@ -663,6 +663,16 @@ class Annotator2EOLAPI extends Functions_Annotator
                 if(!Functions::valid_sciname_for_traits($scientificName)) $this->exclude_taxonIDs[$taxonID] = '';
             }
             // */
+
+            // /* New: Dec 16, 2025
+            if($canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) {}
+            elseif($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
+                $canonicalName = self::add_cannocial_using_gnparser($scientificName, $taxonRank);
+            }
+            else exit("\nERROR: No name for this taxon.\n");
+            if(!Functions::is_binomial($canonicalName)) $this->exclude_taxonIDs[$taxonID] = '';
+            // */
+
         }
         echo "\nexclude_taxonIDs: ".count($this->exclude_taxonIDs)."\n";
     }

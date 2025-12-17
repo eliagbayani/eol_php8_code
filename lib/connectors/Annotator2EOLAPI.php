@@ -105,6 +105,15 @@ class Annotator2EOLAPI extends Functions_Annotator
         if(!is_dir($this->json_temp_path['partial'])) mkdir($this->json_temp_path['partial']);
         if(!is_dir($this->eol_tags_path)) mkdir($this->eol_tags_path);
         
+        // /* New: report by Eli
+        $local_file = $this->eol_tags_path."invalid_taxa.tsv";
+        if(is_file($local_file)) unlink($local_file);
+        $fields = array('taxonID', 'scientificName', 'taxonRank', 'canonicalName', 'reason');
+        $this->fhandle = Functions::file_open($local_file, "a");
+        fwrite($this->fhandle, implode("\t", $fields)."\n"); 
+        // fclose($this->fhandle);
+        // */
+
         /*-----------------------Others---------------------*/
         $this->num_of_saved_recs_bef_run_tagger = 1000; //1000 orig;
         if($val = @$param['subjects']) {
@@ -658,17 +667,22 @@ class Annotator2EOLAPI extends Functions_Annotator
             )*/
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
             $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+            $scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"];
+            // $rek_2save = array('taxonID' => $taxonID, 'taxonRank' => $taxonRank, 'scientificName' => $scientificName, 'canonicalName' => ''); //works OK but too slow, only for stats
 
             if($this->param['resource_id'] == '617_ENV') { //Wikipedia EN - remove traits for specified ranks
-                if(in_array($taxonRank, $this->excluded_ranks)) $this->exclude_taxonIDs[$taxonID] = '';
+                if(in_array($taxonRank, $this->excluded_ranks)) {
+                    $this->exclude_taxonIDs[$taxonID] = '';
+                    // $rek_2save['reason'] = 'invalid rank'; self::write_invalid_taxa($rek_2save); //works OK but too slow, only for stats
+                }
             }
 
             // /* new: Nov 21, 2023:
             if(!isset($this->exclude_taxonIDs[$taxonID])) {
-                if($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
+                if($scientificName) {
                     if(!Functions::valid_sciname_for_traits($scientificName)) {
                         $this->exclude_taxonIDs[$taxonID] = '';
-                        // $this->debug['Not valid sciname'][$scientificName][$taxonID] = '';
+                        // $rek_2save['reason'] = 'invalid sciname'; self::write_invalid_taxa($rek_2save); //works OK but too slow, only for stats
                     }
                 }
             }
@@ -677,20 +691,27 @@ class Annotator2EOLAPI extends Functions_Annotator
             // /* New: Dec 16, 2025
             if(!isset($this->exclude_taxonIDs[$taxonID])) {
                 if($canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) {}
-                elseif($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
+                elseif($scientificName) {
                     $canonicalName = $this->gnparser->add_cannocial_using_gnparser($scientificName, $taxonRank);
                     // $canonicalName = $scientificName;
                 }
                 else exit("\nERROR: No name for this taxon.\n");
                 if(!Functions::is_binomial($canonicalName)) {
                     $this->exclude_taxonIDs[$taxonID] = '';
-                    // $this->debug['Not Binomial'][$canonicalName][$taxonID] = '';
+                    // $rek_2save['canonicalName'] = $canonicalName; $rek_2save['reason'] = 'not binomial'; self::write_invalid_taxa($rek_2save); //works OK but too slow, only for stats
                 }
             }
             // */
 
         }
         echo "\nexclude_taxonIDs: ".count($this->exclude_taxonIDs)."\n";
+    }
+    private function write_invalid_taxa($rek) //works OK but too slow, only for stats
+    {
+        $fields = array('taxonID', 'scientificName', 'taxonRank', 'canonicalName', 'reason');
+        $arr = array();
+        foreach($fields as $field) $arr[] = $rek[$field];
+        fwrite($this->fhandle, implode("\t", $arr)."\n");
     }
     private function save_article_2_txtfile($rec) //Media extension
     {   /* Array(

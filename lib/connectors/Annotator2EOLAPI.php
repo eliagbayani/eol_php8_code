@@ -664,18 +664,29 @@ class Annotator2EOLAPI extends Functions_Annotator
             }
 
             // /* new: Nov 21, 2023:
-            if($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
-                if(!Functions::valid_sciname_for_traits($scientificName)) $this->exclude_taxonIDs[$taxonID] = '';
+            if(!isset($this->exclude_taxonIDs[$taxonID])) {
+                if($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
+                    if(!Functions::valid_sciname_for_traits($scientificName)) {
+                        $this->exclude_taxonIDs[$taxonID] = '';
+                        // $this->debug['Not valid sciname'][$scientificName][$taxonID] = '';
+                    }
+                }
             }
             // */
 
             // /* New: Dec 16, 2025
-            if($canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) {}
-            elseif($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
-                $canonicalName = $this->gnparser->add_cannocial_using_gnparser($scientificName, $taxonRank);
+            if(!isset($this->exclude_taxonIDs[$taxonID])) {
+                if($canonicalName = @$rec['http://rs.gbif.org/terms/1.0/canonicalName']) {}
+                elseif($scientificName = @$rec["http://rs.tdwg.org/dwc/terms/scientificName"]) {
+                    $canonicalName = $this->gnparser->add_cannocial_using_gnparser($scientificName, $taxonRank);
+                    // $canonicalName = $scientificName;
+                }
+                else exit("\nERROR: No name for this taxon.\n");
+                if(!Functions::is_binomial($canonicalName)) {
+                    $this->exclude_taxonIDs[$taxonID] = '';
+                    // $this->debug['Not Binomial'][$canonicalName][$taxonID] = '';
+                }
             }
-            else exit("\nERROR: No name for this taxon.\n");
-            if(!Functions::is_binomial($canonicalName)) $this->exclude_taxonIDs[$taxonID] = '';
             // */
 
         }

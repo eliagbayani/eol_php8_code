@@ -1,7 +1,7 @@
 <?php
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from clade_filters_4_habitats.php] 
-Seems EXCLUSIVELY for TreatmentBank for now; or other resources with same ancestry information in taxon.tab e.g. kingdom, phylum, class, order, family
+Seems EXCLUSIVELY for TreatmentBank, Amphibiaweb for now; or other resources with same ancestry information in taxon.tab e.g. kingdom, phylum, class, order, family
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -9,6 +9,7 @@ class CladeSpecificFilters4Habitats_API
 {
     function __construct($archive_builder, $resource_id)
     {
+        echo "\nresource id: [$resource_id]\n";
         $this->resource_id = $resource_id;
         $this->archive_builder = $archive_builder;
         if(Functions::is_production()) {}
@@ -16,7 +17,11 @@ class CladeSpecificFilters4Habitats_API
         $this->download_options = array('expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 60*5, 'cache' => 1);
         $this->debug = array();
         $this->report_utility_ON = true; // false means no report utility will be generated. True eats more memory.
-        $this->report_file = CONTENT_RESOURCE_LOCAL_PATH . "/reports/FTG_" . "TreatmentBank" . "_" . "removed_MoF" . ".tsv";
+            if($resource_id == 'TreatmentBank_adjustment_02') $part = 'TreatmentBank';
+        elseif($resource_id == '21_ENV_02')                   $part = 'AmphibiaWeb';
+        else exit("\nResource ID not yet assigned. Will terminate.\n");
+        $this->report_file = CONTENT_RESOURCE_LOCAL_PATH . "/reports/FTG_" . $part . "_" . "removed_MoF" . ".tsv";
+        $this->to_delete_occurID = array();
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initialize()
@@ -365,6 +370,7 @@ class CladeSpecificFilters4Habitats_API
         }
         if(isset($fhandle)) fclose($fhandle);
     }
+    /* Not used anymore. Used Wikipedia first filter instead.
     private function is_mValue_Reasonably_Terrestrial($mValue)
     {
         // $this->descendants_of_marine
@@ -377,7 +383,7 @@ class CladeSpecificFilters4Habitats_API
         if(isset($this->descendants_of_coastalLand[$mValue])) return true;
         if(isset($this->descendants_of_marine[$mValue])) return false;
         return true;
-    }
+    } */
     private function is_mValue_Reasonably_Aquatic($mValue)
     {
         // Reasonably Aquatic: Excluding all children of terrestrial, http://purl.obolibrary.org/obo/ENVO_00000446, 

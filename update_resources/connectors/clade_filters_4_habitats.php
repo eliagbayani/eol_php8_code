@@ -27,8 +27,9 @@ else                            $dwca_file = WEB_ROOT . '/applications/content_s
 
 // /* ---------- CUSTOMIZE HERE: ----------
 // if($resource_id == "TreatmentBank_adjustment_01") $resource_id = "TreatmentBank_adjustment_02";   //obsolete
-if($resource_id == "TreatmentBank_ENV_01") $resource_id = "TreatmentBank_adjustment_02";   //New: TreatmentBank between tasks
-else exit("\nresource ID not yet initialized [$resource_id]\n");
+    if($resource_id == "TreatmentBank_ENV_01") $resource_id = "TreatmentBank_adjustment_02";   //New: TreatmentBank between tasks
+elseif($resource_id == "21_ENV_01")            $resource_id = "21_ENV_02";
+else exit("\nResource ID not yet initialized [$resource_id]\n");
 // ---------------------------------------- */
 
 process_resource_url($dwca_file, $resource_id, $timestart);
@@ -38,14 +39,14 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     require_library('connectors/DwCA_Utility');
     $func = new DwCA_Utility($resource_id, $dwca_file);
 
-    if($resource_id == 'TreatmentBank_adjustment_02') {
+    if(in_array($resource_id, array('TreatmentBank_adjustment_02', '21_ENV_02'))) {
         $preferred_rowtypes = array();
         $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon', 
                                    'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
     }
     else exit("\nresource ID not yet initialized [$resource_id]\n");
     
-    /* $excluded_rowtypes will be processed in CladeSpecificFilters4Habitats_API.php */
+    /* IMPORTANT: $excluded_rowtypes will be processed in CladeSpecificFilters4Habitats_API.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     Functions::finalize_dwca_resource($resource_id, false, false, $timestart); //3rd param false means don't delete working folder yet
     

@@ -167,8 +167,8 @@ class CladeSpecificFilters4Habitats_API
             }
             // print_r($rec); exit;
             //===================================================================================================================
-            if($task == 'classify_taxa') {
-                /*Array(
+            if($task == 'classify_taxa') { //print_r($rec); exit;
+                /*Array( for TreatmentBank
                     [http://rs.tdwg.org/dwc/terms/taxonID] => DB5AFC3EC73E5732C0D8E33CFDC6FD63.taxon
                     [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
                     [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 
@@ -187,6 +187,16 @@ class CladeSpecificFilters4Habitats_API
                     [http://rs.tdwg.org/dwc/terms/nomenclaturalStatus] => 
                     [http://purl.org/dc/terms/references] => http://treatment.plazi.org/id/DB5AFC3EC73E5732C0D8E33CFDC6FD63
                     [http://rs.gbif.org/terms/1.0/canonicalName] => Laemosaccus rileyi
+                )
+                Array( for AmphibiaWeb
+                    [http://rs.tdwg.org/dwc/terms/taxonID] => 8687
+                    [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://amphibiaweb.org/cgi/amphib_query?where-genus=Abavorana&where-species=nazgul&account=amphibiaweb
+                    [http://rs.tdwg.org/dwc/terms/scientificName] => Abavorana nazgul
+                    [http://rs.tdwg.org/dwc/terms/kingdom] => Animalia
+                    [http://rs.tdwg.org/dwc/terms/phylum] => Chordata
+                    [http://rs.tdwg.org/dwc/terms/class] => Amphibia
+                    [http://rs.tdwg.org/dwc/terms/order] => Anura
+                    [http://rs.tdwg.org/dwc/terms/family] => Ranidae
                 )*/
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
                 $this->taxonID_info[$taxonID] = $rec['http://rs.tdwg.org/dwc/terms/scientificName']; //will be used if $this->report_utility_ON is true

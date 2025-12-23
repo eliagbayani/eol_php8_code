@@ -36,7 +36,10 @@ if(in_array($resource_id, array('708'))) { //Environments EOL resource
 elseif($resource_id == "wikipedia_en_traits_tmp2") $resource_id = "wikipedia_en_traits_tmp3";   //Wikipedia Eng Traits
 elseif($resource_id == "TreatmentBank_ENV")        $resource_id = "TreatmentBank_ENV_01";       //TreatmentBank
 elseif($resource_id == "26_delta")                 $resource_id = "26_delta_new";               //WoRMS
+/* OBSOLETE: we now have new Textmining Strings
 elseif($resource_id == "21_ENV") $resource_id = "21_cleaned_MoF_habitat";   //AmphibiaWeb REVERTED back to old state - https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=66801&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66801
+*/
+elseif($resource_id == "21_ENV") $resource_id = "21_ENV_01";
 elseif($resource_id == "22")     $resource_id = "22_cleaned_MoF_habitat";   //Animal Diversity Web (ADW)
 elseif($resource_id == "24")     $resource_id = "24_cleaned_MoF_habitat";   //AntWeb REVERTED back to old state - https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=66801&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66801
 else exit("\nresource ID not yet initialized [$resource_id]\n");
@@ -49,7 +52,7 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     require_library('connectors/DwCA_Utility');
     $func = new DwCA_Utility($resource_id, $dwca_file);
 
-    if($resource_id == '708_cleaned_MoF_habitat') {
+    if(in_array($resource_id, array('708_cleaned_MoF_habitat', '21_ENV_01'))) {
         $preferred_rowtypes = array();
         $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon', 'http://eol.org/schema/reference/reference', 
                                    'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
@@ -65,7 +68,7 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     }
     else exit("\nresource ID not yet initialized [$resource_id]\n");
     
-    /* $excluded_rowtypes will be processed in Clean_MoF_Habitat_API.php */
+    /* IMPORTANT: $excluded_rowtypes will be processed in Clean_MoF_Habitat_API.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     Functions::finalize_dwca_resource($resource_id, false, false, $timestart); //3rd param false means don't delete working folder yet
 

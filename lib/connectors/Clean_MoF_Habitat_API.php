@@ -129,7 +129,7 @@ class Clean_MoF_Habitat_API
         }
 
         // /* customize per resource here:
-        if(in_array($this->resource_id, array('708_cleaned_MoF_habitat', 'wikipedia_en_traits_tmp3', 'TreatmentBank_ENV_01'))) { //delete taxon, references
+        if(in_array($this->resource_id, array('708_cleaned_MoF_habitat', 'wikipedia_en_traits_tmp3', 'TreatmentBank_ENV_01', '21_ENV_01'))) { //delete taxon, references
               if($tbl = @$tables['http://eol.org/schema/reference/reference'][0]) self::process_table($tbl, 'write_reference'); //only those refs existing in MoF
               unset($this->occurrenceIDs_2delete);
               unset($this->referenceIDs);
@@ -139,6 +139,7 @@ class Clean_MoF_Habitat_API
             unset($this->occurrenceIDs_2delete);
             unset($this->referenceIDs);
         }
+        else exit("\nResource ID not classified yet [$this->resource_id].\n");
         // */
         // exit("\nstop muna...\n");
     }

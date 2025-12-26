@@ -1654,11 +1654,16 @@ class Annotator2EOLAPI extends Functions_Annotator
     private function get_opendata_dwca_url($resource_name)
     {
         $url = str_replace('RESOURCE_NAME', $resource_name, $this->call['opendata resource via name']);
+        echo "\nlookup url: [$url]\n";
         if($json = Functions::lookup_with_cache($url, $this->download_options)) {
-            $arr = json_decode($json, true); // print_r($arr);
+            $arr = json_decode($json, true); //print_r($arr);
             if($recs = @$arr['result']['results']) {
-                foreach($recs as $rec) {
-                    if($rec['name'] == $resource_name) return $rec['url'];
+                foreach($recs as $rec) { print_r($rec);
+                    if($rec['name'] == $resource_name) {
+                        echo " record used\n";
+                        return $rec['url'];
+                    }
+                    else echo " record ignored\n";
                 }
             }
         }
@@ -1698,7 +1703,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             /* based here:
             $this->DwCA_URLs['AmphibiaWeb text'] = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/21.tar.gz';
             */
-            echo "\ndwca_url is: [$dwca_url]\n";
+            echo "\nA. DwCA URL: [$dwca_url]\n";
             $this->DwCA_URLs[$resource_name] = $dwca_url;
             print_r($this->DwCA_URLs);
         }
@@ -1710,7 +1715,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 $dwca_url = Functions::get_resource_url_path($tmp);
                 // */
             }
-            echo "\nDwCA URL: $dwca_url\n".$this->param['resource_id']."\n";
+            echo "\nB. DwCA URL: $dwca_url\n".$this->param['resource_id']."\n";
             if(Functions::ping_v2($dwca_url)) {
                 $this->DwCA_URLs[$resource_name] = $dwca_url;
                 print_r($this->DwCA_URLs);

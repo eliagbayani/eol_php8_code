@@ -262,7 +262,7 @@ class FillUpMissingParentsAPI
             $this->archive_builder->write_object_to_file($t);
         }
     }
-    function add_cannocial_using_gnparser($scientificName, $rank) //caching is implemented
+    function add_cannocial_using_gnparser($scientificName, $rank) //Caching is implemented. Use this func for gnparser canonical needs. Best gnparser usage.
     {
         // if($this->resource_id != "wikidata-hierarchy-final") return ""; //not sure why this line was added in the 1st place.
         $md5_id = md5($scientificName.$rank);

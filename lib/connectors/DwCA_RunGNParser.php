@@ -252,7 +252,7 @@ class DwCA_RunGNParser
                     if(@$obj->canonical) {
                         if($type == 'simple') return $obj->canonical->simple;
                         elseif($type == 'full') return $obj->canonical->full;
-                        else exit("\nUndefined type. Will exit.\n");    
+                        else exit("\nUndefined type to return from gnparser output. Will exit.\n");    
                     }
                 }
             }    

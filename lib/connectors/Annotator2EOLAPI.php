@@ -1669,8 +1669,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         }
     }
     private function lookup_opendata_resource()
-    {
-        print_r($this->param);
+    {   print_r($this->param);
         /* Array(
             [task] => generate_eol_tags
             [resource] => AmphibiaWeb text
@@ -1678,7 +1677,6 @@ class Annotator2EOLAPI extends Functions_Annotator
             [subjects] => Distribution
         )*/
         $resource_name = $this->param['resource'];
-        
         
         // /* New 2026: can be for all resources
         if($this->param['resource_id'] == '617_ENV') {
@@ -1688,7 +1686,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             $this->DwCA_URLs[$resource_name] = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/26_meta_recoded.tar.gz'; //bec. record is private in OpenData.eol.org
             $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path('26_meta_recoded'); //local 26_meta_recoded.tar.gz
         }
-        else {
+        else { //rest goes here...
             $tmp = str_replace("_ENV", "", $this->param['resource_id']);
             $dwca_url = Functions::get_resource_url_path($tmp); //local tar.gz will be used
             echo "\nC. DwCA URL: $dwca_url\n".$this->param['resource_id']."\n";

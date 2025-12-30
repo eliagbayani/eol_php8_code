@@ -502,8 +502,10 @@ class Annotator2EOLAPI extends Functions_Annotator
                 }
 
                 if($this->param['resource_id'] == '26_ENV') { //for WoRMS only with title = 'habitat' and 'distribution' will be processed.
-                    if(strtolower($rec['http://purl.org/dc/terms/title']) == 'habitat') @$this->WoRMS_text_that_are_habitat++;
-                    elseif(strtolower($rec['http://purl.org/dc/terms/title']) == 'distribution') continue; //no longer processed in Dec 2025. //$this->ontologies = "eol-geonames";
+                    $title = strtolower($rec['http://purl.org/dc/terms/title']);
+                    $this->debug['WoRMS titles'][$title] = '';
+                    if($title == 'habitat') @$this->WoRMS_text_that_are_habitat++;
+                    // elseif($title == 'distribution') continue; //no longer processed in Dec 2025. //$this->ontologies = "eol-geonames";
                     else continue;
                 }
                 

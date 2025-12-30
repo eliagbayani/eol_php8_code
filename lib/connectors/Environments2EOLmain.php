@@ -165,6 +165,7 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 unset($this->debug['neglect uncooperative contributor']);
             }
             print_r($this->debug);
+            Functions::start_print_debug($this->debug, $this->param['resource_id'].'_p2');
         }
     }
     private function initialize_mapping()
@@ -276,14 +277,15 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 $rec['measurementType'] = $mType;
                 
                 // /* customized:
-                if($this->resource_id == '26_ENV')  $rec['measurementRemarks'] = "";
-                // else                                $rec['measurementRemarks'] = "source text: \"" . $arr[3] . "\""; //obsolete
-                else {
+                // if($this->resource_id == '26_ENV')  $rec['measurementRemarks'] = ""; //commented Dec 30, 2025
+                if(false) {}
+                else { //all resources go here.
                     if($val = @$arr[7]) {
                         $rec['measurementRemarks'] = "source text: \"" . self::generate_new_mremarks($arr) . "\""; //NEW: Feb 18, 2025
                     }
                     else {
                         $rec['measurementRemarks'] = "source text: \"" . $arr[3] . "\""; //obsolete
+                        exit("\nERROR: hmmm still goes here... should not go here anymore...\n");
                         echo "\nNo column 7: "; print_r($arr);
                     }
                 }
@@ -378,6 +380,7 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                     $rec["contributor"] = $uri;
                     // */
                     
+                    $this->debug['measurementType'][$rec['measurementType']] = '';
                     $ret = $this->func->add_string_types($rec, $rec['measurementValue'], $rec['measurementType'], "true");
                     $parentID = $ret['measurementID'];
                     

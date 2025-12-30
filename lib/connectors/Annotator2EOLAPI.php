@@ -494,7 +494,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 // $this->ontologies = "habitat"; //"envo"; //always 'envo' unless WoRMS' distribution texts.
                 
                 // /* -------------------- start customize --------------------
-                if($this->param['resource_id'] == '617_ENV') {
+                if($this->param['resource_id'] == '617_ENV') { //Wikipedia inferred traits
                     $desc = $rec['http://purl.org/dc/terms/description'];
                     $desc = $this->func_WikipediaHtmlAPI->remove_start_ending_chars($desc); //no longer needed here, but just in case.
                     $desc = $this->func_WikipediaHtmlAPI->remove_wiki_sections($desc, $rec); //2nd param $rec here is just for debug
@@ -502,8 +502,8 @@ class Annotator2EOLAPI extends Functions_Annotator
                 }
 
                 if($this->param['resource_id'] == '26_ENV') { //for WoRMS only with title = 'habitat' and 'distribution' will be processed.
-                    if(strtolower($rec['http://purl.org/dc/terms/title']) == 'habitat') @$this->text_that_are_habitat++;
-                    elseif(strtolower($rec['http://purl.org/dc/terms/title']) == 'distribution') continue; //$this->ontologies = "eol-geonames";
+                    if(strtolower($rec['http://purl.org/dc/terms/title']) == 'habitat') @$this->WoRMS_text_that_are_habitat++;
+                    elseif(strtolower($rec['http://purl.org/dc/terms/title']) == 'distribution') continue; //no longer processed in Dec 2025. //$this->ontologies = "eol-geonames";
                     else continue;
                 }
                 
@@ -571,7 +571,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             */
 
         } //end main loop
-        if($this->param['resource_id'] == '26_ENV') echo("\n text_that_are_habitat: ".$this->text_that_are_habitat."\n");
+        if($this->param['resource_id'] == '26_ENV') echo("\n WoRMS_text_that_are_habitat: ".$this->WoRMS_text_that_are_habitat."\n");
         // print_r($this->debug); //good debug
     }
     private function process_table_v2_WoRMS($meta, $what)

@@ -15,10 +15,7 @@ class ParseAssocTypeAPI_Memoirs
     /*#################################################################################################################################*/
     private function initialize()
     {
-        // /* for gnfinder
-        if(Functions::is_production()) $this->json_path = '/var/www/html/gnfinder/'; //'/html/gnfinder/';
-        else                           $this->json_path = '/Volumes/AKiTiO4/other_files/gnfinder/';
-        // */
+        $this->json_path = '/var/www/html/gnfinder/'; //for gnfinder
         require_library('connectors/Functions_Memoirs');
         $this->func = new Functions_Memoirs($this->json_path, $this->service, $this->download_options); 
     }

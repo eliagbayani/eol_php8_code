@@ -14,14 +14,7 @@ class ParseSizePatternsAPI
     }
     /*#################################################################################################################################*/
     private function initialize()
-    {   /*
-        // for gnfinder ----------
-        if(Functions::is_production()) $this->json_path = '/html/gnfinder/';
-        else                           $this->json_path = '/Volumes/AKiTiO4/other_files/gnfinder/';
-        // ----------
-        require_library('connectors/Functions_Memoirs');
-        $this->func = new Functions_Memoirs($this->json_path, $this->service, $this->download_options); 
-        */
+    {   
     }
     // function parse_associations($html, $pdf_id, $orig_tmp = false) //for "HOST" "HOST PLANT" "ON" "FOUND ON" etc.
     function parse_size_patterns($html, $pdf_id, $orig_tmp = false, $sciname)

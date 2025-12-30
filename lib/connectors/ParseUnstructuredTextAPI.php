@@ -38,12 +38,8 @@ class ParseUnstructuredTextAPI extends ParseListTypeAPI
         // SCtZ-0604 - I considered not a list-type but a regular species section type
         // */
         
-        $this->assoc_prefixes = array("HOSTS", "HOST", "PARASITOIDS", "PARASITOID");
-        
-        // /* for gnfinder
-        if(Functions::is_production()) $this->json_path = '/var/www/html/gnfinder/'; //'/html/gnfinder/';
-        else                           $this->json_path = '/Volumes/AKiTiO4/other_files/gnfinder/';
-        // */
+        $this->assoc_prefixes = array("HOSTS", "HOST", "PARASITOIDS", "PARASITOID");        
+        $this->json_path = '/var/www/html/gnfinder/'; //for gnfinder
     }
     /* Special chard mentioned by Dima, why GNRD stops running.
     str_replace("")

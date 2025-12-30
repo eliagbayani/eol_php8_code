@@ -12,10 +12,7 @@ class FillUpMissingParentsAPI
         $this->archive_path = $archive_path;
         // $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*30*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->redirected_IDs = array();
-        // /* for gnfinder
-        if(Functions::is_production()) $this->json_path = '/var/www/html/gnfinder/'; //--- for terminal //'/html/gnfinder/'; --- for Jenkins
-        else                           $this->json_path = '/Volumes/AKiTiO4/other_files/gnfinder/';
-        // */
+        $this->json_path = '/var/www/html/gnfinder/'; //for gnfinder
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)

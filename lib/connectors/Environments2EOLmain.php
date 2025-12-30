@@ -165,7 +165,7 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 unset($this->debug['neglect uncooperative contributor']);
             }
             print_r($this->debug);
-            Functions::start_print_debug($this->debug, $this->param['resource_id'].'_p2');
+            Functions::start_print_debug($this->debug, $this->resource_id.'_p2');
         }
     }
     private function initialize_mapping()

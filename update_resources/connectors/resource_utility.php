@@ -563,14 +563,18 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
 function run_utility($resource_id)
 {
     // /* utility ==========================
-    require_library('connectors/DWCADiagnoseAPI');
-    $func = new DWCADiagnoseAPI();
-
     if(in_array($resource_id, array('201_meta_recoded_2'))) $MoF_file = 'measurement_or_fact.tab';
     else                                                    $MoF_file = 'measurement_or_fact_specific.tab'; //rest goes here
     
+    require_library('connectors/DWCADiagnoseAPI');
+    $func = new DWCADiagnoseAPI();
     $undefined_parents = $func->check_if_all_parents_have_entries($resource_id, true, false, false, 'parentMeasurementID', $MoF_file);
     echo "\nTotal undefined parents MoF [$resource_id]: " . count($undefined_parents)."\n";
+
+    // New integrity-check: check if all taxonID in occurrences have taxon entries.
+    $undefined = $func->check_if_all_occurrences_have_entries($resource_id, true); //true means output will write to text file
+    if($undefined) echo "\nERROR: integrity-check 1: There is undefined taxonID(s) in OCCURRENCE.tab: ".count($undefined)."\n";
+    else           echo "\nintegrity-check 1 OK: All taxonID(s) in OCCURRENCE.tab have TAXON entries.\n";
     // ===================================== */
 }
 ?>

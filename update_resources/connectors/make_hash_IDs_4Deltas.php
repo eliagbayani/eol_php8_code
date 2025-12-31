@@ -75,6 +75,22 @@ function process_resource_url($dwca_file, $resource_id, $timestart, $param)
     
     /* This will be processed in DeltasHashIDsAPI.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
-    Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
+    Functions::finalize_dwca_resource($resource_id, false, false, $timestart); //3rd param false means don't delete working folder yet
+
+    echo "\nresource_id: [$resource_id]\n";
+    
+    // /* New: important to check if all parents have entries.
+    require_library('connectors/DWCADiagnoseAPI');
+    $func = new DWCADiagnoseAPI();
+    $undefined_parents = $func->check_if_all_parents_have_entries($resource_id, true); //2nd param true means output will write to text file
+    if($undefined_parents) echo "\nERROR: There are undefined parents\n";
+    echo "\nTotal undefined parents:" . count($undefined_parents)."\n"; unset($undefined_parents);
+
+    // New integrity-check: check if all taxonID in occurrences have taxon entries.
+    $undefined = $func->check_if_all_occurrences_have_entries($resource_id, true); //true means output will write to text file
+    if($undefined) echo "\nERROR: integrity-check 1: There is undefined taxonID(s) in OCCURRENCE.tab: ".count($undefined)."\n";
+    else           echo "\nintegrity-check 1 OK: All taxonID(s) in OCCURRENCE.tab have TAXON entries.\n";
+
+    recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH.$resource_id."/"); //we can now delete folder after check_if_all_parents_have_entries() - DWCADiagnoseAPI
 }
 ?>

@@ -238,8 +238,7 @@ class DWCADiagnoseAPI
     function get_undefined_uris() // a utility
     {
         $ids = array("872", "886", "887", "892", "893", "894", "885", "42");
-        foreach($ids as $id)
-        {
+        foreach($ids as $id) {
             echo "\nprocessing id [$id]";
             if($undefined_uris = Functions::get_undefined_uris_from_resource($id)) print_r($undefined_uris);
             echo "\nundefined uris: " . count($undefined_uris) . "\n";

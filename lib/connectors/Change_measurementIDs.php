@@ -20,6 +20,7 @@ class Change_measurementIDs
     }
     private function process_generic_table($meta, $what)
     {   //print_r($meta);
+        echo "\nclass: Change_measurementIDs\n";
         echo "\nprocess $what...\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 100000) == 0) echo "\n".number_format($i);

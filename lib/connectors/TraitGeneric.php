@@ -193,6 +193,8 @@ class TraitGeneric
     }
     public function initialize_terms_remapping($expire_seconds = 60*60*24*30)
     {
+        $this->remapped_terms = array();
+        return $this->remapped_terms;        
         exit("\nThis is now obsolete [initialize_terms_remapping()]. \nWill terminate. \nPlease investigate and adjust accordingly.\n");
 
         /* START DATA-1841 terms remapping */

@@ -262,8 +262,8 @@ elseif($task == 'add_canonical_in_taxa') {
 }
 elseif($task == 'change_measurementIDs') {
     if($resource_id == '26_ENV_final') {
-        if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/26_ENV.tar.gz";
-        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV.tar.gz";
+        if(Functions::is_production())  exit("\nNot yet run.\n");//not yet run in editors.eol.org
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV_2.tar.gz"; //formerly 26_ENV.tar.gz
     }
 }
 

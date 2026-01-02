@@ -353,11 +353,7 @@ elseif($task == 'metadata_recoding') {
 
     elseif($resource_id == '26_meta_recoded_1') { //task_45: statisticalMethod | measurementUnit
         if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/26.tar.gz";
-        else {
-            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26.tar.gz";
-            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26.tar.gz";
-        }
-
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26.tar.gz";
     }
     elseif($resource_id == '26_meta_recoded') { //task_67: lifeStage | sex
         if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/26_meta_recoded_1.tar.gz";

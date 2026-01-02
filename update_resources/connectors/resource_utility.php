@@ -260,6 +260,12 @@ elseif($task == 'add_canonical_in_taxa') {
         $resource_id .= "_neo4j_1";
     }    
 }
+elseif($task == 'remove_MoF_without_taxa') {
+    if($resource_id == '26_ENV_2') {
+        if(Functions::is_production())  exit("\nNot yet run.\n");//not yet run in editors.eol.org
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV.tar.gz";
+    }
+}
 elseif($task == 'change_measurementIDs') {
     if($resource_id == '26_ENV_final') {
         if(Functions::is_production())  exit("\nNot yet run.\n");//not yet run in editors.eol.org
@@ -482,6 +488,16 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
             $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
             /* These below will be processed in ResourceUtility.php which will be called from DwCA_Utility.php
             http://rs.tdwg.org/dwc/terms/taxon
+            */
+        }
+    }
+    elseif($task == 'remove_MoF_without_taxa') {
+        if(in_array($resource_id, array('26_ENV_2'))) {
+            $preferred_rowtypes = array();
+            $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/occurrence', 'http://rs.tdwg.org/dwc/terms/measurementorfact');
+            /* These below will be processed in Remove_MoF_WithoutTaxa.php which will be called from DwCA_Utility.php
+            http://rs.tdwg.org/dwc/terms/occurrence
+            http://rs.tdwg.org/dwc/terms/measurementorfact
             */
         }
     }

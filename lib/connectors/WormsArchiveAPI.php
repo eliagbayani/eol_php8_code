@@ -24,6 +24,7 @@ Connector downloads the archive file, extracts, reads it, assembles the data and
 http://www.marinespecies.org/rest/#/
 http://www.marinespecies.org/aphia.php?p=taxdetails&id=9
 */
+
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class WormsArchiveAPI extends ContributorsMapAPI
@@ -716,7 +717,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
 
             if(!isset($this->taxon_ids[$taxon->taxonID])) {
                 $this->taxon_ids[$taxon->taxonID] = '';
-                $this->archive_builder->write_object_to_file($taxon);
+                $this->archive_builder->write_object_to_file($taxon); //write taxon 1
                 // Functions::lookup_with_cache($this->gnsparser.self::format_sciname($taxon->scientificName), $this->smasher_download_options);
             }
             /* not used:
@@ -1033,6 +1034,9 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $save = array();
                 $save['measurementID'] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
                 $save['taxon_id'] = $taxon_id;
+                
+                if(!isset($this->taxon_ids[$taxon_id])) return; //Jan 1, 2026
+
                 $save["catnum"] = $taxon_id.'_'.$rec['http://rs.tdwg.org/dwc/terms/measurementType'].$rec['http://rs.tdwg.org/dwc/terms/measurementValue']; //making it unique. no standard way of doing it.
                 // $save['measurementType'] = $info['mTypeURL'];        not needed for TraitGeneric
                 // $save['measurementValue'] = $info['mValueURL'];      not needed for TraitGeneric
@@ -1072,6 +1076,9 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $save = array();
                 $save['measurementID'] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
                 $save['taxon_id'] = $taxon_id;
+
+                if(!isset($this->taxon_ids[$taxon_id])) return; //Jan 1, 2026
+
                 $save["catnum"] = $taxon_id.'_'.$rec['http://rs.tdwg.org/dwc/terms/measurementType'].$rec['http://rs.tdwg.org/dwc/terms/measurementValue']; //making it unique. no standard way of doing it.
                 $save['measurementRemarks'] = ''; //no instruction here
                 $save['source'] = $this->taxon_page.$taxon_id;
@@ -1292,7 +1299,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
         $t->taxonID = $taxon_id;
         $t->scientificName = $taxon_name;
         if(!$t->scientificName) return false; //very unique situation...
-        $this->archive_builder->write_object_to_file($t);
+
+        $this->archive_builder->write_object_to_file($t); //write taxon 2
         $this->taxon_ids[$taxon_id] = '';
         return $taxon_id;
     }
@@ -1641,7 +1649,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
         // /* new by Eli: Nov 7, 2023 ---> value must be a URI if mType == Present
         if($measurementType == "http://eol.org/schema/terms/Present" && substr($value, 0, 4) != "http") return;
         // */
-        
+
+        if(!isset($this->taxon_ids[$rec["taxon_id"]])) return; //New: Jan 1, 2026
+        if(!$rec['taxon_id']) return; //running out of options.
+         
         $m = new \eol_schema\MeasurementOrFact_specific();
         $occurrence_id = $this->add_occurrence($rec["taxon_id"], $rec["catnum"]);
         $m->occurrenceID = $occurrence_id;
@@ -1980,7 +1991,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             
             if(!isset($this->taxon_ids[$taxon->taxonID])) {
                 $this->taxon_ids[$taxon->taxonID] = '';
-                $this->archive_builder->write_object_to_file($taxon);
+                $this->archive_builder->write_object_to_file($taxon); //write taxon 3
             }
         }
     }

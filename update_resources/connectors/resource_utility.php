@@ -266,10 +266,16 @@ elseif($task == 'remove_MoF_without_taxa') {
         else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV.tar.gz";
     }
 }
+elseif($task == 'remove_MoF_without_taxa_REAL') {
+    if($resource_id == '26_ENV_3') {
+        if(Functions::is_production())  exit("\nNot yet run.\n");//not yet run in editors.eol.org
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV_2.tar.gz";
+    }
+}
 elseif($task == 'change_measurementIDs') {
     if($resource_id == '26_ENV_final') {
         if(Functions::is_production())  exit("\nNot yet run.\n");//not yet run in editors.eol.org
-        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV_2.tar.gz"; //formerly 26_ENV.tar.gz
+        else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV_3.tar.gz"; //formerly 26_ENV.tar.gz
     }
 }
 
@@ -436,7 +442,7 @@ else exit("\nERROR: task not yet initialized. Will terminate.\n");
 process_resource_url($dwca_file, $resource_id, $task, $timestart);
 
 // /* add testing for undefined childen in MoF - utility only
-if(in_array($resource_id, array('26_ENV_final', 'cotr_meta_recoded_final')) || 
+if(in_array($resource_id, array('26_ENV_final', 'cotr_meta_recoded_final', '26_ENV_2', '26_ENV_3')) || 
     in_array($task, array('fix_MoF_child_records', 'metadata_recoding'))) {
     run_utility($resource_id);
     recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH.$resource_id."/"); //we can now delete folder after run_utility() - DWCADiagnoseAPI
@@ -496,6 +502,16 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
             $preferred_rowtypes = array();
             $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/occurrence', 'http://rs.tdwg.org/dwc/terms/measurementorfact');
             /* These below will be processed in Remove_MoF_WithoutTaxa.php which will be called from DwCA_Utility.php
+            http://rs.tdwg.org/dwc/terms/occurrence
+            http://rs.tdwg.org/dwc/terms/measurementorfact
+            */
+        }
+    }
+    elseif($task == 'remove_MoF_without_taxa_REAL') {
+        if(in_array($resource_id, array('26_ENV_3'))) {
+            $preferred_rowtypes = array();
+            $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/occurrence', 'http://rs.tdwg.org/dwc/terms/measurementorfact');
+            /* These below will be processed in Remove_MoF_WithoutTaxaReal.php which will be called from DwCA_Utility.php
             http://rs.tdwg.org/dwc/terms/occurrence
             http://rs.tdwg.org/dwc/terms/measurementorfact
             */
@@ -566,7 +582,7 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
     
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     
-    if(in_array($resource_id, array('26_ENV_final', 'cotr_meta_recoded_final')) || 
+    if(in_array($resource_id, array('26_ENV_final', 'cotr_meta_recoded_final', '26_ENV_2', '26_ENV_3')) || 
         in_array($task, array('fix_MoF_child_records', 'metadata_recoding'))) {
         Functions::finalize_dwca_resource($resource_id, false, false, $timestart); //3rd row 'false' means not delete working dir
     }

@@ -19,6 +19,7 @@ class CladeSpecificFilters4Habitats_API
         $this->report_utility_ON = true; // false means no report utility will be generated. True eats more memory.
             if($resource_id == 'TreatmentBank_adjustment_02') $part = 'TreatmentBank';
         elseif($resource_id == '21_ENV_02')                   $part = 'AmphibiaWeb';
+        elseif($resource_id == '26_MoF_normalized_2')         $part = 'WoRMS';
         else exit("\nResource ID not yet assigned. Will terminate.\n");
         $this->report_file = CONTENT_RESOURCE_LOCAL_PATH . "/reports/FTG_" . $part . "_" . "removed_MoF" . ".tsv";
         $this->to_delete_occurID = array();
@@ -82,10 +83,10 @@ class CladeSpecificFilters4Habitats_API
     function start($info)
     {
         self::initialize();
-        $this->descendants_of_marine = self::get_descendants_of_term('http://purl.obolibrary.org/obo/ENVO_00000447', "marine");
+        // $this->descendants_of_marine = self::get_descendants_of_term('http://purl.obolibrary.org/obo/ENVO_00000447', "marine");              //not used anymore; commented 5Jan2026
         $this->descendants_of_terrestrial = self::get_descendants_of_term('http://purl.obolibrary.org/obo/ENVO_00000446', "terrestrial");
         $this->descendants_of_coastalLand = self::get_descendants_of_term('http://purl.obolibrary.org/obo/ENVO_00000303', "coastal_land");
-        $this->descendants_of_freshwater = self::get_descendants_of_term('http://purl.obolibrary.org/obo/ENVO_00000873', "freshwater");
+        // $this->descendants_of_freshwater = self::get_descendants_of_term('http://purl.obolibrary.org/obo/ENVO_00000873', "freshwater");      //not used anymore; commented 5Jan2026
         // exit;
         /* as of Nov 16, 2022
         Descendants of marine (http://purl.obolibrary.org/obo/ENVO_00000447): 147
@@ -100,6 +101,17 @@ class CladeSpecificFilters4Habitats_API
         */
         
         $tables = $info['harvester']->tables;
+        $extensions = array_keys($tables);
+        /*Array( $extensions
+            [0] => http://rs.tdwg.org/dwc/terms/taxon
+            [4] => http://rs.tdwg.org/dwc/terms/occurrence
+            [5] => http://rs.tdwg.org/dwc/terms/measurementorfact
+            [1] => http://eol.org/schema/reference/reference
+            [2] => http://eol.org/schema/media/document
+            [3] => http://rs.gbif.org/terms/1.0/vernacularname
+        )*/
+        // or we may want to just process MoF and Occurrences without any other extensions like Media, Agents, etc.
+
         self::process_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'classify_taxa');
         /* generates:
         $this->Insecta[$taxonID]
@@ -133,6 +145,12 @@ class CladeSpecificFilters4Habitats_API
         
         self::process_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'write_occurrence');
         self::process_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'write_MoF');
+        
+        // /* New: only taxa with media, vernaculars will be added. Also synonym taxa will be added. Unless we exclude synonyms.
+        if($tbl = @$tables['http://eol.org/schema/media/document'])        self::process_table($tbl[0], 'record_existence_of_taxa');
+        if($tbl = @$tables['http://rs.gbif.org/terms/1.0/vernacularname']) self::process_table($tbl[0], 'record_existence_of_taxa');
+        // */
+        
         self::process_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'write_taxa');
         // exit("\nstop muna...\n");
     }
@@ -168,6 +186,14 @@ class CladeSpecificFilters4Habitats_API
             // print_r($rec); exit;
             //===================================================================================================================
             if($task == 'classify_taxa') { //print_r($rec); exit;
+                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+
+                // /* synonyms included in final taxon.tab
+                    if($rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID']) { //a synonym taxon entry
+                        $this->taxa_has_extensions[$taxonID] = '';
+                    }
+                // */
+
                 /*Array( for TreatmentBank
                     [http://rs.tdwg.org/dwc/terms/taxonID] => DB5AFC3EC73E5732C0D8E33CFDC6FD63.taxon
                     [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
@@ -198,7 +224,6 @@ class CladeSpecificFilters4Habitats_API
                     [http://rs.tdwg.org/dwc/terms/order] => Anura
                     [http://rs.tdwg.org/dwc/terms/family] => Ranidae
                 )*/
-                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
                 $this->taxonID_info[$taxonID] = $rec['http://rs.tdwg.org/dwc/terms/scientificName']; //will be used if $this->report_utility_ON is true
 
                 $class = $rec['http://rs.tdwg.org/dwc/terms/class'];
@@ -363,7 +388,7 @@ class CladeSpecificFilters4Habitats_API
             //===================================================================================================================
             if($task == 'write_taxa') {
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-                if(isset($this->taxa_has_occurrence[$taxonID])) { // saving
+                if(isset($this->taxa_has_occurrence[$taxonID]) || isset($this->taxa_has_extensions[$taxonID])) { // saving
                     $o = new \eol_schema\Taxon();
                     $uris = array_keys($rec);
                     foreach($uris as $uri) {
@@ -374,6 +399,9 @@ class CladeSpecificFilters4Habitats_API
                 }
             }
             //===================================================================================================================
+            if($task == 'record_existence_of_taxa') { //media, vernculars, etc.
+                if($taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID']) $this->taxa_has_extensions[$taxonID] = '';
+            }
             //===================================================================================================================
             //===================================================================================================================
             //===================================================================================================================

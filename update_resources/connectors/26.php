@@ -240,6 +240,14 @@ rm -f 26_MoF_normalized.tar.gz
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // $GLOBALS['ENV_DEBUG'] = false; //true;
 
+/*
+$url = 'https://rs.gbif.org/vocabulary/gbif/taxonomicStatus/accepted';
+echo "\n[$url]\n";
+print_r(pathinfo($url));
+echo "\n".pathinfo($url, PATHINFO_FILENAME)."\n";
+exit("\n-end test-\n");
+*/
+
 // $str = "Verleye, Thomas";
 // if(stripos($str, ",") !== false) {
 //     $parts = explode(",", $str);

@@ -2,10 +2,9 @@
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from resource_utility.php 
 1st client is WoRMS: 
-This no longer removes MoF without taxon entry.
-This now just removes MoF that are not textmined. Those that don't start with "source text:".
+This will remove MoF without taxon entry.
 */
-class Remove_MoF_WithoutTaxa
+class Remove_MoF_WithoutTaxaReal
 {
     function __construct($resource_id, $archive_builder)
     {
@@ -16,14 +15,13 @@ class Remove_MoF_WithoutTaxa
     function start($info)
     {
         $tables = $info['harvester']->tables; // print_r($tables); exit("\ncha1\n");        
-        // self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'taxa_info_list'); //not needed
-        self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF_classify');
+        self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'taxa_info_list');
         self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'Occurrence_write');
         self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'MoF_write');
     }
     private function process_generic_table($meta, $what)
     {
-        echo "\nclass: Remove_MoF_WithoutTaxa: process $what...\n"; $i = 0;
+        echo "\nclass: Remove_MoF_WithoutTaxaReal: process $what...\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
             if($meta->ignore_header_lines && $i == 1) continue;
@@ -59,28 +57,11 @@ class Remove_MoF_WithoutTaxa
                 )*/
                 $this->taxonIDs[$rec['http://rs.tdwg.org/dwc/terms/taxonID']] = '';
             }
-            elseif($what == 'MoF_classify') {
-                // /* for this trait resource, we don't want other MoF records other than those textmined using our new Textmining Strings.
-                if($this->resource_id == '26_ENV_2') {
-                    $mRemarks = trim($rec['http://rs.tdwg.org/dwc/terms/measurementRemarks']);
-                    $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-                    $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
-                    $measurementOfTaxon = $rec['http://eol.org/schema/measurementOfTaxon'];
-                    if($measurementOfTaxon == 'true') { //meaning not a child MoF record
-                        if(substr($mRemarks, 0, 12) != 'source text:') {
-                            $this->delete_measurementIDs[$measurementID] = '';
-                            $this->delete_occurrenceIDs[$occurrenceID] = '';
-                        }
-                    }
-                }
-                // */
-            }
             elseif($what == 'Occurrence_write') {
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/occurrenceID] => 0191a5b6bbee617be3f101758872e911_26
                     [http://rs.tdwg.org/dwc/terms/taxonID] => 1054700
                 )*/
-                /* remove mof without taxa
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
                 $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
                 if(isset($this->taxonIDs[$taxonID])) { //proceed to write
@@ -93,20 +74,6 @@ class Remove_MoF_WithoutTaxa
                     $this->archive_builder->write_object_to_file($o);
                 }
                 else $this->delete_occurrenceIDs[$occurrenceID] = '';
-                */
-
-                // carry-over Occurrences
-                $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
-                if(isset($this->delete_occurrenceIDs[$occurrenceID])) continue; //don't save
-
-                $o = new \eol_schema\Occurrence_specific();
-                $uris = array_keys($rec);
-                foreach($uris as $uri) {
-                    $field = pathinfo($uri, PATHINFO_BASENAME);
-                    $o->$field = $rec[$uri];
-                }
-                $this->archive_builder->write_object_to_file($o);
-
             }
             elseif($what == 'MoF_write') {
                 /*Array(
@@ -123,8 +90,8 @@ class Remove_MoF_WithoutTaxa
                     [http://purl.org/dc/terms/contributor] => 
                     [http://eol.org/schema/reference/referenceID] => 
                 )*/
-                $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-                if(isset($this->delete_measurementIDs[$measurementID])) continue; //don't save
+                $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
+                if(isset($this->delete_occurrenceIDs[$occurrenceID])) continue; //don't save
 
                 $o = new \eol_schema\MeasurementOrFact_specific();
                 $uris = array_keys($rec);
@@ -133,8 +100,6 @@ class Remove_MoF_WithoutTaxa
                     $o->$field = $rec[$uri];
                 }
                 $this->archive_builder->write_object_to_file($o);
-
-
             }
             else exit("\nInvestigate [$what]\n");            
             // if($i >= 10) break; //debug only

@@ -339,6 +339,27 @@ class WormsArchiveAPI extends ContributorsMapAPI
             }
             // */
             
+            // /* agent.tab must have a name, cannot be blank
+            if($class == "agent") {
+                /*Array(
+                    [http://purl.org/dc/terms/identifier] => WoRMS:Author:–NOAA–OE
+                    [http://xmlns.com/foaf/spec/#term_name] => – (NOAA–OE) 
+                    [http://xmlns.com/foaf/spec/#term_firstName] => 
+                    [http://xmlns.com/foaf/spec/#term_familyName] => 
+                    [http://eol.org/schema/agent/agentRole] => 
+                    [http://xmlns.com/foaf/spec/#term_mbox] => 
+                    [http://xmlns.com/foaf/spec/#term_homepage] => 
+                    [http://xmlns.com/foaf/spec/#term_logo] => 
+                    [http://xmlns.com/foaf/spec/#term_currentProject] => 
+                    [http://eol.org/schema/agent/organization] => 
+                    [http://xmlns.com/foaf/spec/#term_accountName] => 
+                    [http://xmlns.com/foaf/spec/#term_openid] => 
+                )*/
+                if(@$rec['http://xmlns.com/foaf/spec/#term_name'] || @$rec['http://xmlns.com/foaf/spec/#term_firstName'] || @$rec['http://xmlns.com/foaf/spec/#term_familyName']) {}
+                else continue; 
+            }
+            // */
+
             $this->archive_builder->write_object_to_file($c);
         } // end foreach()
     }
@@ -383,7 +404,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             if(!$cont) continue;
             */
             
-            $status = $rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"];
+            $status = self::format_status($rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"]);
             
             //special case where "REMAP_ON_EOL" -> status also becomes 'synonym'
             $taxonRemarks = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRemarks"];
@@ -413,6 +434,13 @@ class WormsArchiveAPI extends ContributorsMapAPI
         [24] =>
         [147698] =>
         */
+    }
+    private function format_status($string)
+    {   //e.g. 'https://rs.gbif.org/vocabulary/gbif/taxonomicStatus/accepted';
+        if(substr($string, 0, 4) == 'http') $status = pathinfo($string, PATHINFO_FILENAME);
+        else                                $status = $string;
+        $this->debug['taxonomicStatus'][$status] = '';
+        return $status;
     }
     private function get_children_of_taxon($taxon_id)
     {   $taxo_tmp = array();
@@ -576,7 +604,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
     {   foreach($records as $rec) {
             $taxon_id = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/taxonID"]);
             $this->taxa_rank[$taxon_id]['r'] = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRank"];
-            $this->taxa_rank[$taxon_id]['s'] = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"];
+            $this->taxa_rank[$taxon_id]['s'] = (string) self::format_status($rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"]);
             $this->taxa_rank[$taxon_id]['n'] = (string) $rec["http://rs.tdwg.org/dwc/terms/scientificName"];
         }
     }
@@ -644,7 +672,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             $taxon->taxonRank       = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRank"];
             $this->debug['ranks'][$taxon->taxonRank] = '';
             
-            $taxon->taxonomicStatus = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"];
+            $taxon->taxonomicStatus = (string) self::format_status($rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"]);
             $taxon->taxonRemarks    = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRemarks"];
             
             if($this->what == "taxonomy") { //based on https://eol-jira.bibalex.org/browse/TRAM-520?focusedCommentId=60923&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-60923
@@ -1381,6 +1409,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             else                                                                $mr->language = "en";
             $mr->format         = (string) $rec["http://purl.org/dc/terms/format"];
             $mr->title          = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["http://purl.org/dc/terms/title"]);
+            $this->debug['WoRMS titles'][$mr->title] = '';
             $mr->CVterm         = (string) $rec["http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm"];
             $mr->creator        = (string) $rec["http://purl.org/dc/terms/creator"];
             $mr->CreateDate     = (string) $rec["http://ns.adobe.com/xap/1.0/CreateDate"];

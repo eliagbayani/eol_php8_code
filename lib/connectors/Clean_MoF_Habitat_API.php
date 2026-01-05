@@ -366,9 +366,11 @@ class Clean_MoF_Habitat_API
                     // print_r($this->occurID_taxonID_info); echo "\nexit muna: [".count($this->occurID_taxonID_info)."]\n"; exit;
                     // if(self::is_habitat_YN($mType)) {
                         // /* orig
-                        $taxonID = $this->occurID_taxonID_info[$occurrenceID];
-                        array_unshift($rec, $taxonID);
-                        fwrite($fhandle, implode("\t", $rec)."\n"); //save removed record
+                        if(self::valid_mRemarks($rec['http://rs.tdwg.org/dwc/terms/measurementRemarks'])) {
+                            $taxonID = $this->occurID_taxonID_info[$occurrenceID];
+                            array_unshift($rec, $taxonID);
+                            fwrite($fhandle, implode("\t", $rec)."\n"); //save removed record
+                        }
                         continue;
                         // */
                         
@@ -439,6 +441,11 @@ class Clean_MoF_Habitat_API
 
         }
         if(isset($fhandle)) fclose($fhandle);
+    }
+    private function valid_mRemarks($rem)
+    {   //source text: "anadromous species; inhabit nearshore, _coastal waters_ of lakes and rivers"
+        if(substr($rem, 0, 12) == 'source text:') return true;
+        return false;
     }
     private function is_mValue_descendant_of_marine($mValue)
     {

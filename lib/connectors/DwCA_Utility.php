@@ -164,6 +164,7 @@ class DwCA_Utility
             // if($this->resource_id == 'globi_associations') break; //all extensions will be processed elsewhere. debug only, during dev only
             // if(stripos($this->resource_id, "_meta_recoded") !== false) break; //all extensions will be processed elsewhere. debug only, during dev only
             // if($this->resource_id == '26_ENV_2') break; //all extensions will be processed elsewhere. debug only, during dev only
+            // if($this->resource_id == '26_ENV_3') break; //all extensions will be processed elsewhere. debug only, during dev only
             // if($this->resource_id == '26_ENV_final') break; //all extensions will be processed elsewhere. debug only, during dev only
             // if($this->resource_id == '20_ENV_final') break; //all extensions will be processed elsewhere. debug only, during dev only
             
@@ -422,6 +423,11 @@ class DwCA_Utility
             $func = new Remove_MoF_WithoutTaxa($this->resource_id, $this->archive_builder);
             $func->start($info);
         }
+        if($this->resource_id == '26_ENV_3') {
+            require_library('connectors/Remove_MoF_WithoutTaxaReal');
+            $func = new Remove_MoF_WithoutTaxaReal($this->resource_id, $this->archive_builder);
+            $func->start($info);
+        }
         if($this->resource_id == '26_ENV_final') {
             require_library('connectors/Change_measurementIDs');
             $func = new Change_measurementIDs($this->resource_id, $this->archive_builder);
@@ -451,8 +457,8 @@ class DwCA_Utility
         }
         // */
         
-        // /*
-        if(in_array($this->resource_id, array('TreatmentBank_adjustment_02', '21_ENV_02'))) { //exclusively for TreatmentBank, Amphibiaweb, etc with same ancestry structure e.g. kingdom, phylum, class, order, family.
+        // /* Exclusively for TreatmentBank, Amphibiaweb, WoRMS etc with same ancestry structure e.g. kingdom, phylum, class, order, family.
+        if(in_array($this->resource_id, array('TreatmentBank_adjustment_02', '21_ENV_02', '26_MoF_normalized_2'))) {
             require_library('connectors/CladeSpecificFilters4Habitats_API');
             $func = new CladeSpecificFilters4Habitats_API($this->archive_builder, $this->resource_id);
             $func->start($info);

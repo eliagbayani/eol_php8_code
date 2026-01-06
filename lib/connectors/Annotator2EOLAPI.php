@@ -635,7 +635,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                         $this->ontologies = "eol-geonames"; //WoRMS resource only
                         // print_r($rec); exit("\nfound 1\n");
                         $this->results = array();
-                        self::save_article_2_txtfile_MoF($rec, $taxonID);    
+                        self::save_article_2_txtfile_MoF($rec, $taxonID); //for WoRMS only
                     }
                     // else exit("\nShould not go here\n"); //can definitely possibly go here...
                 }
@@ -678,6 +678,10 @@ class Annotator2EOLAPI extends Functions_Annotator
                     // $rek_2save['reason'] = 'invalid rank'; self::write_invalid_taxa($rek_2save); //works OK but too slow, only for stats
                 }
             }
+
+            /* new: Jan 6, 2026 -- cannot create a filter for taxonRank == 'species' since WoRMS has other extensions aside from MoF.
+            if($this->param['resource_id'] == '26_ENV') {} //WoRMS
+            */
 
             // /* new: Nov 21, 2023:
             if(!isset($this->exclude_taxonIDs[$taxonID])) {
@@ -747,7 +751,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         self::retrieve_annotation($basename, $desc); //it is in this routine where the pensoft annotator is called/run
         self::write_to_pensoft_tags($basename);
     }
-    private function save_article_2_txtfile_MoF($rec, $taxonID) //MoF extension
+    private function save_article_2_txtfile_MoF($rec, $taxonID) //MoF extension --- for WoRMS only
     {   /*Array(
             [http://rs.tdwg.org/dwc/terms/measurementID] => 286376_1054700
             [http://rs.tdwg.org/dwc/terms/occurrenceID] => 0191a5b6bbeexxxbe3f101758872e911_26

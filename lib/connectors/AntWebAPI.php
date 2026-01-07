@@ -39,15 +39,15 @@ class AntWebAPI
         // /* This is used for accessing Pensoft annotator to get ENVO URI given habitat string.
         $param['resource_id'] = 24; //AntWeb resource ID
         require_library('connectors/Functions_Annotator');
-        require_library('connectors/Pensoft2EOLAPI');
-        $this->pensoft = new Pensoft2EOLAPI($param);
+        require_library('connectors/Annotator2EOLAPI'); //Pensoft2EOLAPI
+        $this->pensoft = new Annotator2EOLAPI($param); //Pensoft2EOLAPI
         $this->pensoft->initialize_remaps_deletions_adjustments();
         // /* to test if these 4 variables are populated.
         echo "\n From Pensoft Annotator:";
-        echo("\n remapped_terms: "              .count($this->pensoft->remapped_terms)."\n");
-        echo("\n mRemarks: "                    .count($this->pensoft->mRemarks)."\n");
-        echo("\n delete_MoF_with_these_labels: ".count($this->pensoft->delete_MoF_with_these_labels)."\n");
-        echo("\n delete_MoF_with_these_uris: "  .count($this->pensoft->delete_MoF_with_these_uris)."\n");
+        // echo("\n remapped_terms: "              .count($this->pensoft->remapped_terms)."\n");
+        // echo("\n mRemarks: "                    .count($this->pensoft->mRemarks)."\n");
+        // echo("\n delete_MoF_with_these_labels: ".count($this->pensoft->delete_MoF_with_these_labels)."\n");
+        // echo("\n delete_MoF_with_these_uris: "  .count($this->pensoft->delete_MoF_with_these_uris)."\n");
         // exit;
         // */
         $this->descendants_of_aquatic = $this->pensoft->get_descendants_of_habitat_group('aquatic'); //Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65426&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65426
@@ -72,9 +72,10 @@ class AntWebAPI
         
         $options = $this->download_options;
         $options['expire_seconds'] = false;
+        echo "\nAccessing ".$this->page['all_taxa']."\n";
         if($html = Functions::lookup_with_cache($this->page['all_taxa'], $options)) {
             $html = str_replace("&nbsp;", ' ', $html);
-            // echo $html; exit;
+            // echo $html; exit("\nhtml code\n".$this->page['all_taxa']. "\n");
             if(preg_match_all("/<div class=\"sd_data\">(.*?)<div class=\"clear\"><\/div>/ims", $html, $arr)) {
                 $eli = 0;
                 foreach($arr[1] as $str) {
@@ -203,7 +204,9 @@ class AntWebAPI
                     }
                 }
             }
+            else exit("\nMain preg_match failed. Will terminate.\n"); To-do: search for list of genera first, then get all species for each genera. All species list is now prohibited.
         }
+        else exit("\nSource file not accessible.\n");
         // exit("\n-stop muna-\n");
         $this->archive_builder->finalize(true);
         print_r($this->debug);

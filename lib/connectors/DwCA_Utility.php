@@ -141,6 +141,7 @@ class DwCA_Utility
             [3] => http://rs.tdwg.org/dwc/terms/measurementorfact
         */
         // print_r($index); exit; //good debug to see the all-lower case URIs
+        echo "\nParams passed: "; print_r(@$this->params);
         foreach($index as $row_type) {
 
             /* ----------customized start------------ */
@@ -215,7 +216,7 @@ class DwCA_Utility
                     }
                     */
                                         
-                    if(in_array(@$this->params['resource'], array('add_canonical_Katja', 'match_taxa_2DH', 'use_EOLid_as_taxonID', 'revise_keyword_map'))) {
+                    if(in_array(@$this->params['resource'], array('add_canonical_Katja', 'match_taxa_2DH', 'use_EOLid_as_taxonID', 'revise_keyword_map', 'remove_MoF_Occurrence'))) {
                         $meta = $tables[$row_type][0];
                         self::carry_over($meta, $this->extensions[$row_type]); //was never run but should work just need to get the value for $meta from local $info.
                     }
@@ -1149,6 +1150,13 @@ class DwCA_Utility
 
                     $o->$field = $rec[$uri];
                 }
+
+                // /* New: needed validations
+                if($class == "document") { //if object is text type then description cannot be blank.
+                    if(!$o->description && $o->type == 'http://purl.org/dc/dcmitype/Text') continue;
+                }
+                // */
+
                 $this->archive_builder->write_object_to_file($o);
             }
             // if($i >= 10) break; //debug only

@@ -266,6 +266,10 @@ elseif($task == 'change_measurementIDs') {
         else                            $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/26_ENV_3.tar.gz"; //formerly 26_ENV.tar.gz
     }
 }
+elseif($task == 'remove_MoF_Occurrence') {
+    if($resource_id == '24_pre_ENV') $dwca_file = CONTENT_RESOURCE_LOCAL_PATH.'/24_legacy_2024_11_15_EoL.tar.gz';
+    else exit("\nresource_id not yet initialized\n");
+}
 
 elseif($task == 'metadata_recoding') {
     if($resource_id == '692_meta_recoded') {
@@ -460,6 +464,7 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
             $params['resource'] = "add_canonical_4_neo4j"; #the rest goes here...
         }
     }
+    elseif($task == 'remove_MoF_Occurrence') $params['resource'] = $task;
 
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
@@ -512,6 +517,12 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
             /* These below will be processed in Change_measurementIDs.php which will be called from DwCA_Utility.php
             http://rs.tdwg.org/dwc/terms/measurementorfact
             */
+        }
+    }
+    elseif($task == 'remove_MoF_Occurrence') {
+        if(in_array($resource_id, array('24_pre_ENV'))) {
+            $preferred_rowtypes = array();
+            $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
         }
     }
     elseif($task == 'report_4_Wikipedia_EN_traits') {

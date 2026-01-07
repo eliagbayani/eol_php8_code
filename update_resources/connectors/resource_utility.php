@@ -12,7 +12,6 @@ Here gnparser converts entire file. Not one name at a time.
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "WoRMS2EoL_zip",            "task": "add_canonical_in_taxa"}'
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "globi_assoc_2025_05_17",   "task": "add_canonical_in_taxa"}'
 
-\
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "26_ENV_final", "task": "change_measurementIDs"}'
 
  -------------------------- START of metadata_recoding  --------------------------
@@ -112,14 +111,12 @@ php update_resources/connectors/resource_utility.php _ '{"resource_id": "Plant_G
 -------------------------- END MoF child records fixing --------------------------
 
 
-
 201	                Wed 2020-10-14 02:15:39 PM	{"MoF":195703, "media_resource.tab":204028, "occurrence.tab":47607, "taxon.tab":28808, "time_elapsed":{"sec":518.17, "min":8.640000000000001, "hr":0.14}}
 201_meta_recoded	Thu 2020-10-29 10:54:43 AM	{"MoF":148096, "media_resource.tab":204028, "occurrence.tab":47607, "taxon.tab":28808, "time_elapsed":{"sec":216.07, "min":3.6, "hr":0.06}}
 less MoF is expected for 201_meta_recoded
 201	                Tue 2020-12-01 09:56:56 PM	{"MoF":195703, "media_resource.tab":204028, "occurrence.tab":47607, "taxon.tab":28808, "time_elapsed":{"sec":503.2, "min":8.390000000000001, "hr":0.14}}
 201_meta_recoded	Tue 2020-12-01 10:00:43 PM	{"MoF":148096, "media_resource.tab":204028, "occurrence.tab":47607, "taxon.tab":28808, "time_elapsed":{"sec":226.54, "min":3.78, "hr":0.06}}
 201_meta_recoded_2	Thu 2021-01-21 10:07:44 AM	{"agent.tab":29, "measurement_or_fact.tab":290917, "media_resource.tab":204028, "occurrence_specific.tab":47607, "taxon.tab":28808, "time_elapsed":{"sec":216.62, "min":3.61, "hr":0.06}}
-
 
 726	            Thursday 2019-12-05 09:09:30 AM	{"MoF":21485, "occurrence.tab":2838, "taxon.tab":968, "time_elapsed":{"sec":17.5,"min":0.29,"hr":0}}
 726_meta_recoded	Thu 2020-10-29 11:44:26 AM	{"MoF":21485, "occurrence.tab":2838, "taxon.tab":968, "time_elapsed":{"sec":15.11, "min":0.25, "hr":0}}
@@ -143,33 +140,27 @@ natdb	                Wed 2021-02-24 10:30:06 AM	{"MoF":212962, "occurrence_spec
 natdb_meta_recoded_1	Wed 2021-02-24 10:31:57 AM	{"MoF":212962, "occurrence_specific.tab":96894, "reference.tab":11, "taxon.tab":2778, "time_elapsed":{"sec":111.05, "min":1.85, "hr":0.03}}
 natdb_meta_recoded	    Wed 2021-02-24 10:33:41 AM	{"MoF":212962, "occurrence_specific.tab":96894, "reference.tab":11, "taxon.tab":2778, "time_elapsed":{"sec":103.38, "min":1.72, "hr":0.03}}
 
-
 copepods	            Thu 2019-07-11 08:30:46 AM	{"MoF":21345,"occurrence.tab":18259,"reference.tab":925,"taxon.tab":2644}
 copepods_meta_recoded	Wed 2020-10-28 09:47:22 AM	{"MoF":21345, "occurrence_specific.tab":18259, "reference.tab":925, "taxon.tab":2644, "time_elapsed":{"sec":21.39, "min":0.36, "hr":0.01}}
-
 copepods	            Wed 2021-02-24 01:53:34 PM	{"MoF":21345, "occurrence.tab":18259, "reference.tab":925, "taxon.tab":2644, "time_elapsed":false}
 copepods_meta_recoded	Wed 2021-02-24 01:53:56 PM	{"MoF":21345, "occurrence_specific.tab":18259, "reference.tab":925, "taxon.tab":2644, "time_elapsed":{"sec":21.44, "min":0.36, "hr":0.01}}
 
 42	            Sun 2020-09-13 04:41:23 PM	{"agent.tab":146, "MoF":177712, "media_resource.tab":135702, "occurrence_specific.tab":161031, "reference.tab":32237, "taxon.tab":95593, "vernacular_name.tab":157469, "time_elapsed":{"sec":7343.42, "min":122.39, "hr":2.04}}
 42_meta_recoded	Thu 2020-10-29 12:22:42 PM	{"agent.tab":146, "MoF":177712, "media_resource.tab":135702, "occurrence_specific.tab":161031, "reference.tab":32237, "taxon.tab":95593, "vernacular_name.tab":157469, "time_elapsed":{"sec":313.42, "min":5.22, "hr":0.09}}
-
 42	            Wed 2020-12-02 12:38:02 AM	{"agent.tab":146, "MoF":165551, "media_resource.tab":135702, "occurrence_specific.tab":148873, "reference.tab":32237, "taxon.tab":95593, "vernacular_name.tab":157469, "time_elapsed":{"sec":7330.38, "min":122.17, "hr":2.04}}
 42_meta_recoded	Wed 2020-12-02 12:42:55 AM	{"agent.tab":146, "MoF":165551, "media_resource.tab":135702, "occurrence_specific.tab":148873, "reference.tab":32237, "taxon.tab":95593, "vernacular_name.tab":157469, "time_elapsed":{"sec":291.26, "min":4.85, "hr":0.08}}
 
 griis	            Wed 2020-10-28 02:09:49 AM	{"MoF":85499, "occurrence_specific.tab":57655, "taxon.tab":14891, "time_elapsed":{"sec":1007.65, "min":16.79, "hr":0.28}}
 griis_meta_recoded	Mon 2020-11-02 08:36:01 AM	{"MoF":85499, "occurrence_specific.tab":57655, "taxon.tab":14891, "time_elapsed":{"sec":57.34, "min":0.96, "hr":0.02}}
-
 griis	            Tue 2020-12-01 10:13:29 PM	{"MoF":85499, "occurrence_specific.tab":57655, "taxon.tab":14891, "time_elapsed":{"sec":1001.8, "min":16.7, "hr":0.28}}
 griis_meta_recoded	Tue 2020-12-01 10:14:28 PM	{"MoF":85499, "occurrence_specific.tab":57655, "taxon.tab":14891, "time_elapsed":{"sec":59.3, "min":0.99, "hr":0.02}}
 
 cotr	            Sat 2020-10-10 06:43:23 AM	{"MoF":56648, "occurrence_specific.tab":33475, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":82.14, "min":1.37, "hr":0.02}}
 cotr_meta_recoded_1	Wed 2020-11-04 05:27:50 AM	{"MoF":56648, "occurrence_specific.tab":33475, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":53.87, "min":0.9, "hr":0.01}}
 cotr_meta_recoded	Wed 2020-11-04 05:28:32 AM	{"MoF":52298, "occurrence.tab":33475, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":41.62, "min":0.69, "hr":0.01}}
-
 cotr	            Tue 2020-12-01 09:58:59 PM	{"MoF":56648, "occurrence_specific.tab":33475, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":73.78, "min":1.23, "hr":0.02}}
 cotr_meta_recoded_1	Tue 2020-12-01 09:59:45 PM	{"MoF":56648, "occurrence_specific.tab":33475, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":45.34, "min":0.76, "hr":0.01}}
 cotr_meta_recoded	Tue 2020-12-01 10:00:30 PM	{"MoF":52298, "occurrence.tab":33475, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":45.16, "min":0.75, "hr":0.01}}
-
 cotr	            Wed 2021-02-24 01:50:07 PM	{"MoF":56481, "occurrence_specific.tab":33335, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":72.63, "min":1.21, "hr":0.02}}
 cotr_meta_recoded_1	Wed 2021-02-24 01:50:50 PM	{"MoF":56481, "occurrence_specific.tab":33335, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":42.93, "min":0.72, "hr":0.01}}
 cotr_meta_recoded	Wed 2021-02-24 01:51:33 PM	{"MoF":52131, "occurrence.tab":33335, "reference.tab":555, "taxon.tab":1547, "time_elapsed":{"sec":43.32, "min":0.72, "hr":0.01}}
@@ -209,9 +200,7 @@ refreshed, lookup cache expired at this point: re-harvested
 707	            Wed 2020-12-02 01:09:05 AM	{"MoF":4078, "occurrence_specific.tab":632, "taxon.tab":632, "time_elapsed":{"sec":9, "min":0.15, "hr":0}}
 707_meta_recodedWed 2020-12-02 01:09:14 AM	{"MoF":4078, "occurrence_specific.tab":632, "taxon.tab":632, "time_elapsed":{"sec":9.06, "min":0.15, "hr":0}}
 
-
 692_meta_recoded	Wed 2020-10-21 11:28:41 AM	{"MoF":3849108, "occurrence_specific.tab":486561, "taxon.tab":162187, "time_elapsed":{"sec":1359.92, "min":22.67, "hr":0.38}}
-
 692	                Tue 2020-12-01 10:13:22 PM	{"MoF":1924554, "occurrence.tab":486561, "taxon.tab":162187, "time_elapsed":{"sec":1129.53, "min":18.83, "hr":0.31}}
 692_meta_recoded	Tue 2020-12-01 10:37:34 PM	{"MoF":3849108, "occurrence_specific.tab":486561, "taxon.tab":162187, "time_elapsed":{"sec":1451.08, "min":24.18, "hr":0.4}}
 */
@@ -219,7 +208,6 @@ refreshed, lookup cache expired at this point: re-harvested
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 $timestart = time_elapsed();
 // $GLOBALS['ENV_DEBUG'] = true;
-
 // print_r(pathinfo('http://rs.tdwg.org/dwc/terms/measurementorfact')); exit;
 
 // print_r($argv);

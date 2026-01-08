@@ -213,6 +213,34 @@ class Functions_Annotator
 
         return $rec;      
     }
+    function process_table_AntWeb_ENV($rec)
+    {   /* [AntWeb Titles] => Array(
+            [Taxonomic History] => 
+            [Acanthognathus brevicornis] => 
+            [Acanthognathus lentus] => 
+            [Distribution Notes] => 
+            [Identification] => 
+            [Biology] => */
+        /*Array( print_r($rec)
+            [http://purl.org/dc/terms/identifier] => acanthognathus_brevicornis_TaxHis
+            [http://rs.tdwg.org/dwc/terms/taxonID] => acanthognathus_brevicornis
+            [http://purl.org/dc/terms/type] => http://purl.org/dc/dcmitype/Text
+            [http://purl.org/dc/terms/format] => text/html
+            [http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm] => http://rs.tdwg.org/ontology/voc/SPMInfoItems#Description
+            [http://purl.org/dc/terms/title] => Taxonomic History
+            [http://purl.org/dc/terms/description] => <i>Acanthognathus brevicornis</i> <a title="Smith, M. R. 1944c. A key to...
+            [http://rs.tdwg.org/ac/terms/accessURI] => 
+            [http://rs.tdwg.org/ac/terms/furtherInformationURL] => https://www.antweb.org/description.do?genus=acanthognathus&species=brevicornis&rank=species&project=allantwebants
+            [http://ns.adobe.com/xap/1.0/CreateDate] => 
+            [http://purl.org/dc/terms/language] => en
+            [http://ns.adobe.com/xap/1.0/rights/UsageTerms] => http://creativecommons.org/licenses/by-nc-sa/4.0/
+            [http://ns.adobe.com/xap/1.0/rights/Owner] => California Academy of Sciences
+            [http://purl.org/dc/terms/bibliographicCitation] => AntWeb. Version 8.45.1. California Academy of Science, online at https://www.antweb.org. Accessed 15 November 2024.
+            [http://eol.org/schema/agent/agentID] => 
+        )*/
+        if($rec['http://purl.org/dc/terms/title'] == 'Taxonomic History') return false;
+        return $rec;
+    }
     function load_github_dump($url) //another func parse_github_dump()
     {   echo "\ngithub dump url: [$url]\n";
         $local = Functions::save_remote_file_to_local($url, array('cache' => 1, 'expire_seconds' => 60*60*24)); //1 day expires

@@ -65,6 +65,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         $this->subjects['Habitat'] = 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#Habitat';
         $this->subjects['Uses'] = 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#Uses'; //for list-type in SI PDFs
         $this->subjects['GeneralDescription'] = 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#GeneralDescription'; //first client ZooKeys (20.tar.gz)
+        $this->subjects['DiagnosticDescription'] = 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#DiagnosticDescription'; //first client AntWeb | Jan 7, 2026
         
         /* Wikipedia EN = 80.tar.gz
         http://rs.tdwg.org/ontology/voc/SPMInfoItems#Description:  389994
@@ -534,13 +535,20 @@ class Annotator2EOLAPI extends Functions_Annotator
                 if(@$this->param['group'] == 'BHL_plants') $this->ontologies = "habitat,eol-geonames,growth"; //overwrites prev value
                 
                 // /* DATA-1897: Pensoft journals (textmining)
-                if($this->param['resource_id'] == "TreatmentBank_ENV") {
+                if($this->param['resource_id'] == "TreatmentBank_ENV") { //filter process
                     $rec = $this->process_table_TreatmentBank_ENV($rec);
                     if(!$rec) {
                         // print_r($rec); echo "-invalid ito"; //good debug
                         continue;
                     }
                 } //end TreatmentBank_ENV
+
+                // /* AntWeb filter process
+                if($this->param['resource_id'] == "AntWeb_ENV") { //filter process
+                    $rec = $this->process_table_AntWeb_ENV($rec);
+                    if(!$rec) continue;
+                } //end AntWeb_ENV
+                // */
 
                 if($this->param['resource_id'] == "20_ENV")         $this->ontologies = "habitat,eol-geonames"; //ZooKeys
                 if($this->param['resource_id'] == "832_ENV")        $this->ontologies = "habitat,eol-geonames"; //Subterranean Biology
@@ -565,7 +573,7 @@ class Annotator2EOLAPI extends Functions_Annotator
             // else { echo "\ninvalid rec\n"; print_r($rec); } //good debug
             // break; //get only 1 record, during dev only
             // if($i >= 100) break; //debug only         --- limit the no. of records processed; limit records
-            // if($saved >= 20) break; //debug only     --- limit the no. of records processed
+            // if($saved >= 20) break; //debug only     --- limit the no. of records processed. Must uncomment $saved++; for this row to work.
 
             /* debug only
             $test = array_keys($this->eli);
@@ -1522,7 +1530,7 @@ class Annotator2EOLAPI extends Functions_Annotator
     {   $arr = explode("|", $pipe_delimited);
         foreach($arr as $subject) {
             if($val = @$this->subjects[$subject]) $allowed_subjects[] = $val;
-            else exit("\nSubject not yet initialized [$subject]\n");
+            else exit("\nSubject not yet initialized [$subject]\n"); //This field should be initialized above: $this->subjects
         }
         return $allowed_subjects;
     }
@@ -1691,6 +1699,9 @@ class Annotator2EOLAPI extends Functions_Annotator
         elseif($this->param['resource_id'] == '26_ENV') {
             $this->DwCA_URLs[$resource_name] = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/26_meta_recoded.tar.gz'; //bec. record is private in OpenData.eol.org
             $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path('26_meta_recoded'); //local 26_meta_recoded.tar.gz
+        }
+        elseif($this->param['resource_id'] == 'AntWeb_ENV') {
+            $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path('24_pre_ENV'); //local 24_pre_ENV.tar.gz
         }
         else { //rest goes here...
             $tmp = str_replace("_ENV", "", $this->param['resource_id']);

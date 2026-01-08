@@ -612,6 +612,7 @@ class DwCA_Utility
         echo ("\n temporary directory removed: " . $temp_dir);
         // */
         if($this->debug) print_r($this->debug);
+        else echo "\nNo debug info.\n";
     }
     function convert_archive_files($lifedesks) //used by: connectors/lifedesk_eol_export.php
     {
@@ -1153,6 +1154,7 @@ class DwCA_Utility
 
                 // /* New: needed validations
                 if($class == "document") { //if object is text type then description cannot be blank.
+                    $this->debug['AntWeb Titles'][$o->title] = '';
                     if(!$o->description && $o->type == 'http://purl.org/dc/dcmitype/Text') continue;
                 }
                 // */

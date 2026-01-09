@@ -20,6 +20,7 @@ class CladeSpecificFilters4Habitats_API
             if($resource_id == 'TreatmentBank_adjustment_02') $part = 'TreatmentBank';
         elseif($resource_id == '21_ENV_02')                   $part = 'AmphibiaWeb';
         elseif($resource_id == '26_MoF_normalized_2')         $part = 'WoRMS';
+        elseif($resource_id == 'AntWeb_ENV_2')                $part = 'AntWeb';
         else exit("\nResource ID not yet assigned. Will terminate.\n");
         $this->report_file = CONTENT_RESOURCE_LOCAL_PATH . "/reports/FTG_" . $part . "_" . "removed_MoF" . ".tsv";
         $this->to_delete_occurID = array();
@@ -189,9 +190,11 @@ class CladeSpecificFilters4Habitats_API
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
 
                 // /* synonyms included in final taxon.tab
-                    if($rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID']) { //a synonym taxon entry
+                if(isset($rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID'])) {
+                    if(@$rec['http://rs.tdwg.org/dwc/terms/acceptedNameUsageID']) { //a synonym taxon entry
                         $this->taxa_has_extensions[$taxonID] = '';
                     }
+                }
                 // */
 
                 /*Array( for TreatmentBank

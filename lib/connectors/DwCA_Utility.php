@@ -450,7 +450,7 @@ class DwCA_Utility
         
         // /* remove all records for taxon with habitat value(s) that are descendants of both marine and terrestrial
         if((stripos($this->resource_id, "_cleaned_MoF_habitat") !== false) ||                //string is found
-           (in_array($this->resource_id, array('wikipedia_en_traits_tmp3', 'TreatmentBank_ENV_01', '21_ENV_01', '26_delta_new')))
+           (in_array($this->resource_id, array('wikipedia_en_traits_tmp3', 'TreatmentBank_ENV_01', '21_ENV_01', '26_delta_new', 'AntWeb_ENV_3')))
           ) {
             require_library('connectors/Clean_MoF_Habitat_API');
             $func = new Clean_MoF_Habitat_API($this->archive_builder, $this->resource_id);
@@ -459,7 +459,7 @@ class DwCA_Utility
         // */
         
         // /* Exclusively for TreatmentBank, Amphibiaweb, WoRMS etc with same ancestry structure e.g. kingdom, phylum, class, order, family.
-        if(in_array($this->resource_id, array('TreatmentBank_adjustment_02', '21_ENV_02', '26_MoF_normalized_2'))) {
+        if(in_array($this->resource_id, array('TreatmentBank_adjustment_02', '21_ENV_02', '26_MoF_normalized_2', 'AntWeb_ENV_2'))) {
             require_library('connectors/CladeSpecificFilters4Habitats_API');
             $func = new CladeSpecificFilters4Habitats_API($this->archive_builder, $this->resource_id);
             $func->start($info);

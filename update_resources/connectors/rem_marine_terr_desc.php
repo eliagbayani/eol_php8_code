@@ -36,6 +36,8 @@ if(in_array($resource_id, array('708'))) { //Environments EOL resource
 elseif($resource_id == "wikipedia_en_traits_tmp2") $resource_id = "wikipedia_en_traits_tmp3";   //Wikipedia Eng Traits
 elseif($resource_id == "TreatmentBank_ENV")        $resource_id = "TreatmentBank_ENV_01";       //TreatmentBank
 elseif($resource_id == "26_delta")                 $resource_id = "26_delta_new";               //WoRMS
+elseif($resource_id == "AntWeb_ENV_2")             $resource_id = "AntWeb_ENV_3";               //AntWeb
+
 /* OBSOLETE: we now have new Textmining Strings
 elseif($resource_id == "21_ENV") $resource_id = "21_cleaned_MoF_habitat";   //AmphibiaWeb REVERTED back to old state - https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=66801&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66801
 */
@@ -62,7 +64,7 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
         $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon', 
                                    'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
     }
-    elseif(in_array($resource_id, array('26_delta_new', '21_cleaned_MoF_habitat', '22_cleaned_MoF_habitat', '24_cleaned_MoF_habitat'))) {
+    elseif(in_array($resource_id, array('26_delta_new', '21_cleaned_MoF_habitat', '22_cleaned_MoF_habitat', '24_cleaned_MoF_habitat', 'AntWeb_ENV_3'))) {
         $preferred_rowtypes = array();
         $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
     }

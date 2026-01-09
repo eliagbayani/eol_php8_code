@@ -589,6 +589,14 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                     // */
 
                 }
+
+                // /* New: needed validations
+                if($class == "document") { //if object is text type then description cannot be blank.
+                    $this->debug[$this->resource_id.' Titlez'][$o->title] = '';
+                    if(!$o->description && $o->type == 'http://purl.org/dc/dcmitype/Text') continue;
+                }
+                // */
+
                 $this->archive_builder->write_object_to_file($o);
             }
         }

@@ -1694,46 +1694,26 @@ class Annotator2EOLAPI extends Functions_Annotator
         
         // /* New 2026: can be for all resources
         if($this->param['resource_id'] == '617_ENV') {
-            $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path(80); //local 80.tar.gz
+            $dwca_url = Functions::get_resource_url_path(80); //local 80.tar.gz
         }
         elseif($this->param['resource_id'] == '26_ENV') {
-            $this->DwCA_URLs[$resource_name] = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/26_meta_recoded.tar.gz'; //bec. record is private in OpenData.eol.org
-            $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path('26_meta_recoded'); //local 26_meta_recoded.tar.gz
+            // $dwca_url = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/26_meta_recoded.tar.gz'; //bec. record is private in OpenData.eol.org
+            $dwca_url = Functions::get_resource_url_path('26_meta_recoded'); //local 26_meta_recoded.tar.gz
         }
         elseif($this->param['resource_id'] == 'AntWeb_ENV') {
-            $this->DwCA_URLs[$resource_name] = Functions::get_resource_url_path('24_pre_ENV'); //local 24_pre_ENV.tar.gz
+            $dwca_url = Functions::get_resource_url_path('24_pre_ENV'); //local 24_pre_ENV.tar.gz
         }
         else { //rest goes here...
             $tmp = str_replace("_ENV", "", $this->param['resource_id']);
             $dwca_url = Functions::get_resource_url_path($tmp); //local tar.gz will be used
-            echo "\nC. DwCA URL: $dwca_url\n".$this->param['resource_id']."\n";
-            if(Functions::ping_v2($dwca_url)) $this->DwCA_URLs[$resource_name] = $dwca_url;
-            else exit("\nDwCA not found [$resource_name][$dwca_url]\n");
         }
         // */
+        echo "\nC. DwCA URL: $dwca_url\n".$this->param['resource_id']."\n";
+        if(Functions::ping_v2($dwca_url)) $this->DwCA_URLs[$resource_name] = $dwca_url;
+        else exit("\nDwCA not found [$resource_name][$dwca_url]\n");
+
         print_r($this->DwCA_URLs);
         return;
-        /* Used for the longest time. Working but not anymore.
-        echo "\nresource_name is: [$resource_name]\n";
-        if($dwca_url = self::get_opendata_dwca_url($resource_name)) {
-            // based here:
-            // $this->DwCA_URLs['AmphibiaWeb text'] = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/21.tar.gz';
-            echo "\nA. DwCA URL: [$dwca_url]\n";
-            $this->DwCA_URLs[$resource_name] = $dwca_url;
-            print_r($this->DwCA_URLs);
-        }
-        else {
-            $tmp = str_replace("_ENV", "", $this->param['resource_id']);
-            if(Functions::is_production()) $dwca_url = "https://editors.eol.org/eol_php_code/applications/content_server/resources/".$tmp.".tar.gz";
-            else $dwca_url = Functions::get_resource_url_path($tmp); //new
-            
-            echo "\nB. DwCA URL: $dwca_url\n".$this->param['resource_id']."\n";
-            if(Functions::ping_v2($dwca_url)) {
-                $this->DwCA_URLs[$resource_name] = $dwca_url;
-                print_r($this->DwCA_URLs);
-            }
-            else exit("\nOpenData resource not found [$resource_name]\n");
-        }*/
     }
     private function noParentTerms_less_entities_file()
     {   echo "\nCleaning noParentTerms...\n";

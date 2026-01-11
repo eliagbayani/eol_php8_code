@@ -23,8 +23,8 @@ class GenerateCSV_4Neo4j
     }
     function assemble_data($resource_id) 
     {
-        $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
-        $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go
+        // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
+        $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources
 
         require_library('connectors/ResourceUtility');
         $func = new ResourceUtility(false, $resource_id);

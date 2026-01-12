@@ -62,11 +62,19 @@ class TraitAnnotatorAPI
     }
     private function find_needle_from_haystack($needle, $haystack, $predicate)
     {
+        // /* new Jan 12, 2026 - important
+        $haystack = html_entity_decode($haystack, ENT_QUOTES | ENT_HTML5, 'UTF-8'); //converts string "&ndash;" to "-"
+        $haystack = mb_convert_encoding($haystack, "UTF-8", mb_detect_encoding($haystack));
+        // */
         $position = strpos($haystack, $needle);
         if ($position !== false) {
             // echo "\nSubstring ($needle) found at position: " . $position; //good debug
             if(!self::boundary_chars_are_valid_YN($position, $needle, $haystack)) return;
-            if($URIs = $this->keyword_uri[$predicate][$needle]) {
+            if($GLOBALS['ENV_DEBUG']) {
+                echo "\npredicate: [$predicate]\n";
+                echo "\nneedle: [$needle]\n";
+            }
+            if($URIs = $this->keyword_uri[$predicate][$needle]) { //echo "\nURIs: "; print_r($URIs);
                 foreach($URIs as $uri) {
                     $this->results['data'][] = array('id' => $uri, 'lbl' => $needle, 'context' => self::format_context($needle, $haystack), 
                         'ontology' => $predicate, 'measurementType' => $this->uri_predicate[$uri]);

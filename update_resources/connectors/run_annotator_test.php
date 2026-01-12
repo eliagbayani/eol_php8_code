@@ -61,6 +61,10 @@ $descs[] = "ser.001 do not usually enter brackish water and mostly montane .[12]
 $descs[] = "The lion lives in may different forests.";
 // removed 'meadow'; added 'alpine meadow' and 'sea grass meadow'
 $descs[] = "The lion lives near alpine meadow and sometimes other sea grass meadows.";
+// &ndash; 
+$descs[] = "HW 0.53&ndash;0.59 (n=5); shallowly and 16 above evenly concave, with";
+$descs[] = "HW 0.53-0.59 (n=5); shallowly and 16 above evenly concave, with";
+$descs[] = "HW 0.53-0.59 (n=5); shallowly and 16 above evenly con-cave, with";
 
 /* un-comment this block to test 1 record
 $descs = array();
@@ -150,7 +154,10 @@ foreach($IDs as $resource_id) {
             $q[24] = array('s' => "forests-ENVO_01000174->RO_0002303");
             // removed 'meadow'; added 'alpine meadow' and 'sea grass meadow'
             $q[25] = array('s' => "alpine meadow-ENVO_01000340->RO_0002303|alpine meadow-ENVO_01000194->RO_0002303|sea grass meadows-ENVO_01000059->RO_0002303");
-
+            // &ndash;
+            $q[26] = array('s' => "");
+            $q[27] = array('s' => "");
+            $q[28] = array('s' => "cave-ENVO_00000067->RO_0002303");
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
@@ -200,7 +207,10 @@ foreach($IDs as $resource_id) {
         if($i == 24) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         // removed 'meadow'; added 'alpine meadow' and 'sea grass meadow'
         if($i == 25) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        
+        // &ndash;
+        if($i == 26) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 27) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }        
+        if($i == 28) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }        
 
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";

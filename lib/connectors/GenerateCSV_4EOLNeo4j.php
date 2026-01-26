@@ -39,15 +39,17 @@ class GenerateCSV_4EOLNeo4j
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ----- start Jan 27, 2026
-        // step 1: generate_taxonID_info = all taxa with EOLid
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];  self::process_table($meta, 'generate_taxonID_info');
-
+        // Step 1: generate Page node; parent edge
+        // step 1a: generate_taxonID_info = all taxa with EOLid
+        $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        self::process_table($taxon_meta, 'generate_taxonID_info');
+        self::prepare_PageNode_csv($taxon_meta);
+        self::prepare_ParentEdge_csv($taxon_meta);
 
         //    ----- end Jan 27, 2026 */
 
 
         /* copied template
-        self::prepare_taxa_csv($tables);
 
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];  self::process_table($meta, 'build_occurrence_info');
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];  self::process_table($meta, 'build_taxon_info');
@@ -101,7 +103,7 @@ class GenerateCSV_4EOLNeo4j
 
             edges/metadata.csv
             */
-            if($what == 'generate_taxonID_info') {
+            if($what == 'generate_taxonID_info') { //step 1a
                 /*Array(
                     [taxonID] => 44475
                     [source] => https://www.wikidata.org/wiki/Q25243
@@ -117,9 +119,20 @@ class GenerateCSV_4EOLNeo4j
                 )*/
                 if($rec['taxonID'] == $rec['EOLid']) $this->taxonID_info[$rec['taxonID']] = '';
             }
+            if($what == 'generate-PageNode-csv') {
+                if(isset($this->taxonID_info[$rec['taxonID']])) self::generate_PageNode_row($rec);
+            }
+            if($what == 'generate-ParentEdge-csv') {
+                $taxonID = $rec['taxonID'];
+                if(isset($this->taxonID_info[$taxonID])) {
+                    if($parentNameUsageID = $rec['parentNameUsageID']) {
+                        if(isset($this->taxonID_info[$parentNameUsageID])) self::generate_ParentEdge_row($rec);
+                    }
+                }
+            }
+
 
             /* copied template
-            if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
             elseif($what == 'generate-measurements-csv') {
                 if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
                     self::generate_measurements_csv($rec);
@@ -133,34 +146,30 @@ class GenerateCSV_4EOLNeo4j
             */
         }
     }
-    private function generate_taxa_csv($rec)
-    {   /*Array(
-            [taxonID] => COL:74YCG
-            [furtherInformationURL] => https://www.catalogueoflife.org/data/taxon/74YCG
-            [referenceID] => 
-            [parentNameUsageID] => 
-            [scientificName] => Orthosia pacifica
-            [namePublishedIn] => 
-            [higherClassification] => Animalia|Arthropoda|Insecta|Lepidoptera|Noctuidae|Orthosia|
-            [kingdom] => Animalia
-            [phylum] => Arthropoda
-            [class] => Insecta
-            [order] => Lepidoptera
-            [family] => Noctuidae
-            [genus] => Orthosia
-            [taxonRank] => species
-            [taxonomicStatus] => 
-            [taxonRemarks] => 
-            [canonicalName] => Orthosia pacifica
-            [EOLid] => 465299
-        )*/
-        // $csv = '".$rec['taxonID'].",".$rec['scientificName'].",".$rec['taxonRank'].",".$rec['higherClassification']."';
-        $fields = array('taxonID', 'vernacularName', 'scientificName', 'taxonRank', 'higherClassification');
-        // print_r($rec); print_r($fields); exit;
+    private function generate_PageNode_row($rec)
+    {   /*  nodes/page.csv
+            page_id:ID(Page-ID),canonical,rank,:LABEL
+            gadus_m,Gadus morhua,species,page
+            chanos_c,Chanos chanos,species,page
+            gadus,Gadus,genus,page
+            chanos,Chanos,genus,page
+        */
+        $fields = array('taxonID', 'canonicalName', 'taxonRank');
         $csv = self::format_csv_entry($rec, $fields);
-        $csv .= 'Taxon';
+        $csv .= 'Page'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
     }
+    private function generate_ParentEdge_row($rec)
+    {   /*  edges/parent.csv
+            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+            gadus_m,gadus,parent
+            chanos_c,chanos,parent */
+        $fields = array('taxonID', 'parentNameUsageID');
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'PARENT'; //Type are preferred to be singular nouns
+        fwrite($this->WRITE, $csv."\n");
+    }
+
     private function generate_measurements_csv($rec)
     {
         /*Array(
@@ -407,13 +416,43 @@ class GenerateCSV_4EOLNeo4j
             fclose($this->WRITE);
         }
     }
-    private function prepare_taxa_csv($tables)
-    {
-        $this->WRITE = Functions::file_open($this->path.'/taxa.csv', 'w');
-        fwrite($this->WRITE, "taxonID:ID(Taxon){label:Taxon},vernacularName,scientificName,taxonRank,higherClassification,:LABEL"."\n");
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        self::process_table($meta, 'generate-taxa-csv');
+    private function prepare_PageNode_csv($meta)
+    {   /*  Array(
+                [taxonID] => 44475
+                [source] => https://www.wikidata.org/wiki/Q25243
+                [parentNameUsageID] => Q4085525
+                [scientificName] => Betula
+                [higherClassification] => Biota|Eukaryota|Plantae|Viridiplantae|Streptophyta|Embryophytes|Tracheophytes|Spermatophytes|Magnoliophyta|Magnoliopsida|Hamamelididae|Juglandanae|Corylales|Betulaceae|Betuloideae|
+                [taxonRank] => genus
+                [scientificNameAuthorship] => Carl Linnaeus, 1753
+                [vernacularName] => birches
+                [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
+                [canonicalName] => Betula
+                [EOLid] => 44475
+            )
+            nodes/page.csv
+            page_id:ID(Page-ID),canonical,rank,:LABEL
+            gadus_m,Gadus morhua,species,page
+            chanos_c,Chanos chanos,species,page
+            gadus,Gadus,genus,page
+            chanos,Chanos,genus,page
+        */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
+        fwrite($this->WRITE, "page_id:ID(Page-ID){label:Pages},canonical,rank,:LABEL"."\n");
+        self::process_table($meta, 'generate-PageNode-csv');
         fclose($this->WRITE);
+    }
+    private function prepare_ParentEdge_csv($meta)
+    {   /*  edges/parent.csv
+            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+            gadus_m,gadus,parent
+            chanos_c,chanos,parent
+        */
+        $this->WRITE = Functions::file_open($this->path.'/edges/Parent.csv', 'w');
+        fwrite($this->WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        self::process_table($meta, 'generate-ParentEdge-csv');
+        fclose($this->WRITE);
+
     }
     private function prepare_measurements_csv($tables)
     {
@@ -467,6 +506,8 @@ class GenerateCSV_4EOLNeo4j
         if(is_dir($path)) recursive_rmdir($path);
         mkdir($path);
         $this->path = $path;
+        $temp_dir = $path.'/nodes'; mkdir($temp_dir);
+        $temp_dir = $path.'/edges'; mkdir($temp_dir);
     }
     private function format_csv_entry($rec, $fields)
     {

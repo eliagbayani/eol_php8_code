@@ -34,6 +34,7 @@ class DHConnLib
         $this->taxon_ids = array();
         $this->debug = array();
         if (Functions::is_production()) { //not yet run in production...
+            exit("\nERROR: Not yet setup in production!\n");
             $this->download_options = array(
                 'cache_path'         => '/extra/active_DH_cache/',
                 'download_wait_time' => 250000,

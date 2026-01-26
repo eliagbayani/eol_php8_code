@@ -39,7 +39,10 @@ class GenerateCSV_4EOLNeo4j
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ----- start Jan 27, 2026
-        
+        // step 1: generate_taxonID_info = all taxa with EOLid
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];  self::process_table($meta, 'generate_taxonID_info');
+
+
         //    ----- end Jan 27, 2026 */
 
 
@@ -80,6 +83,42 @@ class GenerateCSV_4EOLNeo4j
                 $k++;
             }
             // print_r($rec); //exit;
+            /*
+            nodes/page.csv
+            page_id:ID(Page-ID),canonical,rank,:LABEL
+            gadus_m,Gadus morhua,species,page
+            chanos_c,Chanos chanos,species,page
+            gadus,Gadus,genus,page
+            chanos,Chanos,genus,page
+
+            edges/parent.csv
+            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+            gadus_m,gadus,parent
+            chanos_c,chanos,parent
+
+            node/trait.csv
+            eol_pk:ID(Trait-ID),resource_pk:string,citation:string,source
+
+            edges/metadata.csv
+            */
+            if($what == 'generate_taxonID_info') {
+                /*Array(
+                    [taxonID] => 44475
+                    [source] => https://www.wikidata.org/wiki/Q25243
+                    [parentNameUsageID] => Q4085525
+                    [scientificName] => Betula
+                    [higherClassification] => Biota|Eukaryota|Plantae|Viridiplantae|Streptophyta|Embryophytes|Tracheophytes|Spermatophytes|Magnoliophyta|Magnoliopsida|Hamamelididae|Juglandanae|Corylales|Betulaceae|Betuloideae|
+                    [taxonRank] => genus
+                    [scientificNameAuthorship] => Carl Linnaeus, 1753
+                    [vernacularName] => birches
+                    [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
+                    [canonicalName] => Betula
+                    [EOLid] => 44475
+                )*/
+                if($rec['taxonID'] == $rec['EOLid']) $this->taxonID_info[$rec['taxonID']] = '';
+            }
+
+            /* copied template
             if($what == 'generate-taxa-csv') self::generate_taxa_csv($rec);
             elseif($what == 'generate-measurements-csv') {
                 if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
@@ -91,6 +130,7 @@ class GenerateCSV_4EOLNeo4j
             elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
             elseif($what == 'build_taxon_info') self::build_taxon_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
+            */
         }
     }
     private function generate_taxa_csv($rec)

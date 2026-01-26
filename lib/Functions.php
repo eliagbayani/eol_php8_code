@@ -365,7 +365,7 @@ class Functions
     public static function is_within_folders_where_file_change_is_allowed($file)
     {
         $allowed_folders = array('eol_php_code/tmp/', 'eol_php_code/temp/', 'eol_php_code/public/tmp/', 'eol_php_code/applications/content_server/resources/', 'eol_php_code/applications/content_server/tmp', '/opt/resources'
-        , '/Volumes/AKiTiO4/d_w_h/', 'eol_php_code/applications/content_server/resources_2/', '/Volumes/AKiTiO4/eol_php_code_tmp/', '/extra/eol_php_code_tmp/', 'temp/'
+        , '/Volumes/Crucial_4TB/d_w_h/', 'eol_php_code/applications/content_server/resources_2/', '/Volumes/AKiTiO4/eol_php_code_tmp/', '/extra/eol_php_code_tmp/', 'temp/'
         , 'eol_php_code/applications/content_server/resources_3/',
           'eol_php8_code/applications/content_server/'); //allowed folders so far; we can add more.
         foreach($allowed_folders as $folder) {

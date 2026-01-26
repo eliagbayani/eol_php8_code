@@ -21,14 +21,14 @@ class DH_v1_1_taxonomicStatus_synonyms
             $this->download_options = array(
                 'cache_path'         => '/Volumes/AKiTiO4/eol_cache_smasher/',
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
-            $this->main_path          = "/Volumes/AKiTiO4/d_w_h/TRAM-808/";
-            $this->main_path_TRAM_809 = "/Volumes/AKiTiO4/d_w_h/TRAM-809/";
+            $this->main_path          = "/Volumes/Crucial_4TB/d_w_h/TRAM-808/";
+            $this->main_path_TRAM_809 = "/Volumes/Crucial_4TB/d_w_h/TRAM-809/";
             // $this->file['new DH'] = $this->main_path."DH_v1_1_postproc/taxon.tab";
             // $this->file['old DH'] = $this->main_path."eoldynamichierarchywithlandmarks/taxa.txt";
         }
         $this->mysqli =& $GLOBALS['db_connection'];
         
-        $sources_path = "/Volumes/AKiTiO4/d_w_h/2019_04/"; //new - TRAM-805 - 2nd Smasher run
+        $sources_path = "/Volumes/Crucial_4TB/d_w_h/2019_04/"; //new - TRAM-805 - 2nd Smasher run
         $this->sh['NCBI']['source']     = $sources_path."/NCBI_Taxonomy_Harvest_DH/";
         $this->sh['NCBI']['syn_status'] = 'synonym';
         
@@ -183,8 +183,8 @@ class DH_v1_1_taxonomicStatus_synonyms
         self::show_totals($source);
         self::show_totals($file_append);
         /* as of May 29
-        /Volumes/AKiTiO4/d_w_h/TRAM-809//new_DH_with_synonyms.txt: [4011067]
-        /Volumes/AKiTiO4/d_w_h/TRAM-809//new_DH_with_landmarks.txt: [4011067]
+        /Volumes/Crucial_4TB/d_w_h/TRAM-809//new_DH_with_synonyms.txt: [4011067]
+        /Volumes/Crucial_4TB/d_w_h/TRAM-809//new_DH_with_landmarks.txt: [4011067]
         */
     }
     function step_6() //6. Deduplicate synonyms
@@ -210,8 +210,8 @@ class DH_v1_1_taxonomicStatus_synonyms
         self::regenerate_synonyms_without_duplicates();
         /* results:
         Synonyms to be discarded: 286
-        /Volumes/AKiTiO4/d_w_h/TRAM-809//synonyms.txt: [1682373]
-        /Volumes/AKiTiO4/d_w_h/TRAM-809//synonyms_deduplicated.txt: [1682088]
+        /Volumes/Crucial_4TB/d_w_h/TRAM-809//synonyms.txt: [1682373]
+        /Volumes/Crucial_4TB/d_w_h/TRAM-809//synonyms_deduplicated.txt: [1682088]
         Delete process count: [286]
         */
     }
@@ -236,9 +236,9 @@ class DH_v1_1_taxonomicStatus_synonyms
         self::show_totals($file_append);    //new_DH_with_synonyms.txt
         /* as of May 29, 2019
         -Start adding synonyms to final DH-
-        /Volumes/AKiTiO4/d_w_h/TRAM-809//new_DH_taxonStatus.txt: [2328981]
-        /Volumes/AKiTiO4/d_w_h/TRAM-809//synonyms_minted.txt: [1682087]
-        /Volumes/AKiTiO4/d_w_h/TRAM-809//new_DH_with_synonyms.txt: [4011067]
+        /Volumes/Crucial_4TB/d_w_h/TRAM-809//new_DH_taxonStatus.txt: [2328981]
+        /Volumes/Crucial_4TB/d_w_h/TRAM-809//synonyms_minted.txt: [1682087]
+        /Volumes/Crucial_4TB/d_w_h/TRAM-809//new_DH_with_synonyms.txt: [4011067]
         */
     }
     private function append_file($source, $WRITE)
@@ -508,9 +508,9 @@ class DH_v1_1_taxonomicStatus_synonyms
         fclose($this->WRITE);
         self::show_totals($file_append);
         /*  as of May 29
-            /Volumes/AKiTiO4/d_w_h/TRAM-809//synonyms.txt: [1681122]
+            /Volumes/Crucial_4TB/d_w_h/TRAM-809//synonyms.txt: [1681122]
             1251
-            /Volumes/AKiTiO4/d_w_h/TRAM-809//synonyms.txt: [1682373]
+            /Volumes/Crucial_4TB/d_w_h/TRAM-809//synonyms.txt: [1682373]
         */
     }
     private function get_manually_curated_syns() //sheet found here: TRAM-809

@@ -10,28 +10,28 @@ class SmasherLastAPI
             $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
             $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));
         }
-        $this->path['trunk'] = '/Volumes/AKiTiO4/d_w_h/2021_02/dhtrunk/taxon.txt';
-        $this->path['ictv'] = '/Volumes/AKiTiO4/d_w_h/2021_02/ICTV-virus_taxonomy-with-higherClassification/taxon.tab';
-        $this->path['WOR'] = '/Volumes/AKiTiO4/d_w_h/2021_02/WoRMS_DH/taxon.tab';
-        $this->path['COL'] = '/Volumes/AKiTiO4/d_w_h/2021_02/Catalogue_of_Life_DH_2019/taxon.tab';
-        $this->path['ANN'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eolannelidapatch/taxon.txt';
-        $this->path['MIP'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eolmicrobespatch/taxa.txt';
-        $this->path['NCBI'] = '/Volumes/AKiTiO4/d_w_h/2021_02/NCBI_Taxonomy_Harvest_DH/taxon.tab';
-        $this->path['dino'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eoldinosauriapatch/taxa.txt';
-        $this->path['IOC'] = '/Volumes/AKiTiO4/d_w_h/2021_02/ioc-birdlist/taxon.tab';
-        $this->path['ODO'] = '/Volumes/AKiTiO4/d_w_h/2021_02/worldodonatalist/taxa.txt';
-        $this->path['BOM'] = '/Volumes/AKiTiO4/d_w_h/2021_02/kitchingetal2018/taxa.txt';
-        $this->path['SPR'] = '/Volumes/AKiTiO4/d_w_h/2021_02/Collembola_DH/taxon.tab';
-        $this->path['ITIS'] = '/Volumes/AKiTiO4/d_w_h/2021_02/itis_2020-12-01/taxon.tab';
-        $this->path['MOL'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eolmolluscapatch/taxa.txt';
-        $this->path['LIZ'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eollizardspatch/EOLlizardPatch.txt';
-        $this->path['MAM'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eolmammalpatch/taxa.txt';
-        $this->path['ONY'] = '/Volumes/AKiTiO4/d_w_h/2021_02/onychophora/taxa.txt';
-        $this->path['TRI'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eoltrilobitespatch/taxa.txt';
-        $this->path['VSP'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eolvespoideapatch/taxa.txt';
-        $this->path['ERE'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eoldynamichierarchyerebidaepatch/taxon.txt';
-        $this->path['COC'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eolcoccinelloideapatch/taxa.txt';
-        $this->path['CRU'] = '/Volumes/AKiTiO4/d_w_h/2021_02/eolcrustaceapatch/taxa.txt';
+        $this->path['trunk'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/dhtrunk/taxon.txt';
+        $this->path['ictv'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/ICTV-virus_taxonomy-with-higherClassification/taxon.tab';
+        $this->path['WOR'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/WoRMS_DH/taxon.tab';
+        $this->path['COL'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/Catalogue_of_Life_DH_2019/taxon.tab';
+        $this->path['ANN'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eolannelidapatch/taxon.txt';
+        $this->path['MIP'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eolmicrobespatch/taxa.txt';
+        $this->path['NCBI'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/NCBI_Taxonomy_Harvest_DH/taxon.tab';
+        $this->path['dino'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eoldinosauriapatch/taxa.txt';
+        $this->path['IOC'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/ioc-birdlist/taxon.tab';
+        $this->path['ODO'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/worldodonatalist/taxa.txt';
+        $this->path['BOM'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/kitchingetal2018/taxa.txt';
+        $this->path['SPR'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/Collembola_DH/taxon.tab';
+        $this->path['ITIS'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/itis_2020-12-01/taxon.tab';
+        $this->path['MOL'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eolmolluscapatch/taxa.txt';
+        $this->path['LIZ'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eollizardspatch/EOLlizardPatch.txt';
+        $this->path['MAM'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eolmammalpatch/taxa.txt';
+        $this->path['ONY'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/onychophora/taxa.txt';
+        $this->path['TRI'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eoltrilobitespatch/taxa.txt';
+        $this->path['VSP'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eolvespoideapatch/taxa.txt';
+        $this->path['ERE'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eoldynamichierarchyerebidaepatch/taxon.txt';
+        $this->path['COC'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eolcoccinelloideapatch/taxa.txt';
+        $this->path['CRU'] = '/Volumes/Crucial_4TB/d_w_h/2021_02/eolcrustaceapatch/taxa.txt';
         $this->path['COL_2'] = '/Volumes/AKiTiO4/web/cp/COL/2019-annual/taxa.txt';                  // Catalogue_of_Life_DH_2019
         $this->path['SPR_2'] = '/Volumes/AKiTiO4/web/cp/COL/2020-08-01-archive-complete/taxa.txt';  // Collembola_DH
     }
@@ -67,8 +67,8 @@ class SmasherLastAPI
         */
         
         // /*
-        $source = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/taxonomy.tsv"; //results_2021_02_24.zip
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy.tsv";
+        $source = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/taxonomy.tsv"; //results_2021_02_24.zip
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy.tsv";
         $WRITE = Functions::file_open($destination, "w");
         $i = 0;
         foreach(new FileIterator($source) as $line => $row) { $i++;
@@ -163,7 +163,7 @@ class SmasherLastAPI
         }
         
         /* first loop */
-        $source = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy.tsv";
+        $source = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy.tsv";
         $i = 0;
         foreach(new FileIterator($source) as $line => $row) { $i++;
             $rec = explode("\t", $row);
@@ -207,8 +207,8 @@ class SmasherLastAPI
         }
         /* end first loop */
         /* 2nd loop */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_2.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_2.tsv";
         $WRITE = Functions::file_open($destination, "w");
         $i = 0;
         foreach(new FileIterator($source) as $line => $row) { $i++;
@@ -309,8 +309,8 @@ class SmasherLastAPI
             }
         }
         // print_r($info); exit;
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_2.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_3.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_2.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_3.tsv";
         $WRITE = Functions::file_open($destination, "w");
         $i = 0;
         foreach(new FileIterator($source) as $line => $row) { $i++;
@@ -417,8 +417,8 @@ class SmasherLastAPI
         Please delete all of these taxa and their children. Some of the children got moved to a new parent.
         To avoid deleting these, please delete taxa only after completing the previous modifications.
         */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_3.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_4.tsv"; //final version
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_3.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_4.tsv"; //final version
 
         $parent_ids = self::get_uids_from_sheet4("Delete DH2 taxa!A1:I131");
         // $parent_ids = array('-941485'); //this will come from the sheet4     //-992881           forced value
@@ -580,8 +580,8 @@ class SmasherLastAPI
     */
     function July7_num_1_2()
     {
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_4.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_5.tsv"; //final version
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_4.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_5.tsv"; //final version
         $WRITE = Functions::file_open($destination, "w");
         $i = 0;
         foreach(new FileIterator($source) as $line => $row) { $i++;
@@ -642,8 +642,8 @@ class SmasherLastAPI
     {
         /*And there are a bunch more duplicates and dead-end branches to delete in the Delete #2 sheet of 
         the Fix DH2 smasher doc: https://docs.google.com/spreadsheets/d/1D-AYca8hk3WCgAoslL15DvrJD4XD7NXT0d_tPdKxxVQ/edit#gid=1514419992*/
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_5.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy_6.tsv"; //final version, supposedly
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_5.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy_6.tsv"; //final version, supposedly
 
         $parent_ids = self::get_uids_from_sheet4("Delete #2!A1:I734");
         // $parent_ids = array('xxx');            forced value
@@ -693,8 +693,8 @@ class SmasherLastAPI
         ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         There’s a new ‘Remove dead-end branches’ worksheet in the Fix DH2 smasher workbook: https://docs.google.com/spreadsheets/d/1D-AYca8hk3WCgAoslL15DvrJD4XD7NXT0d_tPdKxxVQ/edit#gid=798495355
         Please remove all of these taxa from the taxonomy file. They are all childless. */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_993/final_taxonomy_6.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_993/final_taxonomy_7.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_993/final_taxonomy_6.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_993/final_taxonomy_7.tsv";
         // /* orig
         $parent_ids = self::get_uids_from_sheet4("Remove dead-end branches!A1:H731"); // print_r($parent_ids); exit;
         $parent_ids2 = self::get_uids_from_sheet4("dead-end branches2!A1:H13"); //print_r($parent_ids2); exit;
@@ -775,8 +775,8 @@ class SmasherLastAPI
         The canonicalName value should be the same as scientificName, 
         the taxonRank should be blank, the datasetID should be trunk.
         */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_993/final_taxonomy_7.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_993/final_taxonomy_8.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_993/final_taxonomy_7.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_993/final_taxonomy_8.tsv";
 
         // /* orig
         $ret = self::get_uids_from_sheet4("containers!A1:G129", 'special'); 
@@ -874,7 +874,7 @@ class SmasherLastAPI
     }
     function parse_source_Smasher_file()
     {
-        $source = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_993/final_taxonomy_8.tsv"; $i = 0;
+        $source = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_993/final_taxonomy_8.tsv"; $i = 0;
         foreach(new FileIterator($source) as $line => $row) { $i++; if(($i % 200000) == 0) echo "\n".number_format($i);
             $rec = explode("\t", $row);
             if($i == 1) {

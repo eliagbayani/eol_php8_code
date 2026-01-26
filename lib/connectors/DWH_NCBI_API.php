@@ -45,7 +45,7 @@ ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/        (for desktop access)
 https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/      (preferably for connector use)
 *Right now there is no auto-download of this dump. Both local and eol-archive will manually use 'wget' to download the dump
 *For eol-archive, follow /extra/other_files/DWH/TRAM-795/readmeli.txt for instructions...
-*For local, download dump here: /Volumes/AKiTiO4/d_w_h/TRAM-795/ ... then rename to desired month.
+*For local, download dump here: /Volumes/Crucial_4TB/d_w_h/TRAM-795/ ... then rename to desired month.
 */
 class DWH_NCBI_API
 {
@@ -59,7 +59,7 @@ class DWH_NCBI_API
         $this->download_options = array('resource_id' => $folder, 'download_wait_time' => 1000000, 'timeout' => 60*2, 'download_attempts' => 1, 'cache' => 1); // 'expire_seconds' => 0
         $this->debug = array();
         if(Functions::is_production()) $dump_path = '/extra/other_files/DWH/TRAM-795/'; //read readmeli.txt in eol-archive for more info...
-        else                           $dump_path = '/Volumes/AKiTiO4/d_w_h/TRAM-795/';
+        else                           $dump_path = '/Volumes/Crucial_4TB/d_w_h/TRAM-795/';
         $date_folder = 'taxdump_2020_02_03';
         $date_folder = 'taxdump_2020_09_20';
         $date_folder = 'taxdump_2022_03_16'; //latest

@@ -23,7 +23,7 @@ class DH_v1_1_postProcessing
             $this->download_options = array(
                 'cache_path'         => '/Volumes/AKiTiO4/eol_cache_smasher/',
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/TRAM-807/";
+            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/TRAM-807/";
             // $this->main_path = "/Users/eagbayani/Sites/TRAM-807/"; //for MacBook
         }
         $this->unclassified_parent_id_increments = 0;

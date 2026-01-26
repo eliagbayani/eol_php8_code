@@ -13,7 +13,7 @@ class DH_v21_TRAM_996
         else {
             $this->download_options = array(
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/TRAM-996/";
+            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/TRAM-996/";
         }
 
         $this->tsv['DH21_current_old'] = $this->main_path."/data/dh2.1mar2022/taxon.tab";
@@ -496,8 +496,8 @@ class DH_v21_TRAM_996
         self::parse_tsv($this->tsv['Consolidated_Syn_4'], 'check_taxonID_if_unique', false, '');
         Functions::show_totals($this->tsv['Consolidated_Syn_4']);
         // */
-        // /Volumes/AKiTiO4/d_w_h/TRAM-996//synonyms_consolidated_4.txt: [1,599,038] as of Mar 24, 2022
-        // /Volumes/AKiTiO4/d_w_h/TRAM-996//synonyms_consolidated_4.txt: [1,599,028] as of Mar 24, 2022, after removing blank rows.
+        // /Volumes/Crucial_4TB/d_w_h/TRAM-996//synonyms_consolidated_4.txt: [1,599,038] as of Mar 24, 2022
+        // /Volumes/Crucial_4TB/d_w_h/TRAM-996//synonyms_consolidated_4.txt: [1,599,028] as of Mar 24, 2022, after removing blank rows.
     }
     private function record_combo_hits($source_file)
     {

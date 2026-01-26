@@ -2873,7 +2873,7 @@ class SummaryDataResourcesAllAPI
                           'tables' => Array('taxa' => 'taxa.txt'));
             */
             /* //latest active DH ver.
-            $info = Array('archive_path' => '/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/',
+            $info = Array('archive_path' => '/Volumes/Crucial_4TB/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/',
                           'temp_dir' => '/opt/homebrew/var/www/eol_php_code/tmp/xxx/',
                           'tables' => Array('taxa' => 'taxon.tab'));
             */

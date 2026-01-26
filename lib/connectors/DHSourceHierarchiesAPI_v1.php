@@ -27,9 +27,9 @@ class DHSourceHierarchiesAPI
                 'cache_path'         => '/Volumes/AKiTiO4/eol_cache_smasher/', //new, started from blank
                 // 'cache_path'         => '/Volumes/Thunderbolt4/z backup of AKiTiO4/eol_cache_smasher/',
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false); //false
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/dynamic_working_hierarchy-master/";
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/2018_06/"; //old - initial runs
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/2018_12/"; //new - TRAM-800
+            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/dynamic_working_hierarchy-master/";
+            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/2018_06/"; //old - initial runs
+            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/2018_12/"; //new - TRAM-800
         }
         /* Functions::lookup_with_cache($this->gnparser.urlencode($rec['scientificName']), $this->smasher_download_options); */
         

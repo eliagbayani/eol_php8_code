@@ -15,7 +15,7 @@ class DH_v21_TRAM_995
         else {
             $this->download_options = array(
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/TRAM-995/";
+            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/TRAM-995/";
         }
         $this->tsv['DH11_Jen'] = $this->main_path."/dh1_1/DH1_1working.txt";
         $this->tsv['DH21_Jen'] = $this->main_path."/dh2_1/DH2_1working.txt";

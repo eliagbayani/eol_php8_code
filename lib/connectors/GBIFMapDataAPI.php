@@ -49,8 +49,8 @@ class GBIFMapDataAPI
             /* seems not used here but in: GBIFoccurrenceAPI_DwCA.php
             // $this->eol_taxon_concept_names_tab    = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/JRice_tc_ids/taxon_concept_names.tab"; obsolete
             // $this->eol_taxon_concept_names_tab    = "/Volumes/AKiTiO4/other_files/from_OpenData/EOL_dynamic_hierarchyV1Revised/taxa.txt"; //working but old DH ver.
-            $this->eol_taxon_concept_names_tab = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/taxon.tab"; //used for the longest time
-            $this->eol_taxon_concept_names_tab = "/Volumes/AKiTiO4/d_w_h/history/dhv21/taxon.tab";
+            $this->eol_taxon_concept_names_tab = "/Volumes/Crucial_4TB/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/taxon.tab"; //used for the longest time
+            $this->eol_taxon_concept_names_tab = "/Volumes/Crucial_4TB/d_w_h/history/dhv21/taxon.tab";
             */
 
             // $this->occurrence_txt_path['Gadus morhua'] = "/Volumes/AKiTiO4/eol_pub_tmp/google_maps/occurrence_downloads/DwCA/Gadus morhua/occurrence.txt";

@@ -144,8 +144,8 @@ class TextmineKeywordMapAPI
 
 
         /* copied template
-        $source = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/taxonomy.tsv"; //results_2021_02_24.zip
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/test/final_taxonomy.tsv";
+        $source = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/taxonomy.tsv"; //results_2021_02_24.zip
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/test/final_taxonomy.tsv";
         $WRITE = Functions::file_open($destination, "w");
         $i = 0;
         foreach(new FileIterator($source) as $line => $row) { $i++;

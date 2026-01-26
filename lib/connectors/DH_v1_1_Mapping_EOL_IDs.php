@@ -22,7 +22,7 @@ class DH_v1_1_mapping_EOL_IDs
             $this->download_options = array(
                 'cache_path'         => '/Volumes/AKiTiO4/eol_cache_smasher/',
                 'download_wait_time' => 250000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
-            $this->main_path = "/Volumes/AKiTiO4/d_w_h/TRAM-808/";
+            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/TRAM-808/";
             $this->file['new DH'] = $this->main_path."DH_v1_1_postproc/taxon.tab";
             $this->file['old DH'] = $this->main_path."eoldynamichierarchywithlandmarks/taxa.txt";
         }
@@ -32,7 +32,7 @@ class DH_v1_1_mapping_EOL_IDs
     step. manually put JRice's eolpageids.csv to MySQL as well. Created eolpageids.csv.tsv, replace 'comma' with 'tab'.
             $ mysql -u root -p --local-infile DWH;
             to load from txt file:
-            mysql> load data local infile '/Volumes/AKiTiO4/d_w_h/TRAM-808/eolpageids.csv.tsv' into table EOLid_map;
+            mysql> load data local infile '/Volumes/Crucial_4TB/d_w_h/TRAM-808/eolpageids.csv.tsv' into table EOLid_map;
     step. run create_append_text(); --> creates [append_taxonID_source_id_2mysql.txt]
           then saves it to MySQL table [taxonID_source_ids]
     step. run step_1()
@@ -307,7 +307,7 @@ class DH_v1_1_mapping_EOL_IDs
         echo "\n taxonIDs with unigname in taxonomy.tsv: ".count($taxonIDs)."\n"; //exit;
         
         $file_append = $this->main_path."/old_DH_with_higherClassification.txt"; $WRITE = fopen($file_append, "w"); //will overwrite existing
-        $txtfile = '/Volumes/AKiTiO4/d_w_h/TRAM-808/with_higherClassification/old_DH/1558355336.txt'; $i = 0;
+        $txtfile = '/Volumes/Crucial_4TB/d_w_h/TRAM-808/with_higherClassification/old_DH/1558355336.txt'; $i = 0;
         foreach(new FileIterator($txtfile) as $line_number => $line) {
             $i++; if(($i % 200000) == 0) echo "\n".number_format($i)." ";
             $row = explode("\t", $line);
@@ -373,7 +373,7 @@ class DH_v1_1_mapping_EOL_IDs
     private function step4_1()
     {   exit("\nDone already: step4_1()\n");
         $file_append = $this->main_path."/taxonomy_tsv_uniqname.txt"; $WRITE = fopen($file_append, "w"); //will overwrite existing
-        $txtfile = '/Volumes/AKiTiO4/d_w_h/TRAM-807/taxonomy.tsv'; $i = 0;
+        $txtfile = '/Volumes/Crucial_4TB/d_w_h/TRAM-807/taxonomy.tsv'; $i = 0;
         foreach(new FileIterator($txtfile) as $line_number => $line) {
             $i++; if(($i % 200000) == 0) echo "\n".number_format($i)." ";
             if($i == 1) $line = strtolower($line);

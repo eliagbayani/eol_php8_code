@@ -18,7 +18,7 @@ class New_EnvironmentsEOLDataConnector
         }
         else {
             // $this->eol_taxon_concept_names_tab    = "/Volumes/AKiTiO4/other_files/from_OpenData/EOL_dynamic_hierarchyV1Revised/taxa.txt"; //working but old DH ver.
-            $this->eol_taxon_concept_names_tab = "/Volumes/AKiTiO4/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/taxon.tab"; //latest active DH ver.
+            $this->eol_taxon_concept_names_tab = "/Volumes/Crucial_4TB/d_w_h/EOL Dynamic Hierarchy Active Version/DH_v1_1/taxon.tab"; //latest active DH ver.
         }
         $this->debug = array();
     }

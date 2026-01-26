@@ -16,8 +16,8 @@ class SmasherLastAPI_TRAM_994
     {
         /* 1. Transformations for all taxa
         ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/DH_2_1_Jul26/taxon.tab";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_1.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/DH_2_1_Jul26/taxon.tab";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_1.tsv";
         /* start */
         $WRITE = Functions::file_open($destination, "w");
         $i = 0;
@@ -95,7 +95,7 @@ class SmasherLastAPI_TRAM_994
     }
     function generate_descendants_for_Viruses_Bacteria_Archaea()
     {
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_1.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_1.tsv";
         $this->parentID_taxonID = self::get_ids($source);
         echo "\nparentID_taxonID: [".count($this->parentID_taxonID)."]\n";
         
@@ -105,7 +105,7 @@ class SmasherLastAPI_TRAM_994
         foreach($groups as $group => $g) {
             echo "\n-----\n[$group] [".$g['taxonID']."]\n";
             //#####################################################################################################
-            $descendants_file = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/".$group."_descendants.txt";
+            $descendants_file = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/".$group."_descendants.txt";
             if(file_exists($descendants_file)) {
                 $descendant_ids = file($descendants_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
                 $descendant_ids = array_map('trim', $descendant_ids);
@@ -132,7 +132,7 @@ class SmasherLastAPI_TRAM_994
         $groups = array('Viruses', 'Bacteria', 'Archaea');
         foreach($groups as $group) {
             echo "\n-----\n[$group]\n";
-            $descendants_file = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/".$group."_descendants.txt";
+            $descendants_file = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/".$group."_descendants.txt";
             if(file_exists($descendants_file)) {
                 $descendant_ids = file($descendants_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
                 $descendant_ids = array_map('trim', $descendant_ids);
@@ -154,8 +154,8 @@ class SmasherLastAPI_TRAM_994
         The following instructions apply only to descendants of Eukaryota. Please ignore taxa that descend from Viruses, Bacteria, and Archaea.
         Remove the parenthetical subgenus from the canonicalName values of species. Leave them alone in scientificName values.
         Example: Tomopteris (Johnstonella) aloysii-sabaudiae Rosa, 1908 -> Tomopteris aloysii-sabaudiae Rosa, 1908 */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_1.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_2.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_1.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_2.tsv";
 
         //#####################################################################################################
         $non_eukaryote_descendants = self::get_non_eukaryote_descendants();
@@ -271,8 +271,8 @@ class SmasherLastAPI_TRAM_994
         For canonicals of the form Subgenusname, grab the genus (first word) and subgenus (second word in parentheses) from the scientificName value 
         and insert the subgen. term between them:
         Example: Coeloplana (Benthoplana) Fricke & Plante, 1971 -> Coeloplana subgen. Benthoplana */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_2.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_3.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_2.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_3.tsv";
 
         require_library('connectors/SmasherLastAPI');
         $func2 = new SmasherLastAPI(false);
@@ -356,15 +356,15 @@ class SmasherLastAPI_TRAM_994
     }
     function Remove_taxa_with_malformed_canonicalName_values()
     {   
-        $this->REPORT = Functions::file_open("/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/removed_taxa.tsv", "w");
+        $this->REPORT = Functions::file_open("/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/removed_taxa.tsv", "w");
         $headers = array('taxonID', 'scientificName', 'canonicalName', 'taxonRank', 'reason');
         fwrite($this->REPORT, implode("\t", $headers) . "\n"); //saving
         
         /*B. Remove taxa with malformed canonicalName values
         The following instructions apply only to descendants of Eukaryota. Please ignore taxa that descend from Viruses, Bacteria, and Archaea.
         */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_3.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_4.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_3.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_4.tsv";
 
         //#####################################################################################################
         $non_eukaryote_descendants = self::get_non_eukaryote_descendants();
@@ -565,8 +565,8 @@ class SmasherLastAPI_TRAM_994
     function Delete_descendants_of_taxa_from_report()
     {
         /* Delete descendants of taxa from removed_taxa.tsv */
-        $source      = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_4.tsv";
-        $destination = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_5.tsv";
+        $source      = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_4.tsv";
+        $destination = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_5.tsv";
 
         $parent_ids = self::get_taxonIDs_from_report();
         $this->parentID_taxonID = self::get_ids($source);
@@ -614,7 +614,7 @@ class SmasherLastAPI_TRAM_994
     }
     private function get_taxonIDs_from_report()
     {
-        $report = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/removed_taxa.tsv";
+        $report = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/removed_taxa.tsv";
         $i = 0;
         foreach(new FileIterator($report) as $line => $row) { $i++;
             if(!$row) continue;
@@ -645,12 +645,12 @@ class SmasherLastAPI_TRAM_994
     }
     function investigate_descendants_of_removed_taxa() //a utility
     {
-        $source = "/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/taxonomy_4.tsv";
+        $source = "/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/taxonomy_4.tsv";
         $parent_ids = self::get_taxonIDs_from_report();
         echo "\nparent_ids: ".count($parent_ids)."\n";
         $this->parentID_taxonID = self::get_ids($source);
 
-        $WRITE = Functions::file_open("/Volumes/AKiTiO4/d_w_h/last_smasher/TRAM_994/investigate_descendants.tsv", "w");
+        $WRITE = Functions::file_open("/Volumes/Crucial_4TB/d_w_h/last_smasher/TRAM_994/investigate_descendants.tsv", "w");
         foreach($parent_ids as $parent_id) {
             require_library('connectors/PaleoDBAPI_v2');
             $func = new PaleoDBAPI_v2("");

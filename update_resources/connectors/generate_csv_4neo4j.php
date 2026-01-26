@@ -4,6 +4,7 @@ namespace php_active_record;
 php update_resources/connectors/generate_csv_4neo4j.php _ '{"resource_id": "globi_assoc-with-hC_neo4j_2_OK"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
+exit("\nThis is no longer used*.\n");
 // /* during development
 ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);

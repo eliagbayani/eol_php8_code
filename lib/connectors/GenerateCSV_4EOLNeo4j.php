@@ -43,11 +43,12 @@ class GenerateCSV_4EOLNeo4j
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($taxon_meta, 'generate_taxonID_info');      // step 1a: generate_taxonID_info = all taxa with EOLid
         self::prepare_PageNode_csv($taxon_meta);                        // step 1b: 
-        // self::prepare_ParentEdge_csv($taxon_meta);                      // step 1c:
+        self::prepare_ParentEdge_csv($taxon_meta);                      // step 1c:
         
-        $vernacular_meta = $tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
-        self::prepare_VernacularNode_csv($vernacular_meta);
-        self::prepare_VernacularEdge_csv($vernacular_meta);
+        if($vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0]) {
+            self::prepare_VernacularNode_csv($vernacular_meta);
+            self::prepare_VernacularEdge_csv($vernacular_meta);
+        }
         //    ----- end Jan 27, 2026 */
 
 

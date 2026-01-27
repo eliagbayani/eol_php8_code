@@ -49,13 +49,16 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $params['resource'] = "use_EOLid_as_taxonID";
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
-    $preferred_rowtypes = array("http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 
+    $preferred_rowtypes = array("http://eol.org/schema/reference/reference", 
         "http://rs.tdwg.org/dwc/terms/measurementorfact", "http://eol.org/schema/association",    
         "http://eol.org/schema/agent/agent", "http://eol.org/schema/media/document");
     $preferred_rowtypes[] = "http://rs.gbif.org/terms/1.0/reference"; //just in case used by some DwCA
     $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
 
-    /* This will be processed in DwCA_MatchTaxa2DH.php which will be called from DwCA_Utility.php */
+    /* This will be processed in DwCA_MatchTaxa2DH.php which will be called from DwCA_Utility.php 
+        http://rs.gbif.org/terms/1.0/vernacularname
+        and occurrence tab
+    */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
 }

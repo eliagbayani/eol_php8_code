@@ -39,18 +39,19 @@ class GenerateCSV_4EOLNeo4j
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ----- start Jan 27, 2026
-        // Step 1: generate Page node; parent edge
-        // step 1a: generate_taxonID_info = all taxa with EOLid
+        // Step 1: generate Page node; PARENT edge
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        self::process_table($taxon_meta, 'generate_taxonID_info');
-        self::prepare_PageNode_csv($taxon_meta);
-        self::prepare_ParentEdge_csv($taxon_meta);
-
+        self::process_table($taxon_meta, 'generate_taxonID_info');      // step 1a: generate_taxonID_info = all taxa with EOLid
+        self::prepare_PageNode_csv($taxon_meta);                        // step 1b: 
+        // self::prepare_ParentEdge_csv($taxon_meta);                      // step 1c:
+        
+        $vernacular_meta = $tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
+        self::prepare_VernacularNode_csv($vernacular_meta);
+        self::prepare_VernacularEdge_csv($vernacular_meta);
         //    ----- end Jan 27, 2026 */
 
 
         /* copied template
-
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];  self::process_table($meta, 'build_occurrence_info');
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];  self::process_table($meta, 'build_taxon_info');
 
@@ -67,6 +68,8 @@ class GenerateCSV_4EOLNeo4j
             self::prepare_predicates_csv_measurement($tables);
         }
         */
+        recursive_rmdir($temp_dir);
+        debug("\n temporary directory removed: " . $temp_dir);
     }
     private function process_table($meta, $what)
     {
@@ -120,14 +123,27 @@ class GenerateCSV_4EOLNeo4j
                 if($rec['taxonID'] == $rec['EOLid']) $this->taxonID_info[$rec['taxonID']] = '';
             }
             if($what == 'generate-PageNode-csv') {
-                if(isset($this->taxonID_info[$rec['taxonID']])) self::generate_PageNode_row($rec);
+                if(self::is_valid_taxonID($rec['taxonID'])) self::generate_PageNode_row($rec);
+            }
+            if($what == 'generate-VernacularNode-csv') {
+                if(self::is_valid_taxonID($rec['taxonID'])) {
+                    $rec['vernacularName'] = self::safe_utf8($rec['vernacularName']);
+                    self::generate_VernacularNode_row($rec);
+                }
             }
             if($what == 'generate-ParentEdge-csv') {
                 $taxonID = $rec['taxonID'];
-                if(isset($this->taxonID_info[$taxonID])) {
-                    if($parentNameUsageID = $rec['parentNameUsageID']) {
-                        if(isset($this->taxonID_info[$parentNameUsageID])) self::generate_ParentEdge_row($rec);
+                if(self::is_valid_taxonID($taxonID)) {
+                    if($parentNameUsageID = @$rec['parentNameUsageID']) { //Note: not all resources have parentNameUsageID
+                        if(self::is_valid_taxonID($parentNameUsageID)) self::generate_ParentEdge_row($rec);
                     }
+                }
+            }
+            if($what == 'generate-VernacularEdge-csv') {
+                $taxonID = $rec['taxonID'];
+                if(self::is_valid_taxonID($taxonID)) {
+                    $rec['vernacularName'] = self::safe_utf8($rec['vernacularName']);
+                    self::generate_VernacularEdge_row($rec);                
                 }
             }
 
@@ -146,6 +162,11 @@ class GenerateCSV_4EOLNeo4j
             */
         }
     }
+    private function is_valid_taxonID($taxon_id)
+    {
+        if(isset($this->taxonID_info[$taxon_id])) return true;
+        else return false;
+    }
     private function generate_PageNode_row($rec)
     {   /*  nodes/page.csv
             page_id:ID(Page-ID),canonical,rank,:LABEL
@@ -159,6 +180,29 @@ class GenerateCSV_4EOLNeo4j
         $csv .= 'Page'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
     }
+    private function generate_VernacularNode_row($rec)
+    {   /*  nodes/vernacular.csv
+            vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,:LABEL
+            WoRMS    Array(
+                        [vernacularName] => dieren
+                        [source] => 
+                        [language] => DUT
+                        [isPreferredName] => 0
+                        [taxonID] => 2
+                    )                
+        */
+        if($val = $rec['vernacularName']) {
+            $unique_id = $val."_".$rec['taxonID'];
+            if(!isset($this->unique_vernaculars[$unique_id])) {
+                $this->unique_vernaculars[$unique_id] = '';
+                $fields = array('md5_vernacularName_taxonID', 'vernacularName', 'language', 'isPreferredName');
+                $csv = self::format_csv_entry($rec, $fields);
+                $csv .= 'Vernacular'; //Labels are preferred to be singular nouns
+                fwrite($this->WRITE, $csv."\n");
+            }
+            else $this->debug['duplicate vernaculars'][$val] = '';
+        }
+    }
     private function generate_ParentEdge_row($rec)
     {   /*  edges/parent.csv
             page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
@@ -167,6 +211,23 @@ class GenerateCSV_4EOLNeo4j
         $fields = array('taxonID', 'parentNameUsageID');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'PARENT'; //Type are preferred to be singular nouns
+        fwrite($this->WRITE, $csv."\n");
+    }
+    private function generate_VernacularEdge_row($rec)
+    {   /*  edges/vernacular.csv
+            page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+            
+            WoRMS    Array(
+                        [vernacularName] => dieren
+                        [source] => 
+                        [language] => DUT
+                        [isPreferredName] => 0
+                        [taxonID] => 2
+                    )                
+            */
+        $fields = array('taxonID', 'md5_vernacularName_taxonID');
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
     }
 
@@ -438,10 +499,21 @@ class GenerateCSV_4EOLNeo4j
             chanos,Chanos,genus,page
         */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
-        fwrite($this->WRITE, "page_id:ID(Page-ID){label:Pages},canonical,rank,:LABEL"."\n");
+        fwrite($this->WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n");
         self::process_table($meta, 'generate-PageNode-csv');
         fclose($this->WRITE);
     }
+    private function prepare_VernacularNode_csv($meta)
+    {   /*
+            nodes/vernacular.csv
+            vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,:LABEL
+        */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Vernacular.csv', 'w');
+        fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,:LABEL"."\n");
+        self::process_table($meta, 'generate-VernacularNode-csv');
+        fclose($this->WRITE);
+    }
+
     private function prepare_ParentEdge_csv($meta)
     {   /*  edges/parent.csv
             page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
@@ -452,7 +524,16 @@ class GenerateCSV_4EOLNeo4j
         fwrite($this->WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
         self::process_table($meta, 'generate-ParentEdge-csv');
         fclose($this->WRITE);
-
+    }
+    private function prepare_VernacularEdge_csv($meta)
+    {   /*  edges/vernacular.csv
+            personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
+            page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+        */
+        $this->WRITE = Functions::file_open($this->path.'/edges/Vernacular.csv', 'w');
+        fwrite($this->WRITE, "page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
+        self::process_table($meta, 'generate-VernacularEdge-csv');
+        fclose($this->WRITE);
     }
     private function prepare_measurements_csv($tables)
     {
@@ -513,13 +594,18 @@ class GenerateCSV_4EOLNeo4j
     {
         $csv = "";
         foreach($fields as $field) {
-            if($field == 'vernacularName') {
-                $val = $rec['vernacularName'] ? $rec['vernacularName'] : ""; //$rec['scientificName'];
+            if(substr($field,0,4) == 'md5_') { //e.g. md5_vernacularName_taxonID
+                $val = self::process_md5_fields($field, $rec);
             }
-            else $val = @$rec[$field];
+            else {
+                if($field == 'vernacularName') {
+                    $val = $rec['vernacularName'] ? $rec['vernacularName'] : ""; //$rec['scientificName'];
+                }
+                else $val = @$rec[$field];
+            }
             $csv .= '"' . self::clean_csv_item($val) . '",'; 
         }
-        //exit("\n[$csv]\n");
+        // exit("\n[$csv]\n");
         return $csv;
     }
     private function format_csv_entry_array($arr)
@@ -532,6 +618,33 @@ class GenerateCSV_4EOLNeo4j
     private function small_field($uri)
     {
         return pathinfo($uri, PATHINFO_FILENAME);
+    }
+    private function process_md5_fields($str, $rec) //e.g. "md5_vernacularName_taxonID"
+    {
+        $fields = explode("_", $str);
+        array_shift($fields);
+
+        $combined = "";
+        foreach($fields as $field) {
+            $val = @$rec[$field];
+            $combined .= self::clean_csv_item($val) . '_'; 
+        }
+        $combined = substr($combined, 0, -1); //remove last char: "plants_42430800_" becomes "plants_42430800"
+        // exit("\ncombined: [$combined]\n");
+        return $combined;
+    }
+    private function safe_utf8($text)
+    {
+        return $text;
+        // below messes up chars not working
+        // $encoding = mb_detect_encoding($text, "UTF-8, ISO-8859-1, Windows-1252", true);
+        // if ($encoding !== false) {
+        //     $utf8String = mb_convert_encoding($text, "UTF-8", $encoding);
+        //     return $utf8String;
+        // } else {
+        //     // Handle the case where encoding could not be reliably detected
+        //     exit("\nCould not detect encoding, unable to convert safely.\n");
+        // }
     }
     /*
     =========================================================================== Globi

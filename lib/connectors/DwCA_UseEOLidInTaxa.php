@@ -40,6 +40,11 @@ class DwCA_UseEOLidInTaxa
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
         self::process_table($meta, 'write_occurrence');
 
+        if(in_array('http://rs.gbif.org/terms/1.0/vernacularname', $extensions)) {
+            $meta = $tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
+            self::process_table($meta, 'write_vernacular');
+        }
+
         /* not needed since no taxonID here
         if(in_array('http://eol.org/schema/association', $extensions)) {
             $meta = $tables['http://eol.org/schema/association'][0];
@@ -118,9 +123,15 @@ class DwCA_UseEOLidInTaxa
             }
             if ($what == 'write_occurrence') {
                 if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
-                else @$this->debug['WoRMS taxa in O.tab but not in T.tab'] .= " [$taxonID]";
+                else @$this->debug['Taxa in Occur.tab but not in Taxon.tab'] .= " [$taxonID]";
                 self::write_2archive($rec, 'occurrence_specific'); continue;
             }
+            if ($what == 'write_vernacular') {
+                if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
+                else @$this->debug['Taxa in Vernacular.tab but not in Taxon.tab'] .= " [$taxonID]";
+                self::write_2archive($rec, 'vernacular'); continue;
+            }
+
             // if($i >= 100) break; //dev only
         }
     }
@@ -139,8 +150,8 @@ class DwCA_UseEOLidInTaxa
         if($class == "taxon")                   $c = new \eol_schema\Taxon();
         elseif($class == "occurrence")          $c = new \eol_schema\Occurrence();
         elseif($class == "occurrence_specific") $c = new \eol_schema\Occurrence_specific();
+        elseif($class == "vernacular")          $c = new \eol_schema\VernacularName();
         /* not used here
-        elseif($class == "vernacular")           $c = new \eol_schema\VernacularName();
         elseif($class == "agent")                $c = new \eol_schema\Agent();
         elseif($class == "reference")            $c = new \eol_schema\Reference();
         elseif($class == "document")             $c = new \eol_schema\MediaResource();

@@ -178,7 +178,21 @@ class GenerateCSV_4EOLNeo4j
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
-        $func->get_terms_yml_4Neo4j();
+        $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
+        unset($func);
+
+        // ===== start to create the csv
+        /*  nodes/term.csv
+            uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
+        fwrite($this->WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
+        foreach($terms as $rec) {
+            $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
+            $csv = self::format_csv_entry($rec, $fields);
+            $csv .= 'Term'; //Labels are preferred to be singular nouns
+            fwrite($this->WRITE, $csv."\n");
+        }
+        fclose($this->WRITE);        
     }
     private function is_valid_taxonID($taxon_id)
     {

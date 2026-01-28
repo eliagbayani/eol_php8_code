@@ -120,12 +120,12 @@ class EOLterms_ymlAPI
                         units_term_uri:
                         alias:  */
                     $rek = array();
-                    if(preg_match("/elicha(.*?)\n/ims", "elicha".$block, $a)) $rek['attribution'] = self::remove_quote_delimiters(trim($a[1]));
                     if(preg_match("/uri\: (.*?)\n/ims", $block, $a)) $rek['uri'] = trim($a[1]);     //http://eol.org/schema/terms/percentPerMonth
                     if(preg_match("/name\: (.*?)\n/ims", $block, $a)) $rek['name'] = self::remove_quote_delimiters(trim($a[1]));   //%/month
                     if(preg_match("/type\: (.*?)\n/ims", $block, $a)) $rek['type'] = trim($a[1]);   //"measurement", "association", "value", and "metadata"
                     if(preg_match("/definition\: (.*?)\n/ims", $block, $a)) $rek['definition'] = trim($a[1]);   //
                     $rek['comment'] = ''; //EOL curator note
+                    if(preg_match("/elicha(.*?)\n/ims", "elicha".$block, $a)) $rek['attribution'] = self::remove_quote_delimiters(trim($a[1]));
                     $rek['section_ids'] = ''; //from webpage
                     if(preg_match("/is_hidden_from_overview\: (.*?)\n/ims", $block, $a)) $rek['is_hidden_from_overview'] = trim($a[1]);   //
                     if(preg_match("/is_hidden_from_glossary\: (.*?)\n/ims", $block, $a)) $rek['is_hidden_from_glossary'] = trim($a[1]);   //

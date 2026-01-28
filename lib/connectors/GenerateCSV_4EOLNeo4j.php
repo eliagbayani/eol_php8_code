@@ -20,9 +20,10 @@ class GenerateCSV_4EOLNeo4j
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
         self::initialize_folders($resource_id);
+        // /* ----- This can come from an RDBMS
         $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
-
+        // ----- */
     }
     function assemble_data($resource_id) 
     {
@@ -47,11 +48,12 @@ class GenerateCSV_4EOLNeo4j
         self::process_table($taxon_meta, 'generate_taxonID_info');      // step 1a: generate_taxonID_info = all taxa with EOLid
         self::prepare_PageNode_csv($taxon_meta);                        // step 1b: 
         self::prepare_ParentEdge_csv($taxon_meta);                      // step 1c:
-        
+        // Step 2: generate Vernacular node; VERNACULAR edge
         if($vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0]) {
-            self::prepare_VernacularNode_csv($vernacular_meta);
-            self::prepare_VernacularEdge_csv($vernacular_meta);
+            self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
+            self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
         }
+
         //    ----- end Jan 27, 2026 */
 
 
@@ -126,16 +128,16 @@ class GenerateCSV_4EOLNeo4j
                 )*/
                 if($rec['taxonID'] == $rec['EOLid']) $this->taxonID_info[$rec['taxonID']] = '';
             }
-            if($what == 'generate-PageNode-csv') {
+            if($what == 'generate-PageNode-csv') { //step 1b
                 if(self::is_valid_taxonID($rec['taxonID'])) self::generate_PageNode_row($rec);
             }
-            if($what == 'generate-VernacularNode-csv') {
+            if($what == 'generate-VernacularNode-csv') { //step 2a
                 if(self::is_valid_taxonID($rec['taxonID'])) {
                     $rec['vernacularName'] = self::safe_utf8($rec['vernacularName']);
                     self::generate_VernacularNode_row($rec);
                 }
             }
-            if($what == 'generate-ParentEdge-csv') {
+            if($what == 'generate-ParentEdge-csv') { //step 1c
                 $taxonID = $rec['taxonID'];
                 if(self::is_valid_taxonID($taxonID)) {
                     if($parentNameUsageID = @$rec['parentNameUsageID']) { //Note: not all resources have parentNameUsageID
@@ -143,7 +145,7 @@ class GenerateCSV_4EOLNeo4j
                     }
                 }
             }
-            if($what == 'generate-VernacularEdge-csv') {
+            if($what == 'generate-VernacularEdge-csv') { //step 2b
                 $taxonID = $rec['taxonID'];
                 if(self::is_valid_taxonID($taxonID)) {
                     $rec['vernacularName'] = self::safe_utf8($rec['vernacularName']);

@@ -169,7 +169,7 @@ class EOLterms_ymlAPI
         }
         else exit("Remote EOL terms (.yml) file not accessible.");
         // print_r($this->debug); //just for stats
-        echo "\nTotal records: ".count($final)."\n";
+        echo "\nTotal term records: ".count($final)."\n";
         return $final;
     } //end get_terms_yml_4Neo4j()
 }

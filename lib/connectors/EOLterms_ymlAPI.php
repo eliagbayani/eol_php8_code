@@ -98,5 +98,79 @@ class EOLterms_ymlAPI
         // exit("\nfinal: [$str]\n");
         return $str;
     }
+    function get_terms_yml_4Neo4j()
+    {
+        $final = array();
+        if($yml = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options)) { //orig 1 day cache
+            $yml .= "alias: ";
+            if(preg_match_all("/\- attribution\:(.*?)\- attribution\:/ims", $yml, $a)) {
+                $arr = array_map('trim', $a[1]);
+                foreach($arr as $block) { //echo "\n$block\n"; exit;
+                    /*  ''
+                        definition: a measure of specific growth rate
+                        is_hidden_from_select: false
+                        is_hidden_from_overview: false
+                        is_hidden_from_glossary: false
+                        is_text_only: false
+                        name: "%/month"
+                        type: value
+                        uri: http://eol.org/schema/terms/percentPerMonth
+                        parent_uris: []
+                        synonym_of_uri:
+                        units_term_uri:
+                        alias:  */
+                    $rek = array();
+                    if(preg_match("/elicha(.*?)\n/ims", "elicha".$block, $a)) $rek['attribution'] = self::remove_quote_delimiters(trim($a[1]));
+                    if(preg_match("/uri\: (.*?)\n/ims", $block, $a)) $rek['uri'] = trim($a[1]);     //http://eol.org/schema/terms/percentPerMonth
+                    if(preg_match("/name\: (.*?)\n/ims", $block, $a)) $rek['name'] = self::remove_quote_delimiters(trim($a[1]));   //%/month
+                    if(preg_match("/type\: (.*?)\n/ims", $block, $a)) $rek['type'] = trim($a[1]);   //"measurement", "association", "value", and "metadata"
+                    if(preg_match("/definition\: (.*?)\n/ims", $block, $a)) $rek['definition'] = trim($a[1]);   //
+                    $rek['comment'] = ''; //EOL curator note
+                    $rek['section_ids'] = ''; //from webpage
+                    if(preg_match("/is_hidden_from_overview\: (.*?)\n/ims", $block, $a)) $rek['is_hidden_from_overview'] = trim($a[1]);   //
+                    if(preg_match("/is_hidden_from_glossary\: (.*?)\n/ims", $block, $a)) $rek['is_hidden_from_glossary'] = trim($a[1]);   //
+                    $rek['position'] = ''; //from webpage
+                    $rek['trait_row_count'] = ''; //a periodically calculated (offline) count
+                    $rek['distinct_page_count'] = ''; //a periodically calculated (offline) count
+                    $rek['exclusive_to_clade'] = ''; //
+                    $rek['incompatible_with_clade'] = ''; //
+                    $rek['parent_term'] = ''; //
+                    $rek['synonym_of'] = ''; //
+                    $rek['object_for_predicate'] = ''; //a periodically calculated (offline) count
+                    $rek = array_map('trim', $rek);
+                    if(stripos($rek['uri'], "marineregions.org") !== false) continue;   //string is found   - filter
+                    if(stripos($rek['uri'], "geonames.org") !== false) continue;        //string is found   - filter
+                    $final[] = $rek;
+                    // print_r($rek); //exit("\nelix...\n");
+                    /*Array(
+                        [attribution] => ''
+                        [uri] => http://eol.org/schema/terms/percentPerMonth
+                        [name] => %/month
+                        [type] => value
+                        [definition] => a measure of specific growth rate
+                        [comment] => 
+                        [section_ids] => 
+                        [is_hidden_from_overview] => false
+                        [is_hidden_from_glossary] => false
+                        [position] => 
+                        [trait_row_count] => 
+                        [distinct_page_count] => 
+                        [exclusive_to_clade] => 
+                        [incompatible_with_clade] => 
+                        [parent_term] => 
+                        [synonym_of] => 
+                        [object_for_predicate] => 
+                    )*/
+                    @$this->debug['type'][@$rek['type']] = '';               //just for stats
+                    @$this->debug['attribution'][@$rek['attribution']] = ''; //just for stats
+                }
+            }
+            else exit("\nInvestigate: EOL terms file structure had changed.\n");
+        }
+        else exit("Remote EOL terms (.yml) file not accessible.");
+        // print_r($this->debug); //just for stats
+        echo "\nTotal records: ".count($final)."\n";
+        return $final;
+    } //end get_terms_yml_4Neo4j()
 }
 ?>

@@ -44,6 +44,8 @@ class GenerateCSV_4EOLNeo4j
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ----- start Jan 27, 2026
+        // Step 0: generate a Term node 
+        self::prepareTermNode_csv(); exit("\nstop muna...\n");
         // Step 1: generate Page node; PARENT edge
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($taxon_meta, 'generate_taxonID_info');      // step 1a: generate_taxonID_info = all taxa with EOLid
@@ -171,6 +173,12 @@ class GenerateCSV_4EOLNeo4j
             elseif($what == 'build_association_info') self::build_association_info($rec);
             */
         }
+    }
+    private function prepareTermNode_csv()
+    {
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI(false, false);
+        $func->get_terms_yml_4Neo4j();
     }
     private function is_valid_taxonID($taxon_id)
     {

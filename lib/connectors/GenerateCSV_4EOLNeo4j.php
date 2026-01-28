@@ -13,13 +13,14 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class GenerateCSV_4EOLNeo4j
 {
-    function __construct($resource_id) {
-        $this->resource_id = $resource_id;
+    function __construct($param) {
+        $this->resource_id = $param['resource_id'];
+        $this->param = $param;
         $this->download_options = array('resource_id' => 'neo4j', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
         $this->debug = array();
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
-        self::initialize_folders($resource_id);
+        self::initialize_folders($this->resource_id);
         // /* ----- This can come from an RDBMS
         $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
@@ -53,6 +54,9 @@ class GenerateCSV_4EOLNeo4j
             self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
             self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
         }
+        // Step 3: generate Resource node
+        self::prepare_ResourceNode_csv($taxon_meta);                        // step 3a: 
+
 
         //    ----- end Jan 27, 2026 */
 
@@ -201,7 +205,8 @@ class GenerateCSV_4EOLNeo4j
             $unique_id = $val."_".$rec['taxonID'];
             if(!isset($this->unique_vernaculars[$unique_id])) {
                 $this->unique_vernaculars[$unique_id] = '';
-                $fields = array('md5_vernacularName_taxonID', 'vernacularName', 'language', 'isPreferredName');
+                $fields = array('md5_vernacularName_taxonID', 'vernacularName', 'language', 'isPreferredName', 'supplier');
+                $rec['supplier'] = $this->param['eol_resource_id'];
                 $csv = self::format_csv_entry($rec, $fields);
                 $csv .= 'Vernacular'; //Labels are preferred to be singular nouns
                 fwrite($this->WRITE, $csv."\n");
@@ -510,16 +515,28 @@ class GenerateCSV_4EOLNeo4j
         fclose($this->WRITE);
     }
     private function prepare_VernacularNode_csv($meta)
-    {   /*
-            nodes/vernacular.csv
-            vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,:LABEL
-        */
+    {   /*  nodes/vernacular.csv
+            vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL   */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Vernacular.csv', 'w');
-        fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,:LABEL"."\n");
+        fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL"."\n");
         self::process_table($meta, 'generate-VernacularNode-csv');
         fclose($this->WRITE);
     }
-
+    private function prepare_ResourceNode_csv()
+    {   /*  nodes/resource.csv
+            resource_id:ID(Resource-ID),name,:LABEL   */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Resource.csv', 'w');
+        fwrite($this->WRITE, "resource_id:ID(Resource-ID),name,:LABEL"."\n");
+        // $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
+        // $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
+        foreach($this->EOL_resources as $eol_resource_id => $rec) {
+            $fields = array('eol_resource_id', 'resource_name');
+            $csv = self::format_csv_entry($rec, $fields);
+            $csv .= 'Resource'; //Labels are preferred to be singular nouns
+            fwrite($this->WRITE, $csv."\n");
+        }
+        fclose($this->WRITE);
+    }
     private function prepare_ParentEdge_csv($meta)
     {   /*  edges/parent.csv
             page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE

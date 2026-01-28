@@ -19,11 +19,11 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 $timestart = time_elapsed();
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
-$param                     = json_decode(@$argv[2], true); // print_r($param); exit;
+$param                     = json_decode(@$argv[2], true); //print_r($param); exit;
 $resource_id = $param['resource_id'];
 
 require_library('connectors/GenerateCSV_4EOLNeo4j');
-$func = new GenerateCSV_4EOLNeo4j($resource_id);
+$func = new GenerateCSV_4EOLNeo4j($param);
 /* copied template
 // $func->buildup_predicates(); //obsolete. Only generates based on a given file
 // $func->buildup_predicates_all(); //the way to go. generates all from EOL Terms File: type 'measurement' and 'association'

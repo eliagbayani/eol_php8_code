@@ -6,7 +6,7 @@ php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "g
 start Jan 27, 2026:
 
 php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "WoRMS_TraitBank_1_0"}'
-php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "wikipedia_en_traits-with-hC_neo4j_3"}'
+php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "Wikipedia_TraitBank_1_0"}'
 
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");

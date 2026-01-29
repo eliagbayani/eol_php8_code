@@ -37,12 +37,14 @@ class GenerateCSV_4EOLNeo4j
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ----- start Jan 27, 2026
-        // Step 0: generate a Term node 
-        self::prepareTermNode_csv();
+        // Step 0: generate a Term node
+        /* 
+        self::prepareTermNode_csv(); */
 
         // Step 1: generate Page node; PARENT edge
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($taxon_meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+        /*
         self::prepare_PageNode_csv($taxon_meta);                    // step 1b: 
         self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
         unset($taxon_meta);
@@ -56,10 +58,15 @@ class GenerateCSV_4EOLNeo4j
         
         // Step 3: generate Resource node
         self::prepare_ResourceNode_csv();                        // step 3a: 
+        */
 
         // Step 4: generate Trait node
+        $occurrence_meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
+        self::process_table($occurrence_meta, 'generate_occur_info'); unset($occurrence_meta);
+
         $mof_meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
-        // self::process_table($mof_meta, 'generate-TraitNode-csv');
+        self::prepare_TraitNode_csv($mof_meta);
+
 
         //    ----- end Jan 27, 2026 */
 
@@ -134,7 +141,7 @@ class GenerateCSV_4EOLNeo4j
                     [EOLid] => 44475
                 )*/
                 if($rec['taxonID'] == $rec['EOLid']) {
-                    $this->taxon_info[$rec['taxonID']] = array('cN' => $rec['scientificName']);
+                    $this->taxon_info[$rec['taxonID']] = array('sN' => $rec['scientificName']);
                 }
             }
             if($what == 'generate-PageNode-csv') { //step 1b
@@ -161,6 +168,40 @@ class GenerateCSV_4EOLNeo4j
                     self::generate_VernacularEdge_row($rec);                
                 }
             }
+
+
+            if($what == 'generate_occur_info') {
+                /*  Array(
+                        [occurrenceID] => e36713aea279079ed39099826601f8f6
+                        [taxonID] => 1054700 )  */
+                $taxonID = $rec['taxonID'];
+                if(self::is_valid_taxonID($taxonID)) {
+                    $scientificName = $this->taxon_info[$taxonID]['sN'];
+                    $this->occur_info[$rec['occurrenceID']] = array('tI' => $taxonID, 'sN' => $scientificName);
+                }
+            }
+            if($what == 'generate-TraitNode-csv') { //this is MoF record
+                $occurrenceID = $rec['occurrenceID'];
+                if($taxon = @$this->occur_info[$occurrenceID]) { //exit("\ngoes here 10\n");
+                    print_r($taxon); //exit("\n100\n");
+                    /*Array(
+                        [tI] => 46501030
+                        [sN] => Aahithis Schallreuter, 1988
+                    )*/
+                    $taxonID = $taxon['tI'];
+                    $scientificName = $taxon['sN'];
+                    if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
+                        echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
+                        if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
+                            $rec['page_id'] = $taxonID;
+                            $rec['scientificName'] = $scientificName;
+                            print_r($rec); exit("\nelix\n");
+                            // self::generate_TraitNode_row($rec);                
+                        }
+                    }
+                }
+            }
+            
 
             // /* ----- start Trait node
 
@@ -510,13 +551,23 @@ class GenerateCSV_4EOLNeo4j
         fclose($this->WRITE);
     }
     private function prepare_VernacularNode_csv($meta)
-    {   /*  nodes/vernacular.csv
+    {   /*  nodes/Vernacular.csv
             vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL   */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Vernacular.csv', 'w');
         fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL"."\n");
         self::process_table($meta, 'generate-VernacularNode-csv');
         fclose($this->WRITE);
     }
+    private function prepare_TraitNode_csv($meta)
+    {   /*  nodes/Trait.csv
+            eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
+        */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
+        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL"."\n");
+        self::process_table($meta, 'generate-TraitNode-csv');
+        fclose($this->WRITE);
+    }
+
     private function prepare_ResourceNode_csv()
     {   /*  nodes/resource.csv
             resource_id:ID(Resource-ID),name,:LABEL   */

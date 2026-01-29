@@ -78,6 +78,9 @@ class GenerateCSV_4EOLNeo4j
             self::prepare_predicates_csv_measurement($tables);
         }
         */
+
+        print_r($this->debug);
+        Functions::start_print_debug($this->debug, 'Gen_Neo4j_CSV');
         recursive_rmdir($temp_dir);
         debug("\n temporary directory removed: " . $temp_dir);
     }
@@ -235,7 +238,7 @@ class GenerateCSV_4EOLNeo4j
                 $csv .= 'Vernacular'; //Labels are preferred to be singular nouns
                 fwrite($this->WRITE, $csv."\n");
             }
-            else $this->debug['duplicate vernaculars'][$val] = '';
+            else $this->debug['duplicate vernaculars'][$unique_id] = '';
         }
     }
     private function generate_ParentEdge_row($rec)

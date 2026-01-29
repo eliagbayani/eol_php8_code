@@ -17,6 +17,16 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // */
 // ini_set('memory_limit','8096M');
 $timestart = time_elapsed();
+
+/* hash in PHP
+$str = 'This is the string to be hashed.';
+echo "\nmd5: [".md5($str)."]\n";
+$algos = hash_algos();
+foreach($algos as $algo) {
+    echo "\n$algo: [".hash($algo, $str). "]";
+} exit;
+*/
+
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); //print_r($param); exit;

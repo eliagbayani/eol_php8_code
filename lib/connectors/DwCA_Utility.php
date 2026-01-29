@@ -1154,8 +1154,8 @@ class DwCA_Utility
 
                 // /* New: needed validations
                 if($class == "document") { //if object is text type then description cannot be blank.
-                    $this->debug['AntWeb Titles'][$o->title] = '';
                     if(!$o->description && $o->type == 'http://purl.org/dc/dcmitype/Text') continue;
+                    $this->debug[$this->resource_id.' Titles'][$o->title] = '';
                 }
                 // */
 

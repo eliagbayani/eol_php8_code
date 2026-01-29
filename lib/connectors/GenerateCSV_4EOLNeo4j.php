@@ -38,28 +38,33 @@ class GenerateCSV_4EOLNeo4j
 
         // /* ----- start Jan 27, 2026
         // Step 0: generate a Term node 
-        self::prepareTermNode_csv(); //exit("\nstop muna...\n");
+        self::prepareTermNode_csv();
+
         // Step 1: generate Page node; PARENT edge
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        self::process_table($taxon_meta, 'generate_taxonID_info');      // step 1a: generate_taxonID_info = all taxa with EOLid
-        self::prepare_PageNode_csv($taxon_meta);                        // step 1b: 
-        self::prepare_ParentEdge_csv($taxon_meta);                      // step 1c:
+        self::process_table($taxon_meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+        self::prepare_PageNode_csv($taxon_meta);                    // step 1b: 
+        self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
+        unset($taxon_meta);
+        
         // Step 2: generate Vernacular node; VERNACULAR edge
         if($vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0]) {
             self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
             self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
+            unset($vernacular_meta);
         }
+        
         // Step 3: generate Resource node
-        self::prepare_ResourceNode_csv($taxon_meta);                        // step 3a: 
+        self::prepare_ResourceNode_csv();                        // step 3a: 
 
+        // Step 4: generate Trait node
+        $mof_meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
+        // self::process_table($mof_meta, 'generate-TraitNode-csv');
 
         //    ----- end Jan 27, 2026 */
 
 
         /* copied template
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];  self::process_table($meta, 'build_occurrence_info');
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];  self::process_table($meta, 'build_taxon_info');
-
         if(in_array('http://eol.org/schema/association', $extensions) || 
            in_array('http://rs.tdwg.org/dwc/terms/measurementorfact', $extensions)) {
             self::process_tsv($this->files['predicates'], 'gen_allowed_uri_predicates'); //print_r($this->allowed_uri_predicates); exit;
@@ -111,7 +116,7 @@ class GenerateCSV_4EOLNeo4j
 
             edges/metadata.csv
             */
-            if($what == 'generate_taxonID_info') { //step 1a
+            if($what == 'generate_taxon_info') { //step 1a
                 /*Array(
                     [taxonID] => 44475
                     [source] => https://www.wikidata.org/wiki/Q25243
@@ -125,7 +130,9 @@ class GenerateCSV_4EOLNeo4j
                     [canonicalName] => Betula
                     [EOLid] => 44475
                 )*/
-                if($rec['taxonID'] == $rec['EOLid']) $this->taxonID_info[$rec['taxonID']] = '';
+                if($rec['taxonID'] == $rec['EOLid']) {
+                    $this->taxon_info[$rec['taxonID']] = array('cN' => $rec['scientificName']);
+                }
             }
             if($what == 'generate-PageNode-csv') { //step 1b
                 if(self::is_valid_taxonID($rec['taxonID'])) self::generate_PageNode_row($rec);
@@ -152,6 +159,9 @@ class GenerateCSV_4EOLNeo4j
                 }
             }
 
+            // /* ----- start Trait node
+
+            // ----- end Trait node */
 
             /* copied template
             elseif($what == 'generate-measurements-csv') {
@@ -161,8 +171,6 @@ class GenerateCSV_4EOLNeo4j
             }
             elseif($what == 'generate-predicates-csv')              self::generate_predicates_csv($rec);
             elseif($what == 'generate-predicates-measurements-csv') self::generate_predicates_measurements_csv($rec);
-            elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec);
-            elseif($what == 'build_taxon_info') self::build_taxon_info($rec);
             elseif($what == 'build_association_info') self::build_association_info($rec);
             */
         }
@@ -189,7 +197,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function is_valid_taxonID($taxon_id)
     {
-        if(isset($this->taxonID_info[$taxon_id])) return true;
+        if(isset($this->taxon_info[$taxon_id])) return true;
         else return false;
     }
     private function generate_PageNode_row($rec)
@@ -217,10 +225,11 @@ class GenerateCSV_4EOLNeo4j
                     )                
         */
         if($val = $rec['vernacularName']) {
-            $unique_id = $val."_".$rec['taxonID'];
+            $unique_id = $val."_".$rec['taxonID']."_".$rec['language'];
+            $unique_id = str_replace(" ", "_", $unique_id);
             if(!isset($this->unique_vernaculars[$unique_id])) {
                 $this->unique_vernaculars[$unique_id] = '';
-                $fields = array('md5_vernacularName_taxonID', 'vernacularName', 'language', 'isPreferredName', 'supplier');
+                $fields = array('md5_vernacularName_taxonID_language', 'vernacularName', 'language', 'isPreferredName', 'supplier');
                 $rec['supplier'] = $this->param['eol_resource_id'];
                 $csv = self::format_csv_entry($rec, $fields);
                 $csv .= 'Vernacular'; //Labels are preferred to be singular nouns
@@ -251,7 +260,7 @@ class GenerateCSV_4EOLNeo4j
                         [taxonID] => 2
                     )                
             */
-        $fields = array('taxonID', 'md5_vernacularName_taxonID');
+        $fields = array('taxonID', 'md5_vernacularName_taxonID_language');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
@@ -387,40 +396,8 @@ class GenerateCSV_4EOLNeo4j
         $associationType = $rec['http://eol.org/schema/associationType'];
         // if(isset($this->allowed_uri_predicates[$associationType])) {}
     }
-    private function build_occurrence_info($rec)
-    {   /*Array(
-        [occurrenceID] => 749fe40cdd56a4a6e33167b5950740aa
-        [taxonID] => EOL:1002964
-        [institutionCode] => */
-        if($taxonID = $rec['taxonID']) {
-            if($occurrenceID = $rec['occurrenceID']) $this->occurrence[$occurrenceID] = $taxonID;
-        }
-    }
-    private function build_taxon_info($rec)
-    {
-        /*Array(
-            [taxonID] => COL:74YCG
-            [furtherInformationURL] => https://www.catalogueoflife.org/data/taxon/74YCG
-            [referenceID] => 
-            [parentNameUsageID] => 
-            [scientificName] => Orthosia pacifica
-            [namePublishedIn] => 
-            [higherClassification] => Animalia|Arthropoda|Insecta|Lepidoptera|Noctuidae|Orthosia|
-            [kingdom] => Animalia
-            [phylum] => Arthropoda
-            [class] => Insecta
-            [order] => Lepidoptera
-            [family] => Noctuidae
-            [genus] => Orthosia
-            [taxonRank] => species
-            [taxonomicStatus] => 
-            [taxonRemarks] => 
-            [canonicalName] => Orthosia pacifica
-            [EOLid] => 465299
-        )*/
-        $sciname = $rec['canonicalName'] ? $rec['canonicalName'] : $rec['scientificName'];
-        $this->taxon[$rec['taxonID']] = array('cN' => $sciname, 'r' => $rec['taxonRank']);
-    }
+
+
     /* obsolete
     function buildup_predicates()
     {
@@ -668,6 +645,7 @@ class GenerateCSV_4EOLNeo4j
             $combined .= self::clean_csv_item($val) . '_'; 
         }
         $combined = substr($combined, 0, -1); //remove last char: "plants_42430800_" becomes "plants_42430800"
+        $combined = str_replace(" ", "_", $combined);
         // exit("\ncombined: [$combined]\n");
         return $combined;
     }

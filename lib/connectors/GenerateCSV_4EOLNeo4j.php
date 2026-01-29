@@ -31,16 +31,9 @@ class GenerateCSV_4EOLNeo4j
         // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
         $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources
 
-        require_library('connectors/ResourceUtility');
-        $func = new ResourceUtility(false, $resource_id);
-        $ret = $func->prepare_archive_for_access($dwca_file, $this->download_options);
+        $ret = self::prep_dwca($resource_id, $dwca_file);
         $temp_dir = $ret['temp_dir'];
         $tables = $ret['tables'];
-        $index = array_keys($tables);
-        if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
-            debug("Invalid archive file. Program will terminate."); return false;
-        } else echo "\nValid DwCA [$resource_id].\n";
-
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ----- start Jan 27, 2026
@@ -690,6 +683,18 @@ class GenerateCSV_4EOLNeo4j
         //     // Handle the case where encoding could not be reliably detected
         //     exit("\nCould not detect encoding, unable to convert safely.\n");
         // }
+    }
+    private function prep_dwca($resource_id, $dwca_file)
+    {
+        require_library('connectors/ResourceUtility');
+        $func = new ResourceUtility(false, $resource_id);
+        $ret = $func->prepare_archive_for_access($dwca_file, $this->download_options);
+        $temp_dir = $ret['temp_dir'];
+        $tables = $ret['tables'];
+        if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
+            debug("Invalid archive file. Program will terminate."); return false;
+        } else echo "\nValid DwCA [$resource_id].\n";
+        return $ret;
     }
     /*
     =========================================================================== Globi

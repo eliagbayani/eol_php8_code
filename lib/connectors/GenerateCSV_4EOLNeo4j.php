@@ -191,12 +191,12 @@ class GenerateCSV_4EOLNeo4j
                     $taxonID = $taxon['tI'];
                     $scientificName = $taxon['sN'];
                     if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
-                        echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
+                        // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
                         if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
                             $rec['page_id'] = $taxonID;
                             $rec['scientificName'] = $scientificName;
-                            print_r($rec); exit("\nelix\n");
-                            // self::generate_TraitNode_row($rec);                
+                            // print_r($rec); exit("\nelix\n");
+                            self::generate_TraitNode_row($rec);                
                         }
                     }
                 }

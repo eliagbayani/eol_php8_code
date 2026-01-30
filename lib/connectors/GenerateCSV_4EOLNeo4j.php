@@ -200,11 +200,6 @@ class GenerateCSV_4EOLNeo4j
                 }
             }
             
-
-            // /* ----- start Trait node
-
-            // ----- end Trait node */
-
             /* copied template
             elseif($what == 'generate-measurements-csv') {
                 if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
@@ -303,6 +298,13 @@ class GenerateCSV_4EOLNeo4j
             [page_id] => 46501030
             [scientific_name] => Aahithis Schallreuter, 1988
         )*/
+        $s = array();
+        $s['eol_pk'] = 'eli';
+        $s['page_id'] = $rec['page_id'];
+        $s['scientific_name'] = $rec['scientific_name'];
+        $s['resource_pk'] = $rec['measurementID'];
+        $s['predicate'] = $rec['measurementType'];
+        dito
         $fields = array('eol_pk', 'page_id', 'scientific_name');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns

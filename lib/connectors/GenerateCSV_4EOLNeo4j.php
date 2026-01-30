@@ -183,8 +183,7 @@ class GenerateCSV_4EOLNeo4j
             if($what == 'generate-TraitNode-csv') { //this is MoF record
                 $occurrenceID = $rec['occurrenceID'];
                 if($taxon = @$this->occur_info[$occurrenceID]) { //exit("\ngoes here 10\n");
-                    print_r($taxon); //exit("\n100\n");
-                    /*Array(
+                    /*Array( $taxon
                         [tI] => 46501030
                         [sN] => Aahithis Schallreuter, 1988
                     )*/
@@ -258,7 +257,7 @@ class GenerateCSV_4EOLNeo4j
         fwrite($this->WRITE, $csv."\n");
     }
     private function generate_VernacularNode_row($rec)
-    {   /*  nodes/vernacular.csv
+    {   /*  nodes/Vernacular.csv
             vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,:LABEL
             WoRMS    Array(
                         [vernacularName] => dieren
@@ -281,6 +280,30 @@ class GenerateCSV_4EOLNeo4j
             }
             else $this->debug['duplicate vernaculars'][$unique_id] = '';
         }
+    }
+    private function generate_TraitNode_row($rec)
+    {   /* WoRMS
+        
+        Array(
+            [measurementID] => 6727294cfe63431fc4bd57e07223e119
+            [occurrenceID] => da1da3ead698fd03083cd18c4c8942e9
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://www.marinespecies.org/traits/SupportingStructuresEnclosures
+            [measurementValue] => http://purl.obolibrary.org/obo/UBERON_0006611
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:155944, Podocopa Müller, 1894
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=769244
+            [contributor] => 
+            [referenceID] => 
+            [page_id] => 46501030
+            [scientificName] => Aahithis Schallreuter, 1988
+        )*/
+        
     }
     private function generate_ParentEdge_row($rec)
     {   /*  edges/parent.csv

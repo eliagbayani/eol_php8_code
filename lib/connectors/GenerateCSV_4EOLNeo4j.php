@@ -193,8 +193,7 @@ class GenerateCSV_4EOLNeo4j
                         // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
                         if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
                             $rec['page_id'] = $taxonID;
-                            $rec['scientificName'] = $scientificName;
-                            // print_r($rec); exit("\nelix\n");
+                            $rec['scientific_name'] = $scientificName;
                             self::generate_TraitNode_row($rec);                
                         }
                     }
@@ -283,7 +282,8 @@ class GenerateCSV_4EOLNeo4j
     }
     private function generate_TraitNode_row($rec)
     {   /* WoRMS
-        
+        nodes/Trait.csv
+        eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL                    
         Array(
             [measurementID] => 6727294cfe63431fc4bd57e07223e119
             [occurrenceID] => da1da3ead698fd03083cd18c4c8942e9
@@ -301,9 +301,12 @@ class GenerateCSV_4EOLNeo4j
             [contributor] => 
             [referenceID] => 
             [page_id] => 46501030
-            [scientificName] => Aahithis Schallreuter, 1988
+            [scientific_name] => Aahithis Schallreuter, 1988
         )*/
-        
+        $fields = array('eol_pk', 'page_id', 'scientific_name');
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'Trait'; //Labels are preferred to be singular nouns
+        fwrite($this->WRITE, $csv."\n");
     }
     private function generate_ParentEdge_row($rec)
     {   /*  edges/parent.csv
@@ -318,7 +321,6 @@ class GenerateCSV_4EOLNeo4j
     private function generate_VernacularEdge_row($rec)
     {   /*  edges/vernacular.csv
             page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
-            
             WoRMS    Array(
                         [vernacularName] => dieren
                         [source] => 

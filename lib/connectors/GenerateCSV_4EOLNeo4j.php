@@ -298,6 +298,7 @@ class GenerateCSV_4EOLNeo4j
             [page_id] => 46501030
             [scientific_name] => Aahithis Schallreuter, 1988
         )*/
+        print_r($rec); exit("\nelix 2\n");
         $s = array();
         $s['eol_pk'] = 'eli';
         $s['page_id'] = $rec['page_id'];

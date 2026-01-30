@@ -109,7 +109,7 @@ class GenerateCSV_4EOLNeo4j
             }
             // print_r($rec); //exit;
             /*
-            nodes/page.csv
+            nodes/Page.csv
             page_id:ID(Page-ID),canonical,rank,:LABEL
             gadus_m,Gadus morhua,species,page
             chanos_c,Chanos chanos,species,page
@@ -226,7 +226,7 @@ class GenerateCSV_4EOLNeo4j
         unset($func);
 
         // ===== start to create the csv
-        /*  nodes/term.csv
+        /*  nodes/Term.csv
             uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
         fwrite($this->WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
@@ -244,7 +244,7 @@ class GenerateCSV_4EOLNeo4j
         else return false;
     }
     private function generate_PageNode_row($rec)
-    {   /*  nodes/page.csv
+    {   /*  nodes/Page.csv
             page_id:ID(Page-ID),canonical,rank,:LABEL
             gadus_m,Gadus morhua,species,page
             chanos_c,Chanos chanos,species,page
@@ -561,7 +561,7 @@ class GenerateCSV_4EOLNeo4j
                 [canonicalName] => Betula
                 [EOLid] => 44475
             )
-            nodes/page.csv
+            nodes/Page.csv
             page_id:ID(Page-ID),canonical,rank,:LABEL
             gadus_m,Gadus morhua,species,page
             chanos_c,Chanos chanos,species,page
@@ -592,7 +592,7 @@ class GenerateCSV_4EOLNeo4j
     }
 
     private function prepare_ResourceNode_csv()
-    {   /*  nodes/resource.csv
+    {   /*  nodes/Resource.csv
             resource_id:ID(Resource-ID),name,:LABEL   */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Resource.csv', 'w');
         fwrite($this->WRITE, "resource_id:ID(Resource-ID),name,:LABEL"."\n");

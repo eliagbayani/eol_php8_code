@@ -333,7 +333,8 @@ class GenerateCSV_4EOLNeo4j
             [sex] => 
             [lifestage] => 
         )*/
-        print_r($rec); exit("\nelix 2\n");
+
+        // print_r($rec); exit("\nelix 2\n");
         // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	contributor_uri	compiler_uri	determined_by_uri
         $s = array();
         $s['eol_pk'] = 'eli';
@@ -348,15 +349,16 @@ class GenerateCSV_4EOLNeo4j
 
         $s['sex'] = $rec['sex'];
         $s['lifestage'] = $rec['lifestage'];
-        $s['statistical_method'] = $rec['statisticalMethod'];
+        $s['statistical_method'] = @$rec['statisticalMethod'];
 
-        $s['object_page_id'] = $rec['object_page_id']; //for Associations
-        $s['target_scientific_name'] = $rec['target_scientific_name']; //for Associations
+        $s['object_page_id'] = @$rec['object_page_id']; //for Associations
+        $s['target_scientific_name'] = @$rec['target_scientific_name']; //for Associations
         
         $s['value_uri'] = self::value_for($rec, 'value_uri');
         $s['literal'] = self::value_for($rec, 'literal');
         $s['measurement'] = self::value_for($rec, 'measurement');
-        $s['units'] = $rec['measurementUnit'];
+        $s['units'] = @$rec['measurementUnit'];
+
         // /* values not found in DwCA
         $s['normal_measurement'] = '';
         $s['normal_units_uri'] = '';
@@ -377,18 +379,17 @@ class GenerateCSV_4EOLNeo4j
     }
     private function value_for($rec, $field)
     {
-        $measurementValue = $rec['measurementValue'];
-
-        if($field == 'value_uri') {
-            if(substr($measurementValue,0,4) == 'http') return $measurementValue;
+        if($measurementValue = @$rec['measurementValue']) {
+            if($field == 'value_uri') {
+                if(substr($measurementValue,0,4) == 'http') return $measurementValue;
+            }
+            if($field == 'literal') { //can be measurementValue that is URI = http://eol.org/schema/terms/extinct OR uncontrolled vocab = 'extinct' But not numeric e.g. 100
+                if(!is_numeric($measurementValue)) return $measurementValue;
+            }
+            if($field == 'measurement') { //numeric values
+                if(is_numeric($measurementValue)) return $measurementValue;
+            }
         }
-        if($field == 'literal') { //can be measurementValue that is URI = http://eol.org/schema/terms/extinct OR uncontrolled vocab = 'extinct' But not numeric e.g. 100
-            if(!is_numeric($measurementValue)) return $measurementValue;
-        }
-        if($field == 'measurement') { //numeric values
-            if(is_numeric($measurementValue)) return $measurementValue;
-        }
-
     }
     private function generate_ParentEdge_row($rec)
     {   /*  edges/parent.csv

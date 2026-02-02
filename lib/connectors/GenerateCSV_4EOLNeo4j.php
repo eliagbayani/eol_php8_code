@@ -305,11 +305,48 @@ class GenerateCSV_4EOLNeo4j
         $s['scientific_name'] = $rec['scientific_name'];
         $s['resource_pk'] = $rec['measurementID'];
         $s['predicate'] = $rec['measurementType'];
-        dito
+        $s['sex'] = '';
+        $s['lifestage'] = '';
+        $s['statistical_method'] = $rec['statisticalMethod'];
+        $s['object_page_id'] = ''; //for Associations
+        $s['target_scientific_name'] = ''; //for Associations
+        $s['value_uri'] = self::value_for($rec, 'value_uri');
+        $s['literal'] = self::value_for($rec, 'literal');
+        $s['measurement'] = self::value_for($rec, 'measurement');
+        $s['units'] = $rec['measurementUnit'];
+        // /* values not found in DwCA
+        $s['normal_measurement'] = '';
+        $s['normal_units_uri'] = '';
+        // */                	
+        $s['sample_size'] = '';
+        $s['citation'] = @$rec['bibliographicCitation'];
+        $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
+        $s['remarks'] = '';
+        $s['method'] = @$rec['measurementMethod'];
+        	
+        $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
+        $s['compiler_uri'] = '';
+        $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
+
         $fields = array('eol_pk', 'page_id', 'scientific_name');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
+    }
+    private function value_for($rec, $field)
+    {
+        $measurementValue = $rec['measurementValue'];
+
+        if($field == 'value_uri') {
+            if(substr($measurementValue,0,4) == 'http') return $measurementValue;
+        }
+        if($field == 'literal') { //can be measurementValue that is URI = http://eol.org/schema/terms/extinct OR uncontrolled vocab = 'extinct' But not numeric e.g. 100
+            if(!is_numeric($measurementValue)) return $measurementValue;
+        }
+        if($field == 'measurement') { //numeric values
+            if(is_numeric($measurementValue)) return $measurementValue;
+        }
+
     }
     private function generate_ParentEdge_row($rec)
     {   /*  edges/parent.csv

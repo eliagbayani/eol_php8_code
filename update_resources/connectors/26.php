@@ -261,8 +261,9 @@ ls -lt WoRMS_textmined.tar.gz
 rm -f 26_MoF_normalized_2.tar.gz
 -end-
 =========================================================================================
+/Volumes/Crucial_2TB/eol_php_code_tmp2/eol-archive/WoRMS/docs/connector_info.txt
 /Volumes/OWC_Express/other_files/My_Docker_content/webroot/eol_php8_code/update_resources/connectors/files/Wikipedia Inferred/Stats_WoRMS.numbers
-/Volumes/OWC_Express/other_files/My_Docker_content/webroot/eol_php8_code/update_resources/connectors/files/Wikipedia Inferred/Stats.numbers
+/Volumes/OWC_Express/other_files/My_Docker_content/webroot/eol_php8_code/update_resources/connectors/files/Wikipedia Inferred/Stats.numbers (other trait resources)
 =========================================================================================
 */
 

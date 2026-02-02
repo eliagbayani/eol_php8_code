@@ -190,53 +190,82 @@ Maybe below is the start of excluding those not in EOL Terms File hmmm... Thus t
 -rw-r--r-- 1 root      root       204955296 Aug 28 12:58 26_meta_recoded.tar.gz
 -rw-r--r-- 1 root      root       205082864 Aug 28 12:04 26_meta_recoded_1.tar.gz
 -rw-r--r-- 1 root      root       207230964 Aug 28 11:11 26.tar.gz
-
-
 =========================================================================================
 In Jenkins: run one connector after the other:
-#OK
-php5.6 26.php jenkins
+#OK 1
+php 26.php jenkins
+#source is WoRMS2EoL.zip (from WoRMS)
 #generates 26.tar.gz
 
-#OK
-php5.6 resource_utility.php jenkins '{"resource_id": "26_meta_recoded_1", "task": "metadata_recoding"}'
+#OK 2
+php resource_utility.php jenkins '{"resource_id": "26_meta_recoded_1", "task": "metadata_recoding"}'
+#source is 26.tar.gz
 #generates 26_meta_recoded_1.tar.gz
 
-#OK
-php5.6 resource_utility.php jenkins '{"resource_id": "26_meta_recoded", "task": "metadata_recoding"}'
+#OK 3
+php resource_utility.php jenkins '{"resource_id": "26_meta_recoded", "task": "metadata_recoding"}'
+#source is 26_meta_recoded_1.tar.gz
 #generates 26_meta_recoded.tar.gz
+#integrity-check 1 OK: All taxonID(s) in OCCURRENCE.tab have TAXON entries.
 
-#OK
-php5.6 environments_2_eol.php jenkins '{"task": "generate_eol_tags_pensoft", "resource":"World Register of Marine Species", "resource_id":"26", "subjects":"Habitat|Distribution"}'
-#generates 26_ENV
+#OK 4
+php environments_2_eol.php jenkins '{"task": "generate_eol_tags_pensoft", "resource":"World Register of Marine Species", "resource_id":"26", "subjects":"Habitat|Distribution"}'
+#source is 26_meta_recoded.tar.gz
+#generates 26_ENV.tar.gz
 
-#OK
-php5.6 resource_utility.php jenkins '{"resource_id": "26_ENV_final", "task": "change_measurementIDs"}'
+#OK 4.2: Special utility for WoRMS: removes all non-textmined MoF entries; from original WoRMS resource.
+php resource_utility.php jenkins '{"resource_id": "26_ENV_2", "task": "remove_MoF_without_taxa"}'
+#source is 26_ENV.tar.gz
+#generates 26_ENV_2.tar.gz
+
+#OK 4.3: Special utility for WoRMS: remove_MoF_without_taxa.
+php resource_utility.php jenkins '{"resource_id": "26_ENV_3", "task": "remove_MoF_without_taxa_REAL"}'
+#source is 26_ENV_2.tar.gz
+#generates 26_ENV_3.tar.gz
+
+#OK 5
+php resource_utility.php jenkins '{"resource_id": "26_ENV_final", "task": "change_measurementIDs"}'
+#source is 26_ENV.tar.gz OLD
+#source is 26_ENV_2.tar.gz OLD
+#source is 26_ENV_3.tar.gz NEW
 #generates 26_ENV_final.tar.gz
 
-#OK
-php5.6 make_hash_IDs_4Deltas.php jenkins '{"task": "", "resource":"Deltas_4hashing", "resource_id":"26_ENV_final"}'
+#OK 6
+php make_hash_IDs_4Deltas.php jenkins '{"task": "", "resource":"Deltas_4hashing", "resource_id":"26_ENV_final"}'
+#source is 26_ENV_final.tar.gz
 #generates 26_delta.tar.gz
 
-#OK: remove all Habitat contradicting MoF records for taxon;
-# i.e.  MoF habitat value(s) that are descendants of both marine and terrestrial
-php5.6 rem_marine_terr_desc.php jenkins '{"resource_id":"26_delta"}'
+#OK 7: The 2nd filter. MoF habitat values that are descendants of both marine and terrestrial
+php rem_marine_terr_desc.php jenkins '{"resource_id":"26_delta"}'
+#source is 26_delta.tar.gz
 #generates: 26_delta_new.tar.gz
 
-#OK: remove the orphan child records in MoF
-php5.6 dwca_MoF_fix.php jenkins '{"resource_id":"26_delta_new", "resource":"MoF_normalized"}'
+#OK 8: remove the orphan child records in MoF
+php dwca_MoF_fix.php jenkins '{"resource_id":"26_delta_new", "resource":"MoF_normalized"}'
+#source is 26_delta_new.tar.gz
 #generates 26_MoF_normalized.tar.gz
 
-# total 8 php files to run
+#OK 9: Clade Specific Filters for Habitat. The 1st filter.
+cd /var/www/html/eol_php8_code/update_resources/connectors
+php clade_filters_4_habitats.php jenkins '{"resource_id":"26_MoF_normalized"}' #OK | result taxon.tab will be only those with occurrences. To-do, Should also consider other extensions.
+#source is 26_MoF_normalized.tar.gz
+#generates 26_MoF_normalized_2.tar.gz
+
+# -------------------> total 9 php files to run
 
 #LAST STEP: copy last transactional DwCA to WoRMS.tar.gz OK
-
-cd /html/eol_php_code/applications/content_server/resources
-cp 26_MoF_normalized.tar.gz WoRMS.tar.gz
-ls -lt 26_MoF_normalized.tar.gz
-ls -lt WoRMS.tar.gz
-rm -f 26_MoF_normalized.tar.gz
+cd /var/www/html/eol_php8_code/applications/content_server/resources_3
+cp 26_MoF_normalized_2.tar.gz WoRMS_textmined.tar.gz
+ls -lt 26_MoF_normalized_2.tar.gz
+ls -lt WoRMS_textmined.tar.gz
+rm -f 26_MoF_normalized_2.tar.gz
+-end-
+=========================================================================================
+/Volumes/OWC_Express/other_files/My_Docker_content/webroot/eol_php8_code/update_resources/connectors/files/Wikipedia Inferred/Stats_WoRMS.numbers
+/Volumes/OWC_Express/other_files/My_Docker_content/webroot/eol_php8_code/update_resources/connectors/files/Wikipedia Inferred/Stats.numbers
+=========================================================================================
 */
+
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // $GLOBALS['ENV_DEBUG'] = false; //true;
 

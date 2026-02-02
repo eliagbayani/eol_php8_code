@@ -65,12 +65,10 @@ class GenerateCSV_4EOLNeo4j
         $occurrence_meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
         self::process_table($occurrence_meta, 'generate_occur_info'); unset($occurrence_meta);
 
-        $mof_meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
-        self::prepare_TraitNode_csv($mof_meta);
-
+        if($mof_meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($mof_meta);
+        if($assoc_meta = @$tables['http://eol.org/schema/association'][0]) self::prepare_TraitNode_csv($assoc_meta);
 
         //    ----- end Jan 27, 2026 */
-
 
         /* copied template
         if(in_array('http://eol.org/schema/association', $extensions) || 
@@ -84,8 +82,7 @@ class GenerateCSV_4EOLNeo4j
         if(in_array('http://rs.tdwg.org/dwc/terms/measurementorfact', $extensions)) {
             self::prepare_measurements_csv($tables);
             self::prepare_predicates_csv_measurement($tables);
-        }
-        */
+        }*/
 
         print_r($this->debug);
         Functions::start_print_debug($this->debug, 'Gen_Neo4j_CSV');
@@ -172,13 +169,13 @@ class GenerateCSV_4EOLNeo4j
 
 
             if($what == 'generate_occur_info') {
-                /*  Array(
+                /*  Array(  can be: occurrenceID	taxonID	sex
                         [occurrenceID] => e36713aea279079ed39099826601f8f6
                         [taxonID] => 1054700 )  */
                 $taxonID = $rec['taxonID'];
                 if(self::is_valid_taxonID($taxonID)) {
                     $scientificName = $this->taxon_info[$taxonID]['sN'];
-                    $this->occur_info[$rec['occurrenceID']] = array('tI' => $taxonID, 'sN' => $scientificName);
+                    $this->occur_info[$rec['occurrenceID']] = array('tI' => $taxonID, 'sN' => $scientificName, 'sx' => @$rec['sex'], 'lS' => @$rec['lifeStage']);
                 }
             }
             if($what == 'generate-TraitNode-csv') { //this is MoF record
@@ -187,14 +184,20 @@ class GenerateCSV_4EOLNeo4j
                     /*Array( $taxon
                         [tI] => 46501030
                         [sN] => Aahithis Schallreuter, 1988
+                        [sx] => e.g. http://eol.org/schema/terms/maleAndFemale
+                        [lS]
                     )*/
                     $taxonID = $taxon['tI'];
                     $scientificName = $taxon['sN'];
+                    $sex = $taxon['sx'];
+                    $lifeStage = $taxon['lS'];
                     if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
                         // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
                         if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
                             $rec['page_id'] = $taxonID;
                             $rec['scientific_name'] = $scientificName;
+                            $rec['sex'] = $sex;
+                            $rec['lifestage'] = $lifeStage;
                             self::generate_TraitNode_row($rec);                
                         }
                     }
@@ -280,7 +283,7 @@ class GenerateCSV_4EOLNeo4j
     {   /* WoRMS
         nodes/Trait.csv
         eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL                    
-        Array(
+        Array( WoRMS
             [measurementID] => 6727294cfe63431fc4bd57e07223e119
             [occurrenceID] => da1da3ead698fd03083cd18c4c8942e9
             [measurementOfTaxon] => true
@@ -298,16 +301,38 @@ class GenerateCSV_4EOLNeo4j
             [referenceID] => 
             [page_id] => 46501030
             [scientific_name] => Aahithis Schallreuter, 1988
+        )
+        Array( GloBI
+            [associationID] => 4cb8806ffd419983bc7080a1a50b02b4
+            [occurrenceID] => 9a9e31fb999985e6631623c65385b984
+            [associationType] => http://purl.obolibrary.org/obo/RO_0002556
+            [targetOccurrenceID] => 6e5210acd02426f7ade33cbb6e8e9d46
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => 
+            [measurementRemarks] => 
+            [source] => Sarah E Miller. 12/20/2016. Species associations manually extracted from Mhaisen, F.T., Ali, A.H. and Khamees, N.R., Checklists of Protozoans and Myxozoans of Freshwater and Marine Fishes of Basrah Province, Iraq.
+            [bibliographicCitation] => 
+            [contributor] => 
+            [referenceID] => 211bebbd914337ab8ce89e18880cd8bf
+            [page_id] => 2915297
+            [scientific_name] => Trichodina domerguei
+            [sex] => 
+            [lifestage] => 
         )*/
         print_r($rec); exit("\nelix 2\n");
+        // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	contributor_uri	compiler_uri	determined_by_uri
         $s = array();
         $s['eol_pk'] = 'eli';
         $s['page_id'] = $rec['page_id'];
         $s['scientific_name'] = $rec['scientific_name'];
-        $s['resource_pk'] = $rec['measurementID'];
+        
+        if($val = @$rec['measurementID']) $s['resource_pk'] = $val;
+        elseif($val = @$rec['associationID']) $s['resource_pk'] = $val;
+
         $s['predicate'] = $rec['measurementType'];
-        $s['sex'] = '';
-        $s['lifestage'] = '';
+        $s['sex'] = $rec['sex'];
+        $s['lifestage'] = $rec['lifestage'];
         $s['statistical_method'] = $rec['statisticalMethod'];
         $s['object_page_id'] = ''; //for Associations
         $s['target_scientific_name'] = ''; //for Associations

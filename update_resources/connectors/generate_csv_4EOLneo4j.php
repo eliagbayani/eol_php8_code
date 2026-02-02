@@ -5,7 +5,7 @@ php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "g
 
 start Jan 27, 2026:
 php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "WoRMS_TraitBank_1_0", "eol_resource_id": "worms"}'
-php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "globi_assoc", "eol_resource_id": "globi"}'
+php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "GloBI_TraitBank_1_0", "eol_resource_id": "globi"}'
 php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "Wikipedia_TraitBank_1_0", "eol_resource_id": "wikipedia"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");

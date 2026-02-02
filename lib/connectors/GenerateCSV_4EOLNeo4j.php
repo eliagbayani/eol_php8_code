@@ -23,6 +23,7 @@ class GenerateCSV_4EOLNeo4j
         self::initialize_folders($this->resource_id);
         // /* ----- This can come from an RDBMS
         $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
+        $this->EOL_resources['globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
         $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
         // ----- */
     }
@@ -321,9 +322,8 @@ class GenerateCSV_4EOLNeo4j
         $s['sample_size'] = '';
         $s['citation'] = @$rec['bibliographicCitation'];
         $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
-        $s['remarks'] = '';
+        $s['remarks'] = @$rec['measurementRemarks'];
         $s['method'] = @$rec['measurementMethod'];
-        	
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
         $s['compiler_uri'] = '';
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];

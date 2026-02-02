@@ -51,7 +51,7 @@ class DwCA_UseEOLidInTaxa
             self::process_table($meta, 'build_association_info');
         } */
 
-        if ($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
     }
     private function process_table($meta, $what)
     { 

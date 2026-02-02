@@ -198,6 +198,19 @@ class GenerateCSV_4EOLNeo4j
                             $rec['scientific_name'] = $scientificName;
                             $rec['sex'] = $sex;
                             $rec['lifestage'] = $lifeStage;
+                            // /* ----- start if Association
+                            if(@$rec['associationID']) { 
+                                $targetOccurrenceID = $rec['targetOccurrenceID'];
+                                if($target_taxon = @$this->occur_info[$targetOccurrenceID]) {
+                                    $rec['object_page_id'] = $target_taxon['tI'];
+                                    $rec['target_scientific_name'] = $target_taxon['sN'];
+                                }
+                                else {
+                                    $this->debug['target taxon is not valid'][$targetOccurrenceID] = '';
+                                    echo "\ntarget taxon is not valid: [$targetOccurrenceID]\n";
+                                }
+                            }
+                            // ----- */
                             self::generate_TraitNode_row($rec);                
                         }
                     }
@@ -330,12 +343,16 @@ class GenerateCSV_4EOLNeo4j
         if($val = @$rec['measurementID']) $s['resource_pk'] = $val;
         elseif($val = @$rec['associationID']) $s['resource_pk'] = $val;
 
-        $s['predicate'] = $rec['measurementType'];
+        if($val = @$rec['measurementType']) $s['predicate'] = $val;
+        elseif($val = @$rec['associationType']) $s['predicate'] = $val;
+
         $s['sex'] = $rec['sex'];
         $s['lifestage'] = $rec['lifestage'];
         $s['statistical_method'] = $rec['statisticalMethod'];
-        $s['object_page_id'] = ''; //for Associations
-        $s['target_scientific_name'] = ''; //for Associations
+
+        $s['object_page_id'] = $rec['object_page_id']; //for Associations
+        $s['target_scientific_name'] = $rec['target_scientific_name']; //for Associations
+        
         $s['value_uri'] = self::value_for($rec, 'value_uri');
         $s['literal'] = self::value_for($rec, 'literal');
         $s['measurement'] = self::value_for($rec, 'measurement');

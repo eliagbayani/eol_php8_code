@@ -84,7 +84,7 @@ class GenerateCSV_4EOLNeo4j
             self::prepare_predicates_csv_measurement($tables);
         }*/
 
-        print_r($this->debug);
+        // print_r($this->debug);
         Functions::start_print_debug($this->debug, 'Gen_Neo4j_CSV');
         recursive_rmdir($temp_dir);
         debug("\n temporary directory removed: " . $temp_dir);
@@ -143,7 +143,10 @@ class GenerateCSV_4EOLNeo4j
                 }
             }
             if($what == 'generate-PageNode-csv') { //step 1b
-                if(self::is_valid_taxonID($rec['taxonID'])) self::generate_PageNode_row($rec);
+                if(self::is_valid_taxonID($rec['taxonID'])) {
+                    if(!@$rec['canonicalName']) $this->debug['No canonicalName'][$rec['taxonID']."-".$rec['scientificName']] = '';
+                    self::generate_PageNode_row($rec);
+                }
             }
             if($what == 'generate-VernacularNode-csv') { //step 2a
                 if(self::is_valid_taxonID($rec['taxonID'])) {
@@ -168,7 +171,7 @@ class GenerateCSV_4EOLNeo4j
             }
 
 
-            if($what == 'generate_occur_info') {
+            if($what == 'generate_occur_info') { //this is occurence.tab
                 /*  Array(  can be: occurrenceID	taxonID	sex
                         [occurrenceID] => e36713aea279079ed39099826601f8f6
                         [taxonID] => 1054700 )  */
@@ -207,11 +210,16 @@ class GenerateCSV_4EOLNeo4j
                                 }
                                 else {
                                     $this->debug['target taxon is not valid'][$targetOccurrenceID] = '';
-                                    echo "\ntarget taxon is not valid: [$targetOccurrenceID]\n";
+                                    continue;
                                 }
                             }
                             // ----- */
+                            // exit("\nGoes here 100\n");
                             self::generate_TraitNode_row($rec);                
+                        }
+                        else {
+                            $this->debug['source taxon is not valid'][$taxonID] = '';
+                            continue;
                         }
                     }
                 }
@@ -373,7 +381,7 @@ class GenerateCSV_4EOLNeo4j
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
 
         $fields = array('eol_pk', 'page_id', 'scientific_name');
-        $csv = self::format_csv_entry($rec, $fields);
+        $csv = self::format_csv_entry($s, array_keys($s));
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
     }

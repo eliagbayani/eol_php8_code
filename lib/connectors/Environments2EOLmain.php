@@ -164,7 +164,7 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 echo "\n neglect uncooperative contributor: ".count($this->debug['neglect uncooperative contributor'])." \n";
                 unset($this->debug['neglect uncooperative contributor']);
             }
-            print_r($this->debug);
+            // print_r($this->debug);
             Functions::start_print_debug($this->debug, $this->resource_id.'_p2');
         }
     }

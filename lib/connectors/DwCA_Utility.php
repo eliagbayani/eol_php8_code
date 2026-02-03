@@ -181,7 +181,9 @@ class DwCA_Utility
             if(@$this->params['resource'] == "match_taxa_2DH") break;         //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "use_EOLid_as_taxonID") break;   //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "revise_keyword_map") break;     //all extensions will be processed elsewhere.
+            if(@$this->params['resource'] == "create_Media_from_MoF") break;  //all extensions will be processed elsewhere.
             */
+
 
             if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
             elseif(in_array($this->resource_id, array("BF", "gbif_classification", "gbif_classification_without_ancestry", "gbif_classification_final", 
@@ -616,7 +618,7 @@ class DwCA_Utility
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
         // */
-        if($this->debug) print_r($this->debug);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         else echo "\nNo debug info.\n";
     }
     function convert_archive_files($lifedesks) //used by: connectors/lifedesk_eol_export.php

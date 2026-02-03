@@ -85,24 +85,26 @@ class DwCA_CreateMediaFromMoF
                     [http://purl.org/dc/terms/bibliographicCitation] => AntWeb. Version 8.45.1. California Academy of Science, online at https://www.antweb.org. Accessed 15 November 2024.
                 )*/
                 if($taxonID = $this->occurrenceID_taxonID_info[$rec['occurrenceID']]) {
-                    $identifier = md5(json_encode($rec));
-                    $s = array();
-                    $s['identifier'] = $identifier;
-                    $s['taxonID'] = $taxonID;
-                    $s['type'] = 'http://purl.org/dc/dcmitype/Text';
-                    $s['format'] = 'text/html';
-                    $s['CVterm'] = 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#Description';
-                    $s['title'] = 'From MoF measurementRemarks';
-                    $s['description'] = $rec['measurementRemarks'];
-                    $s['furtherInformationURL'] = $rec['source'];
-                    $s['language'] = 'en';
-                    $s['UsageTerms'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
-                    $s['Owner'] = ''; //California Academy of Sciences
-                    $s['bibliographicCitation'] = $rec['bibliographicCitation'];
-                    $s['accessURI'] = '';
-                    $s['CreateDate'] = '';
-                    $s['agentID'] =  '';
-                    self::proceed_2write($s, 'document');                    
+                    if($rec['measurementRemarks']) {
+                        $identifier = md5(json_encode($rec));
+                        $s = array();
+                        $s['identifier'] = $identifier;
+                        $s['taxonID'] = $taxonID;
+                        $s['type'] = 'http://purl.org/dc/dcmitype/Text';
+                        $s['format'] = 'text/html';
+                        $s['CVterm'] = 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#Description';
+                        $s['title'] = 'From MoF measurementRemarks';
+                        $s['description'] = $rec['measurementRemarks'];
+                        $s['furtherInformationURL'] = $rec['source'];
+                        $s['language'] = 'en';
+                        $s['UsageTerms'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
+                        $s['Owner'] = ''; //California Academy of Sciences
+                        $s['bibliographicCitation'] = $rec['bibliographicCitation'];
+                        $s['accessURI'] = '';
+                        $s['CreateDate'] = '';
+                        $s['agentID'] =  '';
+                        self::proceed_2write($s, 'document');                    
+                    }
                 }
                 else exit("\noccurrenceID in MoF not found in occurrences: [".$rec['occurrenceID']."\n");                
             }

@@ -293,6 +293,11 @@ class DwCA_Utility
             $func = new DWCA_Measurements_ReassignValuesAPI($this->archive_builder, $this->resource_id);
             $func->start($info);
         }
+        if(@$this->params['resource'] == 'create_Media_from_MoF') {
+            require_library('connectors/DwCA_CreateMediaFromMoF');
+            $func = new DwCA_CreateMediaFromMoF($this->archive_builder, $this->resource_id);
+            $func->start($info);
+        }
 
         if(in_array($this->resource_id, array('NorthAmericanFlora_All_subset'))) {
             require_library('connectors/DWCA_Remove_MoF_RecordsAPI');

@@ -26,6 +26,12 @@ foreach($algos as $algo) {
 } exit;
 */
 
+/* check if AntWeb allows screen grabs. Unfortunately, they don't allow it :-(
+$url = 'https://www.antweb.org/description.do?genus=zatania&species=albimaculata&rank=species&project=allantwebants';
+$html = Functions::lookup_with_cache($url, array('timeout' => 30, 'expire_seconds' => false, 'resource_id' => 'test'));
+exit("\n$html\n");
+*/
+
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); //print_r($param); exit;

@@ -521,6 +521,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 Wikipedia inferred => envo
                 TreatmentBank => envo
                 */
+                /* this is obsolete
                 if(in_array($this->param['resource_id'], array("10088_5097_ENV"))) $this->ontologies = "habitat,eol-geonames";             //Smithsonian Contributions to Zoology
                 elseif(in_array($this->param['resource_id'], array("10088_6943_ENV"))) $this->ontologies = "habitat,eol-geonames,growth";  //Smithsonian Contributions to Botany
                 elseif(stripos($this->param['resource_id'], "SCtZ-") !== false)        $this->ontologies = "habitat,eol-geonames"; //string is found           //SI Contributions to Zoology
@@ -533,7 +534,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                     "15423_ENV", "91155_ENV"))) $this->ontologies = "habitat,eol-geonames";
                 elseif($this->param['resource'] == 'all_BHL') $this->ontologies = "habitat,eol-geonames";
                 if(@$this->param['group'] == 'BHL_plants') $this->ontologies = "habitat,eol-geonames,growth"; //overwrites prev value
-                
+                */
                 // /* DATA-1897: Pensoft journals (textmining)
                 if($this->param['resource_id'] == "TreatmentBank_ENV") { //filter process
                     $rec = $this->process_table_TreatmentBank_ENV($rec);

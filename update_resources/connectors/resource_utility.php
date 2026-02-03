@@ -268,7 +268,8 @@ elseif($task == 'change_measurementIDs') {
 }
 elseif($task == 'remove_MoF_Occurrence') {
     if($resource_id == '24_pre_ENV') {
-        $dwca_file = CONTENT_RESOURCE_LOCAL_PATH.'/24_legacy_2024_11_15_EoL.tar.gz';
+        // $dwca_file = CONTENT_RESOURCE_LOCAL_PATH.'/24_legacy_2024_11_15_EoL.tar.gz'; //obsolete
+        $dwca_file = CONTENT_RESOURCE_LOCAL_PATH.'/24_legacy_onwards1.tar.gz';
         if(!is_file($dwca_file)) exit("\nDwCA file not found: [$dwca_file]\n");
     }
     else exit("\nresource_id not yet initialized\n");

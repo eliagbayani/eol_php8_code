@@ -163,13 +163,13 @@ class Functions_Annotator
         $pipe_delimited = $rec['http://rs.tdwg.org/ac/terms/additionalInformation'];
         $arr = explode("|", $pipe_delimited);
         $description_type = $arr[0];
-        $zip_file = @$arr[1]; //seems not used anyway
 
-        $title            = $rec['http://purl.org/dc/terms/title'];
-        // $this->ontologies = "envo,eol-geonames"; //orig
-        if($title == 'Title for eol-geonames')                                      {$this->ontologies = "eol-geonames"; @$this->debug['Title for eol-geonames']++;}
-        elseif(in_array($description_type, array("distribution", "conservation")))  $this->ontologies = "ALL"; //$this->ontologies = "envo,eol-geonames";
-        elseif(in_array($description_type, array("description", "biology_ecology", "diagnosis", "materials_examined"))) $this->ontologies = "ALL"; //$this->ontologies = "envo"; //the rest
+        $title = $rec['http://purl.org/dc/terms/title'];
+        @$this->debug['Titles'][$title]++;
+
+        if($title == 'Title for eol-geonames')                                      {$this->ontologies = "eol-geonames";}
+        elseif(in_array($description_type, array("distribution", "conservation")))  $this->ontologies = "ALL";
+        elseif(in_array($description_type, array("description", "biology_ecology", "diagnosis", "materials_examined"))) $this->ontologies = "ALL";
         else { 
             // echo "R1 [$title] [$description_type]"; 
             $this->debug['unused data type'][$description_type] = ''; 

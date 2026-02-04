@@ -35,7 +35,7 @@ define("SERVICE_TERM_DESCENDANTS", "https://editors.eol.org/eol_php_code/update_
 class Pensoft2EOLAPI extends Functions_Pensoft
 {
     function __construct($param)
-    {   exit("\nPensoft not used anymore.\n");
+    {   exit("\nPensoft not used anymore.\n"); 
         $GLOBALS['ENV_DEBUG'] = false; //true;
         $this->param = $param; // print_r($param); exit;
         /*Array(
@@ -552,10 +552,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
                 // /* DATA-1897: Pensoft journals (textmining)
                 if($this->param['resource_id'] == "TreatmentBank_ENV") {
                     $rec = $this->process_table_TreatmentBank_ENV($rec);
-                    if(!$rec) {
-                        // print_r($rec); echo "-invalid ito"; //good debug
-                        continue;
-                    }
+                    if(!$rec) continue;
                 } //end TreatmentBank_ENV
 
                 if($this->param['resource_id'] == "20_ENV")             $this->ontologies = "envo,eol-geonames"; //ZooKeys
@@ -1037,7 +1034,6 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             } // ======================================================================== end growth ontology */
             
             // /* customize
-            // exit("\n".$this->param['resource_id']."\n");
             if($this->param['resource_id'] == '21_ENV') { //AmphibiaWeb text
                 if($rek['id'] == 'http://purl.obolibrary.org/obo/ENVO_00002010') continue; //saline water. Per Jen: https://eol-jira.bibalex.org/browse/DATA-1870?focusedCommentId=65409&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-65409
                 if(isset($this->descendants_of_saline_water[$rek['id']])) continue;
@@ -1058,10 +1054,6 @@ class Pensoft2EOLAPI extends Functions_Pensoft
             $validTraitYN = self::John_Hill_vs_hill_mountain($rek);
             if(!$validTraitYN) continue;
             
-            /* DATA-1893
-            nothing to add here...
-            */
-
             // /* another general for all: https://eol-jira.bibalex.org/browse/DATA-1897?focusedCommentId=66605&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66605
             $context = strip_tags($rek['context']);
             if(stripos($context, "India ink") !== false && $rek['lbl'] == "india") { //string is found

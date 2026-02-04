@@ -391,7 +391,7 @@ class CladeSpecificFilters4Habitats_API
             //===================================================================================================================
             if($task == 'write_taxa') {
                 $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-                if(isset($this->taxa_has_occurrence[$taxonID]) || isset($this->taxa_has_extensions[$taxonID])) { // saving
+                // if(isset($this->taxa_has_occurrence[$taxonID]) || isset($this->taxa_has_extensions[$taxonID])) { // un-comment to only include taxa with MoF or with other extensions e.g. Vernacular, Media.
                     $o = new \eol_schema\Taxon();
                     $uris = array_keys($rec);
                     foreach($uris as $uri) {
@@ -399,7 +399,7 @@ class CladeSpecificFilters4Habitats_API
                         $o->$field = $rec[$uri];
                     }
                     $this->archive_builder->write_object_to_file($o);
-                }
+                // }
             }
             //===================================================================================================================
             if($task == 'record_existence_of_taxa') { //media, vernculars, etc.

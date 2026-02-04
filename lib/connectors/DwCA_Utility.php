@@ -182,9 +182,9 @@ class DwCA_Utility
             if(@$this->params['resource'] == "use_EOLid_as_taxonID") break;   //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "revise_keyword_map") break;     //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "create_Media_from_MoF") break;  //all extensions will be processed elsewhere.
+            if(@$this->params['resource'] == "remove_Media_with_criteria") break;  //all extensions will be processed elsewhere.
             */
-
-
+        
             if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
             elseif(in_array($this->resource_id, array("BF", "gbif_classification", "gbif_classification_without_ancestry", "gbif_classification_final", 
                                                       "708", "Brazilian_Flora_with_canonical"))) break; //all extensions will be processed elsewhere.
@@ -298,6 +298,11 @@ class DwCA_Utility
         if(@$this->params['resource'] == 'create_Media_from_MoF') {
             require_library('connectors/DwCA_CreateMediaFromMoF');
             $func = new DwCA_CreateMediaFromMoF($this->archive_builder, $this->resource_id);
+            $func->start($info);
+        }
+        if(@$this->params['resource'] == 'remove_Media_with_criteria') {
+            require_library('connectors/DwCA_RemoveMediaWithCriteria');
+            $func = new DwCA_RemoveMediaWithCriteria($this->archive_builder, $this->resource_id);
             $func->start($info);
         }
 

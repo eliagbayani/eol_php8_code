@@ -538,10 +538,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 // /* DATA-1897: Pensoft journals (textmining)
                 if($this->param['resource_id'] == "TreatmentBank_ENV") { //filter process
                     $rec = $this->process_table_TreatmentBank_ENV($rec);
-                    if(!$rec) {
-                        // print_r($rec); echo "-invalid ito"; //good debug
-                        continue;
-                    }
+                    if(!$rec) continue;
                 } //end TreatmentBank_ENV
 
                 // /* AntWeb filter process

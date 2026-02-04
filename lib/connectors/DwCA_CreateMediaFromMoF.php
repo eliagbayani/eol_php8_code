@@ -4,6 +4,7 @@ namespace php_active_record;
 Related Workspaces:
 - AntWeb_Traits.code-workspace
 - DwCA_CreateMediaFromMoF.code-workspace
+- DwCA_RemoveMediaWithCriteria.code-workspace
 */
 class DwCA_CreateMediaFromMoF
 {

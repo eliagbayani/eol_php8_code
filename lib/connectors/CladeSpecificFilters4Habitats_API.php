@@ -153,6 +153,7 @@ class CladeSpecificFilters4Habitats_API
         // */
         
         self::process_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'write_taxa');
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         // exit("\nstop muna...\n");
     }
     private function process_table($meta, $task)
@@ -385,6 +386,7 @@ class CladeSpecificFilters4Habitats_API
                         $field = pathinfo($uri, PATHINFO_BASENAME);
                         $o->$field = $rec[$uri];
                     }
+                    self::for_stats_report($rec);
                     $this->archive_builder->write_object_to_file($o);
                 }
             }
@@ -410,6 +412,32 @@ class CladeSpecificFilters4Habitats_API
             //===================================================================================================================
         }
         if(isset($fhandle)) fclose($fhandle);
+    }
+    private function for_stats_report($rec)
+    {   /*Array( WoRMS
+            [http://rs.tdwg.org/dwc/terms/measurementID] => 118e29317da0c8eae6c6e44e84959862
+            [http://rs.tdwg.org/dwc/terms/occurrenceID] => e36713aea279079ed39099826601f8f6
+            [http://eol.org/schema/measurementOfTaxon] => true
+            [http://eol.org/schema/parentMeasurementID] => 
+            [http://rs.tdwg.org/dwc/terms/measurementType] => http://rs.tdwg.org/dwc/terms/habitat
+            [http://rs.tdwg.org/dwc/terms/measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000024
+            [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
+            [http://eol.org/schema/terms/statisticalMethod] => 
+            [http://rs.tdwg.org/dwc/terms/measurementDeterminedDate] => 
+            [http://rs.tdwg.org/dwc/terms/measurementDeterminedBy] => 
+            [http://rs.tdwg.org/dwc/terms/measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:101, Gastropoda Cuvier, 1795
+            [http://rs.tdwg.org/dwc/terms/measurementRemarks] => 
+            [http://purl.org/dc/terms/source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=1054700
+            [http://eol.org/schema/reference/referenceID] => 
+            [http://purl.org/dc/terms/contributor] => 
+        )*/
+        if(self::is_textmined($rec)) @$this->debug['Stats: MoF textmined'][$rec['http://rs.tdwg.org/dwc/terms/measurementType']]++;
+        else                         @$this->debug['Stats: MoF non-textmined'][$rec['http://rs.tdwg.org/dwc/terms/measurementType']]++;
+    }
+    private function is_textmined($rec)
+    {
+        if(substr(@$rec['http://rs.tdwg.org/dwc/terms/measurementRemarks'], 0, 12) == 'source text:') return true;
+        else return false;
     }
     /* Not used anymore. Used Wikipedia first filter instead.
     private function is_mValue_Reasonably_Terrestrial($mValue)

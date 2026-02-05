@@ -66,7 +66,7 @@ class TraitAnnotatorAPI
         $haystack = html_entity_decode($haystack, ENT_QUOTES | ENT_HTML5, 'UTF-8'); //converts string "&ndash;" to "-"
         $haystack = mb_convert_encoding($haystack, "UTF-8", mb_detect_encoding($haystack));
         // */
-        $position = strpos($haystack, $needle);
+        $position = stripos($haystack, $needle); //stripos() makes it case-insensitive match to new Textmining Strings
         if ($position !== false) {
             // echo "\nSubstring ($needle) found at position: " . $position; //good debug
             if(!self::boundary_chars_are_valid_YN($position, $needle, $haystack)) return;
@@ -115,8 +115,12 @@ class TraitAnnotatorAPI
         return array("left" => $leftmost, "right" => $rightmost);
     }
     private function format_context($needle, $haystack)
-    {
-        return str_replace($needle, "<b>".$needle."</b>", $haystack);
+    {   
+        $temp = str_ireplace($needle, "<b>".$needle."</b>", $haystack); //important: we changed to str_ireplace() to make it insensitive; from str_replace()
+        if($haystack == $temp) {
+            exit("\nERROR: not successful replace:\n needle: [$needle] haystack: [$haystack]\n");
+        }
+        return $temp;
     }
     private function initialize_predicate($predicate)
     {   

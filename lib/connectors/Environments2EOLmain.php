@@ -629,7 +629,7 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
                 break;
             }
         }
-        if($index === false) {}
+        if($index === false) echo "\nERROR: Investigate index === false\n";
         else {
             $start_index = $index - 4;
             $end_index = $index + 4;

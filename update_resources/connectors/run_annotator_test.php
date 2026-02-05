@@ -65,13 +65,19 @@ $descs[] = "The lion lives near alpine meadow and sometimes other sea grass mead
 $descs[] = "HW 0.53&ndash;0.59 (n=5); shallowly and 16 above evenly concave, with";
 $descs[] = "HW 0.53-0.59 (n=5); shallowly and 16 above evenly concave, with";
 $descs[] = "HW 0.53-0.59 (n=5); shallowly and 16 above evenly con-cave, with";
+// matching now is case-insensitive
+$descs[] = 'Alpine Valley lodge offer nice rooms.';
+$descs[] = 'alpine valLey lodge offer nice rooms.';
+$descs[] = 'Littoral to shelf';
 
 /* un-comment this block to test 1 record
 $descs = array();
 // $descs[] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
 $time = date('Y-m-d H:i:s', time());
 // $descs[] = "[$time] do not usually enter brackish water and mostly montane .[12][13] The favored temperature";
-$descs[] = 'The Madagascar pygmy kingfisher (Corythornis madagascariensis) is a species of bird in the family Alcedinidae. It is endemic to Madagascar and found in western dry decidu';
+// $descs[] = 'The Madagascar pygmy kingfisher (Corythornis madagascariensis) is a species of bird in the family Alcedinidae. It is endemic to Madagascar and found in western dry decidu';
+// $descs[] = 'I live in a Grassland near them.';
+$descs[] = 'Littoral to shelf';
 */
 
 /*
@@ -158,6 +164,10 @@ foreach($IDs as $resource_id) {
             $q[26] = array('s' => "");
             $q[27] = array('s' => "");
             $q[28] = array('s' => "cave-ENVO_00000067->RO_0002303");
+            // matching now is case-insensitive
+            $q[29] = array('s' => "alpine valley-ENVO_01000340->RO_0002303");
+            $q[30] = array('s' => "alpine valley-ENVO_01000340->RO_0002303");
+            $q[31] = array('s' => "littoral-littoralZone->RO_0002303");
 
             // if($arr = @$q[$i]) {
             //     if($ret == $arr['s']) echo " -OK-"; else { echo " -ERROR- [$arr[s]]"; $errors++; }
@@ -209,9 +219,12 @@ foreach($IDs as $resource_id) {
         if($i == 25) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
         // &ndash;
         if($i == 26) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
-        if($i == 27) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }        
-        if($i == 28) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }        
-
+        if($i == 27) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 28) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        // matching now is case-insensitive
+        if($i == 29) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 30) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
+        if($i == 31) {$s = $q[$i]['s'];  if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
     } //end foreach()
     echo "\nerrors: [$resource_id][$errors errors]";
     $final[] =     "[$resource_id][$errors errors]";

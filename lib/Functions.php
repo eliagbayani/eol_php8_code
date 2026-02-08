@@ -2657,11 +2657,15 @@ class Functions
         }
         return Functions::remove_whitespace($str);
     }
-    public static function start_print_debug($this_debug, $resource_id)
+    public static function start_print_debug($this_debug, $resource_id, $destination_folder = false)
     {
+        if(!$destination_folder) $destination_folder = CONTENT_RESOURCE_LOCAL_PATH;
+        else {
+            if(!is_dir($destination_folder)) exit("\nERROR: Destination folder in: [start_print_debug()] is not found.\n");
+        }
         if(in_array($resource_id, array('gen_map_data_via_gbif_csv'))) $attrib = "a"; //new 2025
         else                                                           $attrib = "w"; //orig value
-        $file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id."_debug_".date('Y-m-d').".txt";
+        $file = $destination_folder .'/'. $resource_id."_debug_".date('Y-m-d').".txt";
         $WRITE = Functions::file_open($file, $attrib);
         foreach($this_debug as $topic => $arr) {
             fwrite($WRITE, "=============================================================[".date('Y-m-d')."]\n");

@@ -358,10 +358,10 @@ class GenerateCSV_4EOLNeo4j
         $s['sex'] = $rec['sex'];
         $s['lifestage'] = $rec['lifestage'];
         $s['statistical_method'] = @$rec['statisticalMethod'];
-
-        $s['object_page_id'] = @$rec['object_page_id']; //for Associations
-        $s['target_scientific_name'] = @$rec['target_scientific_name']; //for Associations
-        
+        // /* for Associations
+        $s['object_page_id'] = @$rec['object_page_id'];
+        $s['target_scientific_name'] = @$rec['target_scientific_name'];
+        // */
         $s['value_uri'] = self::value_for($rec, 'value_uri');
         $s['literal'] = self::value_for($rec, 'literal');
         $s['measurement'] = self::value_for($rec, 'measurement');
@@ -380,8 +380,8 @@ class GenerateCSV_4EOLNeo4j
         $s['compiler_uri'] = '';
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
 
-        $fields = array('eol_pk', 'page_id', 'scientific_name');
-        $csv = self::format_csv_entry($s, array_keys($s));
+        $fields = array_keys($s);
+        $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
     }

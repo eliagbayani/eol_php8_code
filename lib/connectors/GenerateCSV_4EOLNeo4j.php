@@ -66,7 +66,7 @@ class GenerateCSV_4EOLNeo4j
         self::process_table($occurrence_meta, 'generate_occur_info'); unset($occurrence_meta);
 
         if($mof_meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($mof_meta);
-        if($assoc_meta = @$tables['http://eol.org/schema/association'][0]) self::prepare_TraitNode_csv($assoc_meta);
+        if($assoc_meta = @$tables['http://eol.org/schema/association'][0])            self::prepare_TraitNode_csv($assoc_meta);
 
         //    ----- end Jan 27, 2026 */
 
@@ -85,7 +85,7 @@ class GenerateCSV_4EOLNeo4j
         }*/
 
         // print_r($this->debug);
-        Functions::start_print_debug($this->debug, 'Gen_Neo4j_CSV');
+        Functions::start_print_debug($this->debug, $this->param['eol_resource_id'].'_CSV', $this->path); //old 2nd param = Gen_Neo4j_CSV
         recursive_rmdir($temp_dir);
         debug("\n temporary directory removed: " . $temp_dir);
     }
@@ -223,6 +223,8 @@ class GenerateCSV_4EOLNeo4j
                         }
                     }
                 }
+                // if($i >= 500) break; //debug only
+                //end if($what == 'generate-TraitNode-csv')
             }
             
             /* copied template
@@ -769,10 +771,10 @@ class GenerateCSV_4EOLNeo4j
     private function initialize_folders($resource_id)
     {
         $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
+        if(!is_dir($path)) mkdir($path);
+        $path .= '/' . $resource_id . '_csv';
         if(is_dir($path)) recursive_rmdir($path);
         mkdir($path);
-        $path .= '/' . $resource_id . '_csv';
-        if(!is_dir($path)) mkdir($path);
         $this->path = $path;
         $temp_dir = $path.'/nodes'; mkdir($temp_dir);
         $temp_dir = $path.'/edges'; mkdir($temp_dir);

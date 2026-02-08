@@ -768,9 +768,11 @@ class GenerateCSV_4EOLNeo4j
     }
     private function initialize_folders($resource_id)
     {
-        $path = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . '_csv';
+        $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         if(is_dir($path)) recursive_rmdir($path);
         mkdir($path);
+        $path .= '/' . $resource_id . '_csv';
+        if(!is_dir($path)) mkdir($path);
         $this->path = $path;
         $temp_dir = $path.'/nodes'; mkdir($temp_dir);
         $temp_dir = $path.'/edges'; mkdir($temp_dir);

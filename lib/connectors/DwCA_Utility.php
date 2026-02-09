@@ -736,7 +736,7 @@ class DwCA_Utility
             return false;
         }
         recursive_rmdir($temp_dir); echo ("\n temporary directory removed: " . $temp_dir);
-        if($this->debug) print_r($this->debug);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         return true;
     }
     function convert_archive_normalized() //this same as above two, but this removes taxa that don't have objects. Only taxa with objects will remain in taxon.tab.

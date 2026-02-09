@@ -31,6 +31,7 @@ class ResourceUtility
     {   //exit("\nthis resource id: $this->resource_id\n"); //this resource id: try_dbase_2024 | WoRMS_cleaned
 
         $tables = $info['harvester']->tables; // print_r($tables); exit;
+        $this->taxonIDs_in_question = array();
 
         // /* Customize here:
         if($this->resource_id == "try_dbase_2024") {

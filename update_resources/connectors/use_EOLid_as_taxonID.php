@@ -51,12 +51,13 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
 
     $preferred_rowtypes = array("http://eol.org/schema/reference/reference", 
         "http://rs.tdwg.org/dwc/terms/measurementorfact", "http://eol.org/schema/association",    
-        "http://eol.org/schema/agent/agent", "http://eol.org/schema/media/document");
+        "http://eol.org/schema/agent/agent");
     $preferred_rowtypes[] = "http://rs.gbif.org/terms/1.0/reference"; //just in case used by some DwCA
     $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
 
-    /* This will be processed in DwCA_MatchTaxa2DH.php which will be called from DwCA_Utility.php 
+    /* These (if exists) will be processed in DwCA_MatchTaxa2DH.php which will be called from DwCA_Utility.php 
         http://rs.gbif.org/terms/1.0/vernacularname
+        http://eol.org/schema/media/document
         and occurrence tab
     */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);

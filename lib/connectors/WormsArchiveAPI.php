@@ -298,7 +298,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
         // remove temp dir
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
-        print_r($this->debug);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function process_fields($records, $class)
     {
@@ -336,6 +336,15 @@ class WormsArchiveAPI extends ContributorsMapAPI
             // /* remove [source] == 'DEU' per https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=67026&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67026
             if($class == "vernacular") {
                 if($rec["http://purl.org/dc/terms/language"] == 'DEU') continue;
+                /*Array(
+                    [http://rs.tdwg.org/dwc/terms/taxonID] => urn:lsid:marinespecies.org:taxname:2
+                    [http://rs.tdwg.org/dwc/terms/vernacularName] => dieren
+                    [http://purl.org/dc/terms/source] => 
+                    [http://purl.org/dc/terms/language] => NLD
+                    [http://rs.gbif.org/terms/1.0/isPreferredName] => 0
+                )*/
+                $temp_id = self::get_worms_taxon_id($rec['http://rs.tdwg.org/dwc/terms/taxonID']);
+                if(isset($this->debug['Excluded taxa'][$temp_id])) continue;
             }
             // */
             
@@ -598,7 +607,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
     }
     private function get_worms_taxon_id($worms_id)
     {
-        return str_ireplace("urn:lsid:marinespecies.org:taxname:", "", (string) $worms_id);
+        return trim(str_ireplace("urn:lsid:marinespecies.org:taxname:", "", (string) $worms_id));
     }
     private function build_taxa_rank_array($records)
     {   foreach($records as $rec) {
@@ -649,12 +658,18 @@ class WormsArchiveAPI extends ContributorsMapAPI
             $taxon->taxonID = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/taxonID"]);
             
             if($this->what == "taxonomy") {
-                if(in_array($taxon->taxonID, $this->children_of_synonyms)) continue; //exclude children of synonyms
+                if(in_array($taxon->taxonID, $this->children_of_synonyms)) {
+                    $this->debug['Excluded taxa'][$taxon->taxonID] = '';                    
+                    continue; //exclude children of synonyms
+                }
             }
             
             $taxon->scientificName  = (string) $rec["http://rs.tdwg.org/dwc/terms/scientificName"];
             $taxon->scientificName = self::format_incertae_sedis($taxon->scientificName);
-            if(!$taxon->scientificName) continue;
+            if(!$taxon->scientificName) {
+                $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                continue;
+            }
             
             if($taxon->scientificName != "Biota") {
                 $val = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/parentNameUsageID"]);
@@ -676,7 +691,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
             $taxon->taxonRemarks    = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRemarks"];
             
             if($this->what == "taxonomy") { //based on https://eol-jira.bibalex.org/browse/TRAM-520?focusedCommentId=60923&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-60923
-                if($taxon->taxonomicStatus == "") continue; //synonymous to cases where "unassessed" in taxonRemarks
+                if($taxon->taxonomicStatus == "") {
+                    $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                    continue; //synonymous to cases where "unassessed" in taxonRemarks
+                }
             }
             
             if(is_numeric(stripos($taxon->taxonRemarks, 'REMAP_ON_EOL'))) $taxon->taxonomicStatus = "synonym";
@@ -688,7 +706,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 if((string) $rec["http://rs.tdwg.org/dwc/terms/acceptedNameUsageID"]) $taxon->acceptedNameUsageID = "";
             }
             elseif($taxon->taxonomicStatus == "synonym") {
-                if(!$taxon->acceptedNameUsageID) continue; //is syn but no acceptedNameUsageID, ignore this taxon
+                if(!$taxon->acceptedNameUsageID) {
+                    $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                    continue; //is syn but no acceptedNameUsageID, ignore this taxon
+                }
             }
             else { //not "synonym" and not "accepted"
                 //not syn but has acceptedNameUsageID; seems possible, so just accept it
@@ -699,7 +720,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
             if($taxon->taxonID == @$taxon->parentNameUsageID)   $taxon->parentNameUsageID = '';
             */
             if($taxon->taxonomicStatus == "synonym") { // this will prevent names to become synonyms of another where the ranks are different
-                if($taxon->taxonRank != @$this->taxa_rank[$taxon->acceptedNameUsageID]['r']) continue;
+                if($taxon->taxonRank != @$this->taxa_rank[$taxon->acceptedNameUsageID]['r']) {                    
+                    $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                    continue;
+                }
                 /* deliberately removed Oct 16, 2019
                 $taxon->parentNameUsageID = ''; //remove the ParentNameUsageID data from all of the synonym lines
                 */
@@ -707,7 +731,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
             
             if($this->what == "taxonomy") { //based on https://eol-jira.bibalex.org/browse/TRAM-520?focusedCommentId=60923&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-60923
                 if(@$taxon->parentNameUsageID) {
-                    if(!self::if_accepted_taxon($taxon->parentNameUsageID)) continue;
+                    if(!self::if_accepted_taxon($taxon->parentNameUsageID)) {
+                        $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                        continue;
+                    }
                 }
             }
             
@@ -724,7 +751,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
 
             // /* new Aug 25, 2019 - 
             if($this->what != "taxonomy") {
-                if($taxon->taxonomicStatus != "accepted") continue;
+                if($taxon->taxonomicStatus != "accepted") {
+                    $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                    continue;
+                }
                 /* deliberately removed Oct 16, 2019
                 $taxon->parentNameUsageID = ''; //source has many parentNameUsageID but without its own taxon entry. So will not use at all.
                 */
@@ -1344,12 +1374,20 @@ class WormsArchiveAPI extends ContributorsMapAPI
         return $occurrence_id;
     }
     private function get_objects($records)
-    {   foreach($records as $rec) {
+    {   //print_r($this->debug['Excluded taxa']); exit("\nstop muna 1\n");
+        foreach($records as $rec) {
+            /*Array(
+                [http://purl.org/dc/terms/identifier] => WoRMS:distribution:1000000
+                [http://rs.tdwg.org/dwc/terms/taxonID] => urn:lsid:marinespecies.org:taxname:850861
+                [http://purl.org/dc/terms/type] => http://purl.org/dc/dcmitype/Text
+                ...
+            */
             $rec = array_map('trim', $rec);
             $identifier = (string) $rec["http://purl.org/dc/terms/identifier"];
             $type       = (string) $rec["http://purl.org/dc/terms/type"];
 
             $rec["taxon_id"] = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/taxonID"]);
+            if(isset($this->debug['Excluded taxa'][$rec["taxon_id"]])) continue;
             $rec["catnum"] = "";
             
             if(strpos($identifier, "WoRMS:distribution:") !== false) {
@@ -1998,15 +2036,25 @@ class WormsArchiveAPI extends ContributorsMapAPI
             // [valid_AphiaID] => 
             // [status] => unaccepted
             // [parent_id] => 13
-            if($t['status'] != "accepted") continue; //only add those that are 'accepted'
+            if($t['status'] != "accepted") {
+                $this->debug['Excluded taxa'][$t['AphiaID']] = '';
+                continue; //only add those that are 'accepted'
+            }
             $taxon = new \eol_schema\Taxon();
             $taxon->taxonID         = $t['AphiaID'];
             
-            if(in_array($taxon->taxonID, $this->children_of_synonyms)) continue; //exclude children of synonyms
+            if(in_array($taxon->taxonID, $this->children_of_synonyms)) {
+                $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                continue; //exclude children of synonyms
+
+            }
             
             $taxon->scientificName  = trim($t['scientificname'] . " " . $t['authority']);
             $taxon->scientificName = self::format_incertae_sedis($taxon->scientificName);
-            if(!$taxon->scientificName) continue;
+            if(!$taxon->scientificName) {
+                $this->debug['Excluded taxa'][$taxon->taxonID] = '';
+                continue;
+            }
             
             $taxon->taxonRank       = $t['rank'];
             $taxon->taxonomicStatus = $t['status'];

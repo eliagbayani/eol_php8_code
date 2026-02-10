@@ -29,6 +29,7 @@ class DwCA_UseEOLidInTaxa
         $this->debug = array();
         $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->urls['preferred_vernaculars'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/english_preferred_vernaculars_by_page.tsv';
+        $this->debug['Duplicate taxonIDs']['First taxonID is not displayed'] = ''; //remark for print_debug()
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -55,19 +56,18 @@ class DwCA_UseEOLidInTaxa
         }
         else exit("\nERROR: Cannot proceed without Occurrence extension.\n");
 
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) {
+            self::process_table($meta, 'write_MoF');
+        }
+        if($meta = @$tables['http://eol.org/schema/association'][0]) {
+            self::process_table($meta, 'write_Association');
+        }
         if($meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0]) {
             self::process_table($meta, 'write_other_extensions', 'vernacular');
         }
         if($meta = $tables['http://eol.org/schema/media/document'][0]) {
             self::process_table($meta, 'write_other_extensions', 'document');
         }
-
-        /* not needed since no taxonID here
-        if(in_array('http://eol.org/schema/association', $extensions)) {
-            $meta = $tables['http://eol.org/schema/association'][0];
-            self::process_table($meta, 'build_association_info');
-        } */
-
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
     }
     private function get_DH_info_4EOLids()
@@ -121,7 +121,7 @@ class DwCA_UseEOLidInTaxa
             $rec = self::not_recongized_fields($rec);
             $this->rec = $rec;
             */
-            $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
+            if(!in_array($what, array('write_MoF', 'write_Association'))) $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
             if ($what == 'build_taxon_info') {
                 if($EOLid = $rec['http://eol.org/schema/EOLid']) $this->taxonID_EOLid[$taxonID] = $EOLid;
                 else $this->taxonID_EOLid[$taxonID] = false;
@@ -130,9 +130,9 @@ class DwCA_UseEOLidInTaxa
                 */
             }
             if($what == 'write_taxon') {
-                if($new_taxonID = $this->taxonID_EOLid[$taxonID]) {
+                if($new_taxonID = $this->taxonID_EOLid[$taxonID]) { //there is EOLid for this taxon
                     if(isset($this->unique_taxonID[$new_taxonID])) {
-                        $this->debug['Duplicate taxonIDs']["$taxonID - $new_taxonID"] = '';
+                        @$this->debug['Duplicate taxonIDs'][$new_taxonID] .= '_'.$taxonID;
                         continue; //prevented duplicate taxonIDs, which is possible e.g. Globi DwCA.
                     }
                     else {
@@ -164,6 +164,23 @@ class DwCA_UseEOLidInTaxa
                 }
                 self::write_2archive($rec, 'occurrence_specific'); continue;
             }
+            if($what == 'write_MoF') {
+                $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
+                if(isset($this->occurrenceID_to_delete[$occurrenceID])) continue;
+                else {
+                    self::write_2archive($rec, 'measurementorfact'); continue;                    
+                }
+            }
+            if($what == 'write_Association') {
+                $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
+                $targetOccurrenceID = $rec['http://eol.org/schema/targetOccurrenceID'];
+                if(isset($this->occurrenceID_to_delete[$occurrenceID])) continue;
+                elseif(isset($this->occurrenceID_to_delete[$targetOccurrenceID])) continue;
+                else {
+                    self::write_2archive($rec, 'association'); continue;                    
+                }
+            }
+
             if ($what == 'write_other_extensions') {
                 if($class == 'document') {
                     if($rec['http://purl.org/dc/terms/type'] == 'http://purl.org/dc/dcmitype/Text') {
@@ -226,11 +243,11 @@ class DwCA_UseEOLidInTaxa
         elseif($class == "occurrence_specific") $c = new \eol_schema\Occurrence_specific();
         elseif($class == "vernacular")          $c = new \eol_schema\VernacularName();
         elseif($class == "document")             $c = new \eol_schema\MediaResource();
+        elseif($class == "measurementorfact")    $c = new \eol_schema\MeasurementOrFact();
+        elseif($class == "association")          $c = new \eol_schema\Association();
         /* not used here
         elseif($class == "agent")                $c = new \eol_schema\Agent();
         elseif($class == "reference")            $c = new \eol_schema\Reference();
-        elseif($class == "measurementorfact")    $c = new \eol_schema\MeasurementOrFact();
-        elseif($class == "association")          $c = new \eol_schema\Association();
         */
         else exit("\nUndefined class [$class]. Will terminate*.\n");
         return $c;

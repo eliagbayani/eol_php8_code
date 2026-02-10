@@ -179,7 +179,6 @@ class GenerateCSV_4EOLNeo4j
                 }
             }
 
-
             if($what == 'generate_occur_info') { //this is occurence.tab
                 /*  Array(  can be: occurrenceID	taxonID	sex
                         [occurrenceID] => e36713aea279079ed39099826601f8f6

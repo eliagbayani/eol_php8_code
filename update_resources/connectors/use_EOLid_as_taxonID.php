@@ -1,12 +1,18 @@
 <?php
 namespace php_active_record;
-/* This matches any DwCA taxa extension to Dynamic Hierarchy. Uses Katja's instructions:
+/* With the assigned EOLid in taxon.tab using Katja's instructions:
 https://github.com/EOL/ContentImport/issues/33
+This lib. will now use EOLid for: taxon->taxonID
+                                  vernacular->taxonID  
+                                  media->taxonID
+                                  occurrence->taxonID
 
 clients: for neo4j trait resources
 php update_resources/connectors/use_EOLid_as_taxonID.php _ '{"resource_id": "globi_assoc"}'
 php update_resources/connectors/xxx.php _ '{"resource_id": "Brazilian_Flora"}'
-php update_resources/connectors/xxx.php _ '{"resource_id": "WoRMS2EoL"}'
+
+php use_EOLid_as_taxonID.php _ '{"resource_id": "WoRMS-with-hC"}' # gen neo4j_3
+
 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
@@ -49,15 +55,15 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $params['resource'] = "use_EOLid_as_taxonID";
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
-    $preferred_rowtypes = array("http://eol.org/schema/reference/reference", 
-        "http://rs.tdwg.org/dwc/terms/measurementorfact", "http://eol.org/schema/association",    
-        "http://eol.org/schema/agent/agent");
+    $preferred_rowtypes = array("http://eol.org/schema/reference/reference", "http://eol.org/schema/association", "http://eol.org/schema/agent/agent");
     $preferred_rowtypes[] = "http://rs.gbif.org/terms/1.0/reference"; //just in case used by some DwCA
     $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
 
     /* These (if exists) will be processed in DwCA_MatchTaxa2DH.php which will be called from DwCA_Utility.php 
         http://rs.gbif.org/terms/1.0/vernacularname
         http://eol.org/schema/media/document
+        http://rs.tdwg.org/dwc/terms/measurementorfact
+        http://eol.org/schema/association
         and occurrence tab
     */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);

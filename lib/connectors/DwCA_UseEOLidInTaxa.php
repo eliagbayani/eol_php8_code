@@ -117,23 +117,17 @@ class DwCA_UseEOLidInTaxa
                 [http://rs.gbif.org/terms/1.0/canonicalName] => Orthosia pacifica
                 [http://eol.org/schema/EOLid] => 465299
             )*/
-
             /*
             $rec = self::not_recongized_fields($rec);
             $this->rec = $rec;
             */
-
             $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-
-            must re-think here. maybe we don't change the taxonID, taxonRank and scientificName. Only EOLid will be from DH
-
             if ($what == 'build_taxon_info') {
-                $EOLid = $rec['http://eol.org/schema/EOLid'];
-                if($EOLid) $this->taxonID_EOLid[$taxonID] = $EOLid;
-                else       $this->taxonID_EOLid[$taxonID] = false;
-                // /* new step: Assign DH taxonRank and canonicalName to resource document.
+                if($EOLid = $rec['http://eol.org/schema/EOLid']) $this->taxonID_EOLid[$taxonID] = $EOLid;
+                else $this->taxonID_EOLid[$taxonID] = false;
+                /* new step: Assign DH taxonRank and canonicalName to resource document. Working but may not be needed anymore.
                 if($EOLid) $this->EOLids[$EOLid] = '';
-                // */
+                */
             }
             if($what == 'write_taxon') {
                 if($new_taxonID = $this->taxonID_EOLid[$taxonID]) {
@@ -154,18 +148,17 @@ class DwCA_UseEOLidInTaxa
                         */
                     }
                 }
-
+                else continue; //this will drastically lessen our taxon count
                 if($parentNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID']) {
                     if($new_taxonID = @$this->taxonID_EOLid[$parentNameUsageID]) $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = $new_taxonID;
                     else $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = ''; //since there is no EOLid for this parentID, we set it to blank.
                 }
-
                 self::write_2archive($rec, 'taxon'); continue;                
             }
             if ($what == 'write_occurrence') {
                 if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
                 else {
-                    @$this->debug['Taxa in Occur.tab but not in Taxon.tab'][$taxonID] = '';
+                    @$this->debug['Taxa in Occur.tab has no EOLid'][$taxonID] = '';
                     $this->occurrenceID_to_delete[$rec['http://rs.tdwg.org/dwc/terms/occurrenceID']] = '';
                     continue; //don't save
                 }
@@ -176,21 +169,21 @@ class DwCA_UseEOLidInTaxa
                     if($rec['http://purl.org/dc/terms/type'] == 'http://purl.org/dc/dcmitype/Text') {
                         if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
                         else {
-                            @$this->debug["Taxa in $class .tab but not in Taxon.tab"][$taxonID] = '';                            
+                            @$this->debug["Taxa in $class .tab has no EOLid"][$taxonID] = '';                            
                             continue; //don't save
                         }
                     }
+                    else continue; //non-text is excluded as well
                 }
                 elseif($class == 'vernacular') {
                     if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
                     else {
-                        @$this->debug["Taxa in $class .tab but not in Taxon.tab"][$taxonID] = '';
+                        @$this->debug["Taxa in $class .tab has no EOLid"][$taxonID] = '';
                         continue; //don't save
                     }
                 }
                 self::write_2archive($rec, $class); continue;
             }
-
             // if($i >= 100) break; //dev only
         }
     }

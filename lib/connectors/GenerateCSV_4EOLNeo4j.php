@@ -46,7 +46,7 @@ class GenerateCSV_4EOLNeo4j
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($taxon_meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
         /*
-        self::prepare_PageNode_csv($taxon_meta);                    // step 1b: 
+        self::prepare_PageNode_csv_from_resource($taxon_meta);                    // step 1b: 
         self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
         unset($taxon_meta);
         
@@ -650,7 +650,7 @@ class GenerateCSV_4EOLNeo4j
             fclose($this->WRITE);
         }
     }
-    private function prepare_PageNode_csv($meta)
+    private function prepare_PageNode_csv_from_resource($meta)
     {   /*  Array(
                 [taxonID] => 44475
                 [source] => https://www.wikidata.org/wiki/Q25243

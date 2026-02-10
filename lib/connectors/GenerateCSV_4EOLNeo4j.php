@@ -45,8 +45,13 @@ class GenerateCSV_4EOLNeo4j
         // Step 1: generate Page node; PARENT edge
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($taxon_meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+
+        /* is now replaced by from_DH
+        self::prepare_PageNode_csv_from_resource($taxon_meta);      // step 1b: 
+        */
+        self::prepare_PageNode_csv_from_DH(); //part of main operation
+
         /*
-        self::prepare_PageNode_csv_from_resource($taxon_meta);                    // step 1b: 
         self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
         unset($taxon_meta);
         
@@ -231,7 +236,7 @@ class GenerateCSV_4EOLNeo4j
                         }
                     }
                 }
-                // if($i >= 500) break; //debug only
+                if($i >= 500) break; //debug only
                 //end if($what == 'generate-TraitNode-csv')
             }
             
@@ -676,6 +681,20 @@ class GenerateCSV_4EOLNeo4j
         self::process_table($meta, 'generate-PageNode-csv');
         fclose($this->WRITE);
     }
+    private function prepare_PageNode_csv_from_DH()
+    {
+        require_library('connectors/DHConnLib');
+        $func = new DHConnLib();
+        // /*
+        $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
+        fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n");
+        $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
+        $ret = $func->do_things_from_DH($param);
+        fclose($WRITE);
+        // */
+        unset($func);
+
+    }
     private function prepare_VernacularNode_csv($meta)
     {   /*  nodes/Vernacular.csv
             vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL   */
@@ -787,7 +806,7 @@ class GenerateCSV_4EOLNeo4j
         $temp_dir = $path.'/nodes'; mkdir($temp_dir);
         $temp_dir = $path.'/edges'; mkdir($temp_dir);
     }
-    private function format_csv_entry($rec, $fields)
+    function format_csv_entry($rec, $fields)
     {
         $csv = "";
         foreach($fields as $field) {
@@ -802,7 +821,6 @@ class GenerateCSV_4EOLNeo4j
             }
             $csv .= '"' . self::clean_csv_item($val) . '",'; 
         }
-        // exit("\n[$csv]\n");
         return $csv;
     }
     private function format_csv_entry_array($arr)

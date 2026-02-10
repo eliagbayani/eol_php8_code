@@ -26,11 +26,12 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DHConnLib
 {
-    function __construct($folder, $path_to_taxa_file = false) //implement: path_to_taxa_file
-    {
-        $this->resource_id = $folder;
-        $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
-        $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));
+    function __construct($folder = false, $path_to_taxa_file = false) //implement: path_to_taxa_file
+    {   //$folder is false if global functions here are called elsewhere.
+        if($this->resource_id = $folder) {
+            $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
+            $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));
+        }
         $this->taxon_ids = array();
         $this->debug = array();
         if (Functions::is_production()) { //not yet run in production...
@@ -743,6 +744,55 @@ class DHConnLib
             }
         } //end foreach()
         return $ret;
+    }
+    function do_things_from_DH($param)
+    {
+        $task = $param['task'];
+        // ---------- start customize part ----------
+        if($task == 'generate_PageNode_csv') {
+            $fhandle = $param['fhandle'];
+            require_library('connectors/GenerateCSV_4EOLNeo4j');
+            $func = new GenerateCSV_4EOLNeo4j(array('resource_id' => 'wala lang'));
+        }
+        // ---------- end customize part ----------
+        $txtfile = $this->main_path; //default value
+        echo "\nTask: $task...\n";
+        $ret = array();
+        $i = 0;
+        foreach (new FileIterator($txtfile) as $line_number => $line) {
+            $i++;
+            if (($i % 500000) == 0) echo "\n" . number_format($i) . " ";
+            $row = explode("\t", $line); // print_r($row);
+            if ($i == 1) {
+                $fields = $row;
+                $fields = array_filter($fields); //print_r($fields);
+                continue;
+            } else {
+                if (!@$row[0]) continue;
+                $k = 0;
+                $rec = array();
+                foreach ($fields as $fld) {
+                    $rec[$fld] = @$row[$k];
+                    $k++;
+                }
+            }
+            $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
+            if($task == 'generate_PageNode_csv') {
+                /*  nodes/Page.csv
+                    page_id:ID(Page-ID),canonical,rank,:LABEL
+                    gadus_m,Gadus morhua,species,page
+                    chanos_c,Chanos chanos,species,page
+                    gadus,Gadus,genus,page
+                    chanos,Chanos,genus,page
+                */
+                if($rec['taxonomicStatus'] == 'accepted') {
+                    $fieldz = array('eolID', 'canonicalName', 'taxonRank');
+                    $csv = $func->format_csv_entry($rec, $fieldz);
+                    $csv .= 'Page'; //Labels are preferred to be singular nouns
+                    fwrite($fhandle, $csv."\n");                
+                }
+            }
+        }
     }
     /*========================================================================================Ends here. Below here is remnants from a copied template */
     /*

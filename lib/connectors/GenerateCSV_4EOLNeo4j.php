@@ -85,9 +85,18 @@ class GenerateCSV_4EOLNeo4j
         }*/
 
         // print_r($this->debug);
+        self::do_stats();
         Functions::start_print_debug($this->debug, $this->param['eol_resource_id'].'_CSV', $this->path); //old 2nd param = Gen_Neo4j_CSV
         recursive_rmdir($temp_dir);
         debug("\n temporary directory removed: " . $temp_dir);
+    }
+    private function do_stats()
+    {
+        $files = array('/nodes/Trait.csv');
+        foreach($files as $file) {
+            $file = $this->path . $file;
+            if(is_file($file)) $this->debug['Totals'][$file] = shell_exec('wc -l '.$file);
+        }
     }
     private function process_table($meta, $what)
     {

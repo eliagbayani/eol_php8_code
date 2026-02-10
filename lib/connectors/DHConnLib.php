@@ -696,6 +696,54 @@ class DHConnLib
         }
         return $final;
     }
+    function grab_from_DH($task, $EOLids) //works OK, once used but not atm.
+    {
+        $txtfile = $this->main_path; //default value
+        echo "\nTask: $task...\n";
+        $ret = array();
+        $i = 0;
+        foreach (new FileIterator($txtfile) as $line_number => $line) {
+            $i++;
+            if (($i % 500000) == 0) echo "\n" . number_format($i) . " ";
+            $row = explode("\t", $line); // print_r($row);
+            if ($i == 1) {
+                $fields = $row;
+                $fields = array_filter($fields); //print_r($fields);
+                continue;
+            } else {
+                if (!@$row[0]) continue;
+                $k = 0;
+                $rec = array();
+                foreach ($fields as $fld) {
+                    $rec[$fld] = @$row[$k];
+                    $k++;
+                }
+            }
+            $rec = array_map('trim', $rec); // print_r($rec); exit("\nstopx\n");
+            /*Array(
+                [taxonID] => EOL-000000000001
+                [acceptedNameUsageID] => 
+                [parentNameUsageID] => 
+                [scientificName] => Life
+                [canonicalName] => Life
+                [scientificNameAuthorship] => 
+                [taxonRank] => 
+                [taxonomicStatus] => accepted
+                [datasetID] => patch2.2.6
+                [source] => patch2.2.6:000000000001
+                [furtherInformationURL] => https://doi.org/10.5281/zenodo.15398562
+                [eolID] => 2913056
+                [Landmark] => 3
+                [higherClassification] => 
+            )*/
+            if($task == 'get_DH_info_forEOLids') {
+                if($eolID = $rec['eolID']) { //DH rec has eolID
+                    if(isset($EOLids[$eolID])) $ret[$eolID] = array('r' => $rec['taxonRank'], 'c' => $rec['canonicalName']);
+                }
+            }
+        } //end foreach()
+        return $ret;
+    }
     /*========================================================================================Ends here. Below here is remnants from a copied template */
     /*
     private function write2txt_unclassified_parents()

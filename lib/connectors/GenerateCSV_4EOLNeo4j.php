@@ -39,19 +39,20 @@ class GenerateCSV_4EOLNeo4j
 
         // /* ----- start Jan 27, 2026
         // Step 0: generate a Term node
-        /* 
-        self::prepareTermNode_csv(); */
+        // /* 
+        self::prepareTermNode_csv();
+        // */
 
         // Step 1: generate Page node; PARENT edge
         $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($taxon_meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
 
-        /* is now replaced by from_DH
+        /* is now replaced by: prepare_PageNode_csv_from_DH()
         self::prepare_PageNode_csv_from_resource($taxon_meta);      // step 1b: 
         */
         self::prepare_PageNode_csv_from_DH(); //part of main operation
 
-        /*
+        // /*
         self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
         unset($taxon_meta);
         
@@ -64,7 +65,7 @@ class GenerateCSV_4EOLNeo4j
         
         // Step 3: generate Resource node
         self::prepare_ResourceNode_csv();                        // step 3a: 
-        */
+        // */
 
         // Step 4: generate Trait node
         $occurrence_meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];

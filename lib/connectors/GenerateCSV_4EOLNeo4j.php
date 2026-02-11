@@ -237,7 +237,7 @@ class GenerateCSV_4EOLNeo4j
                         }
                     }
                 }
-                if($i >= 500) break; //debug only
+                // if($i >= 500) break; //debug only
                 //end if($what == 'generate-TraitNode-csv')
             }
             
@@ -361,7 +361,6 @@ class GenerateCSV_4EOLNeo4j
         // print_r($rec); exit("\nelix 2\n");
         // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	contributor_uri	compiler_uri	determined_by_uri
         $s = array();
-        $s['eol_pk'] = 'eli';
         $s['page_id'] = $rec['page_id'];
         $s['scientific_name'] = $rec['scientific_name'];
         
@@ -395,8 +394,11 @@ class GenerateCSV_4EOLNeo4j
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
         $s['compiler_uri'] = '';
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
-
+        
         $fields = array_keys($s);
+        array_unshift($fields, "eol_pk"); //put 'eol_pk' to beginning of an array
+        $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s));
+
         $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");

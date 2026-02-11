@@ -50,9 +50,9 @@ class GenerateCSV_4EOLNeo4j
         /* is now replaced by: prepare_PageNode_csv_from_DH()
         self::prepare_PageNode_csv_from_resource($taxon_meta);      // step 1b: 
         */
-        /*
+        // /*
         self::prepare_PageNode_csv_from_DH(); //part of main operation
-        */
+        // */
         // /*
         self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
         unset($taxon_meta);
@@ -75,7 +75,9 @@ class GenerateCSV_4EOLNeo4j
         if($assoc_meta = @$tables['http://eol.org/schema/association'][0])            self::prepare_TraitNode_csv($assoc_meta);
 
         // Step 5: generate Page TRAIT Relationship
-        self::prepare_TraitEdge_csv();
+        self::prepare_TRAIT_Edge_csv();
+        self::prepare_INFERRED_TRAIT_Edge_csv();
+
 
 
         //    ========== end Jan 27, 2026 ========== */
@@ -701,19 +703,32 @@ class GenerateCSV_4EOLNeo4j
         unset($func);
 
     }
-    private function prepare_TraitEdge_csv()
-    {   
+    private function prepare_TRAIT_Edge_csv()
+    {
         $WRITE = Functions::file_open($this->path.'/edges/Trait.csv', 'w');
         fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
-        $param = array('task' => 'generate_TraitEdge_csv', 'fhandle' => $WRITE);
+        $param = array('task' => 'generate_TRAIT_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_INFERRED_TRAIT_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Inferred_Trait.csv', 'w');
+        fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_INFERRED_TRAIT_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+
     private function do_things_in_a_csv($param)
     {
         $task = $param['task'];
         // ---------- start customize part ----------
-        if($param['task'] == 'generate_TraitEdge_csv') {
+        if($param['task'] == 'generate_TRAIT_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv';
+            $fhandle = $param['fhandle'];
+        }
+        if($param['task'] == 'generate_INFERRED_TRAIT_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv';
             $fhandle = $param['fhandle'];
         }
@@ -774,15 +789,30 @@ class GenerateCSV_4EOLNeo4j
                     [:LABEL] => Trait
                 )*/
 
-                if($task == 'generate_TraitEdge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
-                    $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
-                    $csv = self::format_csv_entry($rec, $fieldz);
-                    $csv .= 'TRAIT'; //relationships are designed to be in upper-case
-                    fwrite($fhandle, $csv."\n");
+                if($task == 'generate_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                    if(!self::trait_is_inferred_YN($rec['remarks'])) {
+                        $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                        $csv = self::format_csv_entry($rec, $fieldz);
+                        $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                        fwrite($fhandle, $csv."\n");
+                    }
+                }
+                elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                    if(self::trait_is_inferred_YN($rec['remarks'])) {
+                        $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                        $csv = self::format_csv_entry($rec, $fieldz);
+                        $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                        fwrite($fhandle, $csv."\n");
+                    }
                 }
                 
             }
         } //end while()
+    }
+    private function trait_is_inferred_YN($remarks)
+    {
+        if(substr($remarks, 0, 12) == 'source text:') return true;
+        else return false;
     }
     private function prepare_VernacularNode_csv($meta)
     {   /*  nodes/Vernacular.csv

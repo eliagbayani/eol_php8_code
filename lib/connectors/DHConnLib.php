@@ -759,6 +759,13 @@ class DHConnLib
         echo "\nTask: $task...\n";
         $ret = array();
         $i = 0;
+
+        // /* customize specific tasks here:
+        if($task == 'generate_PageNode_csv') {
+            $unique_ids = array();                    
+        }
+        // end customize */
+
         foreach (new FileIterator($txtfile) as $line_number => $line) {
             $i++;
             if (($i % 500000) == 0) echo "\n" . number_format($i) . " ";
@@ -780,17 +787,23 @@ class DHConnLib
             if($task == 'generate_PageNode_csv') {
                 /*  nodes/Page.csv
                     page_id:ID(Page-ID),canonical,rank,:LABEL
-                    gadus_m,Gadus morhua,species,page
-                    chanos_c,Chanos chanos,species,page
-                    gadus,Gadus,genus,page
-                    chanos,Chanos,genus,page
+                    01,Gadus morhua,species,page
+                    02,Chanos chanos,species,page
+                    100,Gadus,genus,page
+                    101,Chanos,genus,page
                 */
                 if($rec['taxonomicStatus'] == 'accepted') {
-                    $fieldz = array('eolID', 'canonicalName', 'taxonRank');
-                    $csv = $func->format_csv_entry($rec, $fieldz);
-                    $csv .= 'Page'; //Labels are preferred to be singular nouns
-                    fwrite($fhandle, $csv."\n");                
+                    if($eolID = $rec['eolID']) { //e.g. 2913056
+                        if(!isset($unique_ids[$eolID])) {
+                            $unique_ids[$eolID] = '';
+                            $fieldz = array('eolID', 'canonicalName', 'taxonRank');
+                            $csv = $func->format_csv_entry($rec, $fieldz);
+                            $csv .= 'Page'; //Labels are preferred to be singular nouns
+                            fwrite($fhandle, $csv."\n");                
+                        }
+                    }
                 }
+
             }
         }
     }

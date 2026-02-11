@@ -848,7 +848,8 @@ class GenerateCSV_4EOLNeo4j
         $combined = substr($combined, 0, -1); //remove last char: "plants_42430800_" becomes "plants_42430800"
         $combined = str_replace(" ", "_", $combined);
         // exit("\ncombined: [$combined]\n");
-        return $combined;
+        // return $combined;
+        return md5($combined);
     }
     private function safe_utf8($text)
     {

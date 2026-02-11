@@ -65,7 +65,7 @@ class DwCA_UseEOLidInTaxa
         if($meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0]) {
             self::process_table($meta, 'write_other_extensions', 'vernacular');
         }
-        if($meta = $tables['http://eol.org/schema/media/document'][0]) {
+        if($meta = @$tables['http://eol.org/schema/media/document'][0]) {
             self::process_table($meta, 'write_other_extensions', 'document');
         }
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK

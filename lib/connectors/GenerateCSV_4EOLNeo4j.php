@@ -50,8 +50,9 @@ class GenerateCSV_4EOLNeo4j
         /* is now replaced by: prepare_PageNode_csv_from_DH()
         self::prepare_PageNode_csv_from_resource($taxon_meta);      // step 1b: 
         */
+        /*
         self::prepare_PageNode_csv_from_DH(); //part of main operation
-
+        */
         // /*
         self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
         unset($taxon_meta);
@@ -74,6 +75,8 @@ class GenerateCSV_4EOLNeo4j
         if($assoc_meta = @$tables['http://eol.org/schema/association'][0])            self::prepare_TraitNode_csv($assoc_meta);
 
         // Step 5: generate Page TRAIT Relationship
+        self::prepare_TraitEdge_csv();
+
 
         //    ========== end Jan 27, 2026 ========== */
 
@@ -697,6 +700,89 @@ class GenerateCSV_4EOLNeo4j
         // */
         unset($func);
 
+    }
+    private function prepare_TraitEdge_csv()
+    {   
+        $WRITE = Functions::file_open($this->path.'/edges/Trait.csv', 'w');
+        fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_TraitEdge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function do_things_in_a_csv($param)
+    {
+        $task = $param['task'];
+        // ---------- start customize part ----------
+        if($param['task'] == 'generate_TraitEdge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv';
+            $fhandle = $param['fhandle'];
+        }
+        // ---------- end customize part ----------
+        $i = 0;
+        $file = Functions::file_open($csv_file, "r");
+        while(!feof($file)) {
+            $row = fgetcsv($file);
+            if(!$row) break;
+            // $row = self::clean_html($row); print_r($row);
+            $i++; if(($i % 2000) == 0) echo "\n $i ";
+            if($i == 1) {
+                $fields = $row;
+                // $fields = self::fill_up_blank_fieldnames($fields);
+                $count = count($fields);
+                // print_r($fields);
+            }
+            else { //main records
+                $values = $row;
+                if($count != count($values)) { //row validation - correct no. of columns
+                    // print_r($values); print_r($rec);
+                    exit("\nERROR: Wrong CSV format for this row.\n");
+                    // $this->debug['wrong csv'][$class]['identifier'][$rec['identifier']] = '';
+                    continue;
+                }
+                $k = 0;
+                $rec = array();
+                foreach($fields as $field) {
+                    $rec[$field] = $values[$k];
+                    $k++;
+                }
+                $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
+                /*Array(
+                    [eol_pk:ID(Trait-ID)] => worms_38a1316e08d5c41d90ac3f4220a9ee77
+                    [page_id] => 46501030
+                    [scientific_name] => Aahithis Schallreuter, 1988
+                    [resource_pk] => 6727294cfe63431fc4bd57e07223e119
+                    [predicate] => http://www.marinespecies.org/traits/SupportingStructuresEnclosures
+                    [sex] => 
+                    [lifestage] => 
+                    [statistical_method] => 
+                    [object_page_id] => 
+                    [target_scientific_name] => 
+                    [value_uri] => http://purl.obolibrary.org/obo/UBERON_0006611
+                    [literal] => http://purl.obolibrary.org/obo/UBERON_0006611
+                    [measurement] => 
+                    [units] => 
+                    [normal_measurement] => 
+                    [normal_units_uri] => 
+                    [sample_size] => 
+                    [citation] => 
+                    [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=769244
+                    [remarks] => 
+                    [method] => inherited from urn:lsid:marinespecies.org:taxname:155944, Podocopa Müller, 1894
+                    [contributor_uri] => 
+                    [compiler_uri] => 
+                    [determined_by_uri] => 
+                    [:LABEL] => Trait
+                )*/
+
+                if($task == 'generate_TraitEdge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                    $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                
+            }
+        } //end while()
     }
     private function prepare_VernacularNode_csv($meta)
     {   /*  nodes/Vernacular.csv

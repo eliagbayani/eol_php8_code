@@ -989,7 +989,7 @@ neo4j-admin database import full testdb --overwrite-destination \
 --relationships=import/dataset_test/edges/Parent.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
-WoRMS main 2
+WoRMS main (no parentNameUsageID)
 cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE testdb;"
 neo4j-admin database import full testdb --overwrite-destination \
 --nodes=import/dataset_test/nodes/Resource.csv \
@@ -999,8 +999,10 @@ neo4j-admin database import full testdb --overwrite-destination \
 --nodes=import/dataset_test/nodes/Trait.csv \
 --relationships=import/dataset_test/edges/Parent.csv \
 --relationships=import/dataset_test/edges/Vernacular.csv \
---relationships=import/dataset_test/edges/Trait.csv 
+--relationships=import/dataset_test/edges/Trait.csv \
+--relationships=import/dataset_test/edges/Inferred_Trait.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
+
 
 MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->() RETURN e
 MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->(t:Trait {literal: "http://marineregions.org/mrgid/4280"}) RETURN e
@@ -1013,8 +1015,11 @@ neo4j-admin database import full testdb --overwrite-destination \
 --nodes=import/dataset_test/nodes/Page.csv \
 --nodes=import/dataset_test/nodes/Term.csv \
 --nodes=import/dataset_test/nodes/Trait.csv \
---relationships=import/dataset_test/edges/Parent.csv
+--relationships=import/dataset_test/edges/Parent.csv \
+--relationships=import/dataset_test/edges/Trait.csv \
+--relationships=import/dataset_test/edges/Inferred_Trait.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
+
 
 MATCH e = (p:Page {canonical: "Gadus morhua"})-[r:PARENT]->() RETURN e
 MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->() RETURN e

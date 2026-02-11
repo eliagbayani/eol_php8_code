@@ -21,11 +21,11 @@ class GenerateCSV_4EOLNeo4j
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
         self::initialize_folders($this->resource_id);
-        // /* ----- This can come from an RDBMS
+        // /* ========== This can come from an RDBMS
         $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         $this->EOL_resources['globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
         $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
-        // ----- */
+        // ========== */
     }
     function assemble_data($resource_id) 
     {
@@ -37,7 +37,7 @@ class GenerateCSV_4EOLNeo4j
         $tables = $ret['tables'];
         $extensions = array_keys($tables); print_r($extensions);
 
-        // /* ----- start Jan 27, 2026
+        // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
         // /* 
         self::prepareTermNode_csv();
@@ -70,11 +70,12 @@ class GenerateCSV_4EOLNeo4j
         // Step 4: generate Trait node
         $occurrence_meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
         self::process_table($occurrence_meta, 'generate_occur_info'); unset($occurrence_meta);
-
         if($mof_meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($mof_meta);
         if($assoc_meta = @$tables['http://eol.org/schema/association'][0])            self::prepare_TraitNode_csv($assoc_meta);
 
-        //    ----- end Jan 27, 2026 */
+        // Step 5: generate Page TRAIT Relationship
+
+        //    ========== end Jan 27, 2026 ========== */
 
         /* copied template
         if(in_array('http://eol.org/schema/association', $extensions) || 
@@ -90,7 +91,6 @@ class GenerateCSV_4EOLNeo4j
             self::prepare_predicates_csv_measurement($tables);
         }*/
 
-        // print_r($this->debug);
         self::do_stats();
         Functions::start_print_debug($this->debug, $this->param['eol_resource_id'].'_CSV', $this->path); //old 2nd param = Gen_Neo4j_CSV
         recursive_rmdir($temp_dir);
@@ -215,7 +215,7 @@ class GenerateCSV_4EOLNeo4j
                             $rec['scientific_name'] = $scientificName;
                             $rec['sex'] = $sex;
                             $rec['lifestage'] = $lifeStage;
-                            // /* ----- start if Association
+                            // /* ========== start if Association
                             if(@$rec['associationID']) { 
                                 $targetOccurrenceID = $rec['targetOccurrenceID'];
                                 if($target_taxon = @$this->occur_info[$targetOccurrenceID]) {
@@ -227,7 +227,7 @@ class GenerateCSV_4EOLNeo4j
                                     continue;
                                 }
                             }
-                            // ----- */
+                            // ========== */
                             // exit("\nGoes here 100\n");
                             self::generate_TraitNode_row($rec);                
                         }
@@ -293,7 +293,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function generate_VernacularNode_row($rec)
     {   /*  nodes/Vernacular.csv
-            vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,:LABEL
+            vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,supplier,:LABEL
             WoRMS    Array(
                         [vernacularName] => dieren
                         [source] => 
@@ -700,7 +700,7 @@ class GenerateCSV_4EOLNeo4j
     {   /*  nodes/Vernacular.csv
             vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL   */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Vernacular.csv', 'w');
-        fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL"."\n");
+        fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,supplier,:LABEL"."\n");
         self::process_table($meta, 'generate-VernacularNode-csv');
         fclose($this->WRITE);
     }

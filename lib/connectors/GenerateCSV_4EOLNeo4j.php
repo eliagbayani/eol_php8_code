@@ -801,7 +801,7 @@ class GenerateCSV_4EOLNeo4j
                     if(self::trait_is_inferred_YN($rec['remarks'])) {
                         $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
                         $csv = self::format_csv_entry($rec, $fieldz);
-                        $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                        $csv .= 'INFERRED_TRAIT'; //relationships are designed to be in upper-case
                         fwrite($fhandle, $csv."\n");
                     }
                 }

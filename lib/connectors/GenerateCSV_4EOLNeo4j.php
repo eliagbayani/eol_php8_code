@@ -79,7 +79,6 @@ class GenerateCSV_4EOLNeo4j
         // Step 5: generate Page TRAIT Relationship
         self::prepare_TRAIT_Edge_csv();
         self::prepare_INFERRED_TRAIT_Edge_csv();
-
         // Step 6: PREDICATE relationship between Trait and Term nodes
         self::prepare_PREDICATE_Edge_csv();
         // Step 7: SUPPLIER relationship between Trait and Resource nodes

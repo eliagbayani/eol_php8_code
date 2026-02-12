@@ -745,11 +745,18 @@ class DHConnLib
         } //end foreach()
         return $ret;
     }
+    function prepare_ParentEdge($param)
+    {   //step 1
+        $p['task'] = 'build_taxonID_EOLid_info';
+        self::do_things_from_DH($p);
+        //step 2
+        self::do_things_from_DH($param); //task here is = 'generate_ParentEdge_csv'
+    }
     function do_things_from_DH($param)
     {
         $task = $param['task'];
         // ---------- start customize part ----------
-        if($task == 'generate_PageNode_csv') {
+        if(in_array($task, array('generate_PageNode_csv', 'generate_ParentEdge_csv'))) {
             $fhandle = $param['fhandle'];
             require_library('connectors/GenerateCSV_4EOLNeo4j');
             $func = new GenerateCSV_4EOLNeo4j(array('resource_id' => 'wala lang'));
@@ -803,7 +810,32 @@ class DHConnLib
                         }
                     }
                 }
+            }
+            elseif($task == 'build_taxonID_EOLid_info') {
+                if($eolID = $rec['eolID']) {
+                    $taxonID = $rec['taxonID'];
+                    $this->taxonID_EOLid_info[$taxonID] = $eolID;
+                }
+            }
+            elseif($task == 'generate_ParentEdge_csv') {
+                $taxonID = $rec['taxonID'];
+                $parentNameUsageID = $rec['parentNameUsageID'];
+                if($new_taxonID = @$this->taxonID_EOLid_info[$taxonID]) {
+                    if($new_parentNameUsageID = @$this->taxonID_EOLid_info[$parentNameUsageID]) {
+                        $rek = array();
+                        $rek['taxonID'] = $new_taxonID;
+                        $rek['parentNameUsageID'] = $new_parentNameUsageID;
 
+                        /*  edges/parent.csv
+                            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+                            gadus_m,gadus,parent
+                            chanos_c,chanos,parent */
+                        $fields = array('taxonID', 'parentNameUsageID');
+                        $csv = $func->format_csv_entry($rek, $fields);
+                        $csv .= 'PARENT'; //Type are preferred to be singular nouns
+                        fwrite($fhandle, $csv."\n");
+                    }
+                }
             }
         }
     }

@@ -48,15 +48,17 @@ class GenerateCSV_4EOLNeo4j
         self::process_table($taxon_meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
 
         /* is now replaced by: prepare_PageNode_csv_from_DH()
-        self::prepare_PageNode_csv_from_resource($taxon_meta);      // step 1b: 
+        self::prepare_PageNode_csv_from_resource($taxon_meta); //OBSOLETE      // step 1b: 
+        self::prepare_ParentEdge_csv($taxon_meta);             //OBSOLETE
         */
+        unset($taxon_meta);
+
         // /*
         self::prepare_PageNode_csv_from_DH(); //part of main operation
+
         // */
-        // /*
-        self::prepare_ParentEdge_csv($taxon_meta);                  // step 1c:
-        unset($taxon_meta);
-        
+
+        // /*        
         // Step 2: generate Vernacular node; VERNACULAR edge
         if($vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0]) {
             self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
@@ -693,15 +695,22 @@ class GenerateCSV_4EOLNeo4j
     {
         require_library('connectors/DHConnLib');
         $func = new DHConnLib();
-        // /*
+
+        // Page Node
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
         fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n");
         $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
         $ret = $func->do_things_from_DH($param);
         fclose($WRITE);
-        // */
-        unset($func);
 
+        // start Parent Edge
+        $WRITE = Functions::file_open($this->path.'/edges/Parent.csv', 'w');
+        fwrite($WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_ParentEdge_csv', 'fhandle' => $WRITE);
+        $ret = $func->prepare_ParentEdge($param);
+        fclose($WRITE);
+
+        unset($func);
     }
     private function prepare_TRAIT_Edge_csv()
     {

@@ -825,13 +825,13 @@ class DHConnLib
                         $rek = array();
                         $rek['taxonID'] = $new_taxonID;
                         $rek['parentNameUsageID'] = $new_parentNameUsageID;
-
+                        
                         /*  edges/parent.csv
                             page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
                             gadus_m,gadus,parent
                             chanos_c,chanos,parent */
-                        $fields = array('taxonID', 'parentNameUsageID');
-                        $csv = $func->format_csv_entry($rek, $fields);
+                        $fieldz = array('taxonID', 'parentNameUsageID');
+                        $csv = $func->format_csv_entry($rek, $fieldz);
                         $csv .= 'PARENT'; //Type are preferred to be singular nouns
                         fwrite($fhandle, $csv."\n");
                     }

@@ -1003,6 +1003,25 @@ neo4j-admin database import full testdb --overwrite-destination \
 --relationships=import/dataset_test/edges/Inferred_Trait.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
+MATCH (origin:Page {canonical: "Gadus morhua"})-[:PARENT*]->(ancestor:Page)
+OPTIONAL MATCH (ancestor)-[:PARENT]->(parent_of_ancestor:Page)
+RETURN ancestor.page_id, ancestor.canonical, parent_of_ancestor.page_id 
+LIMIT 100
+
+MATCH (origin:Page {canonical: "Gadus morhua"})-[:PARENT]->(parent:Page)
+RETURN origin.page_id AS page_id,
+       origin.canonical AS canonical,
+       parent.page_id AS parent_id
+UNION ALL MATCH (origin:Page {canonical: "Gadus morhua"})-[:PARENT*]->(ancestor:Page)
+OPTIONAL MATCH (ancestor)-[:PARENT]->(parent:Page)
+RETURN ancestor.page_id AS page_id, 
+       ancestor.canonical AS canonical,
+       parent.page_id AS parent_id
+LIMIT 100
+
+MATCH (descendant:Page)-[:PARENT*]->(ancestor:Page {page_id: "1905"})
+RETURN COUNT(descendant)
+LIMIT 1
 
 MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->() RETURN e
 MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->(t:Trait {literal: "http://marineregions.org/mrgid/4280"}) RETURN e

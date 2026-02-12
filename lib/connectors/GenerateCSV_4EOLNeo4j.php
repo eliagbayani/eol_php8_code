@@ -80,7 +80,8 @@ class GenerateCSV_4EOLNeo4j
         self::prepare_TRAIT_Edge_csv();
         self::prepare_INFERRED_TRAIT_Edge_csv();
 
-
+        // Step 6: PREDICATE relationship between Trait and Term
+        self::prepare_PREDICATE_Edge_csv();
 
         //    ========== end Jan 27, 2026 ========== */
 
@@ -728,19 +729,32 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
-
+    private function prepare_PREDICATE_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Predicate.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_PREDICATE_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
     private function do_things_in_a_csv($param)
     {
         $task = $param['task'];
         // ---------- start customize part ----------
         if($param['task'] == 'generate_TRAIT_Edge_csv') {
-            $csv_file = $this->path.'/nodes/Trait.csv';
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
             $fhandle = $param['fhandle'];
         }
-        if($param['task'] == 'generate_INFERRED_TRAIT_Edge_csv') {
-            $csv_file = $this->path.'/nodes/Trait.csv';
+        elseif($param['task'] == 'generate_INFERRED_TRAIT_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
             $fhandle = $param['fhandle'];
         }
+        elseif($param['task'] == 'generate_PREDICATE_Edge_csv') {
+            // $csv_file = $this->path.'/nodes/Term.csv'; //source
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+            $fhandle = $param['fhandle'];
+        }
+
         // ---------- end customize part ----------
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
@@ -751,6 +765,7 @@ class GenerateCSV_4EOLNeo4j
             $i++; if(($i % 2000) == 0) echo "\n $i ";
             if($i == 1) {
                 $fields = $row;
+                $fields = array_map('trim', $fields);
                 // $fields = self::fill_up_blank_fieldnames($fields);
                 $count = count($fields);
                 // print_r($fields);
@@ -815,7 +830,61 @@ class GenerateCSV_4EOLNeo4j
                     }
                 }
                 
-            }
+                if($task == 'generate_PREDICATE_Edge_csv') { //predicate:START_ID(Trait),uri:ID(Term-ID),:TYPE
+                    /*Array( from Term.csv
+                        [uri:ID(Term-ID)] => http://eol.org/schema/terms/percentPerMonth
+                        [name] => %/month
+                        [type] => value
+                        [definition] => a measure of specific growth rate
+                        [comment] => 
+                        [attribution] => 
+                        [section_ids] => 
+                        [is_hidden_from_overview] => false
+                        [is_hidden_from_glossary] => false
+                        [position] => 
+                        [trait_row_count] => 
+                        [distinct_page_count] => 
+                        [exclusive_to_clade] => 
+                        [incompatible_with_clade] => 
+                        [parent_term] => 
+                        [synonym_of] => 
+                        [object_for_predicate] => 
+                        [:LABEL] => Term
+                    )
+                    Array( from Trait.csv
+                        [eol_pk:ID(Trait-ID)] => worms_38a1316e08d5c41d90ac3f4220a9ee77
+                        [page_id] => 46501030
+                        [scientific_name] => Aahithis Schallreuter, 1988
+                        [resource_pk] => 6727294cfe63431fc4bd57e07223e119
+                        [predicate] => http://www.marinespecies.org/traits/SupportingStructuresEnclosures
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [object_page_id] => 
+                        [target_scientific_name] => 
+                        [value_uri] => http://purl.obolibrary.org/obo/UBERON_0006611
+                        [literal] => http://purl.obolibrary.org/obo/UBERON_0006611
+                        [measurement] => 
+                        [units] => 
+                        [normal_measurement] => 
+                        [normal_units_uri] => 
+                        [sample_size] => 
+                        [citation] => 
+                        [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=769244
+                        [remarks] => 
+                        [method] => inherited from urn:lsid:marinespecies.org:taxname:155944, Podocopa Müller, 1894
+                        [contributor_uri] => 
+                        [compiler_uri] => 
+                        [determined_by_uri] => 
+                        [:LABEL] => Trait
+                    )*/
+                    // print_r($rec); exit("\nstop 4\n");
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+            } //end main records
         } //end while()
     }
     private function trait_is_inferred_YN($remarks)

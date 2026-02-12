@@ -103,22 +103,32 @@ class EOLterms_ymlAPI
         $final = array();
         if($yml = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options)) { //orig 1 day cache
             $yml .= "alias: ";
-            if(preg_match_all("/\- attribution\:(.*?)\- attribution\:/ims", $yml, $a)) {
+            $yml = str_replace("\\r\\n", " ", $yml);
+
+            // Fix for missing "http://eol.org/schema/terms/TrophicGuild"
+            $source = "- definition: A group of species that exploit the same food resources";
+            $destination = "- attribution: ''
+              definition: A group of species that exploit the same food resources";
+            $yml = str_replace($source, $destination, $yml);
+
+            // exit("\n$yml\n");
+            // if(preg_match_all("/\- attribution\:(.*?)\- attribution\:/ims", $yml, $a)) {
+            if(preg_match_all("/\- attribution\:(.*?)alias\:/ims", $yml, $a)) {
                 $arr = array_map('trim', $a[1]);
+                // print_r($arr); exit("\nstop muna eli\n");
                 foreach($arr as $block) { //echo "\n$block\n"; exit;
-                    /*  ''
-                        definition: a measure of specific growth rate
-                        is_hidden_from_select: false
-                        is_hidden_from_overview: false
-                        is_hidden_from_glossary: false
-                        is_text_only: false
-                        name: "%/month"
-                        type: value
-                        uri: http://eol.org/schema/terms/percentPerMonth
-                        parent_uris: []
-                        synonym_of_uri:
-                        units_term_uri:
-                        alias:  */
+                    /*''
+                    definition: a measure of specific growth rate
+                    is_hidden_from_select: false
+                    is_hidden_from_overview: false
+                    is_hidden_from_glossary: false
+                    is_text_only: false
+                    name: "%/month"
+                    type: value
+                    uri: http://eol.org/schema/terms/percentPerMonth
+                    parent_uris: []
+                    synonym_of_uri:
+                    units_term_uri:*/
                     $rek = array();
                     if(preg_match("/uri\: (.*?)\n/ims", $block, $a)) $rek['uri'] = trim($a[1]);     //http://eol.org/schema/terms/percentPerMonth
                     if(preg_match("/name\: (.*?)\n/ims", $block, $a)) $rek['name'] = self::remove_quote_delimiters(trim($a[1]));   //%/month
@@ -138,8 +148,10 @@ class EOLterms_ymlAPI
                     $rek['synonym_of'] = ''; //
                     $rek['object_for_predicate'] = ''; //a periodically calculated (offline) count
                     $rek = array_map('trim', $rek);
+                    /* Commented since many traits e.g. WoRMS have these URIs.
                     if(stripos($rek['uri'], "marineregions.org") !== false) continue;   //string is found   - filter
                     if(stripos($rek['uri'], "geonames.org") !== false) continue;        //string is found   - filter
+                    */
                     $final[] = $rek;
                     // print_r($rek); //exit("\nelix...\n");
                     /*Array(

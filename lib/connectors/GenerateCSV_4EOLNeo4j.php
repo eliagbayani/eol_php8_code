@@ -879,6 +879,7 @@ class GenerateCSV_4EOLNeo4j
                         [:LABEL] => Trait
                     )*/
                     // print_r($rec); exit("\nstop 4\n");
+                    if(in_array($rec['predicate'], array('http://purl.obolibrary.org/obo/RO_0008509'))) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'PREDICATE'; //relationships are designed to be in upper-case

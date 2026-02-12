@@ -1006,7 +1006,7 @@ cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
 MATCH (t:Trait)<-[:TRAIT]-(p:Page),
       (t)-[:PREDICATE]->(pred:Term)
-RETURN t.eol_pk, t.resource_ok, t.source, p.page_id, t.scientific_name, pred.uri, pred.name,
+RETURN t.eol_pk, t.resource_pk, t.source, p.page_id, t.scientific_name, pred.uri, pred.name,
        t.object_page_id, t.normal_measurement, t.normal_units, t.literal
 LIMIT 5
 
@@ -1043,7 +1043,8 @@ neo4j-admin database import full testdb --overwrite-destination \
 --nodes=import/dataset_test/nodes/Trait.csv \
 --relationships=import/dataset_test/edges/Parent.csv \
 --relationships=import/dataset_test/edges/Trait.csv \
---relationships=import/dataset_test/edges/Inferred_Trait.csv 
+--relationships=import/dataset_test/edges/Inferred_Trait.csv \
+--relationships=import/dataset_test/edges/Predicate.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
 

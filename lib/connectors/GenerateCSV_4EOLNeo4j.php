@@ -879,7 +879,7 @@ class GenerateCSV_4EOLNeo4j
                         [:LABEL] => Trait
                     )*/
                     // print_r($rec); exit("\nstop 4\n");
-                    if(in_array($rec['predicate'], array('http://purl.obolibrary.org/obo/RO_0008509'))) continue; //not found in EOL Terms file
+                    if(!self::predicate_in_EOL_terms_YN($rec['predicate'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
@@ -887,6 +887,11 @@ class GenerateCSV_4EOLNeo4j
                 }
             } //end main records
         } //end while()
+    }
+    private function predicate_in_EOL_terms_YN($predicate)
+    {
+        if(in_array($predicate, array('http://purl.obolibrary.org/obo/RO_0008509', 'http://purl.obolibrary.org/obo/RO_0002555'))) return false;
+        return true;
     }
     private function trait_is_inferred_YN($remarks)
     {

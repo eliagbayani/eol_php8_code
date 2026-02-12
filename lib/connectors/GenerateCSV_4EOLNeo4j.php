@@ -80,8 +80,10 @@ class GenerateCSV_4EOLNeo4j
         self::prepare_TRAIT_Edge_csv();
         self::prepare_INFERRED_TRAIT_Edge_csv();
 
-        // Step 6: PREDICATE relationship between Trait and Term
+        // Step 6: PREDICATE relationship between Trait and Term nodes
         self::prepare_PREDICATE_Edge_csv();
+        // Step 7: SUPPLIER relationship between Trait and Resource nodes
+        self::prepare_SUPPLIER_Edge_csv();
 
         //    ========== end Jan 27, 2026 ========== */
 
@@ -737,6 +739,15 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_SUPPLIER_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Supplier.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_SUPPLIER_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+
     private function do_things_in_a_csv($param)
     {
         $task = $param['task'];
@@ -750,7 +761,10 @@ class GenerateCSV_4EOLNeo4j
             $fhandle = $param['fhandle'];
         }
         elseif($param['task'] == 'generate_PREDICATE_Edge_csv') {
-            // $csv_file = $this->path.'/nodes/Term.csv'; //source
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+            $fhandle = $param['fhandle'];
+        }
+        elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
             $fhandle = $param['fhandle'];
         }
@@ -831,27 +845,7 @@ class GenerateCSV_4EOLNeo4j
                 }
                 
                 if($task == 'generate_PREDICATE_Edge_csv') { //predicate:START_ID(Trait),uri:ID(Term-ID),:TYPE
-                    /*Array( from Term.csv
-                        [uri:ID(Term-ID)] => http://eol.org/schema/terms/percentPerMonth
-                        [name] => %/month
-                        [type] => value
-                        [definition] => a measure of specific growth rate
-                        [comment] => 
-                        [attribution] => 
-                        [section_ids] => 
-                        [is_hidden_from_overview] => false
-                        [is_hidden_from_glossary] => false
-                        [position] => 
-                        [trait_row_count] => 
-                        [distinct_page_count] => 
-                        [exclusive_to_clade] => 
-                        [incompatible_with_clade] => 
-                        [parent_term] => 
-                        [synonym_of] => 
-                        [object_for_predicate] => 
-                        [:LABEL] => Term
-                    )
-                    Array( from Trait.csv
+                    /*Array( from Trait.csv
                         [eol_pk:ID(Trait-ID)] => worms_38a1316e08d5c41d90ac3f4220a9ee77
                         [page_id] => 46501030
                         [scientific_name] => Aahithis Schallreuter, 1988
@@ -883,6 +877,15 @@ class GenerateCSV_4EOLNeo4j
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_SUPPLIER_Edge_csv') { //eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE
+                    $fieldz = array('eol_pk', 'supplier');
+                    $rek = array();
+                    $rek['eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                    $rek['supplier'] = $this->param['eol_resource_id'];
+                    $csv = self::format_csv_entry($rek, $fieldz);
+                    $csv .= 'SUPPLIER'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
             } //end main records

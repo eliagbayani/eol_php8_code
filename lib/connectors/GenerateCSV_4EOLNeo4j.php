@@ -83,8 +83,11 @@ class GenerateCSV_4EOLNeo4j
         // Step 6: PREDICATE relationship between Trait and Term nodes
         self::prepare_PREDICATE_Edge_csv();
 
-        // Step 6: OBJECT_TERM relationship between Trait and Term nodes
+        // Step 6.1: OBJECT_TERM relationship between Trait and Term nodes
         self::prepare_OBJECT_TERM_Edge_csv();
+
+        // Step 6.2: NORMAL_UNITS_TERM relationship between Trait and Term nodes
+        self::prepare_NORMAL_UNITS_TERM_Edge_csv();
 
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();
@@ -373,7 +376,8 @@ class GenerateCSV_4EOLNeo4j
         )*/
 
         // print_r($rec); exit("\nelix 2\n");
-        // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	contributor_uri	compiler_uri	determined_by_uri
+        // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	
+        // measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	contributor_uri	compiler_uri	determined_by_uri
         $s = array();
         $s['page_id'] = $rec['page_id'];
         $s['scientific_name'] = $rec['scientific_name'];
@@ -397,9 +401,14 @@ class GenerateCSV_4EOLNeo4j
         $s['units'] = @$rec['measurementUnit'];
 
         // /* values not found in DwCA
-        $s['normal_measurement'] = '';
-        $s['normal_units_uri'] = '';
-        // */                	
+        
+        if(!self::value_is_uri_YN($rec['measurementValue'])) $s['normal_measurement'] = $rec['measurementValue'];
+        else                                                 $s['normal_measurement'] = '';
+
+        if(self::value_is_uri_YN($rec['measurementUnit'])) $s['normal_units_uri'] = $rec['measurementUnit'];
+        else                                               $s['normal_units_uri'] = '';
+        // */
+
         $s['sample_size'] = '';
         $s['citation'] = @$rec['bibliographicCitation'];
         $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
@@ -421,7 +430,7 @@ class GenerateCSV_4EOLNeo4j
     {
         if($measurementValue = @$rec['measurementValue']) {
             if($field == 'value_uri') {
-                if(substr($measurementValue,0,4) == 'http') return $measurementValue;
+                if(self::value_is_uri_YN($measurementValue)) return $measurementValue;
             }
             if($field == 'literal') { //can be measurementValue that is URI = http://eol.org/schema/terms/extinct OR uncontrolled vocab = 'extinct' But not numeric e.g. 100
                 if(!is_numeric($measurementValue)) return $measurementValue;
@@ -751,6 +760,14 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_NORMAL_UNITS_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Normal_Units_Term.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_NORMAL_UNITS_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
 
     private function prepare_SUPPLIER_Edge_csv()
     {
@@ -764,27 +781,25 @@ class GenerateCSV_4EOLNeo4j
     private function do_things_in_a_csv($param)
     {
         $task = $param['task'];
+        $fhandle = $param['fhandle'];
         // ---------- start customize part ----------
         if($param['task'] == 'generate_TRAIT_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
-            $fhandle = $param['fhandle'];
         }
         elseif($param['task'] == 'generate_INFERRED_TRAIT_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
-            $fhandle = $param['fhandle'];
         }
         elseif($param['task'] == 'generate_PREDICATE_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
-            $fhandle = $param['fhandle'];
         }
         elseif($param['task'] == 'generate_OBJECT_TERM_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
-            $fhandle = $param['fhandle'];
         }
-        
+        elseif($param['task'] == 'generate_NORMAL_UNITS_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }        
         elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
-            $fhandle = $param['fhandle'];
         }
 
         // ---------- end customize part ----------
@@ -898,14 +913,24 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_OBJECT_TERM_Edge_csv') {
-                    if(!$rec['value_uri']) continue; //cannot be blank
-                    if(!substr($rec['value_uri'],0,4) == 'http') continue; //should always be a valid URI
+                    if(!$rec['value_uri']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['value_uri'])) continue; //should always be a valid URI
                     if(!self::predicate_in_EOL_terms_YN($rec['value_uri'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'value_uri');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'OBJECT_TERM'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
+                if($task == 'generate_NORMAL_UNITS_TERM_Edge_csv') {
+                    if(!$rec['normal_units_uri']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['normal_units_uri'])) continue; //should always be a valid URI
+                    if(!self::predicate_in_EOL_terms_YN($rec['normal_units_uri'])) continue; //not found in EOL Terms file
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'normal_units_uri');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'NORMAL_UNITS_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+
                 if($task == 'generate_SUPPLIER_Edge_csv') { //eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE
                     $fieldz = array('eol_pk', 'supplier');
                     $rek = array();
@@ -1107,6 +1132,12 @@ class GenerateCSV_4EOLNeo4j
             debug("Invalid archive file. Program will terminate."); return false;
         } else echo "\nValid DwCA [$resource_id].\n";
         return $ret;
+    }
+    private function value_is_uri_YN($value)
+    {
+        if(substr($value, 0, 5) == 'http:') return true;
+        if(substr($value, 0, 6) == 'https:') return true;
+        return false;
     }
     /*
     =========================================================================== Globi

@@ -1011,10 +1011,10 @@ MATCH (t:Trait)<-[:TRAIT]-(p:Page),
       (t)-[:SUPPLIER]->(r:Resource),
       (t)-[:PREDICATE]->(pred:Term)
 OPTIONAL MATCH (t)-[:OBJECT_TERM]->(obj:Term)
+OPTIONAL MATCH (t)-[:NORMAL_UNITS_TERM]->(units:Term)
 RETURN r.resource_id, t.eol_pk, t.resource_ok, t.source, p.page_id, t.scientific_name, pred.uri, pred.name,
-       t.object_page_id, obj.uri, obj.name, t.normal_measurement, t.normal_units, t.literal
+       t.object_page_id, obj.uri, obj.name, t.normal_measurement, units.uri, units.name, t.normal_units, t.literal
 LIMIT 5
-
 
 MATCH (origin:Page {canonical: "Gadus morhua"})-[:PARENT*]->(ancestor:Page)
 OPTIONAL MATCH (ancestor)-[:PARENT]->(parent_of_ancestor:Page)

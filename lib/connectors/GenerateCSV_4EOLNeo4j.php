@@ -79,8 +79,13 @@ class GenerateCSV_4EOLNeo4j
         // Step 5: generate Page TRAIT Relationship
         self::prepare_TRAIT_Edge_csv();
         self::prepare_INFERRED_TRAIT_Edge_csv();
+        
         // Step 6: PREDICATE relationship between Trait and Term nodes
         self::prepare_PREDICATE_Edge_csv();
+
+        // Step 6: OBJECT_TERM relationship between Trait and Term nodes
+        self::prepare_OBJECT_TERM_Edge_csv();
+
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();
 
@@ -738,6 +743,15 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_OBJECT_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Object_Term.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_OBJECT_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+
     private function prepare_SUPPLIER_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/Supplier.csv', 'w');
@@ -763,6 +777,11 @@ class GenerateCSV_4EOLNeo4j
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
             $fhandle = $param['fhandle'];
         }
+        elseif($param['task'] == 'generate_OBJECT_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+            $fhandle = $param['fhandle'];
+        }
+        
         elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
             $fhandle = $param['fhandle'];
@@ -876,6 +895,15 @@ class GenerateCSV_4EOLNeo4j
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_OBJECT_TERM_Edge_csv') {
+                    if(!$rec['value_uri']) continue; //cannot be blank
+                    if(!substr($rec['value_uri'],0,4) == 'http') continue; //should always be a valid URI
+                    if(!self::predicate_in_EOL_terms_YN($rec['value_uri'])) continue; //not found in EOL Terms file
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'value_uri');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'OBJECT_TERM'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_SUPPLIER_Edge_csv') { //eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE

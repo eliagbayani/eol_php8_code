@@ -55,7 +55,6 @@ class GenerateCSV_4EOLNeo4j
 
         // /*
         self::prepare_PageNode_csv_from_DH(); //part of main operation
-
         // */
 
         // /*        
@@ -400,14 +399,10 @@ class GenerateCSV_4EOLNeo4j
         $s['measurement'] = self::value_for($rec, 'measurement');
         $s['units'] = @$rec['measurementUnit'];
 
-        // /* values not found in DwCA
-        
         if(!self::value_is_uri_YN($rec['measurementValue'])) $s['normal_measurement'] = $rec['measurementValue'];
         else                                                 $s['normal_measurement'] = '';
-
         if(self::value_is_uri_YN($rec['measurementUnit'])) $s['normal_units_uri'] = $rec['measurementUnit'];
         else                                               $s['normal_units_uri'] = '';
-        // */
 
         $s['sample_size'] = '';
         $s['citation'] = @$rec['bibliographicCitation'];

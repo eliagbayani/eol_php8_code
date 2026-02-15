@@ -1059,7 +1059,12 @@ neo4j-admin database import full testdb --overwrite-destination \
 --relationships=import/dataset_test/edges/Parent.csv \
 --relationships=import/dataset_test/edges/Trait.csv \
 --relationships=import/dataset_test/edges/Inferred_Trait.csv \
---relationships=import/dataset_test/edges/Predicate.csv 
+--relationships=import/dataset_test/edges/Predicate.csv \
+--relationships=import/dataset_test/edges/Object_Term.csv \
+--relationships=import/dataset_test/edges/Normal_Units_Term.csv \
+--relationships=import/dataset_test/edges/Units_Term.csv \
+--relationships=import/dataset_test/edges/Object_Page.csv \
+--relationships=import/dataset_test/edges/Supplier.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
 

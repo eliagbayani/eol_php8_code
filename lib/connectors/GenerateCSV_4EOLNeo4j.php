@@ -826,13 +826,15 @@ class GenerateCSV_4EOLNeo4j
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
         // ---------- end customize part ----------
+        if($this->params['eol_resource_id'] == 'globi') $mod = 50000;
+        else                                            $mod = 5000;
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
             $row = fgetcsv($file);
             if(!$row) break;
             // $row = self::clean_html($row); print_r($row);
-            $i++; if(($i % 5000) == 0) echo "\n $i ";
+            $i++; if(($i % $mod) == 0) echo "\n $i ";
             if($i == 1) {
                 $fields = $row;
                 $fields = array_map('trim', $fields);
@@ -929,7 +931,7 @@ class GenerateCSV_4EOLNeo4j
                         [:LABEL] => Trait
                     )*/
                     // print_r($rec); exit("\nstop 4\n");
-                    if(!self::predicate_in_EOL_terms_YN($rec['predicate'])) continue; //not found in EOL Terms file
+                    if(!self::URI_in_EOL_terms_YN($rec['predicate'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
@@ -938,7 +940,7 @@ class GenerateCSV_4EOLNeo4j
                 if($task == 'generate_OBJECT_TERM_Edge_csv') {
                     if(!$rec['value_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['value_uri'])) continue; //should always be a valid URI
-                    if(!self::predicate_in_EOL_terms_YN($rec['value_uri'])) continue; //not found in EOL Terms file
+                    if(!self::URI_in_EOL_terms_YN($rec['value_uri'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'value_uri');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'OBJECT_TERM'; //relationships are designed to be in upper-case
@@ -948,7 +950,7 @@ class GenerateCSV_4EOLNeo4j
                     if(!$rec['normal_measurement']) continue; //cannot be blank                                        
                     if(!$rec['normal_units_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['normal_units_uri'])) continue; //should always be a valid URI
-                    if(!self::predicate_in_EOL_terms_YN($rec['normal_units_uri'])) continue; //not found in EOL Terms file
+                    if(!self::URI_in_EOL_terms_YN($rec['normal_units_uri'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'normal_units_uri');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'NORMAL_UNITS_TERM'; //relationships are designed to be in upper-case
@@ -958,7 +960,7 @@ class GenerateCSV_4EOLNeo4j
                     if(!$rec['measurement']) continue; //cannot be blank                                        
                     if(!$rec['units']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['units'])) continue; //should always be a valid URI
-                    if(!self::predicate_in_EOL_terms_YN($rec['units'])) continue; //not found in EOL Terms file
+                    if(!self::URI_in_EOL_terms_YN($rec['units'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'units');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'UNITS_TERM'; //relationships are designed to be in upper-case
@@ -984,9 +986,9 @@ class GenerateCSV_4EOLNeo4j
             } //end main records
         } //end while()
     }
-    private function predicate_in_EOL_terms_YN($predicate)
+    private function URI_in_EOL_terms_YN($predicate)
     {
-        if(in_array($predicate, array('http://purl.obolibrary.org/obo/RO_0008509', 'http://purl.obolibrary.org/obo/RO_0002555'))) return false;
+        if(in_array($predicate, array('http://purl.obolibrary.org/obo/RO_0008509', 'http://purl.obolibrary.org/obo/RO_0002555', 'http://purl.obolibrary.org/obo/RO_0002236'))) return false;
         return true;
     }
     private function trait_is_inferred_YN($remarks)

@@ -91,6 +91,9 @@ class GenerateCSV_4EOLNeo4j
         // Step 6.3: UNITS_TERM relationship between Trait and Term nodes
         self::prepare_UNITS_TERM_Edge_csv();
 
+        // Step 6.4: OBJECT_PAGE relationship between Trait and Page nodes
+        self::prepare_OBJECT_PAGE_Edge_csv();
+
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();
 
@@ -402,10 +405,10 @@ class GenerateCSV_4EOLNeo4j
         $s['measurement'] = self::value_for($rec, 'measurement');
         $s['units'] = @$rec['measurementUnit'];
 
-        if(!self::value_is_uri_YN($rec['measurementValue'])) $s['normal_measurement'] = $rec['measurementValue'];
-        else                                                 $s['normal_measurement'] = '';
-        if(self::value_is_uri_YN($rec['measurementUnit'])) $s['normal_units_uri'] = $rec['measurementUnit'];
-        else                                               $s['normal_units_uri'] = '';
+        if(!self::value_is_uri_YN(@$rec['measurementValue'])) $s['normal_measurement'] = @$rec['measurementValue'];
+        else                                                  $s['normal_measurement'] = '';
+        if(self::value_is_uri_YN(@$rec['measurementUnit'])) $s['normal_units_uri'] = @$rec['measurementUnit'];
+        else                                                $s['normal_units_uri'] = '';
 
         $s['sample_size'] = '';
         $s['citation'] = @$rec['bibliographicCitation'];
@@ -774,6 +777,15 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_OBJECT_PAGE_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Object_Page.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_OBJECT_PAGE_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+
 
     private function prepare_SUPPLIER_Edge_csv()
     {
@@ -786,7 +798,7 @@ class GenerateCSV_4EOLNeo4j
 
     private function do_things_in_a_csv($param)
     {
-        $task = $param['task'];
+        $task = $param['task']; echo "\ntask: [$task]\n";
         $fhandle = $param['fhandle'];
         // ---------- start customize part ----------
         if($param['task'] == 'generate_TRAIT_Edge_csv') {
@@ -807,11 +819,12 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_UNITS_TERM_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
-
+        elseif($param['task'] == 'generate_OBJECT_PAGE_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
         elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
-
         // ---------- end customize part ----------
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
@@ -819,7 +832,7 @@ class GenerateCSV_4EOLNeo4j
             $row = fgetcsv($file);
             if(!$row) break;
             // $row = self::clean_html($row); print_r($row);
-            $i++; if(($i % 2000) == 0) echo "\n $i ";
+            $i++; if(($i % 5000) == 0) echo "\n $i ";
             if($i == 1) {
                 $fields = $row;
                 $fields = array_map('trim', $fields);
@@ -949,6 +962,13 @@ class GenerateCSV_4EOLNeo4j
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'units');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'UNITS_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_OBJECT_PAGE_Edge_csv') {
+                    if(!$rec['object_page_id']) continue; //cannot be blank                                        
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'object_page_id');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'OBJECT_PAGE'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
 
@@ -1156,6 +1176,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function value_is_uri_YN($value)
     {
+        if(!$value) return false;
         if(substr($value, 0, 5) == 'http:') return true;
         if(substr($value, 0, 6) == 'https:') return true;
         return false;

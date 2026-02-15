@@ -59,11 +59,10 @@ class GenerateCSV_4EOLNeo4j
 
         // /*        
         // Step 2: generate Vernacular node; VERNACULAR edge
-        if($vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0]) {
-            self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
-            self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
-            unset($vernacular_meta);
-        }
+        $vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
+        self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
+        self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
+        unset($vernacular_meta);
         
         // Step 3: generate Resource node
         self::prepare_ResourceNode_csv();                        // step 3a: 
@@ -1001,7 +1000,7 @@ class GenerateCSV_4EOLNeo4j
             vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL   */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Vernacular.csv', 'w');
         fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,supplier,:LABEL"."\n");
-        self::process_table($meta, 'generate-VernacularNode-csv');
+        if($meta) self::process_table($meta, 'generate-VernacularNode-csv');
         fclose($this->WRITE);
     }
     private function prepare_TraitNode_csv($meta)
@@ -1047,7 +1046,7 @@ class GenerateCSV_4EOLNeo4j
         */
         $this->WRITE = Functions::file_open($this->path.'/edges/Vernacular.csv', 'w');
         fwrite($this->WRITE, "page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
-        self::process_table($meta, 'generate-VernacularEdge-csv');
+        if($meta) self::process_table($meta, 'generate-VernacularEdge-csv');
         fclose($this->WRITE);
     }
     private function prepare_measurements_csv($tables)

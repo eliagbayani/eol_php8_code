@@ -1004,16 +1004,17 @@ neo4j-admin database import full testdb --overwrite-destination \
 --relationships=import/dataset_test/edges/Predicate.csv \
 --relationships=import/dataset_test/edges/Object_Term.csv \
 --relationships=import/dataset_test/edges/Normal_Units_Term.csv \
+--relationships=import/dataset_test/edges/Units_Term.csv \
 --relationships=import/dataset_test/edges/Supplier.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
 MATCH (t:Trait)<-[:TRAIT]-(p:Page),
 (t)-[:SUPPLIER]->(r:Resource),
 (t)-[:PREDICATE]->(pred:Term)
-WHERE p.page_id = 328651 AND pred.uri = "http://purl.obolibrary.org/obo/VT_0001259"
-OPTIONAL MATCH (t)-[:units_term]->(units:Term)
-RETURN p.canonical, pred.name, t.measurement, units.name, r.resource_id, p.page_id, t.eol_pk, t.source
-LIMIT 1
+WHERE p.page_id =  "46501030" AND pred.uri = "http://purl.obolibrary.org/obo/CMO_0000013"
+OPTIONAL MATCH (t)-[:UNITS_TERM]->(units:Term)
+RETURN p.canonical, pred.name, pred.uri, t.measurement, units.name, r.resource_id, p.page_id, t.eol_pk, t.source
+LIMIT 100
 
 MATCH (t:Trait)<-[:TRAIT]-(p:Page),
       (t)-[:SUPPLIER]->(r:Resource),

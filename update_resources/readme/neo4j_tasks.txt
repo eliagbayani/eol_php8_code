@@ -1005,6 +1005,7 @@ neo4j-admin database import full testdb --overwrite-destination \
 --relationships=import/dataset_test/edges/Object_Term.csv \
 --relationships=import/dataset_test/edges/Normal_Units_Term.csv \
 --relationships=import/dataset_test/edges/Units_Term.csv \
+--relationships=import/dataset_test/edges/Object_Page.csv \
 --relationships=import/dataset_test/edges/Supplier.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
@@ -1050,23 +1051,27 @@ MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->(t:Trait {l
 MATCH e = (p:Page {canonical: "Aster"})-[r:TRAIT]->(t:Trait {predicate: "http://eol.org/schema/terms/NativeRange"}) RETURN e
 
 GloBI main
-cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE testdb;"
-neo4j-admin database import full testdb --overwrite-destination \
---nodes=import/dataset_test/nodes/Resource.csv \
---nodes=import/dataset_test/nodes/Page.csv \
---nodes=import/dataset_test/nodes/Term.csv \
---nodes=import/dataset_test/nodes/Trait.csv \
---relationships=import/dataset_test/edges/Parent.csv \
---relationships=import/dataset_test/edges/Trait.csv \
---relationships=import/dataset_test/edges/Inferred_Trait.csv \
---relationships=import/dataset_test/edges/Predicate.csv \
---relationships=import/dataset_test/edges/Object_Term.csv \
---relationships=import/dataset_test/edges/Normal_Units_Term.csv \
---relationships=import/dataset_test/edges/Units_Term.csv \
---relationships=import/dataset_test/edges/Object_Page.csv \
---relationships=import/dataset_test/edges/Supplier.csv 
-cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
+MATCH (p:Page)-[:TRAIT|INFERRED_TRAIT]->(t:Trait),
+(t)-[:SUPPLIER]->(r:Resource),
+(t)-[:PREDICATE]->(pred:Term)
+WHERE p.canonical = "Enhydra lutris" AND pred.name = "eat"
+MATCH (t)-[:OBJECT_PAGE]->(p2:Page) 
+RETURN  p.canonical, pred.name, p2.canonical, r.resource_id, p.page_id, t.eol_pk, t.source
+LIMIT 5
+
+MATCH (t:Trait)<-[:TRAIT|INFERRED_TRAIT]-(p:Page),
+(t)-[:PREDICATE]->(pred:Term {uri: "http://purl.obolibrary.org/obo/VT_0001259"}),
+(t)-[:UNITS_TERM]->(units1:Term),
+(t)-[:LIFESTAGE_TERM]->(stage1:Term {uri:"http://purl.bioontology.org/ontology/CSP/0070-1441"}),
+(t1:Trait)<-[:TRAIT|INFERRED_TRAIT]-(p:Page),
+(t1)-[:PREDICATE]->(pred:Term {uri: "http://purl.obolibrary.org/obo/VT_0001259"}),
+(t1)-[:UNITS_TERM]->(units2:Term),
+(t1)-[:LIFESTAGE_TERM]->(stage2:Term {uri:"http://www.ebi.ac.uk/efo/EFO_0001272"}),
+(t2:Trait)<-[:TRAIT|INFERRED_TRAIT]-(p:Page),
+(t2)-[:PREDICATE]->(pred2:Term {uri: "http://purl.obolibrary.org/obo/VT_0001933"})
+RETURN p.canonical, t.measurement, units1.name, stage1.name, t1.measurement, units2.name, stage2.name, pred2.name, t2.measurement
+LIMIT 40
 
 MATCH e = (p:Page {canonical: "Gadus morhua"})-[r:PARENT]->() RETURN e
 MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->() RETURN e

@@ -825,8 +825,8 @@ class GenerateCSV_4EOLNeo4j
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
         // ---------- end customize part ----------
-        if($this->params['eol_resource_id'] == 'globi') $mod = 50000;
-        else                                            $mod = 5000;
+        if($this->param['eol_resource_id'] == 'globi') $mod = 50000;
+        else                                           $mod = 5000;
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {

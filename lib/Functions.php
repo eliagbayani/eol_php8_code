@@ -2683,7 +2683,9 @@ class Functions
                         $arr2 = array_keys($arr2);
                         asort($arr2);
                         foreach($arr2 as $item) {
-                            if($item) fwrite($WRITE, "$item = ".@$arr3[$item]."\n");
+                            $arr3_item = @$arr3[$item];
+                            if(is_array($arr3_item)) $arr3_item = json_encode($arr3_item);
+                            if($item) fwrite($WRITE, "$item = ".$arr3_item."\n");
                         }
                     }
                     else {

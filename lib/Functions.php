@@ -2659,6 +2659,7 @@ class Functions
     }
     public static function start_print_debug($this_debug, $resource_id, $destination_folder = false)
     {
+        if(!$this_debug) { echo "\nNo print_debug.\n"; return; }
         if(!$destination_folder) $destination_folder = CONTENT_RESOURCE_LOCAL_PATH;
         else {
             if(!is_dir($destination_folder)) exit("\nERROR: Destination folder in: [start_print_debug()] is not found.\n");
@@ -2698,8 +2699,6 @@ class Functions
             }
         }
         fclose($WRITE);
-        // echo "\nCheck debug file: [$file]\n";
-        // print_r($this->debug);
     }
     public static function get_middle_record_from_array($arr)
     {   //print_r($arr);

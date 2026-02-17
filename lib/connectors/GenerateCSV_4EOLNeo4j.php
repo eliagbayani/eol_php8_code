@@ -53,8 +53,8 @@ class GenerateCSV_4EOLNeo4j
         */
         unset($taxon_meta);
 
-        // /*
-        self::prepare_PageNode_csv_from_DH(); //part of main operation
+        // /* part of main operation
+        self::prepare_PageNode_csv_from_DH();
         // */
 
         // /*        

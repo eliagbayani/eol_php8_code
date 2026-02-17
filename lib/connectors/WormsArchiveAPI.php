@@ -23,6 +23,10 @@ Connector downloads the archive file, extracts, reads it, assembles the data and
 
 http://www.marinespecies.org/rest/#/
 http://www.marinespecies.org/aphia.php?p=taxdetails&id=9
+
+uri: http://rs.tdwg.org/dwc/terms/sex
+uri: http://rs.tdwg.org/dwc/terms/lifeStage
+
 */
 
 use \AllowDynamicProperties; //for PHP 8.2
@@ -969,6 +973,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $k++;
                 // */
             } // print_r($rec); exit;
+
+            $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+            @$this->debug['measurementType'][$measurementType]++;
+
             // if($rec) $rec = Functions::array_map_eol('trim', $rec); //worked OK - important!
 
             // /* Eli Dec 16. To remove 3 parentMoF without entry. From: https://editors.eol.org/eol_php_code/applications/content_server/resources/26_undefined_parentMeasurementIDs.txt
@@ -989,9 +997,25 @@ class WormsArchiveAPI extends ContributorsMapAPI
             continue;
             */
             
+            /* as of Feb 17, 2026: values for measurementType
+            ----- Nomenclature code   15
+            ----- Functional group   10
+            ----- Supporting structure & enclosure   23
+            ----- Supporting structure & enclosure > Structure   23
+            ----- Supporting structure & enclosure > Structure > Composition   23
+            ----- Feeding method   7
+            ----- Functional group > Life stage   5
+            ----- Mobility   8
+            ----- Mobility > Life stage   8
+            ----- Development   4
+            ----- Body size   6
+            ----- Body size > Type   6
+            ----- Body size > Dimension   6
+            */
+
             if(isset($this->ToExcludeMeasurementIDs[$rec['http://rs.tdwg.org/dwc/terms/measurementID']])) continue;
             //========================================================================================================first task - association
-            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Host') { // print_r($rec); exit;
+            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Host') { print_r($rec); exit("\nSeems not going here anymore.\n");
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 292968
                     [http://rs.tdwg.org/dwc/terms/measurementID] => 415015_292968
@@ -1032,6 +1056,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 if($parent = $rec['parentMeasurementID']) {
                     if($value_str = @$this->lifeStageOf[$parent]) { //e.g. 'adult'
                         $lifeStage = self::get_uri_from_value($value_str, 'mValue', 'lifeStage');
+                        if($lifeStage) @$this->debug['lifeStage values'][$lifeStage]++;
                     }
                 }
                 // */

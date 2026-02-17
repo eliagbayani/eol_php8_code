@@ -93,6 +93,12 @@ class GenerateCSV_4EOLNeo4j
         // Step 6.4: OBJECT_PAGE relationship between Trait and Page nodes
         self::prepare_OBJECT_PAGE_Edge_csv();
 
+        // Step 6.5: DETERMINED_BY relationship between Trait and Term nodes
+        self::prepare_DETERMINED_BY_Edge_csv();
+
+        // Step 6.6: CONTRIBUTOR relationship between Trait and Term nodes
+        self::prepare_CONTRIBUTOR_Edge_csv();
+
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();
 
@@ -784,7 +790,14 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
-
+    private function prepare_DETERMINED_BY_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Determined_By.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_DETERMINED_BY_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
 
     private function prepare_SUPPLIER_Edge_csv()
     {
@@ -821,6 +834,10 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_OBJECT_PAGE_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
+        elseif($param['task'] == 'generate_DETERMINED_BY_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+
         elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
@@ -970,6 +987,15 @@ class GenerateCSV_4EOLNeo4j
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'object_page_id');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'OBJECT_PAGE'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_DETERMINED_BY_Edge_csv') {
+                    if(!$rec['determined_by_uri']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['determined_by_uri'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['determined_by_uri'])) continue; //not found in EOL Terms file
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'determined_by_uri');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'DETERMINED_BY'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
 

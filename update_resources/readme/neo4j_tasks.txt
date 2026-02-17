@@ -1007,8 +1007,10 @@ neo4j-admin database import full testdb --overwrite-destination \
 --relationships=import/dataset_test/edges/Units_Term.csv \
 --relationships=import/dataset_test/edges/Object_Page.csv \
 --relationships=import/dataset_test/edges/Determined_By.csv \
+--relationships=import/dataset_test/edges/Contributor.csv \
 --relationships=import/dataset_test/edges/Supplier.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
+
 
 MATCH (t:Trait)<-[:TRAIT]-(p:Page),
 (t)-[:SUPPLIER]->(r:Resource),

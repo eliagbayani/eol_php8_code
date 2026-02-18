@@ -40,7 +40,7 @@ class GenerateCSV_4EOLNeo4j
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
         // /* 
-        self::prepareTermNode_csv();
+        self::prepareTermNode_csv(); //using EOL Terms file
         // */
 
         // Step 1: generate Page node; PARENT edge
@@ -69,10 +69,11 @@ class GenerateCSV_4EOLNeo4j
         // */
 
         // Step 4: generate Trait node
-        $occurrence_meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
-        self::process_table($occurrence_meta, 'generate_occur_info'); unset($occurrence_meta);
-        if($mof_meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($mof_meta);
-        if($assoc_meta = @$tables['http://eol.org/schema/association'][0])            self::prepare_TraitNode_csv($assoc_meta);
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
+        self::process_table($meta, 'generate_occur_info');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta);
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta);
+        unset($meta);
 
         // Step 5: generate Page TRAIT Relationship
         self::prepare_TRAIT_Edge_csv();

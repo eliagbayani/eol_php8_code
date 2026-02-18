@@ -86,8 +86,6 @@ class GenerateCSV_4EOLNeo4j
         unset($meta);
         unset($this->occur_info);
 
-
-
         // Step 5: generate Page TRAIT Relationship
         self::prepare_TRAIT_Edge_csv();
         self::prepare_INFERRED_TRAIT_Edge_csv();
@@ -281,6 +279,10 @@ class GenerateCSV_4EOLNeo4j
                 // if($i >= 500) break; //debug only
                 //end if($what == 'generate-TraitNode-csv')
             }
+
+            if($what == 'generate-MetadataNode-csv') { //this is MoF or Association
+                self::generate_MetadataNode_row($rec);
+            }
             
             if($what == 'get_reference_ids') {
                 if($val = $rec['referenceID']) $this->reference_ids[$val] = '';
@@ -426,6 +428,22 @@ class GenerateCSV_4EOLNeo4j
             else $this->debug['duplicate vernaculars'][$unique_id] = '';
         }
     }
+    private function generate_MetadataNode_row($rec)
+    {   //eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external
+
+        // referenceID
+        if($referenceID = $rec['referenceID']) {
+            if($r = @$this->reference_ids[$referenceID]) {
+                print_r($rec); print_r($r); exit("\nelix\n");
+            }
+        }
+        // $arr = array($taxonID_1, $rec['measurementType'], $rec['measurementID'] ,$predicate);
+        // $csv = self::format_csv_entry_array($arr);
+        // fwrite($this->WRITE, $csv."\n");
+
+    
+    }
+
     private function generate_TraitNode_row($rec)
     {   /* WoRMS
         nodes/Trait.csv
@@ -1143,7 +1161,16 @@ class GenerateCSV_4EOLNeo4j
         self::process_table($meta, 'generate-TraitNode-csv');
         fclose($this->WRITE);
     }
-
+    private function prepare_MetadataNode_csv($meta)
+    {   /*  nodes/Metadata.csv
+            eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL
+            eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external            
+        */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Metadata.csv', 'w');
+        fwrite($this->WRITE, "eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL"."\n");
+        self::process_table($meta, 'generate-MetadataNode-csv');
+        fclose($this->WRITE);
+    }
     private function prepare_ResourceNode_csv()
     {   /*  nodes/Resource.csv
             resource_id:ID(Resource-ID),name,:LABEL   */

@@ -38,6 +38,16 @@ class GenerateCSV_4EOLNeo4j
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ========== start Jan 27, 2026 ==========
+
+        // Step 8: generate Metadata node
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'get_reference_ids');
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::process_table($meta, 'get_reference_ids');
+        if($meta = @$tables['http://eol.org/schema/reference/reference'][0])      self::process_table($meta, 'build_reference_info');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_MetadataNode_csv($meta);
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_MetadataNode_csv($meta);
+        unset($meta);
+
+
         // Step 0: generate a Term node
         // /* 
         self::prepareTermNode_csv(); //using EOL Terms file
@@ -74,6 +84,9 @@ class GenerateCSV_4EOLNeo4j
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta);
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta);
         unset($meta);
+        unset($this->occur_info);
+
+
 
         // Step 5: generate Page TRAIT Relationship
         self::prepare_TRAIT_Edge_csv();
@@ -269,6 +282,39 @@ class GenerateCSV_4EOLNeo4j
                 //end if($what == 'generate-TraitNode-csv')
             }
             
+            if($what == 'get_reference_ids') {
+                if($val = $rec['referenceID']) $this->reference_ids[$val] = '';
+            }
+            if($what == 'build_reference_info') { //this is reference.tab
+                /*Array(
+                    [identifier] => c_4f32591232b4ade18be079dba527d520
+                    [publicationType] => 
+                    [full_reference] => Observation photo published by db_admin
+                    [primaryTitle] => 
+                    [title] => 
+                    [pages] => 
+                    [pageStart] => 
+                    [pageEnd] => 
+                    [volume] => 
+                    [edition] => 
+                    [publisher] => 
+                    [authorList] => 
+                    [editorList] => 
+                    [created] => 
+                    [language] => 
+                    [uri] => 
+                    [doi] => 
+                    [schema#localityName] => 
+                )*/
+                $ref_id = $rec['identifier'];
+                if(isset($this->reference_ids[$ref_id])) {
+                    $this->reference_ids[$ref_id] = array('literal' => self::format_literal($rec));
+                }
+
+            }
+
+
+            
             /* copied template
             elseif($what == 'generate-measurements-csv') {
                 if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
@@ -280,6 +326,23 @@ class GenerateCSV_4EOLNeo4j
             elseif($what == 'build_association_info') self::build_association_info($rec);
             */
         }
+    }
+    private function format_literal($rec)
+    {
+        $uri_part = false;
+        if($uri = $rec['uri']) {
+            if(filter_var($uri, FILTER_VALIDATE_URL)) $uri_part = "<a href='$uri'>link</a>";
+        }
+        $literal = false;
+        if($val = $rec['full_reference']) $literal = $val;
+        elseif($val = $rec['primaryTitle']) $literal = $val;
+        elseif($val = $rec['title']) $literal = $val;
+        elseif($val = $rec['identifier']) $literal = $val;        
+        if($literal) {
+            if($uri_part) $literal .= " $uri_part";
+            return $literal;
+        }
+        else return false;
     }
     private function prepareTermNode_csv()
     {

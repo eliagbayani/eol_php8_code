@@ -428,7 +428,10 @@ class GenerateCSV_4EOLNeo4j
             else $this->debug['duplicate vernaculars'][$unique_id] = '';
         }
     }
-    private function generate_MetadataNode_row($rec)
+    private function generate_MetadataNode_row($rec) 
+    this should loop Trait.csv not MoF.tab
+    in Trait.csv add another column: metadata which has a json value: referenceID: xxx, locality: xxxx, measurementDeterminedDate: xxxx
+
     {   //eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external
 
         // referenceID

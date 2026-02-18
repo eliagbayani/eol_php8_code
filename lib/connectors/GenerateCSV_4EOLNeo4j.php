@@ -285,6 +285,25 @@ class GenerateCSV_4EOLNeo4j
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
         $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
+        /*[1413] => Array(
+            [uri] => http://eol.org/schema/terms/determinateGrowth
+            [name] => determinate growth
+            [type] => value
+            [definition] => determinate growth stops once a genetically pre-determined structure has completely formed
+            [comment] => 
+            [attribution] => https://en.wikipedia.org/wiki/Indeterminate_growth
+            [section_ids] => 
+            [is_hidden_from_overview] => false
+            [is_hidden_from_glossary] => false
+            [position] => 
+            [trait_row_count] => 
+            [distinct_page_count] => 
+            [exclusive_to_clade] => 
+            [incompatible_with_clade] => 
+            [parent_term] => 
+            [synonym_of] => 
+            [object_for_predicate] => 
+        )*/
         unset($func);
 
         // ===== start to create the csv
@@ -849,7 +868,6 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_CONTRIBUTOR_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
-
         elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
@@ -966,6 +984,7 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_OBJECT_TERM_Edge_csv') {
+                    // if($rec['value_uri'] == "null") continue; //cannot be blank //didn't work
                     if(!$rec['value_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['value_uri'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['value_uri'])) continue; //not found in EOL Terms file
@@ -995,6 +1014,7 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_OBJECT_PAGE_Edge_csv') {
+                    // if($rec['object_page_id'] == "null") continue; //cannot be blank //didn't work
                     if(!$rec['object_page_id']) continue; //cannot be blank                                        
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'object_page_id');
                     $csv = self::format_csv_entry($rec, $fieldz);
@@ -1166,14 +1186,20 @@ class GenerateCSV_4EOLNeo4j
                 }
                 else $val = @$rec[$field];
             }
-            $csv .= '"' . self::clean_csv_item($val) . '",'; 
+            $tmp = '"' . self::clean_csv_item($val) . '",';
+            // if($tmp == '"",') $tmp = "null,"; //didn't work
+            $csv .= $tmp;
         }
         return $csv;
     }
     private function format_csv_entry_array($arr)
     {
         $csv = "";
-        foreach($arr as $val) $csv .= '"' . self::clean_csv_item($val) . '",';
+        foreach($arr as $val) {
+            $tmp = '"' . self::clean_csv_item($val) . '",';
+            // if($tmp == '"",') $tmp = "null,"; //didn't work
+            $csv .= $tmp;
+        }
         $csv = substr($csv, 0, -1); //exit("\n[$csv]\nstop 1\n");
         return $csv;
     }

@@ -39,6 +39,7 @@ class GenerateCSV_4EOLNeo4j
 
         // /* ========== start Jan 27, 2026 ==========
 
+        /*
         // Step 8: generate Metadata node
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'get_reference_ids');
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::process_table($meta, 'get_reference_ids');
@@ -46,7 +47,7 @@ class GenerateCSV_4EOLNeo4j
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_MetadataNode_csv($meta);
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_MetadataNode_csv($meta);
         unset($meta);
-
+        */
 
         // Step 0: generate a Term node
         // /* 
@@ -54,20 +55,20 @@ class GenerateCSV_4EOLNeo4j
         // */
 
         // Step 1: generate Page node; PARENT edge
-        $taxon_meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        self::process_table($taxon_meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
 
         /* is now replaced by: prepare_PageNode_csv_from_DH()
-        self::prepare_PageNode_csv_from_resource($taxon_meta); //OBSOLETE      // step 1b: 
-        self::prepare_ParentEdge_csv($taxon_meta);             //OBSOLETE
+        self::prepare_PageNode_csv_from_resource($meta); //OBSOLETE      // step 1b: 
+        self::prepare_ParentEdge_csv($meta);             //OBSOLETE
         */
-        unset($taxon_meta);
+        unset($meta);
 
         // /* part of main operation
         self::prepare_PageNode_csv_from_DH();
         // */
 
-        // /*        
+        // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
         $vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
         self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
@@ -428,10 +429,10 @@ class GenerateCSV_4EOLNeo4j
             else $this->debug['duplicate vernaculars'][$unique_id] = '';
         }
     }
+    /*
     private function generate_MetadataNode_row($rec) 
     this should loop Trait.csv not MoF.tab
     in Trait.csv add another column: metadata which has a json value: referenceID: xxx, locality: xxxx, measurementDeterminedDate: xxxx
-
     {   //eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external
 
         // referenceID
@@ -439,13 +440,9 @@ class GenerateCSV_4EOLNeo4j
             if($r = @$this->reference_ids[$referenceID]) {
                 print_r($rec); print_r($r); exit("\nelix\n");
             }
-        }
-        // $arr = array($taxonID_1, $rec['measurementType'], $rec['measurementID'] ,$predicate);
-        // $csv = self::format_csv_entry_array($arr);
-        // fwrite($this->WRITE, $csv."\n");
-
-    
+        }    
     }
+    */
 
     private function generate_TraitNode_row($rec)
     {   /* WoRMS
@@ -531,6 +528,10 @@ class GenerateCSV_4EOLNeo4j
         $fields = array_keys($s);
         array_unshift($fields, "eol_pk"); //put 'eol_pk' to beginning of an array
         $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s));
+
+        // /* for Metadata
+        $s['metadata'] = self::build_metadata_json($rec);
+        // */
 
         $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
@@ -1251,11 +1252,6 @@ class GenerateCSV_4EOLNeo4j
         self::process_table($meta, 'generate-predicates-measurements-csv');
         fclose($this->WRITE);
     }
-    private function clean_csv_item($str)
-    {
-        if($str) return str_replace('"', '""', $str);
-        else return $str;
-    }
     private function initialize_folders($resource_id)
     {
         $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
@@ -1267,34 +1263,40 @@ class GenerateCSV_4EOLNeo4j
         $temp_dir = $path.'/nodes'; mkdir($temp_dir);
         $temp_dir = $path.'/edges'; mkdir($temp_dir);
     }
+    // private function clean_csv_item($str)
+    // {
+    //     if($str) return str_replace('"', '""', $str);
+    //     else return $str;
+    // }
     function format_csv_entry($rec, $fields)
     {
-        $csv = "";
-        foreach($fields as $field) {
+        $csv = ""; $i = -1;
+        foreach($fields as $field) { $i++;
             if(substr($field,0,4) == 'md5_') { //e.g. md5_vernacularName_taxonID
                 $val = self::process_md5_fields($field, $rec);
             }
-            else {
-                if($field == 'vernacularName') {
-                    $val = $rec['vernacularName'] ? $rec['vernacularName'] : ""; //$rec['scientificName'];
-                }
-                else $val = @$rec[$field];
-            }
+            else $val = @$rec[$field];
+            /* working OK
             $tmp = '"' . self::clean_csv_item($val) . '",';
-            // if($tmp == '"",') $tmp = "null,"; //didn't work
             $csv .= $tmp;
+            */
+            if($i > 0) $csv .= ','; // Add delimiter for all but the first field
+            $csv .= Functions::manuallyEscapeForCSV($val);
         }
+        $csv .= ','; //add comma as last char
         return $csv;
     }
     private function format_csv_entry_array($arr)
     {
-        $csv = "";
-        foreach($arr as $val) {
+        $csv = ""; $i = -1;
+        foreach($arr as $val) { $i++;
+            /* working OK
             $tmp = '"' . self::clean_csv_item($val) . '",';
-            // if($tmp == '"",') $tmp = "null,"; //didn't work
             $csv .= $tmp;
+            */
+            if($i > 0) $csv .= ','; // Add delimiter for all but the first field
+            $csv .= Functions::manuallyEscapeForCSV($val);
         }
-        $csv = substr($csv, 0, -1); //exit("\n[$csv]\nstop 1\n");
         return $csv;
     }
     private function small_field($uri)
@@ -1309,7 +1311,8 @@ class GenerateCSV_4EOLNeo4j
         $combined = "";
         foreach($fields as $field) {
             $val = @$rec[$field];
-            $combined .= self::clean_csv_item($val) . '_'; 
+            // $combined .= self::clean_csv_item($val) . '_'; //replaced by one below
+            $combined .= Functions::manuallyEscapeForCSV($val) . '_'; 
         }
         $combined = substr($combined, 0, -1); //remove last char: "plants_42430800_" becomes "plants_42430800"
         $combined = str_replace(" ", "_", $combined);
@@ -1348,6 +1351,24 @@ class GenerateCSV_4EOLNeo4j
         if(substr($value, 0, 5) == 'http:') return true;
         if(substr($value, 0, 6) == 'https:') return true;
         return false;
+    }
+    private function build_metadata_json($rec) //this is MoF or Association
+    {
+        // http://rs.tdwg.org/dwc/terms/locality                        ==>> locality comes from a child MoF record
+        // http://eol.org/schema/reference/referenceID                  ==>> from MoF
+        // http://rs.tdwg.org/dwc/terms/measurementDeterminedDate       ==>> from MoF
+        
+        if(@$rec['measurementDeterminedDate'] || @$rec['referenceID']) {
+            $arr = array('mDD' => @$rec['measurementDeterminedDate'], 'rI' => @$rec['referenceID']);
+            return json_encode($arr);
+        }
+        else return false;
+
+        /* locality comes from a child MoF record
+        measurementID	occurrenceID	measurementOfTaxon	parentMeasurementID	measurementType	measurementValue	measurementUnit	statisticalMethod	measurementDeterminedDate	measurementDeterminedBy	measurementMethod	measurementRemarks	source	referenceID	contributor        
+        015afbb5e4398e462b257aa2b50cd48e	b57cedf8a4df37545cd3fcb528a47eb2	true		http://purl.obolibrary.org/obo/CMO_0000013	1	http://purl.obolibrary.org/obo/UO_0000015	http://semanticscience.org/resource/SIO_001114					http://www.marinespecies.org/aphia.php?p=taxdetails&id=103235		
+        25ef920b4f642c4accad4cae3f08ea7e			015afbb5e4398e462b257aa2b50cd48e	http://rs.tdwg.org/dwc/terms/locality	http://www.geonames.org/6255148									
+        */
     }
     /*
     =========================================================================== Globi

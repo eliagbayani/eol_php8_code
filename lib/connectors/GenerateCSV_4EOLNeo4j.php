@@ -38,12 +38,8 @@ class GenerateCSV_4EOLNeo4j
         $extensions = array_keys($tables); print_r($extensions);
 
         // /* ========== start Jan 27, 2026 ==========
-
-
         // Step 0: generate a Term node
-        // /* 
         self::prepareTermNode_csv(); //using EOL Terms file
-        // */
 
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
@@ -55,9 +51,7 @@ class GenerateCSV_4EOLNeo4j
         */
         unset($meta);
 
-        // /* part of main operation
-        self::prepare_PageNode_csv_from_DH();
-        // */
+        self::prepare_PageNode_csv_from_DH(); //part of main operation
 
         // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -279,10 +273,8 @@ class GenerateCSV_4EOLNeo4j
                     }
                 }
                 // if($i >= 500) break; //debug only
-                //end if($what == 'generate-TraitNode-csv')
-            }
+            } //end of -> if($what == 'generate-TraitNode-csv')
 
-            
             if($what == 'get_reference_ids') {
                 if($val = $rec['referenceID']) { //e.g. "WoRMS:sourceid:389854|c_4f32591232b4ade18be079dba527d520" or "WoRMS:sourceid:389854"
                     $arr = explode("|", $val);
@@ -315,9 +307,7 @@ class GenerateCSV_4EOLNeo4j
                 if(isset($this->reference_ids[$ref_id])) {
                     $this->reference_ids[$ref_id] = array('literal' => self::format_literal($rec));
                 }
-
             }
-
             /* copied template
             elseif($what == 'generate-measurements-csv') {
                 if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
@@ -429,7 +419,6 @@ class GenerateCSV_4EOLNeo4j
             else $this->debug['duplicate vernaculars'][$unique_id] = '';
         }
     }
-
     private function generate_TraitNode_row($rec)
     {   /* WoRMS
         nodes/Trait.csv
@@ -471,8 +460,6 @@ class GenerateCSV_4EOLNeo4j
             [sex] => 
             [lifestage] => 
         )*/
-
-        // print_r($rec); exit("\nelix 2\n");
         // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	
         // measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	contributor_uri	compiler_uri	determined_by_uri
         $s = array();
@@ -518,8 +505,6 @@ class GenerateCSV_4EOLNeo4j
         array_unshift($fields, "eol_pk"); //put 'eol_pk' to beginning of an array
         $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s));
 
-        // print_r($s); print_r($fields); exit("\n100\n");
-
         $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
@@ -564,10 +549,8 @@ class GenerateCSV_4EOLNeo4j
         $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
     }
-
     private function generate_measurements_csv($rec)
-    {
-        /*Array(
+    {   /*Array(
             [measurementID] => 118e29317da0c8eae6c6e44e84959862
             [occurrenceID] => e36713aea279079ed39099826601f8f6
             [measurementOfTaxon] => true
@@ -585,15 +568,12 @@ class GenerateCSV_4EOLNeo4j
             [referenceID] => 
         )*/
         $fields = array('measurementID', 'measurementValue', 'measurementUnit', 'statisticalMethod', 'source', 'referenceID');
-
-        // print_r($rec); print_r($fields); exit;
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Measurement';
         fwrite($this->WRITE, $csv."\n");
     }
     private function generate_predicates_csv($rec)
-    {
-        // print_r($rec); exit("\ngoes here...\n");
+    {   // print_r($rec); exit("\ngoes here...\n");
         /*Array(
             [associationID] => 4cb8806ffd419983bc7080a1a50b02b4
             [occurrenceID] => 9a9e31fb999985e6631623c65385b984
@@ -613,7 +593,6 @@ class GenerateCSV_4EOLNeo4j
             $predicate = str_replace(" ", "_", $predicate);
         }
         else return; //exit("\nPredicate not found. [".$rec['associationType']."]\n");
-        // print_r($rec); //exit("\nstop 3\n");
 
         $taxonID_1 = ''; $taxonID_2 = '';
         
@@ -637,9 +616,7 @@ class GenerateCSV_4EOLNeo4j
         }
     }
     private function generate_predicates_measurements_csv($rec)
-    {
-        // print_r($rec); exit("\ngoes here...\n");
-        /*Array(
+    {   /*Array(
             [measurementID] => 118e29317da0c8eae6c6e44e84959862
             [occurrenceID] => e36713aea279079ed39099826601f8f6
             [measurementOfTaxon] => true
@@ -661,7 +638,6 @@ class GenerateCSV_4EOLNeo4j
             $predicate = str_replace(" ", "_", $predicate);
         }
         else return; //exit("\nPredicate not found. [".$rec['measurementType']."]\n");
-        // print_r($rec); //exit("\nstop 3\n");
 
         $taxonID_1 = '';
         if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
@@ -695,8 +671,6 @@ class GenerateCSV_4EOLNeo4j
         $associationType = $rec['http://eol.org/schema/associationType'];
         // if(isset($this->allowed_uri_predicates[$associationType])) {}
     }
-
-
     /* obsolete
     function buildup_predicates()
     {
@@ -708,7 +682,7 @@ class GenerateCSV_4EOLNeo4j
         self::process_tsv($local_tsv, 'buildup_predicates');
         unlink($local_tsv);
         unset($this->uris);
-    } */
+    }
     function buildup_predicates_all()
     {
         require_library('connectors/EOLterms_ymlAPI');
@@ -718,11 +692,10 @@ class GenerateCSV_4EOLNeo4j
         $WRITE = Functions::file_open($this->files['predicates'], 'w');
         fwrite($WRITE, implode("\t", array('Label', 'URI', 'type'))."\n");
         foreach($terms as $uri => $rek) {
-            // echo "\n[$uri]\n"; print_r($rek); exit;
-            /*Array(
-                [name] => abundance
-                [type] => measurement
-            )*/
+            // Array(
+            //     [name] => abundance
+            //     [type] => measurement
+            // )
             $rec = array();
             $rec[] = $rek['name'];
             $rec[] = $uri;
@@ -751,8 +724,8 @@ class GenerateCSV_4EOLNeo4j
                 $rec = array_map('trim', $rec); // print_r($rec); exit;
                 // ==================================================================================================
                 if($task == 'buildup_predicates') {
-                    /*Array( [EOL_predicate_id] => 12748
-                            [Label] => Body symmetry )*/
+                    // Array( [EOL_predicate_id] => 12748
+                    //         [Label] => Body symmetry )
                     $label = $rec['Label'];
                     $rec['URI'] = $this->uris[$label]['uri'];
                     $rec['type'] = $this->uris[$label]['type'];
@@ -764,11 +737,11 @@ class GenerateCSV_4EOLNeo4j
                 }
                 // ==================================================================================================
                 if($task == 'gen_allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
-                    /*Array(
-                        [EOL_predicate_id] => 12748
-                        [Label] => Body symmetry
-                        [URI] => http://eol.org/schema/terms/body_symmetry
-                    )*/
+                    // Array(
+                    //     [EOL_predicate_id] => 12748
+                    //     [Label] => Body symmetry
+                    //     [URI] => http://eol.org/schema/terms/body_symmetry
+                    // )
                     // if($rec['Label'] != 'eat') continue; //dev only
                     $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => @$rec['EOL_predicate_id'], 'Label' => $rec['Label']);
                 }
@@ -779,6 +752,7 @@ class GenerateCSV_4EOLNeo4j
             fclose($this->WRITE);
         }
     }
+    */
     private function prepare_PageNode_csv_from_resource($meta)
     {   /*  Array(
                 [taxonID] => 44475
@@ -908,8 +882,6 @@ class GenerateCSV_4EOLNeo4j
         $param = array('task' => 'generate_Metadata_Node_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
-
-
     }
     
     private function prepare_SUPPLIER_Edge_csv()
@@ -1171,7 +1143,7 @@ class GenerateCSV_4EOLNeo4j
                         
                         if($measurementDeterminedDate = @$metadata['mDD']) {
                             $p = array();
-                            $p['eol_pk'] = 'MetaTrait-' . md5($rec_json.'metadata'.'mDD'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                            $p['eol_pk'] = 'MetaTrait-' . md5($rec_json.'meta-mDD'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
                             $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
                             $p['predicate'] = 'http://rs.tdwg.org/dwc/terms/measurementDeterminedDate';
                             $p['literal'] = $measurementDeterminedDate;
@@ -1195,7 +1167,7 @@ class GenerateCSV_4EOLNeo4j
                                 // echo "\nreferenceID: [$referenceID]\n"; print_r(@$this->reference_ids[$referenceID]);
                                 if($literal = @$this->reference_ids[$referenceID]['literal']) {
                                     $p = array();
-                                    $p['eol_pk'] = 'Reference-' . md5($rec_json.'metadata'.'rI'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                                    $p['eol_pk'] = 'Reference-' . md5($rec_json.'meta-rI'.$referenceID); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
                                     $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
                                     $p['predicate'] = 'http://eol.org/schema/reference/referenceID';
                                     $p['literal'] = $literal;

@@ -997,6 +997,7 @@ neo4j-admin database import full testdb --overwrite-destination \
 --nodes=import/dataset_test/nodes/Vernacular.csv \
 --nodes=import/dataset_test/nodes/Term.csv \
 --nodes=import/dataset_test/nodes/Trait.csv \
+--nodes=import/dataset_test/nodes/Metadata.csv \
 --relationships=import/dataset_test/edges/Parent.csv \
 --relationships=import/dataset_test/edges/Vernacular.csv \
 --relationships=import/dataset_test/edges/Trait.csv \

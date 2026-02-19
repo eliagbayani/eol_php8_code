@@ -39,15 +39,6 @@ class GenerateCSV_4EOLNeo4j
 
         // /* ========== start Jan 27, 2026 ==========
 
-        /*
-        // Step 8: generate Metadata node
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'get_reference_ids');
-        if($meta = @$tables['http://eol.org/schema/association'][0])              self::process_table($meta, 'get_reference_ids');
-        if($meta = @$tables['http://eol.org/schema/reference/reference'][0])      self::process_table($meta, 'build_reference_info');
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_MetadataNode_csv($meta);
-        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_MetadataNode_csv($meta);
-        unset($meta);
-        */
 
         // Step 0: generate a Term node
         // /* 
@@ -86,6 +77,16 @@ class GenerateCSV_4EOLNeo4j
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta);
         unset($meta);
         unset($this->occur_info);
+
+        // /*
+        // Step 8: generate Metadata node
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'get_reference_ids');
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::process_table($meta, 'get_reference_ids');
+        if($meta = @$tables['http://eol.org/schema/reference/reference'][0])      self::process_table($meta, 'build_reference_info');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_MetadataNode_csv($meta);
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_MetadataNode_csv($meta);
+        unset($meta);
+        // */
 
         // Step 5: generate Page TRAIT Relationship
         self::prepare_TRAIT_Edge_csv();
@@ -281,12 +282,13 @@ class GenerateCSV_4EOLNeo4j
                 //end if($what == 'generate-TraitNode-csv')
             }
 
-            if($what == 'generate-MetadataNode-csv') { //this is MoF or Association
-                self::generate_MetadataNode_row($rec);
-            }
             
             if($what == 'get_reference_ids') {
-                if($val = $rec['referenceID']) $this->reference_ids[$val] = '';
+                if($val = $rec['referenceID']) { //e.g. "WoRMS:sourceid:389854|c_4f32591232b4ade18be079dba527d520" or "WoRMS:sourceid:389854"
+                    $arr = explode("|", $val);
+                    $arr = array_map('trim', $arr);
+                    foreach($arr as $refID) $this->reference_ids[$refID] = '';
+                }
             }
             if($what == 'build_reference_info') { //this is reference.tab
                 /*Array(
@@ -316,8 +318,6 @@ class GenerateCSV_4EOLNeo4j
 
             }
 
-
-            
             /* copied template
             elseif($what == 'generate-measurements-csv') {
                 if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
@@ -429,20 +429,6 @@ class GenerateCSV_4EOLNeo4j
             else $this->debug['duplicate vernaculars'][$unique_id] = '';
         }
     }
-    /*
-    private function generate_MetadataNode_row($rec) 
-    this should loop Trait.csv not MoF.tab
-    in Trait.csv add another column: metadata which has a json value: referenceID: xxx, locality: xxxx, measurementDeterminedDate: xxxx
-    {   //eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external
-
-        // referenceID
-        if($referenceID = $rec['referenceID']) {
-            if($r = @$this->reference_ids[$referenceID]) {
-                print_r($rec); print_r($r); exit("\nelix\n");
-            }
-        }    
-    }
-    */
 
     private function generate_TraitNode_row($rec)
     {   /* WoRMS
@@ -524,14 +510,15 @@ class GenerateCSV_4EOLNeo4j
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
         $s['compiler_uri'] = '';
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
+        // /* for Metadata
+        $s['metadata'] = self::build_metadata_json($rec);
+        // */
         
         $fields = array_keys($s);
         array_unshift($fields, "eol_pk"); //put 'eol_pk' to beginning of an array
         $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s));
 
-        // /* for Metadata
-        $s['metadata'] = self::build_metadata_json($rec);
-        // */
+        // print_r($s); print_r($fields); exit("\n100\n");
 
         $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
@@ -911,8 +898,20 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_MetadataNode_csv()
+    {   /*  nodes/Metadata.csv
+            eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL
+            eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external            
+        */
+        $WRITE = Functions::file_open($this->path.'/nodes/Metadata.csv', 'w');        
+        fwrite($WRITE, "eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL"."\n");
+        $param = array('task' => 'generate_Metadata_Node_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
 
 
+    }
+    
     private function prepare_SUPPLIER_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/Supplier.csv', 'w');
@@ -954,6 +953,10 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_CONTRIBUTOR_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
+        elseif($param['task'] == 'generate_Metadata_Node_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+
         elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
@@ -1125,6 +1128,96 @@ class GenerateCSV_4EOLNeo4j
                     $csv .= 'CONTRIBUTOR'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
+                if($task == 'generate_Metadata_Node_csv') { //this is Trait node
+                    /*Array(
+                        [eol_pk:ID(Trait-ID)] => worms_617c0a0c561f1fee553d61817a49b7e6
+                        [page_id] => 10209872
+                        [scientific_name] => Canthariella pyramidata (Jörgensen, 1924) Kofoid & Campbell, 1929
+                        [resource_pk] => 2b02d89bbb529df02e3af094b82fd531
+                        [predicate] => http://eol.org/schema/terms/NativeRange
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [object_page_id] => 
+                        [target_scientific_name] => 
+                        [value_uri] => http://www.marineregions.org/mrgid/1905
+                        [literal] => http://www.marineregions.org/mrgid/1905
+                        [measurement] => 
+                        [units] => 
+                        [normal_measurement] => 
+                        [normal_units_uri] => 
+                        [sample_size] => 
+                        [citation] => 
+                        [source] => https://www.marinespecies.org/aphia.php?p=distribution&id=1000124
+                        [remarks] => 
+                        [method] => 
+                        [contributor_uri] => 
+                        [compiler_uri] => 
+                        [determined_by_uri] => https://www.marinespecies.org/imis.php?module=person&persid=6554
+                        [metadata] => {"mDD":"2017-10-08T13:23:31+01:00","rI":"WoRMS:sourceid:150276"}
+                        [:LABEL] => Trait
+                    )*/
+                    $rec_json = json_encode($rec);
+                    if($json = $rec['metadata']) { //print_r($rec); exit("\nthis is a Trait node\n");
+                        // Metadata node fields
+                        // eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external
+                        // 				
+
+                        $metadata = json_decode($json, true); //print_r($metadata); exit("\n101\n");
+                        /*Array(
+                            [mDD] => 2017-10-08T13:23:31+01:00          => measurementDeterminedDate
+                            [rI] => WoRMS:sourceid:150276               => referenceID
+                        )*/
+                        
+                        if($measurementDeterminedDate = @$metadata['mDD']) {
+                            $p = array();
+                            $p['eol_pk'] = 'MetaTrait-' . md5($rec_json.'metadata'.'mDD'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                            $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                            $p['predicate'] = 'http://rs.tdwg.org/dwc/terms/measurementDeterminedDate';
+                            $p['literal'] = $measurementDeterminedDate;
+                            $p['measurement'] = '';
+                            $p['value_uri'] = '';
+                            $p['units'] = '';
+                            $p['sex'] = '';
+                            $p['lifestage'] = '';
+                            $p['statistical_method'] = '';
+                            $p['source'] = '';
+                            $p['is_external'] = false;
+                            $fieldz = array_keys($p);
+                            $csv = self::format_csv_entry($p, $fieldz);
+                            $csv .= 'Metadata'; //this is a Node
+                            fwrite($fhandle, $csv."\n");
+                        }
+                        if($referenceIDs = @$metadata['rI']) {
+                            $referenceIDs = explode("|", $referenceIDs);
+                            $referenceIDs = array_map('trim', $referenceIDs);
+                            foreach($referenceIDs as $referenceID) {
+                                // echo "\nreferenceID: [$referenceID]\n"; print_r(@$this->reference_ids[$referenceID]);
+                                if($literal = @$this->reference_ids[$referenceID]['literal']) {
+                                    $p = array();
+                                    $p['eol_pk'] = 'Reference-' . md5($rec_json.'metadata'.'rI'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                                    $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                                    $p['predicate'] = 'http://eol.org/schema/reference/referenceID';
+                                    $p['literal'] = $literal;
+                                    $p['measurement'] = '';
+                                    $p['value_uri'] = '';
+                                    $p['units'] = '';
+                                    $p['sex'] = '';
+                                    $p['lifestage'] = '';
+                                    $p['statistical_method'] = '';
+                                    $p['source'] = '';
+                                    $p['is_external'] = false;
+                                    $fieldz = array_keys($p);
+                                    $csv = self::format_csv_entry($p, $fieldz);
+                                    $csv .= 'Metadata'; //this is a Node
+                                    fwrite($fhandle, $csv."\n");
+                                }
+                                else exit("\nERROR: No literal for this referenceID ($referenceID)\n");
+                            } //end foreach()
+                        }
+                    }
+                    else continue;
+                }
 
                 if($task == 'generate_SUPPLIER_Edge_csv') { //eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE
                     $fieldz = array('eol_pk', 'supplier');
@@ -1161,18 +1254,8 @@ class GenerateCSV_4EOLNeo4j
             eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
         */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
-        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL"."\n");
+        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
         self::process_table($meta, 'generate-TraitNode-csv');
-        fclose($this->WRITE);
-    }
-    private function prepare_MetadataNode_csv($meta)
-    {   /*  nodes/Metadata.csv
-            eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL
-            eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external            
-        */
-        $this->WRITE = Functions::file_open($this->path.'/nodes/Metadata.csv', 'w');
-        fwrite($this->WRITE, "eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL"."\n");
-        self::process_table($meta, 'generate-MetadataNode-csv');
         fclose($this->WRITE);
     }
     private function prepare_ResourceNode_csv()

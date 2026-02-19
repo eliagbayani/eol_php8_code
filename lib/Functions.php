@@ -2838,5 +2838,17 @@ class Functions
         else             return WEB_ROOT . $path;
         // [http://host.docker.internal:81/eol_php8_code/applications/content_server/resources_x/]
     }
+    public static function manuallyEscapeForCSV($value) { //ideally use the built-in fputcsv()
+        if($value) {
+            // Check if the value contains a comma, a double quote, a newline, or a carriage return.
+            if(strpos($value, ',') !== false || strpos($value, '"') !== false || strpos($value, "\n") !== false || strpos($value, "\r") !== false) {
+                // Escape internal double quotes by doubling them (" becomes "")
+                $value = str_replace('"', '""', $value);
+                // Enclose the whole field in double quotes
+                $value = '"' . $value . '"';
+            }
+        }
+        return $value;
+    }    
 }
 ?>

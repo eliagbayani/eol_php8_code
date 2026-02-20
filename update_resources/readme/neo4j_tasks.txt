@@ -978,8 +978,8 @@ e.g. MATCH p = ()-[r:follows]->() RETURN p limit 25
 e.g. MATCH p = ()-[r:subscribes_to]->() RETURN p limit 25
 ------------------------------------------------------------------------------
 cypher-shell -u neo4j -p eli_neo4j -d system "DROP DATABASE elidb;"
-cypher-shell -u neo4j -p eli_neo4j -d system "CREATE DATABASE elidb;"
-cypher-shell -u neo4j -p eli_neo4j -d system "CREATE DATABASE testdb;"
+cypher-shell -u neo4j -p eli_neo4j -d system "CREATE DATABASE DB.WoRMS;"
+cypher-shell -u neo4j -p eli_neo4j -d system "CREATE DATABASE DB.GloBI;"
 cypher-shell -u neo4j -p eli_neo4j -d system "SHOW DATABASES;"
 =========================================================================== testing EOL trait schema
 cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE testdb;"
@@ -990,33 +990,57 @@ neo4j-admin database import full testdb --overwrite-destination \
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
 WoRMS main (no parentNameUsageID)
-cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE testdb;"
-neo4j-admin database import full testdb --overwrite-destination \
---nodes=import/dataset_test/nodes/Resource.csv \
---nodes=import/dataset_test/nodes/Page.csv \
---nodes=import/dataset_test/nodes/Vernacular.csv \
---nodes=import/dataset_test/nodes/Term.csv \
---nodes=import/dataset_test/nodes/Trait.csv \
---nodes=import/dataset_test/nodes/Metadata.csv \
---relationships=import/dataset_test/edges/Parent.csv \
---relationships=import/dataset_test/edges/Vernacular.csv \
---relationships=import/dataset_test/edges/Trait.csv \
---relationships=import/dataset_test/edges/Inferred_Trait.csv \
---relationships=import/dataset_test/edges/Predicate.csv \
---relationships=import/dataset_test/edges/Object_Term.csv \
---relationships=import/dataset_test/edges/Normal_Units_Term.csv \
---relationships=import/dataset_test/edges/Units_Term.csv \
---relationships=import/dataset_test/edges/Object_Page.csv \
---relationships=import/dataset_test/edges/Determined_By.csv \
---relationships=import/dataset_test/edges/Contributor.csv \
---relationships=import/dataset_test/edges/Supplier.csv 
-cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
+cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE DB.WoRMS;"
+neo4j-admin database import full DB.WoRMS --overwrite-destination \
+--nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Resource.csv \
+--nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Page.csv \
+--nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Vernacular.csv \
+--nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Term.csv \
+--nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Trait.csv \
+--nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Metadata.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Parent.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Vernacular.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Trait.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Inferred_Trait.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Predicate.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Object_Term.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Normal_Units_Term.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Units_Term.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Object_Page.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Determined_By.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Contributor.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Supplier.csv 
+cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.WoRMS;"
+--normalize-types=false
+
+GloBI main:
+cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE DB.GloBI;"
+neo4j-admin database import full DB.GloBI --overwrite-destination \
+--nodes=import2/GloBI_TraitBank_1_0_csv/nodes/Resource.csv \
+--nodes=import2/GloBI_TraitBank_1_0_csv/nodes/Page.csv \
+--nodes=import2/GloBI_TraitBank_1_0_csv/nodes/Vernacular.csv \
+--nodes=import2/GloBI_TraitBank_1_0_csv/nodes/Term.csv \
+--nodes=import2/GloBI_TraitBank_1_0_csv/nodes/Trait.csv \
+--nodes=import2/GloBI_TraitBank_1_0_csv/nodes/Metadata.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Parent.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Vernacular.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Trait.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Inferred_Trait.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Predicate.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Object_Term.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Normal_Units_Term.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Units_Term.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Object_Page.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Determined_By.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Contributor.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Supplier.csv 
+cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.GloBI;"
 --normalize-types=false
 
 MATCH (t:Trait)<-[:TRAIT]-(p:Page),
 (t)-[:SUPPLIER]->(r:Resource),
 (t)-[:PREDICATE]->(pred:Term)
-WHERE p.page_id =  "46501030" AND pred.uri = "http://purl.obolibrary.org/obo/CMO_0000013"
+WHERE p.page_id =  46501030 AND pred.uri = "http://purl.obolibrary.org/obo/CMO_0000013"
 OPTIONAL MATCH (t)-[:UNITS_TERM]->(units:Term)
 RETURN p.canonical, pred.name, pred.uri, t.measurement, units.name, r.resource_id, p.page_id, t.eol_pk, t.source
 LIMIT 100
@@ -1054,7 +1078,6 @@ MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->() RETURN e
 MATCH e = (p:Page {canonical: "Lagocephalus sceleratus"})-[r:TRAIT]->(t:Trait {literal: "http://marineregions.org/mrgid/4280"}) RETURN e
 MATCH e = (p:Page {canonical: "Aster"})-[r:TRAIT]->(t:Trait {predicate: "http://eol.org/schema/terms/NativeRange"}) RETURN e
 
-GloBI main
 
 MATCH (p:Page)-[:TRAIT|INFERRED_TRAIT]->(t:Trait),
 (t)-[:SUPPLIER]->(r:Resource),

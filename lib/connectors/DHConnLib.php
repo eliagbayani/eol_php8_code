@@ -801,20 +801,24 @@ class DHConnLib
                 */
                 if($rec['taxonomicStatus'] == 'accepted') {
                     if($eolID = $rec['eolID']) { //e.g. 2913056
-                        if(!isset($unique_ids[$eolID])) {
-                            $unique_ids[$eolID] = '';
-                            $fieldz = array('eolID', 'canonicalName', 'taxonRank');
-                            $csv = $func->format_csv_entry($rec, $fieldz);
-                            $csv .= 'Page'; //Labels are preferred to be singular nouns
-                            fwrite($fhandle, $csv."\n");                
+                        if(is_numeric($eolID)) {
+                            if(!isset($unique_ids[$eolID])) {
+                                $unique_ids[$eolID] = '';
+                                $fieldz = array('eolID', 'canonicalName', 'taxonRank');
+                                $csv = $func->format_csv_entry($rec, $fieldz);
+                                $csv .= 'Page'; //Labels are preferred to be singular nouns
+                                fwrite($fhandle, $csv."\n");                
+                            }
                         }
                     }
                 }
             }
             elseif($task == 'build_taxonID_EOLid_info') {
                 if($eolID = $rec['eolID']) {
-                    $taxonID = $rec['taxonID'];
-                    $this->taxonID_EOLid_info[$taxonID] = $eolID;
+                    if(is_numeric($eolID)) {
+                        $taxonID = $rec['taxonID'];
+                        $this->taxonID_EOLid_info[$taxonID] = $eolID;
+                    }
                 }
             }
             elseif($task == 'generate_ParentEdge_csv') {
@@ -822,18 +826,19 @@ class DHConnLib
                 $parentNameUsageID = $rec['parentNameUsageID'];
                 if($new_taxonID = @$this->taxonID_EOLid_info[$taxonID]) {
                     if($new_parentNameUsageID = @$this->taxonID_EOLid_info[$parentNameUsageID]) {
-                        $rek = array();
-                        $rek['taxonID'] = $new_taxonID;
-                        $rek['parentNameUsageID'] = $new_parentNameUsageID;
-                        
-                        /*  edges/parent.csv
-                            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
-                            gadus_m,gadus,parent
-                            chanos_c,chanos,parent */
-                        $fieldz = array('taxonID', 'parentNameUsageID');
-                        $csv = $func->format_csv_entry($rek, $fieldz);
-                        $csv .= 'PARENT'; //Type are preferred to be singular nouns
-                        fwrite($fhandle, $csv."\n");
+                        if(is_numeric($new_taxonID) && is_numeric($new_parentNameUsageID)) {
+                            $rek = array();
+                            $rek['taxonID'] = $new_taxonID;
+                            $rek['parentNameUsageID'] = $new_parentNameUsageID;
+                            /*  edges/parent.csv
+                                page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+                                gadus_m,gadus,parent
+                                chanos_c,chanos,parent */
+                            $fieldz = array('taxonID', 'parentNameUsageID');
+                            $csv = $func->format_csv_entry($rek, $fieldz);
+                            $csv .= 'PARENT'; //Type are preferred to be singular nouns
+                            fwrite($fhandle, $csv."\n");
+                        }
                     }
                 }
             }

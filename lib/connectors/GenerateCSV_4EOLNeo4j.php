@@ -189,7 +189,9 @@ class GenerateCSV_4EOLNeo4j
                     [EOLid] => 44475
                 )*/
                 if($rec['taxonID'] == $rec['EOLid']) {
-                    $this->taxon_info[$rec['taxonID']] = array('sN' => $rec['scientificName']);
+                    if(is_numeric($rec['taxonID'])) {
+                        $this->taxon_info[$rec['taxonID']] = array('sN' => $rec['scientificName']);
+                    }
                 }
             }
             if($what == 'generate-PageNode-csv') { //step 1b
@@ -753,32 +755,35 @@ class GenerateCSV_4EOLNeo4j
         }
     }
     */
+    /*
     private function prepare_PageNode_csv_from_resource($meta)
-    {   /*  Array(
-                [taxonID] => 44475
-                [source] => https://www.wikidata.org/wiki/Q25243
-                [parentNameUsageID] => Q4085525
-                [scientificName] => Betula
-                [higherClassification] => Biota|Eukaryota|Plantae|Viridiplantae|Streptophyta|Embryophytes|Tracheophytes|Spermatophytes|Magnoliophyta|Magnoliopsida|Hamamelididae|Juglandanae|Corylales|Betulaceae|Betuloideae|
-                [taxonRank] => genus
-                [scientificNameAuthorship] => Carl Linnaeus, 1753
-                [vernacularName] => birches
-                [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
-                [canonicalName] => Betula
-                [EOLid] => 44475
-            )
-            nodes/Page.csv
-            page_id:ID(Page-ID),canonical,rank,:LABEL
-            gadus_m,Gadus morhua,species,page
-            chanos_c,Chanos chanos,species,page
-            gadus,Gadus,genus,page
-            chanos,Chanos,genus,page
-        */
+    {   
+        // Array(
+        //     [taxonID] => 44475
+        //     [source] => https://www.wikidata.org/wiki/Q25243
+        //     [parentNameUsageID] => Q4085525
+        //     [scientificName] => Betula
+        //     [higherClassification] => Biota|Eukaryota|Plantae|Viridiplantae|Streptophyta|Embryophytes|Tracheophytes|Spermatophytes|Magnoliophyta|Magnoliopsida|Hamamelididae|Juglandanae|Corylales|Betulaceae|Betuloideae|
+        //     [taxonRank] => genus
+        //     [scientificNameAuthorship] => Carl Linnaeus, 1753
+        //     [vernacularName] => birches
+        //     [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
+        //     [canonicalName] => Betula
+        //     [EOLid] => 44475
+        // )
+        // nodes/Page.csv
+        // page_id:ID(Page-ID),canonical,rank,:LABEL
+        // gadus_m,Gadus morhua,species,page
+        // chanos_c,Chanos chanos,species,page
+        // gadus,Gadus,genus,page
+        // chanos,Chanos,genus,page
+        
         $this->WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
-        fwrite($this->WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n");
+        // fwrite($this->WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
+        fwrite($this->WRITE, "page_id:ID(Page-ID){id-type:int},canonical,rank,:LABEL"."\n");
         self::process_table($meta, 'generate-PageNode-csv');
         fclose($this->WRITE);
-    }
+    } */
     private function prepare_PageNode_csv_from_DH()
     {
         require_library('connectors/DHConnLib');
@@ -786,7 +791,8 @@ class GenerateCSV_4EOLNeo4j
 
         // Page Node
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
-        fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n");
+        // fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
+        fwrite($WRITE, "page_id:ID(Page-ID){id-type:int},canonical,rank,:LABEL"."\n"); //data type int worked OK
         $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
         $ret = $func->do_things_from_DH($param);
         fclose($WRITE);
@@ -944,6 +950,7 @@ class GenerateCSV_4EOLNeo4j
             $i++; if(($i % $mod) == 0) echo "\n $i ";
             if($i == 1) {
                 $fields = $row;
+                $fields = str_replace(":int", "", $fields); //new --- dito nag-tapos...
                 $fields = array_map('trim', $fields);
                 // $fields = self::fill_up_blank_fieldnames($fields);
                 $count = count($fields);
@@ -1075,7 +1082,7 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_OBJECT_PAGE_Edge_csv') {
-                    // if($rec['object_page_id'] == "null") continue; //cannot be blank //didn't work
+                    // print_r($rec); exit("\nstop 100\n");
                     if(!$rec['object_page_id']) continue; //cannot be blank                                        
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'object_page_id');
                     $csv = self::format_csv_entry($rec, $fieldz);
@@ -1226,7 +1233,7 @@ class GenerateCSV_4EOLNeo4j
             eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
         */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
-        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id:int,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:int,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
         self::process_table($meta, 'generate-TraitNode-csv');
         fclose($this->WRITE);
     }

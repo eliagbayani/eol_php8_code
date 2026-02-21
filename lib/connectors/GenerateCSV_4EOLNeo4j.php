@@ -107,6 +107,9 @@ class GenerateCSV_4EOLNeo4j
         // Step 6.6: CONTRIBUTOR relationship between Trait and Term nodes
         self::prepare_CONTRIBUTOR_Edge_csv();
 
+        // Step 6.7: METADATA relationship between Trait and Metadata nodes
+        self::prepare_METADATA_Edge_csv();
+
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();
 
@@ -878,6 +881,14 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_METADATA_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Metadata.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),trait_eol_pk:END_ID(Metadata-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_METADATA_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
     private function prepare_MetadataNode_csv()
     {   /*  nodes/Metadata.csv
             eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL
@@ -930,6 +941,9 @@ class GenerateCSV_4EOLNeo4j
         }
         elseif($param['task'] == 'generate_CONTRIBUTOR_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_METADATA_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Metadata.csv'; //source
         }
         elseif($param['task'] == 'generate_Metadata_Node_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
@@ -1102,9 +1116,32 @@ class GenerateCSV_4EOLNeo4j
                     if(!$rec['contributor_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['contributor_uri'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['contributor_uri'])) continue; //not found in EOL Terms file
+
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'contributor_uri');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'CONTRIBUTOR'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_METADATA_Edge_csv') { //this is Metadata node
+                    /*Array(
+                        [eol_pk:ID(Metadata-ID)] => MetaTrait-542f9bc8179ef74617cb6499d5eeba2a
+                        [trait_eol_pk] => worms_617c0a0c561f1fee553d61817a49b7e6
+                        [predicate] => http://rs.tdwg.org/dwc/terms/measurementDeterminedDate
+                        [literal] => 2017-10-08T13:23:31+01:00
+                        [measurement] => 
+                        [value_uri] => 
+                        [units] => 
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [source] => 
+                        [is_external] => 
+                        [:LABEL] => Metadata
+                    )*/
+                    if(!$rec['trait_eol_pk']) continue; //cannot be blank
+                    $fieldz = array('trait_eol_pk', 'eol_pk:ID(Metadata-ID)');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'METADATA'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_Metadata_Node_csv') { //this is Trait node

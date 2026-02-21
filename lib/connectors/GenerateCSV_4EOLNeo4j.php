@@ -780,7 +780,7 @@ class GenerateCSV_4EOLNeo4j
         
         $this->WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
         // fwrite($this->WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
-        fwrite($this->WRITE, "page_id:ID(Page-ID){id-type:int},canonical,rank,:LABEL"."\n");
+        fwrite($this->WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,:LABEL"."\n");
         self::process_table($meta, 'generate-PageNode-csv');
         fclose($this->WRITE);
     } */
@@ -792,7 +792,7 @@ class GenerateCSV_4EOLNeo4j
         // Page Node
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
         // fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
-        fwrite($WRITE, "page_id:ID(Page-ID){id-type:int},canonical,rank,:LABEL"."\n"); //data type int worked OK
+        fwrite($WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,:LABEL"."\n"); //data type int worked OK
         $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
         $ret = $func->do_things_from_DH($param);
         fclose($WRITE);
@@ -950,7 +950,7 @@ class GenerateCSV_4EOLNeo4j
             $i++; if(($i % $mod) == 0) echo "\n $i ";
             if($i == 1) {
                 $fields = $row;
-                $fields = str_replace(":int", "", $fields); //new --- dito nag-tapos...
+                $fields = str_replace(":long", "", $fields); //new --- dito nag-tapos...
                 $fields = array_map('trim', $fields);
                 // $fields = self::fill_up_blank_fieldnames($fields);
                 $count = count($fields);
@@ -1233,7 +1233,7 @@ class GenerateCSV_4EOLNeo4j
             eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
         */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
-        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id:int,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:int,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
         self::process_table($meta, 'generate-TraitNode-csv');
         fclose($this->WRITE);
     }

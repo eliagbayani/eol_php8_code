@@ -89,6 +89,10 @@ class GenerateCSV_4EOLNeo4j
         // Step 6: PREDICATE relationship between Trait and Term nodes
         self::prepare_PREDICATE_Edge_csv();
 
+        // Step 6.0: PREDICATE relationship between Metadata and Term nodes
+        self::prepare_PREDICATE_Meta_Term_Edge_csv();
+
+
         // Step 6.1: OBJECT_TERM relationship between Trait and Term nodes
         self::prepare_OBJECT_TERM_Edge_csv();
 
@@ -833,6 +837,14 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_PREDICATE_Meta_Term_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/Predicate_Meta_Term.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Metadata-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_PREDICATE_Meta_Term_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
     private function prepare_OBJECT_TERM_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/Object_Term.csv', 'w');
@@ -924,6 +936,11 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_PREDICATE_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
+        
+        elseif($param['task'] == 'generate_PREDICATE_Meta_Term_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Metadata.csv'; //source
+        }
+
         elseif($param['task'] == 'generate_OBJECT_TERM_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
@@ -1061,6 +1078,28 @@ class GenerateCSV_4EOLNeo4j
                     // print_r($rec); exit("\nstop 4\n");
                     if(!self::URI_in_EOL_terms_YN($rec['predicate'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_PREDICATE_Meta_Term_Edge_csv') { //source is Metadata node
+                    /*Array(
+                        [eol_pk:ID(Metadata-ID)] => MetaTrait-542f9bc8179ef74617cb6499d5eeba2a
+                        [trait_eol_pk] => worms_617c0a0c561f1fee553d61817a49b7e6
+                        [predicate] => http://rs.tdwg.org/dwc/terms/measurementDeterminedDate
+                        [literal] => 2017-10-08T13:23:31+01:00
+                        [measurement] => 
+                        [value_uri] => 
+                        [units] => 
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [source] => 
+                        [is_external] => 
+                        [:LABEL] => Metadata
+                    )*/
+                    if(!self::URI_in_EOL_terms_YN($rec['predicate'])) continue;
+                    $fieldz = array('eol_pk:ID(Metadata-ID)', 'predicate');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");

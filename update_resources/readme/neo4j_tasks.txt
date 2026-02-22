@@ -1003,6 +1003,7 @@ neo4j-admin database import full DB.WoRMS --overwrite-destination \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Trait.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Inferred_Trait.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Predicate.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Predicate_Meta_Term.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Object_Term.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Normal_Units_Term.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Units_Term.csv \

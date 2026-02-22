@@ -1009,6 +1009,7 @@ neo4j-admin database import full DB.WoRMS --overwrite-destination \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Object_Page.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Determined_By.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Contributor.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Metadata.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/Supplier.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.WoRMS;"
 --normalize-types=false
@@ -1033,6 +1034,7 @@ neo4j-admin database import full DB.GloBI --overwrite-destination \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/Object_Page.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/Determined_By.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/Contributor.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/Metadata.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/Supplier.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.GloBI;"
 --normalize-types=false

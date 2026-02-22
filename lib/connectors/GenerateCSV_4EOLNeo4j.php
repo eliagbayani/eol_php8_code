@@ -884,7 +884,7 @@ class GenerateCSV_4EOLNeo4j
     private function prepare_METADATA_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/Metadata.csv', 'w');        
-        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),trait_eol_pk:END_ID(Metadata-ID),:TYPE"."\n");
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),eol_pk:END_ID(Metadata-ID),:TYPE"."\n");
         $param = array('task' => 'generate_METADATA_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);

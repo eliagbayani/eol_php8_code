@@ -101,6 +101,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
         $this->mUnit['cm³'] = 'http://purl.obolibrary.org/obo/UO_0000097';
         $this->mUnit['m²'] = 'http://purl.obolibrary.org/obo/UO_0000080';
         
+        // Before 2026:
         $this->children_mTypes = array("Body size > Gender" ,"Body size > Stage", "Body size > Type" ,"Feedingtype > Stage", "Functional group > Stage" ,"Body size > Locality (MRGID)");
         // /* as of Feb 2026, these are the new child mTypes found in WoRMS2EoL.zip: n = 60
         $this->children_mTypes = array("Supporting structure & enclosure > Structure", "Supporting structure & enclosure > Structure > Composition", "Functional group > Life stage", 
@@ -867,29 +868,25 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $mValue = strtolower($mValue);
             }
             else continue;
+            $measurementType = @$rec['http://rs.tdwg.org/dwc/terms/measurementType']
             
             $this->parentOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = @$rec['parentMeasurementID'];
             if($parent = @$rec['parentMeasurementID']) { //there is parent; meaning this is a child MoF
                 $this->childOf[$parent] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-                $this->debug['new_child_mtypes_2026'][$rec['http://rs.tdwg.org/dwc/terms/measurementType']] = '';
-                if(!is_numeric($mValue)) $this->debug['raw values'][$rec['http://rs.tdwg.org/dwc/terms/measurementType']][$mValue] = '';
+                $this->debug['new_child_mtypes_2026'][$measurementType] = '';
+                if(!is_numeric($mValue)) $this->debug['non-numeric values'][$measurementType][$mValue] = '';
             }
             
             //this is to store URI map. this->childOf and this->BodysizeDimension will work hand in hand later on.
-            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Body size > Dimension') {
+            if($measurementType == 'Body size > Dimension') {
                 $this->BodysizeDimension[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $this->BsD_URI[$mValue];
             }
-            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype') {
+            if($measurementType == 'Feedingtype') {
                 $this->FeedingType[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
             }
             
-            // 292968 | 415014_292968 | 415013_292968 | Feedingtype > Stage |  | adult |  | 
-            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Stage') { //obsolete in 2026
-                $this->lifeStageOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
-            }
-
             // /* New: Feb 23, 2026
-            if($measurementType = @$rec['http://rs.tdwg.org/dwc/terms/measurementType']) {
+            if($measurementType) {
                 if(stripos($measurementType, "> Life stage") !== false) { //found string
                     $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue;
                 }
@@ -898,10 +895,6 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 }
             }
             // */
-            // ----- Functional group > Life stage   5
-            // ----- Mobility > Life stage   8
-
-
 
             $this->measurementIDz[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = '';
         }

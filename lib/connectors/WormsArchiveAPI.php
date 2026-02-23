@@ -1275,7 +1275,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 if($mValuev == 'DISCARD') continue; //no case yet in metastats-2.tsv
                 if($mValuev == 'FILTER OUT') continue; //with case already in metastats-2.tsv
                 // */
-                $this->debug['Child MoF recs']["($mTypev)-($mValuev)"] = '';
+
+                if(stripos($mTypev, "> Life stage") !== false) $mTypev = 'http://rs.tdwg.org/dwc/terms/lifeStage'; //found string
+                $this->debug['Child MoF recs']["($mTypev)-($mValuev)"] = '';            
+
                 $this->func->pre_add_string_types($save, $mValuev, $mTypev, "child");
                 // break; //do this if you want to proceed create DwCA
                 continue; //part of real operation. Can go next row now

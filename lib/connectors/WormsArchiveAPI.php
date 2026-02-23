@@ -845,7 +845,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $rec[$term] = @$tmp[$k];
                 $k++;
                 // */
-            } //print_r($rec); exit;
+            } //print_r($rec); exit("\nelix 3\n");
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 1054700
                 [http://rs.tdwg.org/dwc/terms/measurementID] => 286376_1054700
@@ -862,34 +862,39 @@ class WormsArchiveAPI extends ContributorsMapAPI
             else                            $withParentYN = 'without_Parent';
             $all_mtypes[$rec['http://rs.tdwg.org/dwc/terms/measurementType']][$withParentYN] = '';
             */
+
+            if($mValue = @$rec['http://rs.tdwg.org/dwc/terms/measurementValue']) {
+                $mValue = strtolower($mValue);
+            }
+            else continue;
             
             $this->parentOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = @$rec['parentMeasurementID'];
-            if($parent = @$rec['parentMeasurementID']) {
+            if($parent = @$rec['parentMeasurementID']) { //there is parent; meaning this is a child MoF
                 $this->childOf[$parent] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
                 $this->debug['new_child_mtypes_2026'][$rec['http://rs.tdwg.org/dwc/terms/measurementType']] = '';
+                if(!is_numeric($mValue)) $this->debug['raw values'][$rec['http://rs.tdwg.org/dwc/terms/measurementType']][$mValue] = '';
             }
             
             //this is to store URI map. this->childOf and this->BodysizeDimension will work hand in hand later on.
             if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Body size > Dimension') {
-                $mValue = strtolower($rec['http://rs.tdwg.org/dwc/terms/measurementValue']);
                 $this->BodysizeDimension[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $this->BsD_URI[$mValue];
             }
             if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype') {
-                $mValue = strtolower($rec['http://rs.tdwg.org/dwc/terms/measurementValue']);
                 $this->FeedingType[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
             }
             
             // 292968 | 415014_292968 | 415013_292968 | Feedingtype > Stage |  | adult |  | 
             if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Stage') { //obsolete in 2026
-                $mValue = strtolower($rec['http://rs.tdwg.org/dwc/terms/measurementValue']);
                 $this->lifeStageOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
             }
 
             // /* New: Feb 23, 2026
-            if($measurementType= @$rec['http://rs.tdwg.org/dwc/terms/measurementType']) {
+            if($measurementType = @$rec['http://rs.tdwg.org/dwc/terms/measurementType']) {
                 if(stripos($measurementType, "> Life stage") !== false) { //found string
-                    $mValue = strtolower($rec['http://rs.tdwg.org/dwc/terms/measurementValue']);
-                    $this->lifeStageOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
+                    $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue;
+                }
+                if(stripos($measurementType, "> Sex") !== false) { //found string
+                    $this->sexOf[$rec['parentMeasurementID']] = $mValue;
                 }
             }
             // */
@@ -1083,12 +1088,14 @@ class WormsArchiveAPI extends ContributorsMapAPI
                     continue;
                 }
                 //get lifeStage if any
-                $lifeStage = '';
+                $lifeStage = ''; $sex = '';
                 if($parent = $rec['parentMeasurementID']) {
                     if($value_str = @$this->lifeStageOf[$parent]) { //e.g. 'adult'
                         $lifeStage = self::get_uri_from_value($value_str, 'mValue', 'lifeStage');
-                        if($lifeStage) @$this->debug['lifeStage values'][$lifeStage]++;
                     }
+                    if($value_str = @$this->sexOf[$parent]) { //e.g. 'female'
+                        $sex = self::get_uri_from_value($value_str, 'mValue', 'Sex');
+                    }                    
                 }
                 // */
                 if($predicate) {
@@ -1145,8 +1152,9 @@ class WormsArchiveAPI extends ContributorsMapAPI
                     [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
                     [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
                 )*/
+                $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
                 $save = array();
-                $save['measurementID'] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
+                $save['measurementID'] = $measurementID;
                 $save['taxon_id'] = $taxon_id;
                 
                 if(!isset($this->taxon_ids[$taxon_id])) return; //Jan 1, 2026
@@ -1158,6 +1166,12 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $save['source'] = $this->taxon_page.$taxon_id;
                 $save = self::adjustments_4_measurementAccuracy($save, $rec);
                 $save['measurementUnit'] = self::format_measurementUnit($rec); //no instruction here
+
+                // /* Feb 2026
+                if($val = @$this->lifeStageOf[$measurementID]) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
+                if($val = @$this->sexOf[$measurementID])       $save['occur']['sex']       = self::get_uri_from_value($val, 'mValue', 'Sex');
+                // */
+
                 $this->func->pre_add_string_types($save, $info['mValueURL'], $info['mTypeURL'], "true");
                 // print_r($save); exit;
                 // break; //do this if you want to proceed create DwCA
@@ -1165,7 +1179,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             }
             //========================================================================================================next task --- "Body size"
             // if(in_array($mtype, $this->real_parents)) { //the parents -- first client was 'Body size'
-            if($mtype == 'Body size') { //a parent
+            if($mtype == 'Body size') { //this mType is for a parent MoF
                 /*Array( e.g. 'Body size'
                     [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 768436
                     [http://rs.tdwg.org/dwc/terms/measurementID] => 528452_768436
@@ -1175,6 +1189,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                     [http://rs.tdwg.org/dwc/terms/measurementValue] => 0.1
                     [http://rs.tdwg.org/dwc/terms/measurementUnit] => mm
                     [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
+                
                 Array( e.g. of "Body size > Dimension" //the super child
                     [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 768436
                     [http://rs.tdwg.org/dwc/terms/measurementID] => 528458_768436
@@ -1186,9 +1201,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
                     [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
                 )*/
                 // print_r($rec); exit("\nBody size\n");
+                $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
                 
                 $save = array();
-                $save['measurementID'] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
+                $save['measurementID'] = $measurementID;
                 $save['taxon_id'] = $taxon_id;
 
                 if(!isset($this->taxon_ids[$taxon_id])) return; //Jan 1, 2026
@@ -1200,8 +1216,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $save['measurementUnit'] = self::format_measurementUnit($rec);
 
                 if($mtype == 'Body size') {
-                    $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID']; //e.g. 528452_768436
-                    $super_child = self::get_super_child($measurementID);                //e.g. 528458_768436
+                                                                            //e.g. 528452_768436 measurementID
+                    $super_child = self::get_super_child($measurementID);   //e.g. 528458_768436
                     $mTypev = @$this->BodysizeDimension[$super_child];
                     if(!$mTypev) $mTypev = 'http://purl.obolibrary.org/obo/OBA_VT0100005'; //feedback from Jen: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63749&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63749
                 }
@@ -1214,6 +1230,11 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $mValuev = self::get_uri_from_value($rec['http://rs.tdwg.org/dwc/terms/measurementValue'], 'mValue', 'Body size');
                 // print("\nsuper child of [$measurementID]: ".$super_child."\n".$mTypev."\n");
                 
+                // /* Feb 2026
+                if($val = @$this->lifeStageOf[$measurementID]) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
+                if($val = @$this->sexOf[$measurementID])       $save['occur']['sex']       = self::get_uri_from_value($val, 'mValue', 'Sex');
+                // */
+
                 $this->func->pre_add_string_types($save, $mValuev, $mTypev, "true");
                 // print_r($save); exit;
                 // break; //do this if you want to proceed create DwCA
@@ -1254,6 +1275,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 if($mValuev == 'DISCARD') continue; //no case yet in metastats-2.tsv
                 if($mValuev == 'FILTER OUT') continue; //with case already in metastats-2.tsv
                 // */
+                $this->debug['Child MoF recs']["($mTypev)-($mValuev)"] = '';
                 $this->func->pre_add_string_types($save, $mValuev, $mTypev, "child");
                 // break; //do this if you want to proceed create DwCA
                 continue; //part of real operation. Can go next row now
@@ -1268,9 +1290,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
         if($uri = @$this->value_uri_map[$val]) return $uri;
         elseif($uri = @$this->value_uri_map[$orig]) return $uri;
         else {
-            if(!is_numeric($orig)) {
-                if(!isset($this->value_uri_map[$orig])) $this->debug['no uri'][$what][$what2][$orig] = ''; //log only non-numeric values
-            }
+            $this->debug['No URI']["[$orig]--($what)--($what2)"] = ''; //log only non-numeric values
             return $orig;
         }
     }

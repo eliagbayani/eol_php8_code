@@ -100,7 +100,21 @@ class WormsArchiveAPI extends ContributorsMapAPI
         $this->mUnit['mm'] = 'http://purl.obolibrary.org/obo/UO_0000016';
         $this->mUnit['cm³'] = 'http://purl.obolibrary.org/obo/UO_0000097';
         $this->mUnit['m²'] = 'http://purl.obolibrary.org/obo/UO_0000080';
+        
         $this->children_mTypes = array("Body size > Gender" ,"Body size > Stage", "Body size > Type" ,"Feedingtype > Stage", "Functional group > Stage" ,"Body size > Locality (MRGID)");
+        // /* as of Feb 2026, these are the new child mTypes found in WoRMS2EoL.zip: n = 60
+        $this->children_mTypes = array("Supporting structure & enclosure > Structure", "Supporting structure & enclosure > Structure > Composition", "Functional group > Life stage", 
+        "Mobility > Life stage", "Body size > Type", "Body size > Dimension", "Body size (qualitative) > Life stage", 
+        "Species importance to society > IUCN Red List Category", "Species importance to society > IUCN Red List Category > Year Assessed", 
+        "Species importance to society > Identifier", "Body size > Sex", "Ecological interactions > Life stage", "Ecological interactions > Host", 
+        "Feeding method > Life stage", "Body size > Life stage", "Body size > Locality (MRGID)", 
+        "Species importance to society > Mediterranean proposed indicators - Mediterranean Sea", "Feeding method > Food source", 
+        "Species importance to society > HELCOM Red List Category", "Species importance to society > HELCOM core biodiversity indicators", 
+        "Environmental position > Life stage", "Species importance to society > CITES Annex", "Zonation > Life stage", "Body size (qualitative) > Sex", 
+        "Species importance to society > IUCN Red List Category > Criteria", "Species importance to society > OSPAR candidate indicators: Celtic Seas", "Species importance to society > OSPAR candidate indicators: Greater North Sea including outside EU", "Body size > Corresponding width", "Body size > Corresponding length", "Asexual reproduction > Locality (MRGID)", "Species importance to society > Habitats Directive Annex", "Species importance to society > OSPAR Region where species is under threat and/or in decline", "Life span > Life stage", "Asexual reproduction > Life stage", "Calcification > Life stage", "Cytomorphology > Life stage", "Body shape > Life stage", "Life cycle > Life stage", "Spawning > Life stage", "Tolerance to pollutants > Life stage", "Dispersion mode > Life stage", "Gamete type > Life stage", "Thallus vertical space used > Life stage", "Gametophyte arrangement > Life stage", "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
+        // */
+
+
         //Aug 24, 2019 - for associations | 'reg' for regular; 'rev' for reverse
         $this->fType_URI['ectoparasitic']['reg']    = 'http://purl.obolibrary.org/obo/RO_0002632';
         $this->fType_URI['parasitic']['reg']        = 'http://purl.obolibrary.org/obo/RO_0002444';
@@ -850,7 +864,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
             */
             
             $this->parentOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = @$rec['parentMeasurementID'];
-            if($parent = @$rec['parentMeasurementID']) $this->childOf[$parent] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
+            if($parent = @$rec['parentMeasurementID']) {
+                $this->childOf[$parent] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
+                $this->debug['new_child_mtypes_2026'][$rec['http://rs.tdwg.org/dwc/terms/measurementType']] = '';
+            }
             
             //this is to store URI map. this->childOf and this->BodysizeDimension will work hand in hand later on.
             if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Body size > Dimension') {
@@ -863,10 +880,24 @@ class WormsArchiveAPI extends ContributorsMapAPI
             }
             
             // 292968 | 415014_292968 | 415013_292968 | Feedingtype > Stage |  | adult |  | 
-            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Stage') {
+            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Stage') { //obsolete in 2026
                 $mValue = strtolower($rec['http://rs.tdwg.org/dwc/terms/measurementValue']);
                 $this->lifeStageOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
             }
+
+            // /* New: Feb 23, 2026
+            if($measurementType= @$rec['http://rs.tdwg.org/dwc/terms/measurementType']) {
+                if(stripos($measurementType, "> Life stage") !== false) { //found string
+                    $mValue = strtolower($rec['http://rs.tdwg.org/dwc/terms/measurementValue']);
+                    $this->lifeStageOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
+                }
+            }
+            // */
+            // ----- Functional group > Life stage   5
+            // ----- Mobility > Life stage   8
+
+
+
             $this->measurementIDz[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = '';
         }
         // ksort($all_mtypes); print_r($all_mtypes); exit; -- for stats only

@@ -868,21 +868,22 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $mValue = strtolower($mValue);
             }
             else continue;
-            $measurementType = @$rec['http://rs.tdwg.org/dwc/terms/measurementType']
+            $measurementType = @$rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+            $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
             
-            $this->parentOf[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = @$rec['parentMeasurementID'];
+            $this->parentOf[$measurementID] = @$rec['parentMeasurementID'];
             if($parent = @$rec['parentMeasurementID']) { //there is parent; meaning this is a child MoF
-                $this->childOf[$parent] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
+                $this->childOf[$parent] = $measurementID;
                 $this->debug['new_child_mtypes_2026'][$measurementType] = '';
                 if(!is_numeric($mValue)) $this->debug['non-numeric values'][$measurementType][$mValue] = '';
             }
             
             //this is to store URI map. this->childOf and this->BodysizeDimension will work hand in hand later on.
             if($measurementType == 'Body size > Dimension') {
-                $this->BodysizeDimension[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $this->BsD_URI[$mValue];
+                $this->BodysizeDimension[$measurementID] = $this->BsD_URI[$mValue];
             }
             if($measurementType == 'Feedingtype') {
-                $this->FeedingType[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = $mValue;
+                $this->FeedingType[$measurementID] = $mValue;
             }
             
             // /* New: Feb 23, 2026
@@ -896,7 +897,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
             }
             // */
 
-            $this->measurementIDz[$rec['http://rs.tdwg.org/dwc/terms/measurementID']] = '';
+            $this->measurementIDz[$measurementID] = '';
         }
         // ksort($all_mtypes); print_r($all_mtypes); exit; -- for stats only
         /* just testing

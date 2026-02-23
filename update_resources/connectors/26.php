@@ -359,9 +359,11 @@ recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH."26/"); //we can now delete folder a
 // ==============================================================================================================================
 // /* NEW Feb 11, 2020: start auto-remove children of 26_undefined_parentMeasurementIDs.txt in MoF ------------------------------
 if(@filesize(CONTENT_RESOURCE_LOCAL_PATH.'26_undefined_parentMeasurementIDs.txt')) {
-    echo "\nGoes here...\n";
+    echo "\nThere are: undefinedparentMeasurementIDs\n";
     $resource_id = "26";
     $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/26.tar.gz';
+    $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/".$resource_id.".tar.gz";                      //maybe the way to go
+
     require_library('connectors/DwCA_Utility');
     $func = new DwCA_Utility($resource_id, $dwca_file);
 

@@ -875,8 +875,9 @@ class WormsArchiveAPI extends ContributorsMapAPI
             if($parent = @$rec['parentMeasurementID']) { //there is parent; meaning this is a child MoF
                 $this->childOf[$parent] = $measurementID;
                 $this->debug['new_child_mtypes_2026'][$measurementType] = '';
-                if(!is_numeric($mValue)) $this->debug['non-numeric values'][$measurementType][$mValue] = '';
+                if(!is_numeric($mValue)) $this->debug['child mtypes non-numeric values'][$measurementType][$mValue] = '';
             }
+            else $this->debug['parent MoFs'][$measurementType] = '';
             
             //this is to store URI map. this->childOf and this->BodysizeDimension will work hand in hand later on.
             if($measurementType == 'Body size > Dimension') {
@@ -888,12 +889,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
             
             // /* New: Feb 23, 2026
             if($measurementType) {
-                if(stripos($measurementType, "> Life stage") !== false) { //found string
-                    $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue;
-                }
-                if(stripos($measurementType, "> Sex") !== false) { //found string
-                    $this->sexOf[$rec['parentMeasurementID']] = $mValue;
-                }
+                if(stripos($measurementType, "> Life stage") !== false) $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue; //found string
+                if(stripos($measurementType, "> Sex") !== false)        $this->sexOf[$rec['parentMeasurementID']] = $mValue; //found string
             }
             // */
 
@@ -1045,7 +1042,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
 
             if(isset($this->ToExcludeMeasurementIDs[$rec['http://rs.tdwg.org/dwc/terms/measurementID']])) continue;
             //========================================================================================================first task - association
-            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Host') { print_r($rec); exit("\nSeems not going here anymore.\n");
+            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Host/prey') { 
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 292968
                     [http://rs.tdwg.org/dwc/terms/measurementID] => 415015_292968
@@ -1095,7 +1092,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 if($predicate) {
                     $param = array('source_taxon_id' => $rec['http://rs.tdwg.org/dwc/terms/MeasurementOrFact'],     'predicate' => $predicate, 
                                    'target_taxon_id' => $rec['http://rs.tdwg.org/dwc/terms/measurementValueID'],    'target_taxon_name' => $rec['http://rs.tdwg.org/dwc/terms/measurementValue'], 
-                                   'lifeStage' => $lifeStage);
+                                   'lifeStage' => $lifeStage, 'sex' => $sex);
                     self::add_association($param);
                 }
 
@@ -1172,7 +1169,6 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 continue; //part of real operation. Can go next row now
             }
             //========================================================================================================next task --- "Body size"
-            // if(in_array($mtype, $this->real_parents)) { //the parents -- first client was 'Body size'
             if($mtype == 'Body size') { //this mType is for a parent MoF
                 /*Array( e.g. 'Body size'
                     [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 768436
@@ -1209,17 +1205,11 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $save = self::adjustments_4_measurementAccuracy($save, $rec);
                 $save['measurementUnit'] = self::format_measurementUnit($rec);
 
-                if($mtype == 'Body size') {
-                                                                            //e.g. 528452_768436 measurementID
+                if($mtype == 'Body size') {                                 //e.g. 528452_768436 measurementID
                     $super_child = self::get_super_child($measurementID);   //e.g. 528458_768436
                     $mTypev = @$this->BodysizeDimension[$super_child];
                     if(!$mTypev) $mTypev = 'http://purl.obolibrary.org/obo/OBA_VT0100005'; //feedback from Jen: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63749&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63749
                 }
-                /* not used for now
-                else {
-                    $mTypev = self::get_uri_from_value($rec['http://rs.tdwg.org/dwc/terms/measurementType'], 'mType');
-                }
-                */
 
                 $mValuev = self::get_uri_from_value($rec['http://rs.tdwg.org/dwc/terms/measurementValue'], 'mValue', 'Body size');
                 // print("\nsuper child of [$measurementID]: ".$super_child."\n".$mTypev."\n");
@@ -1271,6 +1261,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 // */
 
                 if(stripos($mTypev, "> Life stage") !== false) $mTypev = 'http://rs.tdwg.org/dwc/terms/lifeStage'; //found string
+                if(stripos($mTypev, "> Sex") !== false)        $mTypev = 'http://rs.tdwg.org/dwc/terms/sex'; //found string
+
                 $this->debug['Child MoF recs']["($mTypev)-($mValuev)"] = '';            
 
                 $this->func->pre_add_string_types($save, $mValuev, $mTypev, "child");

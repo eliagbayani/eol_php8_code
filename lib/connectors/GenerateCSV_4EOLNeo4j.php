@@ -503,6 +503,7 @@ class GenerateCSV_4EOLNeo4j
         $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
         $s['remarks'] = @$rec['measurementRemarks'];
         $s['method'] = @$rec['measurementMethod'];
+        
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
         $s['compiler_uri'] = '';
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];

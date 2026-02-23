@@ -55,7 +55,7 @@ class MetaRecodingAPI
                                               '707_meta_recoded', 'test3_meta_recoded', '26_meta_recoded',
                                               'try_dbase_2024_meta_recoded'))) self::task_67($tables);
         /* http://rs.tdwg.org/dwc/terms/lifeStage - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
-           http://rs.tdwg.org/dwc/terms/sex - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
+           http://rs.tdwg.org/dwc/terms/sex       - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
         DONE2: if lifeStage or sex is a child row in MoF. Implemented in WoRMS (26).
         */
         

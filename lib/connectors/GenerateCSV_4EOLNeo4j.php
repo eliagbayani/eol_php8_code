@@ -92,7 +92,6 @@ class GenerateCSV_4EOLNeo4j
         // Step 6.0: PREDICATE relationship between Metadata and Term nodes
         self::prepare_PREDICATE_Meta_Term_Edge_csv();
 
-
         // Step 6.1: OBJECT_TERM relationship between Trait and Term nodes
         self::prepare_OBJECT_TERM_Edge_csv();
 
@@ -171,15 +170,8 @@ class GenerateCSV_4EOLNeo4j
             gadus,Gadus,genus,page
             chanos,Chanos,genus,page
 
-            edges/parent.csv
-            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
-            gadus_m,gadus,parent
-            chanos_c,chanos,parent
-
             node/trait.csv
             eol_pk:ID(Trait-ID),resource_pk:string,citation:string,source
-
-            edges/metadata.csv
             */
             if($what == 'generate_taxon_info') { //step 1a
                 /*Array(
@@ -503,7 +495,7 @@ class GenerateCSV_4EOLNeo4j
         $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
         $s['remarks'] = @$rec['measurementRemarks'];
         $s['method'] = @$rec['measurementMethod'];
-        
+
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
         $s['compiler_uri'] = '';
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
@@ -534,8 +526,7 @@ class GenerateCSV_4EOLNeo4j
         }
     }
     private function generate_ParentEdge_row($rec)
-    {   /*  edges/parent.csv
-            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+    {   /*  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
             gadus_m,gadus,parent
             chanos_c,chanos,parent */
         $fields = array('taxonID', 'parentNameUsageID');
@@ -544,8 +535,7 @@ class GenerateCSV_4EOLNeo4j
         fwrite($this->WRITE, $csv."\n");
     }
     private function generate_VernacularEdge_row($rec)
-    {   /*  edges/vernacular.csv
-            page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+    {   /*  page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
             WoRMS    Array(
                         [vernacularName] => dieren
                         [source] => 
@@ -806,7 +796,7 @@ class GenerateCSV_4EOLNeo4j
         fclose($WRITE);
 
         // start Parent Edge
-        $WRITE = Functions::file_open($this->path.'/edges/Parent.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
         fwrite($WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
         $param = array('task' => 'generate_ParentEdge_csv', 'fhandle' => $WRITE);
         $ret = $func->prepare_ParentEdge($param);
@@ -816,7 +806,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_TRAIT_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Trait.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/TRAIT.csv', 'w');
         fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
         $param = array('task' => 'generate_TRAIT_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -824,7 +814,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_INFERRED_TRAIT_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Inferred_Trait.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/INFERRED_TRAIT.csv', 'w');
         fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
         $param = array('task' => 'generate_INFERRED_TRAIT_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -832,7 +822,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_PREDICATE_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Predicate.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/PREDICATE.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
         $param = array('task' => 'generate_PREDICATE_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -840,7 +830,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_PREDICATE_Meta_Term_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Predicate_Meta_Term.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/PREDICATE_META_TERM.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Metadata-ID),uri:END_ID(Term-ID),:TYPE"."\n");
         $param = array('task' => 'generate_PREDICATE_Meta_Term_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -848,7 +838,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_OBJECT_TERM_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Object_Term.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/OBJECT_TERM.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
         $param = array('task' => 'generate_OBJECT_TERM_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -856,7 +846,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_NORMAL_UNITS_TERM_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Normal_Units_Term.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/NORMAL_UNITS_TERM.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
         $param = array('task' => 'generate_NORMAL_UNITS_TERM_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -864,7 +854,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_UNITS_TERM_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Units_Term.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/UNITS_TERM.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
         $param = array('task' => 'generate_UNITS_TERM_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -872,7 +862,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_OBJECT_PAGE_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Object_Page.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/OBJECT_PAGE.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
         $param = array('task' => 'generate_OBJECT_PAGE_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -880,7 +870,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_DETERMINED_BY_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Determined_By.csv', 'w');        
+        $WRITE = Functions::file_open($this->path.'/edges/DETERMINED_BY.csv', 'w');        
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
         $param = array('task' => 'generate_DETERMINED_BY_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -888,7 +878,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_CONTRIBUTOR_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Contributor.csv', 'w');        
+        $WRITE = Functions::file_open($this->path.'/edges/CONTRIBUTOR.csv', 'w');        
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
         $param = array('task' => 'generate_CONTRIBUTOR_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -896,7 +886,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function prepare_METADATA_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Metadata.csv', 'w');        
+        $WRITE = Functions::file_open($this->path.'/edges/METADATA.csv', 'w');        
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),eol_pk:END_ID(Metadata-ID),:TYPE"."\n");
         $param = array('task' => 'generate_METADATA_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -916,7 +906,7 @@ class GenerateCSV_4EOLNeo4j
     
     private function prepare_SUPPLIER_Edge_csv()
     {
-        $WRITE = Functions::file_open($this->path.'/edges/Supplier.csv', 'w');
+        $WRITE = Functions::file_open($this->path.'/edges/SUPPLIER.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE"."\n");
         $param = array('task' => 'generate_SUPPLIER_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
@@ -1330,22 +1320,20 @@ class GenerateCSV_4EOLNeo4j
         fclose($this->WRITE);
     }
     private function prepare_ParentEdge_csv($meta)
-    {   /*  edges/parent.csv
-            page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+    {   /*  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
             gadus_m,gadus,parent
             chanos_c,chanos,parent
         */
-        $this->WRITE = Functions::file_open($this->path.'/edges/Parent.csv', 'w');
+        $this->WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
         fwrite($this->WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
         self::process_table($meta, 'generate-ParentEdge-csv');
         fclose($this->WRITE);
     }
     private function prepare_VernacularEdge_csv($meta)
-    {   /*  edges/vernacular.csv
-            personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
+    {   /*  personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
             page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
         */
-        $this->WRITE = Functions::file_open($this->path.'/edges/Vernacular.csv', 'w');
+        $this->WRITE = Functions::file_open($this->path.'/edges/VERNACULAR.csv', 'w');
         fwrite($this->WRITE, "page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
         if($meta) self::process_table($meta, 'generate-VernacularEdge-csv');
         fclose($this->WRITE);

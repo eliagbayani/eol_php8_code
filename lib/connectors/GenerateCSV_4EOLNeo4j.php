@@ -653,25 +653,11 @@ class GenerateCSV_4EOLNeo4j
             fwrite($this->WRITE, $csv."\n");
         }
     }
+    /* Obsolete: no longer used.
     private function build_association_info($rec)
-    {   /*Array(
-            [http://eol.org/schema/associationID] => 4cb8806ffd419983bc7080a1a50b02b4
-            [http://rs.tdwg.org/dwc/terms/occurrenceID] => 9a9e31fb999985e6631623c65385b984
-            [http://eol.org/schema/associationType] => http://purl.obolibrary.org/obo/RO_0002556
-            [http://eol.org/schema/targetOccurrenceID] => 6e5210acd02426f7ade33cbb6e8e9d46
-            [http://rs.tdwg.org/dwc/terms/measurementDeterminedDate] => 
-            [http://rs.tdwg.org/dwc/terms/measurementDeterminedBy] => 
-            [http://rs.tdwg.org/dwc/terms/measurementMethod] => 
-            [http://rs.tdwg.org/dwc/terms/measurementRemarks] => 
-            [http://purl.org/dc/terms/source] => Sarah E Miller. 12/20/2016. Species associations manually extracted from Mhaisen, F.T., Ali, A.H. and Khamees, N.R., Checklists of Protozoans and Myxozoans of Freshwater and Marine Fishes of Basrah Province, Iraq.
-            [http://purl.org/dc/terms/bibliographicCitation] => 
-            [http://purl.org/dc/terms/contributor] => 
-            [http://eol.org/schema/reference/referenceID] => 211bebbd914337ab8ce89e18880cd8bf
-        )*/
+    {
         $associationType = $rec['http://eol.org/schema/associationType'];
-        // if(isset($this->allowed_uri_predicates[$associationType])) {}
     }
-    /* obsolete
     function buildup_predicates()
     {
         require_library('connectors/EOLterms_ymlAPI');

@@ -110,6 +110,9 @@ class GenerateCSV_4EOLNeo4j
         // Step 6.6: CONTRIBUTOR relationship between Trait and Term nodes
         self::prepare_CONTRIBUTOR_Edge_csv();
 
+        // Step 6.8: LIFESTAGE_TERM relationship between Trait and Term nodes
+        self::prepare_LIFESTAGE_TERM_Edge_csv();
+
         // Step 6.7: METADATA relationship between Trait and Metadata nodes
         self::prepare_METADATA_Edge_csv();
 
@@ -870,6 +873,14 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_LIFESTAGE_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/LIFESTAGE_TERM.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_LIFESTAGE_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
     private function prepare_METADATA_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/METADATA.csv', 'w');        
@@ -936,6 +947,12 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_CONTRIBUTOR_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
+        
+        elseif($param['task'] == 'generate_LIFESTAGE_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+
+
         elseif($param['task'] == 'generate_METADATA_Edge_csv') {
             $csv_file = $this->path.'/nodes/Metadata.csv'; //source
         }
@@ -1136,6 +1153,16 @@ class GenerateCSV_4EOLNeo4j
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'contributor_uri');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'CONTRIBUTOR'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_LIFESTAGE_TERM_Edge_csv') {
+                    if(!$rec['lifestage']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['lifestage'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['lifestage'])) continue; //not found in EOL Terms file
+
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'lifestage');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'LIFESTAGE_TERM'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_METADATA_Edge_csv') { //this is Metadata node

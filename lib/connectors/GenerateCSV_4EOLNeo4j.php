@@ -41,6 +41,9 @@ class GenerateCSV_4EOLNeo4j
         // Step 0: generate a Term node
         self::prepareTermNode_csv(); //using EOL Terms file
 
+        // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF
+        self::prepare_Parent_Term_and_Synonym_Of_Edges_csv(); //using EOL Terms file
+
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
@@ -379,6 +382,27 @@ class GenerateCSV_4EOLNeo4j
             fwrite($this->WRITE, $csv."\n");
         }
         fclose($this->WRITE);        
+    }
+    private function prepare_Parent_Term_and_Synonym_Of_Edges_csv()
+    {
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI(false, false);
+
+        $func->parse_terms_yaml();
+        exit("\nstop muna\n");
+
+        // =====
+        /*
+        uri: http://purl.obolibrary.org/obo/ENVO_00000214
+        parent_uris: 
+        - http://purl.obolibrary.org/obo/ENVO_01000028
+        - http://purl.obolibrary.org/obo/ENVO_01000023
+
+        synonym_of_uri: http://purl.bioontology.org/ontology/MESH/D000036        
+        synonym_of_uri: 
+        - http://www.geonames.org/2287781        
+        */
+
     }
     private function is_valid_taxonID($taxon_id)
     {

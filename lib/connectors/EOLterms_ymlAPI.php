@@ -98,6 +98,12 @@ class EOLterms_ymlAPI
         // exit("\nfinal: [$str]\n");
         return $str;
     }
+    function parse_terms_yaml()
+    {
+        $yaml_string = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options);
+        $array_output = yaml_parse($yaml_string);
+        print_r($array_output['terms'][525]);        
+    }
     function get_terms_yml_4Neo4j()
     {
         $final = array();

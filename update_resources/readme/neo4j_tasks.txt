@@ -989,7 +989,7 @@ neo4j-admin database import full testdb --overwrite-destination \
 --relationships=import/dataset_test/edges/Parent.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE testdb;"
 
-WoRMS main (no parentNameUsageID)
+WoRMS main (no parentNameUsageID):
 cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE DB.WoRMS;"
 neo4j-admin database import full DB.WoRMS --overwrite-destination \
 --nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Resource.csv \
@@ -1014,10 +1014,15 @@ neo4j-admin database import full DB.WoRMS --overwrite-destination \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/METADATA.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/PARENT_TERM.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/SYNONYM_OF.csv \
---relationships=import2/WoRMS_TraitBank_1_0_csv/edges/SUPPLIER.csv 
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/SUPPLIER.csv \
+--multiline-fields=true
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.WoRMS;"
 
 --normalize-types=false
+--multiline-fields=true
+-> this will ignore 'next-line' chars like \r or \n.
+-> Detected field which spanned multiple lines for an import where --multiline-fields=false. 
+   If you know that your input data include fields containing new-line characters then import with this option set to true.
 
 MATCH (t:Trait)<-[:TRAIT|INFERRED_TRAIT]-(p:Page),
 (t)-[:PREDICATE]->(pred:Term ),

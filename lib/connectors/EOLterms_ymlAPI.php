@@ -107,10 +107,11 @@ class EOLterms_ymlAPI
     }
     function get_terms_yml_4Neo4j()
     {
+        exit("\nWorking but used the built-in yaml_parse() function instead. \n");
         $final = array();
         if($yml = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options)) { //orig 1 day cache
             $yml .= "alias: ";
-            $yml = str_replace("\\r\\n", " ", $yml);
+            $yml = str_replace("\\r\\n", " ", $yml); //this is equivalent to: "--multiline-fields=true" in [neo4j-admin database import] command.
 
             // Fix for missing "http://eol.org/schema/terms/TrophicGuild"
             /*

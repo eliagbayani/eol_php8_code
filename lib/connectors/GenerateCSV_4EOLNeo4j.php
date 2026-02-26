@@ -345,7 +345,7 @@ class GenerateCSV_4EOLNeo4j
         else return false;
     }
     private function prepareTermNode_csv()
-    {   //return;
+    {   return;
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
         $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
@@ -369,7 +369,6 @@ class GenerateCSV_4EOLNeo4j
             [object_for_predicate] => 
         )*/
         unset($func);
-
         // ===== start to create the csv
         /*  nodes/Term.csv
             uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
@@ -383,7 +382,6 @@ class GenerateCSV_4EOLNeo4j
         }
         fclose($WRITE);        
     }
-    
     private function remove_quote_delimiters($str)
     {
         if($str) {
@@ -405,7 +403,7 @@ class GenerateCSV_4EOLNeo4j
         $eol_terms = $func->convert_EOL_Terms_2array();
         echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
 
-        /*
+        // /*
         // ===== Term node
         $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
         fwrite($WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
@@ -437,7 +435,7 @@ class GenerateCSV_4EOLNeo4j
             $csv .= 'Term'; //Labels are preferred to be singular nouns
             fwrite($WRITE, $csv."\n");
         }
-        */
+        // */
         /*Array(
             [attribution] => 
             [definition] => The one of an ocean below the 10degC thermocline down to a temperature of 4degC.
@@ -459,7 +457,7 @@ class GenerateCSV_4EOLNeo4j
         $WRITE = Functions::file_open($this->path.'/edges/PARENT_TERM.csv', 'w');
         fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
         $fields = array('child', 'parent');
-        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec);
+        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
             $s = array();
             // self::value_is_uri_YN
             if($s['child'] = @$rec['uri']) {
@@ -490,7 +488,7 @@ class GenerateCSV_4EOLNeo4j
         $WRITE = Functions::file_open($this->path.'/edges/SYNONYM_OF.csv', 'w');
         fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
         $fields = array('child', 'parent');
-        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec);
+        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
             $s = array();
             // self::value_is_uri_YN
             if($s['child'] = @$rec['uri']) {

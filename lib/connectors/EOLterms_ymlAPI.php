@@ -18,7 +18,7 @@ class EOLterms_ymlAPI
     function __construct($archive_builder = false, $resource_id = false)
     {
         $this->download_options = array('cache' => 1, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
-        // $this->download_options['expire_seconds'] = false; //comment after first harvest
+        // $this->download_options['expire_seconds'] = 0; //comment after first harvest; 0 means expires now.
         $this->EOL_terms_yml_url = "https://raw.githubusercontent.com/EOL/eol_terms/main/resources/terms.yml";
     }
     function get_terms_yml($sought_type = 'ALL') //possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
@@ -98,11 +98,12 @@ class EOLterms_ymlAPI
         // exit("\nfinal: [$str]\n");
         return $str;
     }
-    function parse_terms_yaml()
+    function convert_EOL_Terms_2array()
     {
         $yaml_string = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options);
-        $array_output = yaml_parse($yaml_string);
-        print_r($array_output['terms'][525]);        
+        $arr = yaml_parse($yaml_string); //print_r($arr['terms'][525]);
+        if(is_array($arr)) return $arr;
+        else exit("\nERROR: Cannot convert EOL Terms file to array()\n");
     }
     function get_terms_yml_4Neo4j()
     {
@@ -112,9 +113,16 @@ class EOLterms_ymlAPI
             $yml = str_replace("\\r\\n", " ", $yml);
 
             // Fix for missing "http://eol.org/schema/terms/TrophicGuild"
+            /*
             $source = "- definition: A group of species that exploit the same food resources";
             $destination = "- attribution: ''
               definition: A group of species that exploit the same food resources";
+            $yml = str_replace($source, $destination, $yml);
+            */
+
+            $source = "- definition:";
+            $destination = "- attribution: '' 
+            definition:";
             $yml = str_replace($source, $destination, $yml);
 
             // exit("\n$yml\n");

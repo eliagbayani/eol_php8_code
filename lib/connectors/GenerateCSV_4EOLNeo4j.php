@@ -373,7 +373,7 @@ class GenerateCSV_4EOLNeo4j
         /*  nodes/Term.csv
             uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
         $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
-        fwrite($WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
+        fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,comment,attribution,section_ids,is_hidden_from_overview,is_hidden_from_glossary,position,trait_row_count,distinct_page_count,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,object_for_predicate,:LABEL"."\n");
         foreach($terms as $rec) {
             $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
             $csv = self::format_csv_entry($rec, $fields);
@@ -406,7 +406,7 @@ class GenerateCSV_4EOLNeo4j
         // /*
         // ===== Term node
         $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
-        fwrite($WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
+        fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,comment,attribution,section_ids,is_hidden_from_overview,is_hidden_from_glossary,position,trait_row_count,distinct_page_count,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,object_for_predicate,:LABEL"."\n");
         foreach($eol_terms['terms'] as $rec) { 
             // print_r($rec); exit("\n100\n");
             // $rec = array_map('trim', $rec);

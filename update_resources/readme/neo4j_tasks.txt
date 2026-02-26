@@ -1012,6 +1012,8 @@ neo4j-admin database import full DB.WoRMS --overwrite-destination \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/CONTRIBUTOR.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/LIFESTAGE_TERM.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/METADATA.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/PARENT_TERM.csv \
+--relationships=import2/WoRMS_TraitBank_1_0_csv/edges/SYNONYM_OF.csv \
 --relationships=import2/WoRMS_TraitBank_1_0_csv/edges/SUPPLIER.csv 
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.WoRMS;"
 

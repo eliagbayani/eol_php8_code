@@ -1030,6 +1030,14 @@ MATCH (t:Trait)<-[:TRAIT|INFERRED_TRAIT]-(p:Page),
 RETURN p.canonical, t.measurement,  stage1.name
 LIMIT 40
 
+MATCH (t:Trait)<-[:TRAIT]-(p:Page),
+(t)-[:PREDICATE]->(pred:Term)-[:PARENT_TERM|SYNONYM_OF*0..]->(parent:Term),
+(t)-[:LIFESTAGE_TERM]->(stage:Term)
+WHERE p.page_id = 46501030  AND stage.name = "adult"
+OPTIONAL MATCH (t)-[:UNITS_TERM]->(units:Term)
+RETURN p.canonical, pred.name, t.measurement, units.name, t.source
+LIMIT 1
+
 GloBI main:
 cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE DB.GloBI;"
 neo4j-admin database import full DB.GloBI --overwrite-destination \

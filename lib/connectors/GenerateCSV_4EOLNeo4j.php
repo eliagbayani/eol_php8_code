@@ -54,7 +54,7 @@ class GenerateCSV_4EOLNeo4j
         */
         unset($meta);
 
-        self::prepare_PageNode_csv_from_DH(); //part of main operation
+        self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
 
         // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -345,7 +345,7 @@ class GenerateCSV_4EOLNeo4j
         else return false;
     }
     private function prepareTermNode_csv()
-    {
+    {   //return;
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
         $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
@@ -373,36 +373,152 @@ class GenerateCSV_4EOLNeo4j
         // ===== start to create the csv
         /*  nodes/Term.csv
             uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
-        $this->WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
-        fwrite($this->WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
+        $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
+        fwrite($WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
         foreach($terms as $rec) {
             $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
             $csv = self::format_csv_entry($rec, $fields);
             $csv .= 'Term'; //Labels are preferred to be singular nouns
-            fwrite($this->WRITE, $csv."\n");
+            fwrite($WRITE, $csv."\n");
         }
-        fclose($this->WRITE);        
+        fclose($WRITE);        
     }
+    
+    private function remove_quote_delimiters($str)
+    {
+        if($str) {
+            // $str = "'123456'"; // $str = '"123456"';
+            $str = trim($str); // echo("\norig: [$str]\n");
+            $first = substr($str,0,1);
+            $last = substr($str, -1); // echo("\n[$first] [$last]\n");
+            if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
+            if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
+            // exit("\nfinal: [$str]\n");
+        }
+        return $str;
+    }
+
     private function prepare_Parent_Term_and_Synonym_Of_Edges_csv()
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
+        $eol_terms = $func->convert_EOL_Terms_2array();
+        echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
 
-        $func->parse_terms_yaml();
-        exit("\nstop muna\n");
-
-        // =====
         /*
-        uri: http://purl.obolibrary.org/obo/ENVO_00000214
-        parent_uris: 
-        - http://purl.obolibrary.org/obo/ENVO_01000028
-        - http://purl.obolibrary.org/obo/ENVO_01000023
+        // ===== Term node
+        $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
+        fwrite($WRITE, "uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL"."\n");
+        foreach($eol_terms['terms'] as $rec) { 
+            // print_r($rec); exit("\n100\n");
+            // $rec = array_map('trim', $rec);
+            $rek = array();
+            $rek['uri'] = $rec['uri'];
+            $rek['name'] = self::remove_quote_delimiters($rec['name']);   //%/month
+            $rek['type'] = $rec['type'];   //"measurement", "association", "value", and "metadata"
+            $rek['definition'] = self::remove_quote_delimiters($rec['definition']);   //
+            $rek['comment'] = ''; //EOL curator note
+            $rek['attribution'] = self::remove_quote_delimiters(@$rec['attribution']);
+            $rek['section_ids'] = ''; //from webpage
+            $rek['is_hidden_from_overview'] = $rec['is_hidden_from_overview'];   //
+            $rek['is_hidden_from_glossary'] = $rec['is_hidden_from_glossary'];   //
+            $rek['position'] = ''; //from webpage
+            $rek['trait_row_count'] = ''; //a periodically calculated (offline) count
+            $rek['distinct_page_count'] = ''; //a periodically calculated (offline) count
+            $rek['exclusive_to_clade'] = ''; //
+            $rek['incompatible_with_clade'] = ''; //
+            $rek['parent_term'] = ''; //
+            $rek['synonym_of'] = ''; //
+            $rek['object_for_predicate'] = ''; //a periodically calculated (offline) count
+            // $rek = array_map('trim', $rek);
 
-        synonym_of_uri: http://purl.bioontology.org/ontology/MESH/D000036        
-        synonym_of_uri: 
-        - http://www.geonames.org/2287781        
+            $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
+            $csv = self::format_csv_entry($rek, $fields);
+            $csv .= 'Term'; //Labels are preferred to be singular nouns
+            fwrite($WRITE, $csv."\n");
+        }
         */
-
+        /*Array(
+            [attribution] => 
+            [definition] => The one of an ocean below the 10degC thermocline down to a temperature of 4degC.
+            [is_hidden_from_select] => 
+            [is_hidden_from_overview] => 
+            [is_hidden_from_glossary] => 
+            [is_text_only] => 
+            [name] => bathypelagic zone
+            [type] => value
+            [uri] => http://purl.obolibrary.org/obo/ENVO_00000211
+            [parent_uris] => Array(
+                    [0] => http://purl.obolibrary.org/obo/ENVO_01000023
+                )
+            [synonym_of_uri] => 
+            [units_term_uri] => 
+            [alias] => 
+        )*/
+        // ===== PARENT_TERM
+        $WRITE = Functions::file_open($this->path.'/edges/PARENT_TERM.csv', 'w');
+        fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
+        $fields = array('child', 'parent');
+        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec);
+            $s = array();
+            // self::value_is_uri_YN
+            if($s['child'] = @$rec['uri']) {
+                $URIs[$s['child']] = '';
+                if($parents = @$rec['parent_uris']) {
+                    if(is_array($parents)) {
+                        foreach($parents as $parent) {                             
+                            if($s['parent'] = $parent) {
+                                $csv = self::format_csv_entry($s, $fields);
+                                $csv .= 'PARENT_TERM';
+                                fwrite($WRITE, $csv."\n");
+                            }
+                        }
+                    }
+                    else {
+                        if($s['parent'] = $parents) {
+                            $csv = self::format_csv_entry($s, $fields);
+                            $csv .= 'PARENT_TERM';
+                            fwrite($WRITE, $csv."\n");
+                        }
+                    }
+                }
+            }
+        }
+        fclose($WRITE);
+        // print_r($URIs); exit("\nelix\n");
+        // ===== SYNONYM_OF
+        $WRITE = Functions::file_open($this->path.'/edges/SYNONYM_OF.csv', 'w');
+        fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
+        $fields = array('child', 'parent');
+        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec);
+            $s = array();
+            // self::value_is_uri_YN
+            if($s['child'] = @$rec['uri']) {
+                if($synonyms = @$rec['synonym_of_uri']) {
+                    if(is_array($synonyms)) {
+                        foreach($synonyms as $synonym) {                             
+                            if($s['parent'] = $synonym) {
+                                if(isset($URIs[$s['parent']])) {
+                                    $csv = self::format_csv_entry($s, $fields);
+                                    $csv .= 'SYNONYM_OF';
+                                    fwrite($WRITE, $csv."\n");
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if($s['parent'] = $synonyms) {
+                            if(isset($URIs[$s['parent']])) {
+                                $csv = self::format_csv_entry($s, $fields);
+                                $csv .= 'SYNONYM_OF';
+                                fwrite($WRITE, $csv."\n");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        fclose($WRITE);
     }
     private function is_valid_taxonID($taxon_id)
     {

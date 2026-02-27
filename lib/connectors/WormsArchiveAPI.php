@@ -861,7 +861,9 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $k++;
                 // */
             } //print_r($rec); exit("\nelix 3\n");
-            // $rec = array_map('trim', $rec);
+            // $rec = array_map('trim', $rec); //cannot do this anymore in PHP 8.
+            $rec = Functions::array_map_eol($rec);
+            // print_r($rec); exit;
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 1054700
                 [http://rs.tdwg.org/dwc/terms/measurementID] => 286376_1054700

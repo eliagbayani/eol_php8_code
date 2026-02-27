@@ -115,7 +115,6 @@ class WormsArchiveAPI extends ContributorsMapAPI
         "Species importance to society > IUCN Red List Category > Criteria", "Species importance to society > OSPAR candidate indicators: Celtic Seas", "Species importance to society > OSPAR candidate indicators: Greater North Sea including outside EU", "Body size > Corresponding width", "Body size > Corresponding length", "Asexual reproduction > Locality (MRGID)", "Species importance to society > Habitats Directive Annex", "Species importance to society > OSPAR Region where species is under threat and/or in decline", "Life span > Life stage", "Asexual reproduction > Life stage", "Calcification > Life stage", "Cytomorphology > Life stage", "Body shape > Life stage", "Life cycle > Life stage", "Spawning > Life stage", "Tolerance to pollutants > Life stage", "Dispersion mode > Life stage", "Gamete type > Life stage", "Thallus vertical space used > Life stage", "Gametophyte arrangement > Life stage", "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
         // */
 
-
         //Aug 24, 2019 - for associations | 'reg' for regular; 'rev' for reverse
         $this->fType_URI['ectoparasitic']['reg']    = 'http://purl.obolibrary.org/obo/RO_0002632';
         $this->fType_URI['parasitic']['reg']        = 'http://purl.obolibrary.org/obo/RO_0002444';
@@ -180,8 +179,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
 
         // /* new Nov 15, 2023
         $uri_label = $func->get_terms_yml('WoRMS value'); //sought_type is 'WoRMS value' --- REMINDER: this one is better since uri is unique.
-        foreach($uri_label as $uri => $label) $this->eol_terms_uri_value[$uri] = '';
+        foreach($uri_label as $uri => $label) $this->eol_terms_uri_value[$uri] = '';        
         // */
+        foreach($uri_label as $uri => $label) $this->eol_terms_value_uri[$label][] = $uri; //Feb 28, 2026
+
 
         /* good debug only
         if(isset($this->eol_terms_uri_value["http://www.geonames.org/6640368"])) echo "\nOk test for eol_terms_uri_value\n";
@@ -297,6 +298,14 @@ class WormsArchiveAPI extends ContributorsMapAPI
         $this->match2map = self::csv2array($this->match2mapping_file, 'match2map'); //mapping csv to array
         $this->value_uri_map = self::tsv2array($this->value_uri_mapping_file);
         echo "\n01 of 8\n";  self::build_parentOf_childOf_data($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]);
+        if($this->for_study) {
+            ksort($this->for_study);
+            Functions::start_print_debug($this->for_study, 'WoRMS_for_study');
+            ksort($this->localities);
+            Functions::start_print_debug($this->localities, 'WoRMS_localities');
+            exit("\n-For report only-\n");
+        }
+
         echo "\n02 of 8\n";  self::get_mIDs_2exclude($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]);
         echo "\n03 of 8\n";  self::get_measurements($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]);
         // print_r($this->debug);
@@ -826,6 +835,11 @@ class WormsArchiveAPI extends ContributorsMapAPI
         }
         return false;
     }
+    private function get_uri_case_insensitive($measurementValue)
+    {
+        if($val = @$this->eol_terms_value_uri[$measurementValue]) return $val;
+        if($val = @$this->eol_terms_value_uri[strtolower($measurementValue)]) return $val;        
+    }
     private function build_parentOf_childOf_data($meta) // parentOf not used so far
     {   $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
@@ -847,6 +861,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $k++;
                 // */
             } //print_r($rec); exit("\nelix 3\n");
+            // $rec = array_map('trim', $rec);
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 1054700
                 [http://rs.tdwg.org/dwc/terms/measurementID] => 286376_1054700
@@ -857,6 +872,26 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
                 [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
             )*/
+
+            // /* stats for Katja: Feb 27, 2026
+            $parentMeasurementID = $rec['parentMeasurementID'];
+            $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+            $measurementValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
+            if($parentMeasurementID) $type = 'child';
+            else                     $type = 'parent';
+            if(!is_numeric($measurementValue)) {
+                if($uri = self::get_uri_case_insensitive($measurementValue)) $measurementValue .= " ".json_encode($uri);
+                if($type == 'parent') $this->for_study[$measurementType]['Parent MoF'][$measurementValue] = '';
+                elseif($type == 'child') {
+                    $arr = explode(">", $measurementType);
+                    if(stripos($measurementType, "> Locality (MRGID)") !== false) {
+                        $this->localities[$measurementValue] = '';
+                        $measurementValue = 'List of localities. See separate file.';
+                    }
+                    $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"][$measurementValue] = '';
+                }
+            }
+            // */                
             
             /* for stats only - comment in real operation
             if($rec['parentMeasurementID']) $withParentYN = 'with_Parent';
@@ -891,6 +926,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
             if($measurementType) {
                 if(stripos($measurementType, "> Life stage") !== false) $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue; //found string
                 if(stripos($measurementType, "> Sex") !== false)        $this->sexOf[$rec['parentMeasurementID']] = $mValue; //found string
+                // Body size > Locality (MRGID)
+                if(stripos($measurementType, "> Locality (MRGID)") !== false) $this->localityOf[$rec['parentMeasurementID']] = $mValue; //found string
             }
             // */
 
@@ -1079,20 +1116,23 @@ class WormsArchiveAPI extends ContributorsMapAPI
                     continue;
                 }
                 //get lifeStage if any
-                $lifeStage = ''; $sex = '';
+                $lifeStage = ''; $sex = ''; $locality = '';
                 if($parent = $rec['parentMeasurementID']) {
                     if($value_str = @$this->lifeStageOf[$parent]) { //e.g. 'adult'
                         $lifeStage = self::get_uri_from_value($value_str, 'mValue', 'lifeStage');
                     }
                     if($value_str = @$this->sexOf[$parent]) { //e.g. 'female'
                         $sex = self::get_uri_from_value($value_str, 'mValue', 'Sex');
-                    }                    
+                    }
+                    if($value_str = @$this->localityOf[$parent]) { //e.g. 'Europe'
+                        $locality = self::get_uri_from_value($value_str, 'mValue', 'locality');
+                    }
                 }
                 // */
                 if($predicate) {
                     $param = array('source_taxon_id' => $rec['http://rs.tdwg.org/dwc/terms/MeasurementOrFact'],     'predicate' => $predicate, 
                                    'target_taxon_id' => $rec['http://rs.tdwg.org/dwc/terms/measurementValueID'],    'target_taxon_name' => $rec['http://rs.tdwg.org/dwc/terms/measurementValue'], 
-                                   'lifeStage' => $lifeStage, 'sex' => $sex);
+                                   'lifeStage' => $lifeStage, 'sex' => $sex, 'locality' => $locality);
                     self::add_association($param);
                 }
 
@@ -1161,6 +1201,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 // /* Feb 2026
                 if($val = @$this->lifeStageOf[$measurementID]) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
                 if($val = @$this->sexOf[$measurementID])       $save['occur']['sex']       = self::get_uri_from_value($val, 'mValue', 'Sex');
+                if($val = @$this->localityOf[$measurementID])  $save['occur']['locality']  = self::get_uri_from_value($val, 'mValue', 'locality');
                 // */
 
                 $this->func->pre_add_string_types($save, $info['mValueURL'], $info['mTypeURL'], "true");
@@ -1217,6 +1258,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 // /* Feb 2026
                 if($val = @$this->lifeStageOf[$measurementID]) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
                 if($val = @$this->sexOf[$measurementID])       $save['occur']['sex']       = self::get_uri_from_value($val, 'mValue', 'Sex');
+                if($val = @$this->localityOf[$measurementID])  $save['occur']['locality']  = self::get_uri_from_value($val, 'mValue', 'locality');
                 // */
 
                 $this->func->pre_add_string_types($save, $mValuev, $mTypev, "true");
@@ -1260,8 +1302,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 if($mValuev == 'FILTER OUT') continue; //with case already in metastats-2.tsv
                 // */
 
-                if(stripos($mTypev, "> Life stage") !== false) $mTypev = 'http://rs.tdwg.org/dwc/terms/lifeStage'; //found string
-                if(stripos($mTypev, "> Sex") !== false)        $mTypev = 'http://rs.tdwg.org/dwc/terms/sex'; //found string
+                if(stripos($mTypev, "> Life stage") !== false)       $mTypev = 'http://rs.tdwg.org/dwc/terms/lifeStage'; //found string
+                if(stripos($mTypev, "> Sex") !== false)              $mTypev = 'http://rs.tdwg.org/dwc/terms/sex'; //found string
+                // Body size > Locality (MRGID)
+                if(stripos($mTypev, "> Locality (MRGID)") !== false) $mTypev = 'http://rs.tdwg.org/dwc/terms/locality'; //found string                
 
                 $this->debug['Child MoF recs']["($mTypev)-($mValuev)"] = '';            
 

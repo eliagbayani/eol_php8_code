@@ -882,8 +882,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
             if($parentMeasurementID) $type = 'child';
             else                     $type = 'parent';
             if(!is_numeric($measurementValue)) {
-                if($uri = self::get_uri_case_insensitive($measurementValue)) $measurementValue .= " ".json_encode($uri);
-                if($type == 'parent') $this->for_study[$measurementType]['Parent MoF'][$measurementValue] = '';
+                if($uri = self::get_uri_case_insensitive($measurementValue)) $measurementValue .= " = ".json_encode($uri);
+                if($type == 'parent') $this->for_study[$measurementType]['(Parent MoF)'][$measurementValue] = '';
                 elseif($type == 'child') {
                     $arr = explode(">", $measurementType);
                     if(stripos($measurementType, "> Locality (MRGID)") !== false) {

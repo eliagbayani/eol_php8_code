@@ -181,19 +181,16 @@ class WormsArchiveAPI extends ContributorsMapAPI
         $uri_label = $func->get_terms_yml('WoRMS value'); //sought_type is 'WoRMS value' --- REMINDER: this one is better since uri is unique.
         foreach($uri_label as $uri => $label) $this->eol_terms_uri_value[$uri] = '';        
         // */
-        foreach($uri_label as $uri => $label) $this->eol_terms_value_uri[$label][] = $uri; //Feb 28, 2026
 
-
-        /* good debug only
-        if(isset($this->eol_terms_uri_value["http://www.geonames.org/6640368"])) echo "\nOk test for eol_terms_uri_value\n";
-        else {
-            echo "\n-------------- error, will stop --------------\n";
-            echo "\nEOL term file: ".count($this->eol_terms_uri_value)."\n";
-            print_r($this->eol_terms_uri_value);
-            exit("\nSomething is wrong with lookup to EOL Terms file.\n");
+        // /* New March 1, 2026 -> this is just for stats
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI(false, false);
+        $eol_terms = $func->convert_EOL_Terms_2array();
+        echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n";
+        foreach($eol_terms['terms'] as $rec) { 
+            $this->eol_terms_value_uri[trim($rec['name'])][] = trim($rec['uri']);
         }
-        exit("\n- stop evaluate muna -\n");
-        */
+        // */
 
         unset($func); //exit;
         // */
@@ -300,10 +297,12 @@ class WormsArchiveAPI extends ContributorsMapAPI
         echo "\n01 of 8\n";  self::build_parentOf_childOf_data($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]);
         if($this->for_study) {
             ksort($this->for_study);
-            Functions::start_print_debug($this->for_study, 'WoRMS_for_study');
+            Functions::start_print_debug($this->for_study, 'WoRMS_Traits_for_review');
             ksort($this->localities);
             Functions::start_print_debug($this->localities, 'WoRMS_localities');
-            exit("\n-For report only-\n");
+            ksort($this->lifestages);
+            Functions::start_print_debug($this->lifestages, 'WoRMS_lifeStages');
+            // exit("\n-For report only-\n");
         }
 
         echo "\n02 of 8\n";  self::get_mIDs_2exclude($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]);
@@ -875,24 +874,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
             )*/
 
-            // /* stats for Katja: Feb 27, 2026
-            $parentMeasurementID = $rec['parentMeasurementID'];
-            $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
-            $measurementValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
-            if($parentMeasurementID) $type = 'child';
-            else                     $type = 'parent';
-            if(!is_numeric($measurementValue)) {
-                if($uri = self::get_uri_case_insensitive($measurementValue)) $measurementValue .= " = ".json_encode($uri);
-                if($type == 'parent') $this->for_study[$measurementType]['(Parent MoF)'][$measurementValue] = '';
-                elseif($type == 'child') {
-                    $arr = explode(">", $measurementType);
-                    if(stripos($measurementType, "> Locality (MRGID)") !== false) {
-                        $this->localities[$measurementValue] = '';
-                        $measurementValue = 'List of localities. See separate file.';
-                    }
-                    $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"][$measurementValue] = '';
-                }
-            }
+            // /* stats for Jen & Katja: Feb 27, 2026
+            self::stats_for_JenKatja_Feb2026($rec);
             // */                
             
             /* for stats only - comment in real operation
@@ -2300,6 +2283,46 @@ class WormsArchiveAPI extends ContributorsMapAPI
             foreach(new FileIterator($url) as $line_number => $id) $ids[$id] = '';
         }
         return array_keys($ids);
+    }
+    private function stats_for_JenKatja_Feb2026($rec)
+    {
+        $parentMeasurementID = $rec['parentMeasurementID'];
+        $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+        $measurementValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
+        if($parentMeasurementID) $type = 'child';
+        else                     $type = 'parent';
+        if(!is_numeric($measurementValue)) {
+            if($uri = self::get_uri_case_insensitive($measurementValue)) $measurementValue .= " = ".json_encode($uri);
+            if($type == 'parent') {
+                $mtype_uri = self::get_uri_case_insensitive($measurementType);
+                if(is_array($mtype_uri)) $mtype_uri = json_encode($mtype_uri);
+                $this->for_study[$measurementType]["(Parent MoF) *[$mtype_uri]"][$measurementValue] = '';
+            }
+            elseif($type == 'child') {
+                $arr = explode(">", $measurementType);
+                if(stripos($measurementType, "> Locality (MRGID)") !== false) { //found string
+                    $this->localities[$measurementValue] = '';
+                    $measurementValue = 'List of localities. See separate file. [http://rs.tdwg.org/dwc/terms/locality]';
+                }
+                elseif(stripos($measurementType, "> Life stage") !== false) { //found string
+                    $this->lifestages[$measurementValue] = '';
+                    $measurementValue = 'List of life stages. See separate file. [http://rs.tdwg.org/dwc/terms/lifeStage]';
+                }
+                if($measurementType == 'Ecological interactions > Host') $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"]['List of taxa e.g. Saurida gracilis'] = '';
+                elseif($measurementType == 'Feeding method > Food source') $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"]['List of taxa e.g. Bucephaloides gracilescens'] = '';                    
+                elseif($measurementType == 'Trophic level > Food source') $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"]['List of taxa e.g. Acanthocyclus albatrossis'] = '';                    
+                else $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"][$measurementValue] = '';
+            }
+        }
+        else {
+            if($type == 'parent') {
+                $mtype_uri = self::get_uri_case_insensitive($measurementType);
+                if(is_array($mtype_uri)) $mtype_uri = json_encode($mtype_uri);
+                $this->for_study[$measurementType]["(Parent MoF) **[$mtype_uri]"] = '';
+            }
+        }
+
+        if($type == 'parent') $this->debug['Parent MoFs'][$measurementType] = '';
     }
 }
 ?>

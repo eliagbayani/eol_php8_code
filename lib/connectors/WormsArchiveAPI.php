@@ -1111,7 +1111,6 @@ class WormsArchiveAPI extends ContributorsMapAPI
                     $predicate_reverse = $this->fType_URI[$value_str]['rev'];
                 }
                 else {
-                    // print_r($rec);
                     print("\nInvestigate: cannot link to parent record [$super_parent].\n"); //e.g. 478430_458997 legit no parent record
                     continue;
                 }

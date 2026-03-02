@@ -133,15 +133,24 @@ class WormsArchiveAPI extends ContributorsMapAPI
         $this->fType_URI['epizoic']['rev']          = 'http://purl.obolibrary.org/obo/RO_0002453';
         $this->fType_URI['kleptivore']['rev']       = 'http://purl.obolibrary.org/obo/RO_0008504';
         $this->real_parents = array('AMBI ecological group', 'Body size', 'Body size (qualitative)', 'Feedingtype', 'Fossil range', 'Functional group', 'Paraphyletic group', 'Species importance to society', 'Supporting structure & enclosure');
+        $this->real_parents = array("AMBI ecological group", "Asexual reproduction", "Body shape", "Body size", "Body size (qualitative)", "Brooding", "Calcification", "Cytomorphology", "Development", "Dispersion mode", "Ecological interactions", "Environmental position", "Etymology classification", "Feeding method", "Fossil range", "Functional group", "Gamete type", "Gametophyte arrangement", "Generation time", "Life cycle", "Life span", "Mobility", "Modes of reproduction", "Nomenclature code", "Paraphyletic group", "Plant habit", "Reproductive frequency", "Sociability", "Spawning", "Species exhibits underwater soniferous behaviour", "Species importance to society", "Supporting structure & enclosure", "Thallus vertical space used", "Tolerance to pollutants", "Trophic level", "Zonation");
 
-        $this->exclude_mType_mValue['Feedingtype']['endocommensal'] = '';
-        $this->exclude_mType_mValue['Feedingtype']['symbiotic'] = '';
-        $this->exclude_mType_mValue['Feedingtype']['unknown'] = '';
-        $this->exclude_mType_mValue['Feedingtype']['not feeding'] = '';
-        $this->exclude_mType_mValue['Feedingtype']['non-selective'] = '';
-        $this->exclude_mType_mValue['Feedingtype']['commensal'] = '';
-        $this->exclude_mType_mValue['Feedingtype']['epizoic'] = '';
-        $this->exclude_mType_mValue['Feedingtype']['selective'] = '';
+        /* Common with the old parents MoF
+        "AMBI ecological group", "Body size", "Body size (qualitative)"
+        "Feeding method", "Fossil range", "Functional group"
+        "Paraphyletic group", "Species importance to society", "Supporting structure & enclosure"
+        */
+
+        // formerly 'Feedingtype'
+        $this->exclude_mType_mValue['Ecological interactions']['commensal'] = '';
+        $this->exclude_mType_mValue['Ecological interactions']['endocommensal'] = '';
+        $this->exclude_mType_mValue['Ecological interactions']['symbiotic'] = '';
+        $this->exclude_mType_mValue['Ecological interactions']['unknown'] = '';
+        $this->exclude_mType_mValue['Feeding method']['not feeding'] = '';
+        $this->exclude_mType_mValue['Feeding method']['selective'] = '';
+        $this->exclude_mType_mValue['Feeding method']['non-selective'] = '';
+        $this->exclude_mType_mValue['Environmental position']['epizoic'] = '';
+        // formerly 'Functional group' {no change}
         $this->exclude_mType_mValue['Functional group']['macro'] = '';
         $this->exclude_mType_mValue['Functional group']['meso'] = '';
         $this->exclude_mType_mValue['Functional group']['not applicable'] = '';
@@ -909,10 +918,9 @@ class WormsArchiveAPI extends ContributorsMapAPI
             
             // /* New: Feb 23, 2026
             if($measurementType) {
-                if(stripos($measurementType, "> Life stage") !== false) $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue; //found string
-                if(stripos($measurementType, "> Sex") !== false)        $this->sexOf[$rec['parentMeasurementID']] = $mValue; //found string
-                // Body size > Locality (MRGID)
-                if(stripos($measurementType, "> Locality (MRGID)") !== false) $this->localityOf[$rec['parentMeasurementID']] = $mValue; //found string
+                if(stripos($measurementType, "> Life stage") !== false)         $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue; //found string
+                if(stripos($measurementType, "> Sex") !== false)                $this->sexOf[$rec['parentMeasurementID']] = $mValue; //found string
+                if(stripos($measurementType, "> Locality (MRGID)") !== false)   $this->localityOf[$rec['parentMeasurementID']] = $mValue; //found string
             }
             // */
 

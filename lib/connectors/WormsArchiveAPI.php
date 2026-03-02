@@ -67,7 +67,8 @@ class WormsArchiveAPI extends ContributorsMapAPI
             'download_wait_time' => 500000, 'timeout' => 600, 'download_attempts' => 1, 'delay_in_minutes' => 0, 'expire_seconds' => false);
         */
         /* start DATA-1827 below */
-        $this->match2mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/worms_mapping1.csv';
+        $this->match2mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/worms_mapping1.csv';      //old
+        $this->match2mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/worms_mapping_ver2.csv';  //latest Mar 2026
         $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/metastats-csv.tsv';       //old
         $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/Feb2020/metastats-2.tsv'; //latest Feb 2020
         //mapping from here: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63730&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63730

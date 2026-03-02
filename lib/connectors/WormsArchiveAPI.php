@@ -2321,8 +2321,10 @@ class WormsArchiveAPI extends ContributorsMapAPI
                 $this->for_study[$measurementType]["(Parent MoF) **[$mtype_uri]"] = '';
             }
         }
-
-        if($type == 'parent') $this->debug['Parent MoFs'][$measurementType] = '';
+        // more stats
+        if($type == 'parent') {
+            if($measurementType) $this->debug['Parent MoFs'][$measurementType] = '';
+        }
     }
 }
 ?>

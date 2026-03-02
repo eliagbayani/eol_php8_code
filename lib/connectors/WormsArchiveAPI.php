@@ -151,6 +151,7 @@ class WormsArchiveAPI extends ContributorsMapAPI
         $this->exclude_mType_mValue['Feeding method']['selective'] = '';
         $this->exclude_mType_mValue['Feeding method']['non-selective'] = '';
         $this->exclude_mType_mValue['Environmental position']['epizoic'] = '';
+
         // formerly 'Functional group' {no change}
         $this->exclude_mType_mValue['Functional group']['macro'] = '';
         $this->exclude_mType_mValue['Functional group']['meso'] = '';
@@ -1073,7 +1074,12 @@ class WormsArchiveAPI extends ContributorsMapAPI
 
             if(isset($this->ToExcludeMeasurementIDs[$rec['http://rs.tdwg.org/dwc/terms/measurementID']])) continue;
             //========================================================================================================first task - association
-            if($rec['http://rs.tdwg.org/dwc/terms/measurementType'] == 'Feedingtype > Host/prey') { 
+
+            $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
+            $association_mtypes = array('Ecological interactions > Host', 'Feeding method > Food source', 'Trophic level > Food source');
+
+            // if($measurementType == 'Feedingtype > Host/prey') { //old
+            if(in_array($measurementType, $association_mtypes)) {
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 292968
                     [http://rs.tdwg.org/dwc/terms/measurementID] => 415015_292968

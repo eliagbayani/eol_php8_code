@@ -352,7 +352,17 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
     }
     private function proceed_save_mof($rec)
-    {
+    {  
+        /*Array(
+            [MeasurementOrFact] => 159931
+            [measurementID] => 528455_159931
+            [parentMeasurementID] => 
+            [measurementType] => Body size
+            [measurementValueID] => 
+            [measurementValue] => 1
+            [measurementUnit] => mm
+            [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
+        )*/
         $taxon_id = $rec['MeasurementOrFact'];
         $mID = $rec['measurementID'];
         $mType = $rec['measurementType'];
@@ -372,13 +382,12 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
 
 
         if($info = @$this->match2map[$mType][$mValue]) { //$this->match2map came from a CSV mapping file
-            // print_r($info); print_r($rec); exit("\ncheck values\n");
-            /*Array(
+            /*Array( $info
                 [mTypeURL] => http://rs.tdwg.org/dwc/terms/habitat
                 [mValueURL] => http://purl.obolibrary.org/obo/ENVO_01000024
                 [mRemarks] => 
             )
-            Array(
+            Array( $rec
                 [MeasurementOrFact] => 1054700
                 [measurementID] => 286376_1054700
                 [parentMeasurementID] => 
@@ -388,9 +397,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 [measurementUnit] => 
                 [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
             )*/
-
             $this->func->pre_add_string_types($save, $info['mValueURL'], $info['mTypeURL'], "true");
-            // print_r($save); exit("\ncheck save[] record\n");
         }
         else {
             // print_r($rec);                        
@@ -549,6 +556,18 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     {   $arr = explode(":", $str);
         return array_pop($arr);
     }
+    private function get_uri_from_value($val, $what, $what2)
+    {   if(is_numeric($val)) return $val;
+        $orig = $val;
+        $val = trim(strtolower($val));
+        if($uri = @$this->value_uri_map[$val]) return $uri;
+        elseif($uri = @$this->value_uri_map[$orig]) return $uri;
+        else {
+            $this->debug['No URI']["[$orig]--($what)--($what2)"] = ''; //log only non-numeric values
+            return $orig;
+        }
+    }
+
     // ####################################################################################################################
     // ========================================================================================== below is copied template
     // ####################################################################################################################
@@ -1124,17 +1143,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             }
             //========================================================================================================end tasks
         }//end foreach
-    }
-    private function get_uri_from_value($val, $what, $what2)
-    {   if(is_numeric($val)) return $val;
-        $orig = $val;
-        $val = trim(strtolower($val));
-        if($uri = @$this->value_uri_map[$val]) return $uri;
-        elseif($uri = @$this->value_uri_map[$orig]) return $uri;
-        else {
-            $this->debug['No URI']["[$orig]--($what)--($what2)"] = ''; //log only non-numeric values
-            return $orig;
-        }
     }
 
     private function lookup_worms_name($vtaxon_id)

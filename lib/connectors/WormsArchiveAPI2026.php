@@ -190,34 +190,37 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function initialize()
     {
+        /*
         $temp = CONTENT_RESOURCE_LOCAL_PATH . "26_files";
         if(!file_exists($temp)) mkdir($temp);
-
         self::init_contributor_info();
+        */
         self::init_trait_generic();
         self::init_text_mappings();
     }
     function start()
     {   
-        // self::initialize();
+        self::initialize();
 
         /* un-comment in real operation
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
         $paths = $func->extract_archive_file($this->dwca_file, "meta.xml", array('timeout' => 172800, 'expire_seconds' => true)); //true means it will re-download, will not use cache. Set TRUE when developing
-        print_r($paths); exit;
+        // print_r($paths); exit;
         */
-        $paths['archive_path'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_55696/';
-        $paths['temp_dir'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_55696/';
+        $paths['archive_path'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_59440/';
+        $paths['temp_dir'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_59440/';
 
-        
         $archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
         $harvester = new ContentArchiveReader(NULL, $archive_path);
         $tables = $harvester->tables;
         print_r(array_keys($tables));
         
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'write_taxon');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'write_taxon'); //PofMO
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'prepare_MoF');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'write_MoF');
+        
         $this->archive_builder->finalize(TRUE);
 
         // remove temp dir
@@ -231,7 +234,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     {   //print_r($meta);
         echo "\nprocess_extension [$what]...\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
-            $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
+            $i++; if(($i % 500000) == 0) echo "\n".number_format($i). " $what";
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
@@ -245,9 +248,17 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 if(@$parts[1]) $field = $parts[1];
                 // */
                 if(!$field) continue;
-                $rec[$field] = $tmp[$k];
+                $rec[$field] = @$tmp[$k];
+                /* WoRMS DwCA .txt files (extensions) sometimes have inconsistent number of tabs. Thus needed to add @ in $rec[$field] = @$tmp[$k];
+                if(count($tmp) < $k) {
+                    print_r($tmp); print_r($meta->fields); echo "\nk = [$k]\n";
+                    exit("\ninvestigate\n");
+                }
+                */
                 $k++;
-            } //print_r($rec); exit;
+            } 
+            // $rec = Functions::array_map_eol('trim', $rec); //caused errors
+            // print_r($rec); exit;
             //===========================================================================================================================================================
             if($what == 'write_taxon') {
                 /*Array(
@@ -271,55 +282,118 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                     [rightsHolder] => 
                     [datasetName] => 
                 )*/
-                // print_r($rec);
-                $rec = self::format_worms_ids($rec);
-                // print_r($rec); exit;
-                unset($rec['rights']);
+                $rec = self::format_worms_fields($rec);
+                unset($rec['rights']); //no 'rights' in taxa extension schema
+                // /* for later lookup
+                $taxon_id = $rec['taxonID'];
+                $this->taxa_rank[$taxon_id]['r'] = (string) $rec["taxonRank"];
+                $this->taxa_rank[$taxon_id]['s'] = (string) $rec["taxonomicStatus"];
+                $this->taxa_rank[$taxon_id]['n'] = (string) $rec["scientificName"];
+                // */
                 self::proceed_2write($rec, 'taxon');
             }
+            if($what == 'prepare_MoF') { if($rec['MeasurementOrFact']) self::prepare_MoF($rec); }
+            if($what == 'write_MoF') { if($rec['MeasurementOrFact']) self::write_MoF($rec); }
+
             if($what == 'append_media_objects') { //carry-over if Media extension exists
                 self::proceed_2write($rec, 'document');
             }
-            if($what == 'loop_then_write_2media') { //this is MoF
-                /*Array( AntWeb
-                    [http://rs.tdwg.org/dwc/terms/measurementID] => bb95b45e06000d2bb272cd7b7a7234c0_24
-                    [http://rs.tdwg.org/dwc/terms/occurrenceID] => 7077ef3769c1656b97ffe4c585bc2ce5_24
-                    [http://eol.org/schema/measurementOfTaxon] => true
-                    [http://rs.tdwg.org/dwc/terms/measurementType] => http://purl.obolibrary.org/obo/RO_0002303
-                    [http://rs.tdwg.org/dwc/terms/measurementValue] => http://eol.org/schema/terms/wet_forest
-                    [http://rs.tdwg.org/dwc/terms/measurementRemarks] => lowland wet forest
-                    [http://purl.org/dc/terms/source] => https://www.antweb.org/description.do?genus=wasmannia&species=rochai&rank=species&project=allantwebants
-                    [http://purl.org/dc/terms/bibliographicCitation] => AntWeb. Version 8.45.1. California Academy of Science, online at https://www.antweb.org. Accessed 15 November 2024.
-                )*/
-                if($taxonID = $this->occurrenceID_taxonID_info[$rec['occurrenceID']]) {
-                    if($rec['measurementRemarks']) {
-                        $identifier = md5(json_encode($rec));
-                        $s = array();
-                        $s['identifier'] = $identifier;
-                        $s['taxonID'] = $taxonID;
-                        $s['type'] = 'http://purl.org/dc/dcmitype/Text';
-                        $s['format'] = 'text/html';
-                        $s['CVterm'] = 'http://rs.tdwg.org/ontology/voc/SPMInfoItems#Description';
-                        $s['title'] = 'From MoF measurementRemarks';
-                        $s['description'] = $rec['measurementRemarks'];
-                        $s['furtherInformationURL'] = $rec['source'];
-                        $s['language'] = 'en';
-                        $s['UsageTerms'] = 'http://creativecommons.org/licenses/by-nc-sa/4.0/';
-                        $s['Owner'] = ''; //California Academy of Sciences
-                        $s['bibliographicCitation'] = $rec['bibliographicCitation'];
-                        $s['accessURI'] = '';
-                        $s['CreateDate'] = '';
-                        $s['agentID'] =  '';
-                        self::proceed_2write($s, 'document');                    
-                    }
-                }
-                else exit("\noccurrenceID in MoF not found in occurrences: [".$rec['occurrenceID']."\n");                
+            // =======================================================================================================
+            // =======================================================================================================
+            // =======================================================================================================
+            // =======================================================================================================
+            // =======================================================================================================
+            // if($i >= 5000) break; //debug only //2026
+        } //end foreach()
+    }
+    private function prepare_MoF($rec)
+    {   /*Array(
+            [MeasurementOrFact] => 769244       --> this is the AphiaID in the measurementorfact.txt. Which is the taxonID
+            [measurementID] => 17679_769244
+            [parentMeasurementID] => 
+            [measurementType] => Functional group
+            [measurementValueID] => 
+            [measurementValue] => benthos
+            [measurementUnit] => 
+            [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
+        )
+        Array(
+            [MeasurementOrFact] => 769244
+            [measurementID] => 17680_769244
+            [parentMeasurementID] => 17679_769244
+            [measurementType] => Functional group > Life stage
+            [measurementValueID] => 
+            [measurementValue] => adult
+            [measurementUnit] => 
+            [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
+        )*/
+        if(!$rec['measurementType']) { print_r($rec); exit("\nERROR: Should not go here anymore.\n"); }
+        $mID = $rec['measurementID'];
+        $mType = $rec['measurementType'];
+        $mValue = $rec['measurementValue'];
+        $parentMID = $rec['parentMeasurementID'];
+        // if(stripos($mType, "Functional group") !== false) print_r($rec) //found string //debug only
+
+        $parts = array(' > Life stage', ' > Sex');
+        foreach($parts as $part) {
+            if(stripos($mType, $part) !== false) { //exit("\nhere 1\n");
+                $arr = explode(">", $mType); $arr = array_map('trim', $arr);
+                $parent_mType = $arr[0]; //e.g. 'Functional group'
+                $child_mType = $arr[1]; //e.g. 'Life stage'
+                $this->child_of_parent[$parentMID][strtolower($child_mType)] = $mValue;
             }
-            // =======================================================================================================
-            // =======================================================================================================
-            // =======================================================================================================
-            // =======================================================================================================
-            // =======================================================================================================
+        }
+    }
+    private function write_MoF($rec)
+    {
+        $parentMID = $rec['parentMeasurementID'];
+        if(!$parentMID) { //no parent ID means a parent MoF
+            self::proceed_save_mof($rec);
+        }
+    }
+    private function proceed_save_mof($rec)
+    {
+        $taxon_id = $rec['MeasurementOrFact'];
+        $mID = $rec['measurementID'];
+        $mType = $rec['measurementType'];
+        $mValue = $rec['measurementValue'];
+
+        $save = array();
+        $save['measurementID'] = $mID;
+        $save['taxon_id'] = $taxon_id;
+        $save["catnum"] = $taxon_id.'_'.$mType.$mValue; //making it unique. no standard way of doing it.
+        $save['measurementRemarks'] = $info['mRemarks'];
+        $save['source'] = $this->taxon_page.$taxon_id;
+        $save = self::adjustments_4_measurementAccuracy($save, $rec);
+        $save['measurementUnit'] = self::format_measurementUnit($rec); //no instruction here
+
+        if($val = @$this->child_of_parent[$mID]['life stage']) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
+        if($val = @$this->child_of_parent[$mID]['sex']) $save['occur']['sex'] = self::get_uri_from_value($val, 'mValue', 'sex');
+
+
+        if($info = @$this->match2map[$mType][$mValue]) { //$this->match2map came from a CSV mapping file
+            // print_r($info); print_r($rec); exit("\ncheck values\n");
+            /*Array(
+                [mTypeURL] => http://rs.tdwg.org/dwc/terms/habitat
+                [mValueURL] => http://purl.obolibrary.org/obo/ENVO_01000024
+                [mRemarks] => 
+            )
+            Array(
+                [MeasurementOrFact] => 1054700
+                [measurementID] => 286376_1054700
+                [parentMeasurementID] => 
+                [measurementType] => Functional group
+                [measurementValueID] => 
+                [measurementValue] => benthos
+                [measurementUnit] => 
+                [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
+            )*/
+
+            $this->func->pre_add_string_types($save, $info['mValueURL'], $info['mTypeURL'], "true");
+            // print_r($save); exit("\ncheck save[] record\n");
+        }
+        else {
+            // print_r($rec);                        
         }
     }
     private function proceed_2write($rec, $class)
@@ -346,7 +420,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     {
         return trim(str_ireplace("urn:lsid:marinespecies.org:taxname:", "", (string) $worms_id));
     }
-    private function format_worms_ids($rec)
+    private function format_worms_fields($rec)
     {
         $fields = array('taxonID', 'parentNameUsageID', 'acceptedNameUsageID');
         foreach($fields as $field) {
@@ -367,8 +441,117 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->debug['taxonomicStatus'][$status] = '';
         return $status;
     }
-
+    private function initialize_mapping()
+    {   $mappings = Functions::get_eol_defined_uris(false, true);     //1st param: false means will use 1day cache | 2nd param: opposite direction is true
+        echo "\n".count($mappings). " - default URIs from EOL registry.";
+        /* good debug
+        if(@$mappings[1] == "http://marineregions.org/mrgid/18075") { print_r($mappings); exit("-huli ka dito pala-"); } */
+        $uris = Functions::additional_mappings($mappings, 60*60*24); //add more mappings used in the past. 2nd param is expire_seconds. 0 means expires now
+        // print_r($uris); exit;
+        echo "\nURIs total A: ".count($uris)."\n";
+        
+        // /* exclusive mapping for WoRMS only
+        $url = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/WoRMS_native_intro_mapping.txt';
+        $uris = Functions::additional_mappings($uris, 60*60*24, $url); //add a single mapping. 2nd param is expire_seconds
+        // */
+        echo "\nURIs total B: ".count($uris)."\n"; //print_r($uris);
+        return $uris;
+    }
+    private function tsv2array($url)
+    {   $options = $this->download_options;
+        $options['expire_seconds'] = 60*60*1; //1 hour expires
+        $local = Functions::save_remote_file_to_local($url, $options);
+        $i = 0;
+        foreach(new FileIterator($local) as $line_number => $line) {
+            $line = explode("\t", $line); $i++;
+            if($i == 1) $fields = $line;
+            else {
+                if(!$line[0]) break;
+                $rec = array(); $k = 0;
+                foreach($fields as $fld) {
+                    $rec[$fld] = $line[$k]; $k++;
+                }
+                $rec = array_map('trim', $rec);
+                // print_r($rec); exit;
+                /*Array(
+                    [measurementValue] => Female
+                    [valueURI] => http://purl.obolibrary.org/obo/PATO_0000383
+                )*/
+                $final[strtolower($rec['measurementValue'])] = $rec['valueURI'];
+            }
+        }
+        unlink($local);
+        
+        $additional_mappings = self::initialize_mapping();
+        $final = $additional_mappings + $final;
+        echo "\nURIs total C: ".count($final)."\n";
+        if($final['Europe'] == 'http://www.geonames.org/6255148') echo "\nTest URI lookup OK\n";
+        else echo "\nERROR: URI lookup failed\n";
+        echo "\n-end test block-\n";
+        /* if(@$final[1]) exit("\nCannot have 1 or any numeric value as index. Cause for investigation.\n"); */
+        return $final;
+    }
+    private function csv2array($url, $type)
+    {   $options = $this->download_options;
+        $options['expire_seconds'] = 60*60*24; //1 day expires
+        $local = Functions::save_remote_file_to_local($url, $options);
+        $file = fopen($local, 'r');
+        $i = 0;
+        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+            if(($i % 1000000) == 0) echo "\n".number_format($i);
+            if($i == 1) $fields = $line;
+            else {
+                $rec = array(); $k = 0;
+                foreach($fields as $fld) {
+                    $rec[$fld] = $line[$k]; $k++;
+                }
+                // print_r($rec); exit("\nstopx\n");
+                /*Array( type = 'match2map'
+                    [measurementType] => Feedingtype
+                    [measurementTypeURL] => http://www.wikidata.org/entity/Q1053008
+                    [measurementValue] => carnivore
+                    [measurementValueURL] => https://www.wikidata.org/entity/Q81875
+                    [measurementRemarks] => 
+                )*/
+                if($type == 'match2map') {
+                    $final[$rec['measurementType']][$rec['measurementValue']] = array('mTypeURL' => $rec['measurementTypeURL'], 'mValueURL' => $rec['measurementValueURL'], 'mRemarks' => $rec['measurementRemarks']);
+                }
+            }
+        }
+        unlink($local); fclose($file); // print_r($final);
+        return $final;
+    }
+    private function format_measurementUnit($rec)
+    {   if($val = @$rec['measurementUnit']) { //e.g. mm
+            $val = trim($val);
+            if($uri = @$this->mUnit[$val]) return $uri;
+            else $this->debug['undefined mUnit literal'][$val] = '';
+        }
+    }
+    private function adjustments_4_measurementAccuracy($save, $rec)
+    {   if($vtaxon_id = self::get_id_from_measurementAccuracy($rec['measurementAccuracy'])) {
+            if($sciname = @$this->taxa_rank[$vtaxon_id]['n']) {
+                $save['measurementMethod'] = $rec['measurementAccuracy'].', '.$sciname;
+            }
+            else {
+                if($sciname = self::lookup_worms_name($vtaxon_id)) {
+                    $save['measurementMethod'] = $rec['measurementAccuracy'].', '.$sciname;
+                }
+                else {
+                    $this->debug['sciname not found with id from measurementAccuracy'][$vtaxon_id] = '';
+                    $save['measurementMethod'] = $rec['measurementAccuracy'];
+                }
+            }
+        }
+        return $save;
+    }
+    private function get_id_from_measurementAccuracy($str)
+    {   $arr = explode(":", $str);
+        return array_pop($arr);
+    }
+    // ####################################################################################################################
     // ========================================================================================== below is copied template
+    // ####################################################################################################################
     private function process_fields($records, $class)
     {
         foreach($records as $rec) {
@@ -441,14 +624,14 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $this->archive_builder->write_object_to_file($c);
         } // end foreach()
     }
-    private function build_taxa_rank_array($records)
-    {   foreach($records as $rec) {
-            $taxon_id = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/taxonID"]);
-            $this->taxa_rank[$taxon_id]['r'] = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRank"];
-            $this->taxa_rank[$taxon_id]['s'] = (string) self::format_status($rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"]);
-            $this->taxa_rank[$taxon_id]['n'] = (string) $rec["http://rs.tdwg.org/dwc/terms/scientificName"];
-        }
-    }
+    // private function build_taxa_rank_array($records)
+    // {   foreach($records as $rec) {
+    //         $taxon_id = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/taxonID"]);
+    //         $this->taxa_rank[$taxon_id]['r'] = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRank"];
+    //         $this->taxa_rank[$taxon_id]['s'] = (string) self::format_status($rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"]);
+    //         $this->taxa_rank[$taxon_id]['n'] = (string) $rec["http://rs.tdwg.org/dwc/terms/scientificName"];
+    //     }
+    // }
     private function format_sciname($str)
     {   //http://parser.globalnames.org/doc/api
 
@@ -953,32 +1136,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             return $orig;
         }
     }
-    private function format_measurementUnit($rec)
-    {   if($val = trim(@$rec['http://rs.tdwg.org/dwc/terms/measurementUnit'])) { //e.g. mm
-            if($uri = @$this->mUnit[$val]) return $uri;
-            else $this->debug['undefined mUnit literal'][$val] = '';
-        }
-    }
-    private function adjustments_4_measurementAccuracy($save, $rec)
-    {   if($vtaxon_id = self::get_id_from_measurementAccuracy($rec['http://rs.tdwg.org/dwc/terms/measurementAccuracy'])) {
-            if($sciname = @$this->taxa_rank[$vtaxon_id]['n']) {
-                $save['measurementMethod'] = $rec['http://rs.tdwg.org/dwc/terms/measurementAccuracy'].', '.$sciname;
-            }
-            else {
-                // print_r($rec);
-                // print("\nsciname not found with id from measurementAccuracy -- ");
-                if($sciname = self::lookup_worms_name($vtaxon_id)) {
-                    $save['measurementMethod'] = $rec['http://rs.tdwg.org/dwc/terms/measurementAccuracy'].', '.$sciname;
-                    // echo "\nfound [$sciname]";
-                }
-                else {
-                    $this->debug['sciname not found with id from measurementAccuracy'][$vtaxon_id] = '';
-                    $save['measurementMethod'] = $rec['http://rs.tdwg.org/dwc/terms/measurementAccuracy'];
-                }
-            }
-        }
-        return $save;
-    }
+
     private function lookup_worms_name($vtaxon_id)
     {   $options = $this->download_options;
         $options['expire_seconds'] = false;
@@ -988,89 +1146,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
         exit("\nid not found [$vtaxon_id]\n");
         return false;
-    }
-    private function initialize_mapping()
-    {   $mappings = Functions::get_eol_defined_uris(false, true);     //1st param: false means will use 1day cache | 2nd param: opposite direction is true
-        echo "\n".count($mappings). " - default URIs from EOL registry.";
-        /* good debug
-        if(@$mappings[1] == "http://marineregions.org/mrgid/18075") { print_r($mappings); exit("-huli ka dito pala-"); } */
-        $uris = Functions::additional_mappings($mappings, 0); //add more mappings used in the past. 2nd param is expire_seconds
-        // print_r($uris); exit;
-        echo "\nURIs total A: ".count($uris)."\n";
-        
-        // /* exclusive mapping for WoRMS only
-        $url = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/WoRMS_native_intro_mapping.txt';
-        $uris = Functions::additional_mappings($uris, 0, $url); //add a single mapping. 2nd param is expire_seconds
-        // */
-        echo "\nURIs total B: ".count($uris)."\n"; //print_r($uris);
-        return $uris;
-    }
-    private function tsv2array($url)
-    {   $options = $this->download_options;
-        $options['expire_seconds'] = 60*60*1; //1 hour expires
-        $local = Functions::save_remote_file_to_local($url, $options);
-        $i = 0;
-        foreach(new FileIterator($local) as $line_number => $line) {
-            $line = explode("\t", $line); $i++;
-            if($i == 1) $fields = $line;
-            else {
-                if(!$line[0]) break;
-                $rec = array(); $k = 0;
-                foreach($fields as $fld) {
-                    $rec[$fld] = $line[$k]; $k++;
-                }
-                $rec = array_map('trim', $rec);
-                // print_r($rec); exit;
-                /*Array(
-                    [measurementValue] => Female
-                    [valueURI] => http://purl.obolibrary.org/obo/PATO_0000383
-                )*/
-                $final[strtolower($rec['measurementValue'])] = $rec['valueURI'];
-            }
-        }
-        unlink($local);
-        
-        $additional_mappings = self::initialize_mapping();
-        $final = $additional_mappings + $final;
-        echo "\nURIs total C: ".count($final)."\n";
-        print_r($final['Europe']);
-        echo "\n-end test block-\n";
-        /* if(@$final[1]) exit("\nCannot have 1 or any numeric value as index. Cause for investigation.\n"); */
-        return $final;
-    }
-    private function csv2array($url, $type)
-    {   $options = $this->download_options;
-        $options['expire_seconds'] = 60*60*24; //1 day expires
-        $local = Functions::save_remote_file_to_local($url, $options);
-        $file = fopen($local, 'r');
-        $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
-            if(($i % 1000000) == 0) echo "\n".number_format($i);
-            if($i == 1) $fields = $line;
-            else {
-                $rec = array(); $k = 0;
-                foreach($fields as $fld) {
-                    $rec[$fld] = $line[$k]; $k++;
-                }
-                // print_r($rec); exit("\nstopx\n");
-                /*Array( type = 'match2map'
-                    [measurementType] => Feedingtype
-                    [measurementTypeURL] => http://www.wikidata.org/entity/Q1053008
-                    [measurementValue] => carnivore
-                    [measurementValueURL] => https://www.wikidata.org/entity/Q81875
-                    [measurementRemarks] => 
-                )*/
-                if($type == 'match2map') {
-                    $final[$rec['measurementType']][$rec['measurementValue']] = array('mTypeURL' => $rec['measurementTypeURL'], 'mValueURL' => $rec['measurementValueURL'], 'mRemarks' => $rec['measurementRemarks']);
-                }
-            }
-        }
-        unlink($local); fclose($file); // print_r($final);
-        return $final;
-    }
-    private function get_id_from_measurementAccuracy($str)
-    {   $arr = explode(":", $str);
-        return array_pop($arr);
     }
     private function add_association($param)
     {   $basename = pathinfo($param['predicate'], PATHINFO_BASENAME); //e.g. RO_0002454

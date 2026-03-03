@@ -265,12 +265,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                     [taxonID] => urn:lsid:marinespecies.org:taxname:1
                     [scientificName] => Biota
                     [parentNameUsageID] => 
-                    [kingdom] => 
-                    [phylum] => 
-                    [class] => 
-                    [order] => 
-                    [family] => 
-                    [genus] => 
+                    [kingdom] =>    [phylum] =>     [class] =>      [order] =>  [family] =>     [genus] => 
                     [taxonRank] => kingdom
                     [furtherInformationURL] => https://www.marinespecies.org/aphia.php?p=taxdetails&id=1
                     [taxonomicStatus] => https://rs.gbif.org/vocabulary/gbif/taxonomicStatus/accepted
@@ -353,16 +348,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function proceed_save_mof($rec)
     {  
-        /*Array(
-            [MeasurementOrFact] => 159931
-            [measurementID] => 528455_159931
-            [parentMeasurementID] => 
-            [measurementType] => Body size
-            [measurementValueID] => 
-            [measurementValue] => 1
-            [measurementUnit] => mm
-            [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
-        )*/
         $taxon_id = $rec['MeasurementOrFact'];
         $mID = $rec['measurementID'];
         $mType = $rec['measurementType'];
@@ -372,14 +357,13 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $save['measurementID'] = $mID;
         $save['taxon_id'] = $taxon_id;
         $save["catnum"] = $taxon_id.'_'.$mType.$mValue; //making it unique. no standard way of doing it.
-        $save['measurementRemarks'] = $info['mRemarks'];
+        $save['measurementRemarks'] = '';
         $save['source'] = $this->taxon_page.$taxon_id;
         $save = self::adjustments_4_measurementAccuracy($save, $rec);
         $save['measurementUnit'] = self::format_measurementUnit($rec); //no instruction here
 
         if($val = @$this->child_of_parent[$mID]['life stage']) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
         if($val = @$this->child_of_parent[$mID]['sex']) $save['occur']['sex'] = self::get_uri_from_value($val, 'mValue', 'sex');
-
 
         if($info = @$this->match2map[$mType][$mValue]) { //$this->match2map came from a CSV mapping file
             /*Array( $info
@@ -399,8 +383,30 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             )*/
             $this->func->pre_add_string_types($save, $info['mValueURL'], $info['mTypeURL'], "true");
         }
-        else {
-            // print_r($rec);                        
+        else { //the rest goes here
+            /*Array(
+                [MeasurementOrFact] => 159931
+                [measurementID] => 528455_159931
+                [parentMeasurementID] => 
+                [measurementType] => Body size
+                [measurementValueID] => 
+                [measurementValue] => 1
+                [measurementUnit] => mm
+                [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
+            )*/
+            if(is_numeric($mValue)) {
+                if($mTypeURL = self::get_uri_from_value($mType, 'mType', 'numeric value measurement')) {
+                    $this->func->pre_add_string_types($save, $mValue, $mTypeURL, "true");
+                }
+                else $this->debug['MoF numeric value. No mType URI'][$mType] = '';
+            }
+            else { //non-numeric measurement value
+                if($mTypeURL = self::get_uri_from_value($mType, 'mType', 'non-numeric value measurement')) {
+                    if($mValueURL = self::get_uri_from_value($mValue, 'mValue', 'wala')) $this->func->pre_add_string_types($save, $mValueURL, $mTypeURL, "true");
+                    else $this->debug['No URIs'][$mValue] = '';
+                }
+                else $this->debug['MoF non-numeric value. No mType URI'][$mType] = '';
+            }
         }
     }
     private function proceed_2write($rec, $class)
@@ -553,8 +559,12 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         return $save;
     }
     private function get_id_from_measurementAccuracy($str)
-    {   $arr = explode(":", $str);
-        return array_pop($arr);
+    {   
+        if($str) {
+            $arr = explode(":", $str);
+            return array_pop($arr);
+        }
+        return false;
     }
     private function get_uri_from_value($val, $what, $what2)
     {   if(is_numeric($val)) return $val;
@@ -658,22 +668,22 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // $str = str_replace(" ", "+", $str);
         return urlencode($str);
     }
-    private function if_accepted_taxon($taxon_id)
-    {
-        if($status = @$this->taxa_rank[$taxon_id]['s']) {
-            if($status == "accepted") return true;
-            else return false;
-        }
-        else { //let the API decide
-            if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$taxon_id, $this->download_options)) {
-                $arr = json_decode($json, true);
-                // print_r($arr);
-                if($arr['status'] == "accepted") return true;
-            }
-            return false;
-        }
-        return false;
-    }
+    // private function if_accepted_taxon($taxon_id)
+    // {
+    //     if($status = @$this->taxa_rank[$taxon_id]['s']) {
+    //         if($status == "accepted") return true;
+    //         else return false;
+    //     }
+    //     else { //let the API decide
+    //         if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$taxon_id, $this->download_options)) {
+    //             $arr = json_decode($json, true);
+    //             // print_r($arr);
+    //             if($arr['status'] == "accepted") return true;
+    //         }
+    //         return false;
+    //     }
+    //     return false;
+    // }
     private function get_uri_case_insensitive($measurementValue)
     {
         if($val = @$this->eol_terms_value_uri[$measurementValue]) return $val;

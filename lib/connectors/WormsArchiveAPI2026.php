@@ -211,17 +211,26 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         else exit("\nERROR: No MoF extension. Please investigate.\n");
         
         $meta_taxon = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
-
-        self::process_extension($meta_MoF, 'before_MoF');
-        self::process_extension($meta_MoF, 'prepare_MoF');
-        self::process_extension($meta_MoF, 'write_MoF');
+        echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
+        echo "\n2 of 8"; self::process_extension($meta_MoF, 'before_MoF');
+        echo "\n3 of 8"; self::process_extension($meta_MoF, 'prepare_MoF');
+        echo "\n4 of 8"; self::process_extension($meta_MoF, 'write_MoF');
 
         unset($this->childOf); unset($this->parentOf); unset($this->ToExcludeMeasurementIDs);
         unset($this->BodysizeDimension); unset($this->FeedingType); unset($this->lifeStageOf); unset($this->measurementIDz);
 
+        /* PofMO
+        // echo "\n5 of 8";  self::get_references($harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference'));
+        // echo "\n6 of 8";  self::get_agents($harvester->process_row_type('http://eol.org/schema/agent/Agent'));
+        // echo "\n7 of 8";  self::get_vernaculars($harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'));
+        $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference');
+        echo "\n5 of 8"; self::process_fields($records, "reference");
+        $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');
+        echo "\n6 of 8"; self::process_fields($records, "agent");
+        $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName');
+        echo "\n7 of 8"; self::process_fields($records, "vernacular");
+        */
             
-
         $this->archive_builder->finalize(TRUE);
 
         // remove temp dir
@@ -349,7 +358,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $child_mType = $arr[1]; //e.g. 'Life stage'
                 $super_parent = self::get_super_parent($parentMID);
                 // /*
-                if($part == ' > Locality (MRGID)') $mValue = Functions::valid_uri_url($mValueID) ? $mValueID : $mValue; //WoRMS provides URI for their locality.
+                if($part == ' > Locality (MRGID)') {
+                    // $mValue = Functions::valid_uri_url($mValueID) ? $mValueID : $mValue; //WoRMS provides URI for their locality.
+                    $mValue = self::get_uri_from_value($mValue, 'mValue', 'locality');
+                }
                 // */
                 $this->child_of_parent[$super_parent][strtolower($child_mType)] = $mValue;
             }

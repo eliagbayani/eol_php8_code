@@ -4,31 +4,12 @@ namespace php_active_record;
 We received a Darwincore archive file from the partner.
 Connector downloads the archive file, extracts, reads it, assembles the data and generates the EOL DWC-A resource.
 
-[establishmentMeans] => Array
-       (
-           [] => 
-           [Alien] =>                   used
-           [Native - Endemic] =>        used
-           [Native] =>                  used
-           [Origin uncertain] => 
-           [Origin unknown] => 
-           [Native - Non-endemic] =>    used
-       )
-   [occurrenceStatus] => Array
-       (
-           [present] =>                 used
-           [excluded] =>                used
-           [doubtful] =>                used
-       )
-
 http://www.marinespecies.org/rest/#/
 http://www.marinespecies.org/aphia.php?p=taxdetails&id=9
 
 uri: http://rs.tdwg.org/dwc/terms/sex
 uri: http://rs.tdwg.org/dwc/terms/lifeStage
-
 */
-
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class WormsArchiveAPI2026 extends ContributorsMapAPI
@@ -112,7 +93,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         "Species importance to society > Mediterranean proposed indicators - Mediterranean Sea", "Feeding method > Food source", 
         "Species importance to society > HELCOM Red List Category", "Species importance to society > HELCOM core biodiversity indicators", 
         "Environmental position > Life stage", "Species importance to society > CITES Annex", "Zonation > Life stage", "Body size (qualitative) > Sex", 
-        "Species importance to society > IUCN Red List Category > Criteria", "Species importance to society > OSPAR candidate indicators: Celtic Seas", "Species importance to society > OSPAR candidate indicators: Greater North Sea including outside EU", "Body size > Corresponding width", "Body size > Corresponding length", "Asexual reproduction > Locality (MRGID)", "Species importance to society > Habitats Directive Annex", "Species importance to society > OSPAR Region where species is under threat and/or in decline", "Life span > Life stage", "Asexual reproduction > Life stage", "Calcification > Life stage", "Cytomorphology > Life stage", "Body shape > Life stage", "Life cycle > Life stage", "Spawning > Life stage", "Tolerance to pollutants > Life stage", "Dispersion mode > Life stage", "Gamete type > Life stage", "Thallus vertical space used > Life stage", "Gametophyte arrangement > Life stage", "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
+        "Species importance to society > IUCN Red List Category > Criteria", "Species importance to society > OSPAR candidate indicators: Celtic Seas", "Species importance to society > OSPAR candidate indicators: Greater North Sea including outside EU", "Body size > Corresponding width", "Body size > Corresponding length", 
+        "Asexual reproduction > Locality (MRGID)", "Species importance to society > Habitats Directive Annex", "Species importance to society > OSPAR Region where species is under threat and/or in decline", "Life span > Life stage", "Asexual reproduction > Life stage", "Calcification > Life stage", "Cytomorphology > Life stage", "Body shape > Life stage", "Life cycle > Life stage", "Spawning > Life stage", "Tolerance to pollutants > Life stage", "Dispersion mode > Life stage", "Gamete type > Life stage", "Thallus vertical space used > Life stage", "Gametophyte arrangement > Life stage", "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
         // */
 
         //Aug 24, 2019 - for associations | 'reg' for regular; 'rev' for reverse
@@ -223,6 +205,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         print_r(array_keys($tables));
         
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'write_taxon'); //PofMO
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'before_MoF');
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'prepare_MoF');
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'write_MoF');
         
@@ -292,10 +275,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 // */
                 self::proceed_2write($rec, 'taxon');
             }
-            if($what == 'prepare_MoF') { if($rec['MeasurementOrFact']) self::prepare_MoF($rec); }
-            if($what == 'write_MoF') { if($rec['MeasurementOrFact']) self::write_MoF($rec); }
+            if($what == 'before_MoF') { if($rec['MeasurementOrFact']) self::before_MoF($rec); }
+            elseif($what == 'prepare_MoF') { if($rec['MeasurementOrFact']) self::prepare_MoF($rec); }
+            elseif($what == 'write_MoF') { if($rec['MeasurementOrFact']) self::write_MoF($rec); }
 
-            if($what == 'append_media_objects') { //carry-over if Media extension exists
+            elseif($what == 'append_media_objects') { //carry-over if Media extension exists
                 self::proceed_2write($rec, 'document');
             }
             // =======================================================================================================
@@ -303,8 +287,14 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // =======================================================================================================
             // =======================================================================================================
             // =======================================================================================================
-            // if($i >= 5000) break; //debug only //2026
+            // if($i >= 100000) break; //debug only //2026
         } //end foreach()
+    }
+    private function before_MoF($rec)
+    {
+        $mID = $rec['measurementID'];
+        $parentMID = $rec['parentMeasurementID'];
+        $this->parentOf[$mID] = $parentMID;
     }
     private function prepare_MoF($rec)
     {   /*Array(
@@ -334,19 +324,20 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $parentMID = $rec['parentMeasurementID'];
         // if(stripos($mType, "Functional group") !== false) print_r($rec) //found string //debug only
 
-        $parts = array(' > Life stage', ' > Sex');
+        $parts = array(' > Life stage', ' > Sex', ' > Locality (MRGID)');
         foreach($parts as $part) {
             if(stripos($mType, $part) !== false) { //exit("\nhere 1\n");
                 $arr = explode(">", $mType); $arr = array_map('trim', $arr);
                 $parent_mType = $arr[0]; //e.g. 'Functional group'
                 $child_mType = $arr[1]; //e.g. 'Life stage'
-                $this->child_of_parent[$parentMID][strtolower($child_mType)] = $mValue;
+                $super_parent = self::get_super_parent($parentMID);
+                $this->child_of_parent[$super_parent][strtolower($child_mType)] = $mValue;
             }
         }
     }
     private function write_MoF($rec)
     {
-        $parentMID = $rec['parentMeasurementID'];
+        $parentMID = trim($rec['parentMeasurementID']);
         if(!$parentMID) { //no parent ID means a parent MoF
             self::proceed_save_mof($rec);
         }
@@ -367,8 +358,15 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $save = self::adjustments_4_measurementAccuracy($save, $rec);
         $save['measurementUnit'] = self::format_measurementUnit($rec); //no instruction here
 
-        if($val = @$this->child_of_parent[$mID]['life stage']) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
-        if($val = @$this->child_of_parent[$mID]['sex']) $save['occur']['sex'] = self::get_uri_from_value($val, 'mValue', 'sex');
+        if($val = @$this->child_of_parent[$mID]['life stage'])       $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
+        if($val = @$this->child_of_parent[$mID]['sex']) {
+
+            $save['occur']['sex'] = self::get_uri_from_value($val, 'mValue', 'sex');
+            // print_r($save); exit("\nhuli 100\n");
+            $this->debug['saved sex'][$mType][$save['occur']['sex']] = '';
+        }
+
+        $cont_save_child_MoF_YN = false;
 
         if($info = @$this->match2map[$mType][$mValue]) { //$this->match2map came from a CSV mapping file
             /*Array( $info
@@ -387,6 +385,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
             )*/
             $this->func->pre_add_string_types($save, $info['mValueURL'], $info['mTypeURL'], "true");
+            $cont_save_child_MoF_YN = true;
         }
         else { //the rest goes here
             /*Array(
@@ -399,17 +398,53 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 [measurementUnit] => mm
                 [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
             )*/
-            if(is_numeric($mValue)) {
+            if(is_numeric($mValue)) { //print_r($rec); //exit("\nnumeric value ito\n");
                 if($mTypeURL = self::get_uri_from_value($mType, 'mType', 'numeric value measurement')) {
                     $this->func->pre_add_string_types($save, $mValue, $mTypeURL, "true");
+                    $cont_save_child_MoF_YN = true;
+
                 }
             }
             else { //non-numeric measurement value
-                if($mTypeURL = self::get_uri_from_value($mType, 'mType', 'non-numeric value measurement')) {
-                    if($mValueURL = self::get_uri_from_value($mValue, 'mValue', 'wala')) $this->func->pre_add_string_types($save, $mValueURL, $mTypeURL, "true");
+                if($mTypeURL = self::get_uri_from_value($mType, 'mType', $mValue)) { //'non-numeric value measurement'
+                    if($mValueURL = self::get_uri_from_value($mValue, 'mValue', 'wala')) {
+                        $this->func->pre_add_string_types($save, $mValueURL, $mTypeURL, "true");
+                        $cont_save_child_MoF_YN = true;
+                    }
                 }
             }
         }
+        if($cont_save_child_MoF_YN) {
+            if($val = @$this->child_of_parent[$mID]['locality (mrgid)']) {
+                $mTypev = 'http://rs.tdwg.org/dwc/terms/locality';
+                self::add_child_mof($val, $mTypev, $mID);
+            }
+            if($val = @$this->child_of_parent[$mID]['sex']) {
+                $mTypev = 'http://rs.tdwg.org/dwc/terms/sex';
+                // print_r($rec); exit("\neli 1\n");
+                self::add_child_mof($val, $mTypev, $mID);
+            }
+        }
+    }
+    private function add_child_mof($val_string, $mTypev, $mID)
+    {   /* write child record in MoF: SampleSize
+        child record in MoF:
+            - doesn't have: occurrenceID | measurementOfTaxon
+            - has parentMeasurementID
+            - has also a unique measurementID, as expected.
+        minimum cols on a child record in MoF
+            - measurementID
+            - measurementType
+            - measurementValue
+            - parentMeasurementID
+        */
+        $mValuev = self::get_uri_from_value($val_string, 'mValue', 'locality');
+        $save_child = array();
+        $save_child['measurementID'] = '';
+        $save_child['measurementType'] = $mTypev;
+        $save_child['measurementValue'] = $mValuev;
+        $save_child['parentMeasurementID'] = $mID;
+        if($mTypev && $mValuev) $this->func->pre_add_string_types($save_child, $mValuev, $mTypev, "child");
     }
     private function proceed_2write($rec, $class)
     {
@@ -456,13 +491,29 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->debug['taxonomicStatus'][$status] = '';
         return $status;
     }
+    private function get_EoL_terms()
+    {
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI(false, false);
+        $eol_terms = $func->convert_EOL_Terms_2array();
+        echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n";
+        $final = array();
+        foreach($eol_terms['terms'] as $rec) { 
+            $uri = $rec['uri'];
+            $name = Functions::remove_quote_delimiters($rec['name']);   //%/month
+            $final[$name] = $uri;
+        }
+        return $final;
+    }
     private function initialize_mapping()
-    {   $mappings = Functions::get_eol_defined_uris(false, true);     //1st param: false means will use 1day cache | 2nd param: opposite direction is true
+    {                           
+        /* Obsolete
+        $mappings = Functions::get_eol_defined_uris(false, true);     //1st param: false means will use 1day cache | 2nd param: opposite direction is true
         echo "\n".count($mappings). " - default URIs from EOL registry.";
-        /* good debug
-        if(@$mappings[1] == "http://marineregions.org/mrgid/18075") { print_r($mappings); exit("-huli ka dito pala-"); } */
+        */
+        $mappings = self::get_EoL_terms(); //first layer of [label => uri] values
+
         $uris = Functions::additional_mappings($mappings, 60*60*24); //add more mappings used in the past. 2nd param is expire_seconds. 0 means expires now
-        // print_r($uris); exit;
         echo "\nURIs total A: ".count($uris)."\n";
         
         // /* exclusive mapping for WoRMS only
@@ -569,15 +620,38 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         return false;
     }
     private function get_uri_from_value($val, $type_or_value, $what2)
-    {   if(is_numeric($val)) return $val;
+    {   
+        // print_r($this->value_uri_map); exit("\nstop muna\n");
+        if(is_numeric($val)) return $val;
         $orig = $val;
         $val = trim(strtolower($val));
-        if($uri = @$this->value_uri_map[$val]) return $uri;
+            if($uri = @$this->value_uri_map[$val]) return $uri;
         elseif($uri = @$this->value_uri_map[$orig]) return $uri;
         else {
             $this->debug["No URI - $type_or_value"]["[$orig]--($type_or_value)--($what2)"] = ''; //log only non-numeric values
+            $this->debug["No URI* - $type_or_value"][$orig] = '';
             if($type_or_value == 'mType') return false;
             if($type_or_value == 'mValue') return $orig;
+        }
+    }
+    private function lookup_worms_name($vtaxon_id)
+    {   $options = $this->download_options;
+        $options['expire_seconds'] = false;
+        if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$vtaxon_id, $options)) { //exit("\nlookup 1\n");
+            $arr = json_decode($json, true); // print_r($arr); exit;
+            return trim($arr['scientificname']." ".$arr['authority']);
+        }
+        exit("\nid not found [$vtaxon_id]\n");
+        return false;
+    }
+    private function get_super_parent($id)
+    {   $current = '';
+        while(true) {
+            if($parent = @$this->parentOf[$id]) {
+                $current = $parent;
+                $id = $current;
+            }
+            else return $current;
         }
     }
     // ####################################################################################################################
@@ -836,16 +910,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     {   $current = '';
         while(true) {
             if($parent = @$this->childOf[$id]) {
-                $current = $parent;
-                $id = $current;
-            }
-            else return $current;
-        }
-    }
-    private function get_super_parent($id)
-    {   $current = '';
-        while(true) {
-            if($parent = @$this->parentOf[$id]) {
                 $current = $parent;
                 $id = $current;
             }
@@ -1157,16 +1221,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }//end foreach
     }
 
-    private function lookup_worms_name($vtaxon_id)
-    {   $options = $this->download_options;
-        $options['expire_seconds'] = false;
-        if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$vtaxon_id, $options)) {
-            $arr = json_decode($json, true); // print_r($arr); exit;
-            return trim($arr['scientificname']." ".$arr['authority']);
-        }
-        exit("\nid not found [$vtaxon_id]\n");
-        return false;
-    }
     private function add_association($param)
     {   $basename = pathinfo($param['predicate'], PATHINFO_BASENAME); //e.g. RO_0002454
         $taxon_id = $param['source_taxon_id'];
@@ -1840,6 +1894,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // [scientificname] => Chromista
             // [parent_id] => 1
             if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$taxon['AphiaID'], $this->download_options)) {
+                exit("\nlookup 2\n");
                 $arr = json_decode($json, true);
                 // print_r($arr);
                 // [valid_AphiaID] => 1

@@ -61,11 +61,16 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->debug = array();
         
         /* start DATA-1827 below */
-        $this->match2mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/worms_mapping1.csv';      //old
+        // $this->match2mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/worms_mapping1.csv';      //old
+        // $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/metastats-csv.tsv';       //old
+
         $this->match2mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/worms_mapping_ver2.csv';  //latest Mar 2026
-        $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/metastats-csv.tsv';       //old
         $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/Feb2020/metastats-2.tsv'; //latest Feb 2020
         //mapping from here: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63730&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63730
+
+        // Exclusive mapping for WoRMS only
+        $this->native_intro_mapping = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/WoRMS_native_intro_mapping.txt';
+
         $this->BsD_URI['length']                = 'http://purl.obolibrary.org/obo/CMO_0000013';
         $this->BsD_URI['total length (tl)']     = 'http://purl.obolibrary.org/obo/CMO_0000013';
         $this->BsD_URI['corresponding length']  = 'http://purl.obolibrary.org/obo/CMO_0000013';
@@ -227,8 +232,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         /*
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
         */
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function process_extension($meta, $what)
     {   //print_r($meta);
@@ -398,14 +403,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 if($mTypeURL = self::get_uri_from_value($mType, 'mType', 'numeric value measurement')) {
                     $this->func->pre_add_string_types($save, $mValue, $mTypeURL, "true");
                 }
-                else $this->debug['MoF numeric value. No mType URI'][$mType] = '';
             }
             else { //non-numeric measurement value
                 if($mTypeURL = self::get_uri_from_value($mType, 'mType', 'non-numeric value measurement')) {
                     if($mValueURL = self::get_uri_from_value($mValue, 'mValue', 'wala')) $this->func->pre_add_string_types($save, $mValueURL, $mTypeURL, "true");
-                    else $this->debug['No URIs'][$mValue] = '';
                 }
-                else $this->debug['MoF non-numeric value. No mType URI'][$mType] = '';
             }
         }
     }
@@ -464,7 +466,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         echo "\nURIs total A: ".count($uris)."\n";
         
         // /* exclusive mapping for WoRMS only
-        $url = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/WoRMS_native_intro_mapping.txt';
+        $url = $this->native_intro_mapping;
         $uris = Functions::additional_mappings($uris, 60*60*24, $url); //add a single mapping. 2nd param is expire_seconds
         // */
         echo "\nURIs total B: ".count($uris)."\n"; //print_r($uris);
@@ -566,18 +568,18 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
         return false;
     }
-    private function get_uri_from_value($val, $what, $what2)
+    private function get_uri_from_value($val, $type_or_value, $what2)
     {   if(is_numeric($val)) return $val;
         $orig = $val;
         $val = trim(strtolower($val));
         if($uri = @$this->value_uri_map[$val]) return $uri;
         elseif($uri = @$this->value_uri_map[$orig]) return $uri;
         else {
-            $this->debug['No URI']["[$orig]--($what)--($what2)"] = ''; //log only non-numeric values
-            return $orig;
+            $this->debug["No URI - $type_or_value"]["[$orig]--($type_or_value)--($what2)"] = ''; //log only non-numeric values
+            if($type_or_value == 'mType') return false;
+            if($type_or_value == 'mValue') return $orig;
         }
     }
-
     // ####################################################################################################################
     // ========================================================================================== below is copied template
     // ####################################################################################################################

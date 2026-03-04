@@ -382,20 +382,19 @@ class GenerateCSV_4EOLNeo4j
         }
         fclose($WRITE);        
     }
-    private function remove_quote_delimiters($str)
-    {
-        if($str) {
-            // $str = "'123456'"; // $str = '"123456"';
-            $str = trim($str); // echo("\norig: [$str]\n");
-            $first = substr($str,0,1);
-            $last = substr($str, -1); // echo("\n[$first] [$last]\n");
-            if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
-            if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
-            // exit("\nfinal: [$str]\n");
-        }
-        return $str;
-    }
-
+    // private function remove_quote_delimiters($str)
+    // {
+    //     if($str) {
+    //         // $str = "'123456'"; // $str = '"123456"';
+    //         $str = trim($str); // echo("\norig: [$str]\n");
+    //         $first = substr($str,0,1);
+    //         $last = substr($str, -1); // echo("\n[$first] [$last]\n");
+    //         if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
+    //         if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
+    //         // exit("\nfinal: [$str]\n");
+    //     }
+    //     return $str;
+    // }
     private function prepare_Parent_Term_and_Synonym_Of_Edges_csv()
     {
         require_library('connectors/EOLterms_ymlAPI');
@@ -412,11 +411,11 @@ class GenerateCSV_4EOLNeo4j
             // $rec = array_map('trim', $rec);
             $rek = array();
             $rek['uri'] = $rec['uri'];
-            $rek['name'] = self::remove_quote_delimiters($rec['name']);   //%/month
+            $rek['name'] = Functions::remove_quote_delimiters($rec['name']);   //%/month
             $rek['type'] = $rec['type'];   //"measurement", "association", "value", and "metadata"
-            $rek['definition'] = self::remove_quote_delimiters($rec['definition']);   //
+            $rek['definition'] = Functions::remove_quote_delimiters($rec['definition']);   //
             $rek['comment'] = ''; //EOL curator note
-            $rek['attribution'] = self::remove_quote_delimiters(@$rec['attribution']);
+            $rek['attribution'] = Functions::remove_quote_delimiters(@$rec['attribution']);
             $rek['section_ids'] = ''; //from webpage
             $rek['is_hidden_from_overview'] = $rec['is_hidden_from_overview'];   //
             $rek['is_hidden_from_glossary'] = $rec['is_hidden_from_glossary'];   //

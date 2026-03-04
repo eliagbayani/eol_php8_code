@@ -112,7 +112,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->fType_URI['epizoic']['rev']          = 'http://purl.obolibrary.org/obo/RO_0002453';
         $this->fType_URI['kleptivore']['rev']       = 'http://purl.obolibrary.org/obo/RO_0008504';
         $this->real_parents = array('AMBI ecological group', 'Body size', 'Body size (qualitative)', 'Feedingtype', 'Fossil range', 'Functional group', 'Paraphyletic group', 'Species importance to society', 'Supporting structure & enclosure');
-        $this->real_parents = array("AMBI ecological group", "Asexual reproduction", "Body shape", "Body size", "Body size (qualitative)", "Brooding", "Calcification", "Cytomorphology", "Development", "Dispersion mode", "Ecological interactions", "Environmental position", "Etymology classification", "Feeding method", "Fossil range", "Functional group", "Gamete type", "Gametophyte arrangement", "Generation time", "Life cycle", "Life span", "Mobility", "Modes of reproduction", "Nomenclature code", "Paraphyletic group", "Plant habit", "Reproductive frequency", "Sociability", "Spawning", "Species exhibits underwater soniferous behaviour", "Species importance to society", "Supporting structure & enclosure", "Thallus vertical space used", "Tolerance to pollutants", "Trophic level", "Zonation");
+        $this->real_parents = array("AMBI ecological group", "Asexual reproduction", "Body shape", "Body size", "Body size (qualitative)", "Brooding", "Calcification", "Cytomorphology", "Development", "Dispersion mode", 
+        "Ecological interactions", 
+        "Environmental position", "Etymology classification", 
+        "Feeding method", "Fossil range", 
+        "Functional group", "Gamete type", "Gametophyte arrangement", "Generation time", "Life cycle", "Life span", "Mobility", "Modes of reproduction", "Nomenclature code", "Paraphyletic group", "Plant habit", "Reproductive frequency", "Sociability", "Spawning", "Species exhibits underwater soniferous behaviour", "Species importance to society", "Supporting structure & enclosure", "Thallus vertical space used", "Tolerance to pollutants", "Trophic level", "Zonation");
 
         // formerly 'Feedingtype'
         $this->exclude_mType_mValue['Ecological interactions']['commensal'] = '';
@@ -123,7 +127,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->exclude_mType_mValue['Feeding method']['selective'] = '';
         $this->exclude_mType_mValue['Feeding method']['non-selective'] = '';
         $this->exclude_mType_mValue['Environmental position']['epizoic'] = '';
-
         // formerly 'Functional group' {no change}
         $this->exclude_mType_mValue['Functional group']['macro'] = '';
         $this->exclude_mType_mValue['Functional group']['meso'] = '';
@@ -189,27 +192,36 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     function start()
     {   
         self::initialize();
-
         /* un-comment in real operation
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
         $paths = $func->extract_archive_file($this->dwca_file, "meta.xml", array('timeout' => 172800, 'expire_seconds' => true)); //true means it will re-download, will not use cache. Set TRUE when developing
         // print_r($paths); exit;
         */
+        // /* dev only
         $paths['archive_path'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_59440/';
         $paths['temp_dir'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_59440/';
-
+        // */
         $archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
         $harvester = new ContentArchiveReader(NULL, $archive_path);
         $tables = $harvester->tables;
         print_r(array_keys($tables));
+        if($meta_MoF = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) {}
+        else exit("\nERROR: No MoF extension. Please investigate.\n");
         
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'write_taxon'); //PofMO
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'before_MoF');
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'prepare_MoF');
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_extension($meta, 'write_MoF');
-        
+        $meta_taxon = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
+
+        self::process_extension($meta_MoF, 'before_MoF');
+        self::process_extension($meta_MoF, 'prepare_MoF');
+        self::process_extension($meta_MoF, 'write_MoF');
+
+        unset($this->childOf); unset($this->parentOf); unset($this->ToExcludeMeasurementIDs);
+        unset($this->BodysizeDimension); unset($this->FeedingType); unset($this->lifeStageOf); unset($this->measurementIDz);
+
+            
+
         $this->archive_builder->finalize(TRUE);
 
         // remove temp dir
@@ -296,9 +308,12 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $mID = $rec['measurementID'];
         $parentMID = $rec['parentMeasurementID'];
         $this->parentOf[$mID] = $parentMID;
+        if($parentMID) $this->childOf[$parentMID] = $mID;
     }
     private function prepare_MoF($rec)
-    {   /*Array(
+    {   
+        self::get_mIDs_2exclude($rec);
+        /*Array(
             [MeasurementOrFact] => 769244       --> this is the AphiaID in the measurementorfact.txt. Which is the taxonID
             [measurementID] => 17679_769244
             [parentMeasurementID] => 
@@ -335,11 +350,22 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $this->child_of_parent[$super_parent][strtolower($child_mType)] = $mValue;
             }
         }
+        // --------------------------------------------
+        //this is to store URI map. this->childOf and this->BodysizeDimension will work hand in hand later on.
+        if($mType == 'Body size > Dimension') {
+            $super_parent = self::get_super_parent($mID);
+            $this->BodysizeDimension[$super_parent] = $this->BsD_URI[strtolower($mValue)];
+        }
+        // --------------------------------------------
+        // --------------------------------------------
     }
     private function write_MoF($rec)
     {
+        $mID = $rec['measurementID'];
+        if(isset($this->ToExcludeMeasurementIDs[$mID])) return;
+
         $parentMID = trim($rec['parentMeasurementID']);
-        if(!$parentMID) { //no parent ID means a parent MoF
+        if(!$parentMID) { //no parent ID means a parent MoF; not a child
             self::proceed_save_mof($rec);
         }
     }
@@ -363,6 +389,15 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         if($val = @$this->child_of_parent[$mID]['sex'])         $save['occur']['sex'] = self::get_uri_from_value($val, 'mValue', 'sex');
 
         $cont_save_child_MoF_YN = false;
+
+        // --------------------------------------------------
+        if($mType == 'Body size') {                       //e.g. 528452_768436 measurementID
+
+            // $super_child = self::get_super_child($mID);   //e.g. 528458_768436
+            $mTypev = @$this->BodysizeDimension[$mID];
+            if(!$mTypev) $mTypev = 'http://purl.obolibrary.org/obo/OBA_VT0100005'; //feedback from Jen: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63749&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63749
+        }
+        // --------------------------------------------------
 
         if($info = @$this->match2map[$mType][$mValue]) { //$this->match2map came from a CSV mapping file
             /*Array( $info
@@ -651,6 +686,56 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             else return $current;
         }
     }
+    private function get_children_of_MoF($mID)
+    {
+        $final = array();
+        while(true) {
+            if($child = @$this->childOf[$mID]) {
+                $final[$child] = '';
+                $mID = $child;
+            }
+            else break;
+        }
+        return array_keys($final);
+    }
+    private function get_mIDs_2exclude($rec)
+    {   /*Array(
+            [MeasurementOrFact] => 1054700
+            [measurementID] => 2687300_1054700
+            [parentMeasurementID] => 
+            [measurementType] => Nomenclature code
+            [measurementValueID] => 
+            [measurementValue] => The International Code of Zoological Nomenclature (ICZN)
+            [measurementUnit] => 
+            [measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:2
+        )*/
+        $mID = $rec['measurementID'];
+        $mType = $rec['measurementType'];
+        $mValue = $rec['measurementValue'];
+        $measurementAccuracy = $rec['measurementAccuracy'];
+        
+        // /* 1st criteria for deletion
+        if(isset($this->exclude_mType_mValue[$mType][$mValue])) {
+            $this->ToExcludeMeasurementIDs[$mID] = '';
+            if($children = self::get_children_of_MoF($mID)) { //print_r($children); exit("\nchildren of $mID\n");
+                foreach($children as $child) $this->ToExcludeMeasurementIDs[$child] = '';
+            }
+            if($child = @$this->childOf[$mID]) $this->ToExcludeMeasurementIDs[$child] = '';
+        }
+        // */
+                
+        /* 2nd criteria for deletion: per https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=67036&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67036
+        To start with, let's filter out all records with measurementMethod = inherited from urn:lsid:marinespecies.org:taxname:558, Porifera Grant, 1836
+        */
+        if($measurementAccuracy == 'inherited from urn:lsid:marinespecies.org:taxname:558') {
+            $this->ToExcludeMeasurementIDs[$mID] = '';
+            if($child = @$this->childOf[$mID]) $this->ToExcludeMeasurementIDs[$child] = '';
+            if($children = self::get_children_of_MoF($mID)) {
+                foreach($children as $child) $this->ToExcludeMeasurementIDs[$child] = '';
+            }
+        }
+        // */
+    }
     // ####################################################################################################################
     // ========================================================================================== below is copied template
     // ####################################################################################################################
@@ -762,152 +847,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         if($val = @$this->eol_terms_value_uri[$measurementValue]) return $val;
         if($val = @$this->eol_terms_value_uri[strtolower($measurementValue)]) return $val;        
     }
-    private function build_parentOf_childOf_data($meta) // parentOf not used so far
-    {   $i = 0;
-        foreach(new FileIterator($meta->file_uri) as $line => $row) {
-            $i++; if(($i % 500000) == 0) echo "\n".number_format($i);
-            if($meta->ignore_header_lines && $i == 1) continue;
-            if(!$row) continue;
-            // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
-            $tmp = explode("\t", $row);
-            $rec = array(); $k = 0;
-            foreach($meta->fields as $field) {
-                /* old x
-                if(!$field['term']) continue;
-                $rec[$field['term']] = $tmp[$k];
-                $k++;
-                */
-                // /* new May 11, 2021
-                $term = @$field['term'];
-                $rec[$term] = @$tmp[$k];
-                $k++;
-                // */
-            } //print_r($rec); exit("\nelix 3\n");
-            // $rec = array_map('trim', $rec); //cannot do this anymore in PHP 8.
-            $rec = Functions::array_map_eol($rec);
-            // print_r($rec); exit;
-            /*Array(
-                [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 1054700
-                [http://rs.tdwg.org/dwc/terms/measurementID] => 286376_1054700
-                [parentMeasurementID] => 
-                [http://rs.tdwg.org/dwc/terms/measurementType] => Functional group
-                [http://rs.tdwg.org/dwc/terms/measurementValueID] => 
-                [http://rs.tdwg.org/dwc/terms/measurementValue] => benthos
-                [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
-                [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
-            )*/
-
-            // /* stats for Jen & Katja: Feb 27, 2026
-            self::stats_for_JenKatja_Feb2026($rec);
-            // */                
-            
-            /* for stats only - comment in real operation
-            if($rec['parentMeasurementID']) $withParentYN = 'with_Parent';
-            else                            $withParentYN = 'without_Parent';
-            $all_mtypes[$rec['http://rs.tdwg.org/dwc/terms/measurementType']][$withParentYN] = '';
-            */
-
-            if($mValue = @$rec['http://rs.tdwg.org/dwc/terms/measurementValue']) {
-                $mValue = strtolower($mValue);
-            }
-            else continue;
-            $measurementType = @$rec['http://rs.tdwg.org/dwc/terms/measurementType'];
-            $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-            
-            $this->parentOf[$measurementID] = @$rec['parentMeasurementID'];
-            if($parent = @$rec['parentMeasurementID']) { //there is parent; meaning this is a child MoF
-                $this->childOf[$parent] = $measurementID;
-                $this->debug['new_child_mtypes_2026'][$measurementType] = '';
-                if(!is_numeric($mValue)) $this->debug['child mtypes non-numeric values'][$measurementType][$mValue] = '';
-            }
-            else $this->debug['parent MoFs'][$measurementType] = '';
-            
-            //this is to store URI map. this->childOf and this->BodysizeDimension will work hand in hand later on.
-            if($measurementType == 'Body size > Dimension') {
-                $this->BodysizeDimension[$measurementID] = $this->BsD_URI[$mValue];
-            }
-            if($measurementType == 'Feedingtype') {
-                $this->FeedingType[$measurementID] = $mValue;
-            }
-            
-            // /* New: Feb 23, 2026
-            if($measurementType) {
-                if(stripos($measurementType, "> Life stage") !== false)         $this->lifeStageOf[$rec['parentMeasurementID']] = $mValue; //found string
-                if(stripos($measurementType, "> Sex") !== false)                $this->sexOf[$rec['parentMeasurementID']] = $mValue; //found string
-                if(stripos($measurementType, "> Locality (MRGID)") !== false)   $this->localityOf[$rec['parentMeasurementID']] = $mValue; //found string
-            }
-            // */
-
-            $this->measurementIDz[$measurementID] = '';
-        }
-        // ksort($all_mtypes); print_r($all_mtypes); exit; -- for stats only
-        /* just testing
-        // exit("\nsuper parent of [528458_768436]: ".self::get_super_parent('528458_768436')."\n");
-        // $super_child = self::get_super_child('528452_768436'); exit("\nsuper child of [528452_768436]: ".$super_child."\n".$this->BodysizeDimension[$super_child]."\n");
-        // exit("\nsuper parent of [168362_141433]: ".self::get_super_parent('168362_141433')."\n"); //super parent should be: 168359_141433 OK result
-        */
-    }
-    private function get_mIDs_2exclude($meta)
-    {   $i = 0;
-        foreach(new FileIterator($meta->file_uri) as $line => $row) {
-            $i++; if(($i % 500000) == 0) echo "\n".number_format($i);
-            if($meta->ignore_header_lines && $i == 1) continue;
-            if(!$row) continue;
-            // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
-            $tmp = explode("\t", $row);
-            $rec = array(); $k = 0;
-            foreach($meta->fields as $field) {
-                /* old x
-                if(!$field['term']) continue;
-                $rec[$field['term']] = $tmp[$k];
-                $k++;
-                */
-                // /* new May 11, 2021
-                $term = @$field['term'];
-                $rec[$term] = @$tmp[$k];
-                $k++;
-                // */
-            }
-            // print_r($rec); exit;
-            /*Array(
-                [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 1054700
-                [http://rs.tdwg.org/dwc/terms/measurementID] => 286376_1054700
-                [parentMeasurementID] => 
-                [http://rs.tdwg.org/dwc/terms/measurementType] => Functional group
-                [http://rs.tdwg.org/dwc/terms/measurementValueID] => 
-                [http://rs.tdwg.org/dwc/terms/measurementValue] => benthos
-                [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
-                [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
-                                                                      inherited from urn:lsid:marinespecies.org:taxname:558
-            )*/
-            $mID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-            $mType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
-            $mValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
-            $measurementAccuracy = $rec['http://rs.tdwg.org/dwc/terms/measurementAccuracy'];
-            
-            // /* 1st criteria for deletion
-            if(isset($this->exclude_mType_mValue[$mType][$mValue])) {
-                $this->ToExcludeMeasurementIDs[$mID] = '';
-                if($child = @$this->childOf[$mID]) $this->ToExcludeMeasurementIDs[$child] = '';
-            }
-            // */
-            
-            // /* 2nd criteria for deletion: per https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=67036&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67036
-            /*
-            To start with, let's filter out all records with measurementMethod = inherited from urn:lsid:marinespecies.org:taxname:558, Porifera Grant, 1836
-            */
-            if($measurementAccuracy == 'inherited from urn:lsid:marinespecies.org:taxname:558') {
-                $this->ToExcludeMeasurementIDs[$mID] = '';
-                if($child = @$this->childOf[$mID]) $this->ToExcludeMeasurementIDs[$child] = '';
-            }
-            // */
-        }
-    }
     private function get_super_child($id)
     {   $current = '';
         while(true) {
-            if($parent = @$this->childOf[$id]) {
-                $current = $parent;
+            if($child = @$this->childOf[$id]) {
+                $current = $child;
                 $id = $current;
             }
             else return $current;

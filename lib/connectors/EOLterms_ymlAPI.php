@@ -48,7 +48,7 @@ class EOLterms_ymlAPI
                         [type] => value
                         [uri] => https://www.wikidata.org/entity/Q747463
                     )*/
-                    $name = self::remove_quote_delimiters($rek['name']);
+                    $name = Functions::remove_quote_delimiters($rek['name']);
                     if($sought_type == 'ALL')               $final[$name] = $rek['uri'];
                     elseif($sought_type == 'neo4j') {
                         if(in_array(@$rek['type'], array('measurement', 'association'))) {
@@ -87,17 +87,17 @@ class EOLterms_ymlAPI
         print_r($this->debug); //just for stats
         return $final;
     } //end get_terms_yml()
-    private function remove_quote_delimiters($str)
-    {
-        // $str = "'123456'"; // $str = '"123456"';
-        $str = trim($str); // echo("\norig: [$str]\n");
-        $first = substr($str,0,1);
-        $last = substr($str, -1); // echo("\n[$first] [$last]\n");
-        if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
-        if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
-        // exit("\nfinal: [$str]\n");
-        return $str;
-    }
+    // private function remove_quote_delimiters($str)
+    // {
+    //     // $str = "'123456'"; // $str = '"123456"';
+    //     $str = trim($str); // echo("\norig: [$str]\n");
+    //     $first = substr($str,0,1);
+    //     $last = substr($str, -1); // echo("\n[$first] [$last]\n");
+    //     if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
+    //     if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
+    //     // exit("\nfinal: [$str]\n");
+    //     return $str;
+    // }
     function convert_EOL_Terms_2array()
     {
         $yaml_string = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options);
@@ -146,11 +146,11 @@ class EOLterms_ymlAPI
                     units_term_uri:*/
                     $rek = array();
                     if(preg_match("/uri\: (.*?)\n/ims", $block, $a)) $rek['uri'] = trim($a[1]);     //http://eol.org/schema/terms/percentPerMonth
-                    if(preg_match("/name\: (.*?)\n/ims", $block, $a)) $rek['name'] = self::remove_quote_delimiters(trim($a[1]));   //%/month
+                    if(preg_match("/name\: (.*?)\n/ims", $block, $a)) $rek['name'] = Functions::remove_quote_delimiters(trim($a[1]));   //%/month
                     if(preg_match("/type\: (.*?)\n/ims", $block, $a)) $rek['type'] = trim($a[1]);   //"measurement", "association", "value", and "metadata"
-                    if(preg_match("/definition\: (.*?)\n/ims", $block, $a)) $rek['definition'] = self::remove_quote_delimiters(trim($a[1]));   //
+                    if(preg_match("/definition\: (.*?)\n/ims", $block, $a)) $rek['definition'] = Functions::remove_quote_delimiters(trim($a[1]));   //
                     $rek['comment'] = ''; //EOL curator note
-                    if(preg_match("/elicha(.*?)\n/ims", "elicha".$block, $a)) $rek['attribution'] = self::remove_quote_delimiters(trim($a[1]));
+                    if(preg_match("/elicha(.*?)\n/ims", "elicha".$block, $a)) $rek['attribution'] = Functions::remove_quote_delimiters(trim($a[1]));
                     $rek['section_ids'] = ''; //from webpage
                     if(preg_match("/is_hidden_from_overview\: (.*?)\n/ims", $block, $a)) $rek['is_hidden_from_overview'] = trim($a[1]);   //
                     if(preg_match("/is_hidden_from_glossary\: (.*?)\n/ims", $block, $a)) $rek['is_hidden_from_glossary'] = trim($a[1]);   //

@@ -337,6 +337,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $mID = $rec['measurementID'];
         $mType = $rec['measurementType'];
         $mValue = $rec['measurementValue'];
+        $mValueID = $rec['measurementValueID'];
         $parentMID = $rec['parentMeasurementID'];
         // if(stripos($mType, "Functional group") !== false) print_r($rec) //found string //debug only
 
@@ -347,6 +348,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $parent_mType = $arr[0]; //e.g. 'Functional group'
                 $child_mType = $arr[1]; //e.g. 'Life stage'
                 $super_parent = self::get_super_parent($parentMID);
+                // /*
+                if($part == ' > Locality (MRGID)') $mValue = Functions::valid_uri_url($mValueID) ? $mValueID : $mValue; //WoRMS provides URI for their locality.
+                // */
                 $this->child_of_parent[$super_parent][strtolower($child_mType)] = $mValue;
             }
         }
@@ -450,7 +454,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $mTypev = $this->schema_uri['locality'];
                 self::add_child_mof($val, $mTypev, $mID);
             }
-            /* don't add child MoF for sex; since we are now adding a col in Occurrence for sex.
+            /* Works OK. But don't add child MoF for sex; since we are now adding a col in Occurrence for sex.
             if($val = @$this->child_of_parent[$mID]['sex']) {
                 $mTypev = $this->schema_uri['sex'];
                 self::add_child_mof($val, $mTypev, $mID);

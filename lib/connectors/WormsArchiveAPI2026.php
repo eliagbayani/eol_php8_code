@@ -6,9 +6,6 @@ Connector downloads the archive file, extracts, reads it, assembles the data and
 
 http://www.marinespecies.org/rest/#/
 http://www.marinespecies.org/aphia.php?p=taxdetails&id=9
-
-uri: http://rs.tdwg.org/dwc/terms/sex
-uri: http://rs.tdwg.org/dwc/terms/lifeStage
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -131,6 +128,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->exclude_mType_mValue['Functional group']['macro'] = '';
         $this->exclude_mType_mValue['Functional group']['meso'] = '';
         $this->exclude_mType_mValue['Functional group']['not applicable'] = '';
+
+        $this->schema_uri['locality']   = 'http://rs.tdwg.org/dwc/terms/locality';
+        $this->schema_uri['sex']        = 'http://rs.tdwg.org/dwc/terms/sex';
+        $this->schema_uri['lifeStage']  = 'http://rs.tdwg.org/dwc/terms/lifeStage';
     }
     private function init_contributor_info()
     {
@@ -358,13 +359,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $save = self::adjustments_4_measurementAccuracy($save, $rec);
         $save['measurementUnit'] = self::format_measurementUnit($rec); //no instruction here
 
-        if($val = @$this->child_of_parent[$mID]['life stage'])       $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
-        if($val = @$this->child_of_parent[$mID]['sex']) {
-
-            $save['occur']['sex'] = self::get_uri_from_value($val, 'mValue', 'sex');
-            // print_r($save); exit("\nhuli 100\n");
-            $this->debug['saved sex'][$mType][$save['occur']['sex']] = '';
-        }
+        if($val = @$this->child_of_parent[$mID]['life stage'])  $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
+        if($val = @$this->child_of_parent[$mID]['sex'])         $save['occur']['sex'] = self::get_uri_from_value($val, 'mValue', 'sex');
 
         $cont_save_child_MoF_YN = false;
 
@@ -416,16 +412,17 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
         if($cont_save_child_MoF_YN) {
             if($val = @$this->child_of_parent[$mID]['locality (mrgid)']) {
-                $mTypev = 'http://rs.tdwg.org/dwc/terms/locality';
+                $mTypev = $this->schema_uri['locality'];
                 self::add_child_mof($val, $mTypev, $mID);
             }
+            /* don't add child MoF for sex; since we are now adding a col in Occurrence for sex.
             if($val = @$this->child_of_parent[$mID]['sex']) {
-                $mTypev = 'http://rs.tdwg.org/dwc/terms/sex';
-                // print_r($rec); exit("\neli 1\n");
+                $mTypev = $this->schema_uri['sex'];
                 self::add_child_mof($val, $mTypev, $mID);
-            }
+            }*/
         }
     }
+
     private function add_child_mof($val_string, $mTypev, $mID)
     {   /* write child record in MoF: SampleSize
         child record in MoF:
@@ -1206,10 +1203,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 if($mValuev == 'FILTER OUT') continue; //with case already in metastats-2.tsv
                 // */
 
-                if(stripos($mTypev, "> Life stage") !== false)       $mTypev = 'http://rs.tdwg.org/dwc/terms/lifeStage'; //found string
-                if(stripos($mTypev, "> Sex") !== false)              $mTypev = 'http://rs.tdwg.org/dwc/terms/sex'; //found string
+                if(stripos($mTypev, "> Life stage") !== false)       $mTypev = $this->schema_uri['lifeStage']; //found string
+                if(stripos($mTypev, "> Sex") !== false)              $mTypev = $this->schema_uri['sex']; //found string
                 // Body size > Locality (MRGID)
-                if(stripos($mTypev, "> Locality (MRGID)") !== false) $mTypev = 'http://rs.tdwg.org/dwc/terms/locality'; //found string                
+                if(stripos($mTypev, "> Locality (MRGID)") !== false) $mTypev = $this->schema_uri['locality']; //found string                
 
                 $this->debug['Child MoF recs']["($mTypev)-($mValuev)"] = '';            
 
@@ -2029,11 +2026,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $arr = explode(">", $measurementType);
                 if(stripos($measurementType, "> Locality (MRGID)") !== false) { //found string
                     $this->localities[$measurementValue] = '';
-                    $measurementValue = 'List of localities. See separate file. [http://rs.tdwg.org/dwc/terms/locality]';
+                    $measurementValue = 'List of localities. See separate file. ['.$this->schema_uri['locality'].']';
                 }
                 elseif(stripos($measurementType, "> Life stage") !== false) { //found string
                     $this->lifestages[$measurementValue] = '';
-                    $measurementValue = 'List of life stages. See separate file. [http://rs.tdwg.org/dwc/terms/lifeStage]';
+                    $measurementValue = 'List of life stages. See separate file. ['.$this->schema_uri['lifeStage'].']';
                 }
                 if($measurementType == 'Ecological interactions > Host') $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"]['List of taxa e.g. Saurida gracilis'] = '';
                 elseif($measurementType == 'Feeding method > Food source') $this->for_study[trim($arr[0])]["$measurementType (Child MoF)"]['List of taxa e.g. Bucephaloides gracilescens'] = '';                    

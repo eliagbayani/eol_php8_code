@@ -1894,7 +1894,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // [scientificname] => Chromista
             // [parent_id] => 1
             if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$taxon['AphiaID'], $this->download_options)) {
-                exit("\nlookup 2\n");
                 $arr = json_decode($json, true);
                 // print_r($arr);
                 // [valid_AphiaID] => 1

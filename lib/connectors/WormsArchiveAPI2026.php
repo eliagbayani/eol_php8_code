@@ -219,7 +219,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         unset($this->childOf); unset($this->parentOf); unset($this->ToExcludeMeasurementIDs);
         unset($this->BodysizeDimension); unset($this->FeedingType); unset($this->lifeStageOf); unset($this->measurementIDz);
 
-        /* PofMO
+        // /* PofMO
         // echo "\n5 of 8";  self::get_references($harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference'));
         // echo "\n6 of 8";  self::get_agents($harvester->process_row_type('http://eol.org/schema/agent/Agent'));
         // echo "\n7 of 8";  self::get_vernaculars($harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'));
@@ -229,7 +229,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         echo "\n6 of 8"; self::process_fields($records, "agent");
         $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName');
         echo "\n7 of 8"; self::process_fields($records, "vernacular");
-        */
+        // */
             
         $this->archive_builder->finalize(TRUE);
 

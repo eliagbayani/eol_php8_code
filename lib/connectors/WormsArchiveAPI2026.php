@@ -1280,11 +1280,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 continue;
             }
             // echo "*[$identifier]*";
-            continue; //debug only --- not PofMO
+            // continue; //debug only --- not PofMO
             
             // /* start new ticket DATA-1767: https://eol-jira.bibalex.org/browse/DATA-1767?focusedCommentId=62884&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-62884
-            $title       = $rec["http://purl.org/dc/terms/title"];
-            $description = $rec["http://purl.org/dc/terms/description"];
+            $title       = $rec["title"];
+            $description = $rec["description"];
             if($title == "Fossil species" && $description != "fossil only") continue;
             if($title == "Fossil species" && $description == "fossil only") {
                 // print_r($rec); exit;
@@ -1324,22 +1324,22 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $mr->taxonID        = $rec["taxon_id"];
             $mr->identifier     = $identifier;
             $mr->type           = $type;
-            $mr->subtype        = (string) $rec["http://rs.tdwg.org/audubon_core/subtype"];
-            $mr->Rating         = (string) $rec["http://ns.adobe.com/xap/1.0/Rating"];
-            $mr->audience       = (string) $rec["http://purl.org/dc/terms/audience"];
-            if($val = trim((string) $rec["http://purl.org/dc/terms/language"])) $mr->language = $val;
+            $mr->subtype        = (string) $rec["subtype"];
+            $mr->Rating         = (string) $rec["Rating"];
+            $mr->audience       = (string) $rec["audience"];
+            if($val = trim((string) $rec["language"])) $mr->language = $val;
             else                                                                $mr->language = "en";
-            $mr->format         = (string) $rec["http://purl.org/dc/terms/format"];
-            $mr->title          = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["http://purl.org/dc/terms/title"]);
+            $mr->format         = (string) $rec["format"];
+            $mr->title          = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["title"]);
             $this->debug['WoRMS titles'][$mr->title] = '';
-            $mr->CVterm         = (string) $rec["http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/CVterm"];
-            $mr->creator        = (string) $rec["http://purl.org/dc/terms/creator"];
-            $mr->CreateDate     = (string) $rec["http://ns.adobe.com/xap/1.0/CreateDate"];
-            $mr->modified       = (string) $rec["http://purl.org/dc/terms/modified"];
-            $mr->Owner          = (string) $rec["http://ns.adobe.com/xap/1.0/rights/Owner"];
-            $mr->rights         = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["http://purl.org/dc/terms/rights"]);
-            $mr->UsageTerms     = (string) $rec["http://ns.adobe.com/xap/1.0/rights/UsageTerms"];
-            $mr->description    = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["http://purl.org/dc/terms/description"]);
+            $mr->CVterm         = (string) $rec["CVterm"];
+            $mr->creator        = (string) $rec["creator"];
+            $mr->CreateDate     = (string) $rec["CreateDate"];
+            $mr->modified       = (string) $rec["modified"];
+            $mr->Owner          = (string) $rec["Owner"];
+            $mr->rights         = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["rights"]);
+            $mr->UsageTerms     = (string) $rec["UsageTerms"];
+            $mr->description    = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["description"]);
 
             if($mr->format == "text/html") {
                 if(!$mr->description) continue;
@@ -1348,16 +1348,16 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             /* removed bibCite Oct 18, 2023
             $mr->bibliographicCitation = (string) $rec["http://purl.org/dc/terms/bibliographicCitation"];
             */
-            $mr->derivedFrom     = (string) $rec["http://rs.tdwg.org/ac/terms/derivedFrom"];
-            $mr->LocationCreated = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["http://iptc.org/std/Iptc4xmpExt/1.0/xmlns/LocationCreated"]);
-            $mr->spatial         = (string) $rec["http://purl.org/dc/terms/spatial"];
-            $mr->lat             = (string) $rec["http://www.w3.org/2003/01/geo/wgs84_pos#lat"];
-            $mr->long            = (string) $rec["http://www.w3.org/2003/01/geo/wgs84_pos#long"];
-            $mr->alt             = (string) $rec["http://www.w3.org/2003/01/geo/wgs84_pos#alt"];
-            $mr->publisher      = (string) $rec["http://purl.org/dc/terms/publisher"];
-            $mr->contributor    = (string) $rec["http://purl.org/dc/terms/contributor"];
+            $mr->derivedFrom     = (string) $rec["derivedFrom"];
+            $mr->LocationCreated = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["LocationCreated"]);
+            $mr->spatial         = (string) $rec["spatial"];
+            $mr->lat             = (string) $rec["wgs84_pos#lat"];
+            $mr->long            = (string) $rec["wgs84_pos#long"];
+            $mr->alt             = (string) $rec["wgs84_pos#alt"];
+            $mr->publisher      = (string) $rec["publisher"];
+            $mr->contributor    = (string) $rec["contributor"];
             
-            if($agentID = (string) $rec["http://eol.org/schema/agent/agentID"]) {
+            if($agentID = (string) $rec["agentID"]) {
                 $ids = explode(",", $agentID); // not sure yet what separator Worms used, comma or semicolon - or if there are any
                 if(count($ids) == 1) $ids = explode("_", $agentID);
                 $agent_ids = array();
@@ -1365,11 +1365,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $mr->agentID = implode("; ", $agent_ids);
             }
 
-            if($referenceID = self::prepare_reference((string) $rec["http://eol.org/schema/reference/referenceID"])) $mr->referenceID = self::use_correct_separator($referenceID);
+            if($referenceID = self::prepare_reference((string) $rec["referenceID"])) $mr->referenceID = self::use_correct_separator($referenceID);
             
             if($mr->type != "http://purl.org/dc/dcmitype/Text") {
-                $mr->accessURI      = self::complete_url((string) $rec["http://rs.tdwg.org/ac/terms/accessURI"]);
-                $mr->thumbnailURL   = (string) $rec["http://eol.org/schema/media/thumbnailURL"];
+                $mr->accessURI      = self::complete_url((string) $rec["accessURI"]);
+                $mr->thumbnailURL   = (string) $rec["thumbnailURL"];
                 // below as of Oct 12, 2023
                 if(!$mr->format) $mr->format = Functions::get_mimetype($mr->accessURI);
                 if(!$mr->format) {
@@ -1378,8 +1378,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 }
             }
             
-            if($source = (string) $rec["http://rs.tdwg.org/ac/terms/furtherInformationURL"]) $mr->furtherInformationURL = self::complete_url($source);
-            else                                                                             $mr->furtherInformationURL = $this->taxon_page . $mr->taxonID;
+            if($source = (string) $rec["furtherInformationURL"]) $mr->furtherInformationURL = self::complete_url($source);
+            else                                                 $mr->furtherInformationURL = $this->taxon_page . $mr->taxonID;
             
             if(!isset($this->object_ids[$mr->identifier])) {
                 $this->object_ids[$mr->identifier] = '';
@@ -1389,8 +1389,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function additional_traits_DATA_1767($rec, $mval, $mtype)
     {
-        $rec["http://rs.tdwg.org/ac/terms/accessURI"] = $this->taxon_page.$rec['taxon_id']; //this becomes m->source
-        $rec["catnum"] = (string) $rec["http://purl.org/dc/terms/identifier"];
+        $rec["accessURI"] = $this->taxon_page.$rec['taxon_id']; //this becomes m->source
+        $rec["catnum"] = (string) $rec["identifier"];
         self::add_string_types($rec, "true", $mval, $mtype);
     }
     private function complete_url($path)
@@ -1597,14 +1597,19 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function add_string_types($rec, $label, $value, $measurementType)
     {   
+        // /* 'Present' is now excluded. We leave GBIF as source of this type of info.
+        if($measurementType == "http://eol.org/schema/terms/Present") return;
+        // */
+
         // print_r($rec); echo "\ngot here 100\n[$label] [$value] [$measurementType]\n";
+
         // /* new by Eli: Nov 7, 2023 ---> value must be a URI if mType == Present
         if($measurementType == "http://eol.org/schema/terms/Present" && substr($value, 0, 4) != "http") { //value is not URI e.g. 'Hokkaido'
             if($value = self::get_uri_from_value($value, 'mValue', 'Present', true)) {} //4th param is $uriRequiredYN
             else return;
         }
         // */                  
-        // exit("\nhere 1\n");
+
         // if(!isset($this->taxon_ids[$rec["taxon_id"]])) return; //New: Jan 1, 2026 //PofMO
          
         $m = new \eol_schema\MeasurementOrFact_specific();

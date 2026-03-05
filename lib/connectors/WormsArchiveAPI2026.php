@@ -184,8 +184,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         /*
         $temp = CONTENT_RESOURCE_LOCAL_PATH . "26_files";
         if(!file_exists($temp)) mkdir($temp);
-        self::init_contributor_info();
         */
+        self::init_contributor_info();
         self::init_trait_generic();
         self::init_text_mappings();
     }
@@ -1298,8 +1298,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 if($rec['taxon_id'] == '1457542') continue;
                 // */
                 
-                $rec["catnum"] = (string) $rec["http://purl.org/dc/terms/identifier"];
-                $rec["http://rs.tdwg.org/ac/terms/accessURI"] = $this->taxon_page.$rec['taxon_id']; //this becomes m->source
+                $rec["catnum"] = (string) $rec["identifier"];
+                $rec["accessURI"] = $this->taxon_page.$rec['taxon_id']; //this becomes m->source
                 self::add_string_types($rec, "true", "http://eol.org/schema/terms/extinct", "http://eol.org/schema/terms/ExtinctionStatus");
                 continue;
             }
@@ -1560,7 +1560,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $location_uri = self::get_uri_from_value($location, 'mValue', 'NativeRange');
             // */
 
-            if(isset($this->eol_terms_uri_value[$location_uri])) { echo("\ngoes here 4\n");
+            if(isset($this->eol_terms_uri_value[$location_uri])) { //echo("\ngoes here 4\n");
                 self::add_string_types($rec, "true", $location_uri, "http://eol.org/schema/terms/NativeRange");
                 if($establishmentMeans == "Native - Endemic") self::add_string_types($rec, "metadata", "http://rs.tdwg.org/ontology/voc/OccurrenceStatusTerm#Endemic", "http://rs.tdwg.org/dwc/terms/measurementRemarks");
                 // elseif($establishmentMeans == "Native - Non-endemic") //no metadata -> https://jira.eol.org/browse/DATA-1522?focusedCommentId=59715&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-59715    
@@ -1584,7 +1584,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $location_uri = self::get_uri_from_value($location, 'mValue', 'IntroducedRange');
             // */
 
-            if(isset($this->eol_terms_uri_value[$location_uri])) { echo("\ngoes here 5\n");
+            if(isset($this->eol_terms_uri_value[$location_uri])) { //echo("\ngoes here 5\n");
                 self::add_string_types($rec, "true", $location_uri, "http://eol.org/schema/terms/IntroducedRange");
                 /* removed Feb 11, 2020 per: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=64538&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-64538
                 if($occurrenceStatus == "doubtful") self::add_string_types($rec, "metadata", "http://rs.tdwg.org/ontology/voc/OccurrenceStatusTerm#Questionable", "http://rs.tdwg.org/dwc/terms/measurementAccuracy");
@@ -1613,19 +1613,19 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         if($label == "Distribution" || $label == "true") { // so that measurementRemarks (and source, contributor, etc.) appears only once in the [measurement_or_fact.tab]
             $m->measurementOfTaxon = 'true';
             $m->measurementRemarks = '';
-            $m->source = (string) $rec["http://rs.tdwg.org/ac/terms/accessURI"]; // http://www.marinespecies.org/aphia.php?p=distribution&id=274241
+            $m->source = (string) $rec["accessURI"]; // http://www.marinespecies.org/aphia.php?p=distribution&id=274241
             /* removed bibCite Oct 18, 2023
             $m->bibliographicCitation = (string) $rec["http://purl.org/dc/terms/bibliographicCitation"];
             */
-            $m->contributor = (string) $rec["http://purl.org/dc/terms/contributor"];
-            if($referenceID = self::prepare_reference((string) $rec["http://eol.org/schema/reference/referenceID"])) {
+            $m->contributor = (string) $rec["contributor"];
+            if($referenceID = self::prepare_reference((string) $rec["referenceID"])) {
                 $m->referenceID = self::use_correct_separator($referenceID);
             }
             //additional fields per https://eol-jira.bibalex.org/browse/DATA-1767?focusedCommentId=62884&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-62884
-            $m->measurementDeterminedDate = $rec['http://ns.adobe.com/xap/1.0/CreateDate'];
+            $m->measurementDeterminedDate = $rec['CreateDate'];
             
             // /* New: Jun 7, 2021
-            if($val = trim(@$rec['http://purl.org/dc/terms/creator'])) {
+            if($val = trim(@$rec['creator'])) {
                 if($uri = @$this->contributor_id_name_info[$val]) {
                     if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
                     else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
@@ -1665,8 +1665,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                         */
                     }
                 }
-                if($rec['http://purl.org/dc/terms/type'] == "http://purl.org/dc/dcmitype/StillImage") {
-                    $m->source = $rec["http://rs.tdwg.org/ac/terms/furtherInformationURL"];
+                if($rec['type'] == "http://purl.org/dc/dcmitype/StillImage") {
+                    $m->source = $rec["furtherInformationURL"];
                     /*
                     [http://purl.org/dc/terms/identifier] => WoRMS:image:127205
                     [http://purl.org/dc/terms/type] => http://purl.org/dc/dcmitype/StillImage
@@ -1699,7 +1699,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
 
         $m->measurementID = Functions::generate_measurementID($m, $this->resource_id);
         $this->archive_builder->write_object_to_file($m);
-        exit("\nMoF saved OK\n");
+        // exit("\nMoF saved OK\n");
     }
     private function create_reference_for_this_MoF_using_creator($creator_str)
     {

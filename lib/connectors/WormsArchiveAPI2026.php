@@ -211,22 +211,22 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $meta_taxon = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
 
-        /* PofMO -- this block handles measurementorfact.txt
+        // /* PofMO -- this block handles measurementorfact.txt
         if($meta_MoF = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) {}
         else exit("\nERROR: No MoF extension. Please investigate.\n");
         echo "\n2 of 8"; self::process_extension($meta_MoF, 'before_MoF');
         echo "\n3 of 8"; self::process_extension($meta_MoF, 'prepare_MoF');
         echo "\n4 of 8"; self::process_extension($meta_MoF, 'write_MoF');
         unset($meta_MoF);
-        */
+        // */
         unset($this->childOf); unset($this->parentOf); unset($this->ToExcludeMeasurementIDs);
         unset($this->BodysizeDimension); unset($this->FeedingType); unset($this->lifeStageOf); unset($this->measurementIDz);
 
         // /* PofMO
         $records = $harvester->process_row_type('http://eol.org/schema/media/Document');        echo "\n5 of 8";  self::get_objects($records);
-        // $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference');      echo "\n6 of 8"; self::process_fields($records, "reference");
-        // $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n7 of 8"; self::process_fields($records, "agent");
-        // $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'); echo "\n8 of 8"; self::process_fields($records, "vernacular");
+        $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference');      echo "\n6 of 8"; self::process_fields($records, "reference");
+        $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n7 of 8"; self::process_fields($records, "agent");
+        $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'); echo "\n8 of 8"; self::process_fields($records, "vernacular");
         // */
             
         $this->archive_builder->finalize(TRUE);
@@ -1415,7 +1415,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
         // */                  
 
-        // if(!isset($this->taxon_ids[$rec["taxon_id"]])) return; //New: Jan 1, 2026 //PofMO
+        if(!isset($this->taxon_ids[$rec["taxon_id"]])) return; //New: Jan 1, 2026 //PofMO
          
         $m = new \eol_schema\MeasurementOrFact_specific();
         $occurrence_id = $this->add_occurrence($rec["taxon_id"], $rec["catnum"]);

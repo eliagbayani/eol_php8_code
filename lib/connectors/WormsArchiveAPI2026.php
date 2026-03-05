@@ -793,7 +793,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             
             // /* remove [source] == 'DEU' per https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=67026&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67026
             if($class == "vernacular") {
-                if($rec["http://purl.org/dc/terms/language"] == 'DEU') continue;
+                if($rec["language"] == 'DEU') continue;
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/taxonID] => urn:lsid:marinespecies.org:taxname:2
                     [http://rs.tdwg.org/dwc/terms/vernacularName] => dieren
@@ -830,14 +830,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $this->archive_builder->write_object_to_file($c);
         } // end foreach()
     }
-    // private function build_taxa_rank_array($records)
-    // {   foreach($records as $rec) {
-    //         $taxon_id = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/taxonID"]);
-    //         $this->taxa_rank[$taxon_id]['r'] = (string) $rec["http://rs.tdwg.org/dwc/terms/taxonRank"];
-    //         $this->taxa_rank[$taxon_id]['s'] = (string) self::format_status($rec["http://rs.tdwg.org/dwc/terms/taxonomicStatus"]);
-    //         $this->taxa_rank[$taxon_id]['n'] = (string) $rec["http://rs.tdwg.org/dwc/terms/scientificName"];
-    //     }
-    // }
     private function format_sciname($str)
     {   //http://parser.globalnames.org/doc/api
 
@@ -845,22 +837,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // $str = str_replace(" ", "+", $str);
         return urlencode($str);
     }
-    // private function if_accepted_taxon($taxon_id)
-    // {
-    //     if($status = @$this->taxa_rank[$taxon_id]['s']) {
-    //         if($status == "accepted") return true;
-    //         else return false;
-    //     }
-    //     else { //let the API decide
-    //         if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$taxon_id, $this->download_options)) {
-    //             $arr = json_decode($json, true);
-    //             // print_r($arr);
-    //             if($arr['status'] == "accepted") return true;
-    //         }
-    //         return false;
-    //     }
-    //     return false;
-    // }
     private function get_uri_case_insensitive($measurementValue)
     {
         if($val = @$this->eol_terms_value_uri[$measurementValue]) return $val;
@@ -882,15 +858,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $i++; if(($i % 500000) == 0) echo "\n".number_format($i);
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
-            // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
             $tmp = explode("\t", $row);
             $rec = array(); $k = 0;
             foreach($meta->fields as $field) {
-                /* old x
-                if(!$field['term']) continue;
-                $rec[$field['term']] = $tmp[$k];
-                $k++;
-                */
                 // /* new May 11, 2021
                 $term = @$field['term'];
                 $rec[$term] = @$tmp[$k] ? trim($tmp[$k]) : "";
@@ -921,22 +891,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             continue;
             */
             
-            /* as of Feb 17, 2026: values for measurementType
-            ----- Nomenclature code   15
-            ----- Functional group   10
-            ----- Supporting structure & enclosure   23
-            ----- Supporting structure & enclosure > Structure   23
-            ----- Supporting structure & enclosure > Structure > Composition   23
-            ----- Feeding method   7
-            ----- Functional group > Life stage   5
-            ----- Mobility   8
-            ----- Mobility > Life stage   8
-            ----- Development   4
-            ----- Body size   6
-            ----- Body size > Type   6
-            ----- Body size > Dimension   6
-            */
-
             if(isset($this->ToExcludeMeasurementIDs[$rec['http://rs.tdwg.org/dwc/terms/measurementID']])) continue;
             //========================================================================================================first task - association
 
@@ -1021,162 +975,13 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 [Feedingtype] => Array(
                         [carnivore] => Array(
                                 [mTypeURL] => http://www.wikidata.org/entity/Q1053008
-                                [mValueURL] => https://www.wikidata.org/entity/Q81875 */
-            $mtype = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];      //e.g. 'Functional group'
-            $mvalue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];    //e.g. 'benthos'
-            $taxon_id = self::get_worms_taxon_id($rec['http://rs.tdwg.org/dwc/terms/MeasurementOrFact']);
-            
-            /* debug only
-            if($mtype == 'Functional group' && $mvalue == 'benthos') {}
-            else continue;
-            */
-            
-            if($info = @$this->match2map[$mtype][$mvalue]) { //$this->match2map came from a CSV mapping file
-                // continue;
-                // print_r($info); print_r($rec); exit;
-                /*Array( $info
-                    [mTypeURL] => http://rs.tdwg.org/dwc/terms/habitat
-                    [mValueURL] => http://purl.obolibrary.org/obo/ENVO_01000024
-                Array( $rec
-                    [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 1054700
-                    [http://rs.tdwg.org/dwc/terms/measurementID] => 286376_1054700
-                    [parentMeasurementID] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementType] => Functional group
-                    [http://rs.tdwg.org/dwc/terms/measurementValueID] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementValue] => benthos
-                    [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:101
-                )*/
-                $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-                $save = array();
-                $save['measurementID'] = $measurementID;
-                $save['taxon_id'] = $taxon_id;
-                
-                if(!isset($this->taxon_ids[$taxon_id])) return; //Jan 1, 2026
-
-                $save["catnum"] = $taxon_id.'_'.$rec['http://rs.tdwg.org/dwc/terms/measurementType'].$rec['http://rs.tdwg.org/dwc/terms/measurementValue']; //making it unique. no standard way of doing it.
-                // $save['measurementType'] = $info['mTypeURL'];        not needed for TraitGeneric
-                // $save['measurementValue'] = $info['mValueURL'];      not needed for TraitGeneric
-                $save['measurementRemarks'] = $info['mRemarks'];
-                $save['source'] = $this->taxon_page.$taxon_id;
-                $save = self::adjustments_4_measurementAccuracy($save, $rec);
-                $save['measurementUnit'] = self::format_measurementUnit($rec); //no instruction here
-
-                // /* Feb 2026
-                if($val = @$this->lifeStageOf[$measurementID]) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
-                if($val = @$this->sexOf[$measurementID])       $save['occur']['sex']       = self::get_uri_from_value($val, 'mValue', 'Sex');
-                if($val = @$this->localityOf[$measurementID])  $save['occur']['locality']  = self::get_uri_from_value($val, 'mValue', 'locality');
-                // */
-
-                $this->func->pre_add_string_types($save, $info['mValueURL'], $info['mTypeURL'], "true");
-                // print_r($save); exit;
-                // break; //do this if you want to proceed create DwCA
-                continue; //part of real operation. Can go next row now
-            }
+                                [mValueURL] => https://www.wikidata.org/entity/Q81875 */            
+            if($info = @$this->match2map[$mtype][$mvalue]) {} //$this->match2map came from a CSV mapping file
             //========================================================================================================next task --- "Body size"
-            if($mtype == 'Body size') { //this mType is for a parent MoF
-                /*Array( e.g. 'Body size'
-                    [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 768436
-                    [http://rs.tdwg.org/dwc/terms/measurementID] => 528452_768436
-                    [parentMeasurementID] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementType] => Body size
-                    [http://rs.tdwg.org/dwc/terms/measurementValueID] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementValue] => 0.1
-                    [http://rs.tdwg.org/dwc/terms/measurementUnit] => mm
-                    [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
-                
-                Array( e.g. of "Body size > Dimension" //the super child
-                    [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 768436
-                    [http://rs.tdwg.org/dwc/terms/measurementID] => 528458_768436
-                    [parentMeasurementID] => 528454_768436
-                    [http://rs.tdwg.org/dwc/terms/measurementType] => Body size > Dimension
-                    [http://rs.tdwg.org/dwc/terms/measurementValueID] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementValue] => length
-                    [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:155944
-                )*/
-                // print_r($rec); exit("\nBody size\n");
-                $measurementID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-                
-                $save = array();
-                $save['measurementID'] = $measurementID;
-                $save['taxon_id'] = $taxon_id;
-
-                if(!isset($this->taxon_ids[$taxon_id])) return; //Jan 1, 2026
-
-                $save["catnum"] = $taxon_id.'_'.$rec['http://rs.tdwg.org/dwc/terms/measurementType'].$rec['http://rs.tdwg.org/dwc/terms/measurementValue']; //making it unique. no standard way of doing it.
-                $save['measurementRemarks'] = ''; //no instruction here
-                $save['source'] = $this->taxon_page.$taxon_id;
-                $save = self::adjustments_4_measurementAccuracy($save, $rec);
-                $save['measurementUnit'] = self::format_measurementUnit($rec);
-
-                if($mtype == 'Body size') {                                 //e.g. 528452_768436 measurementID
-                    $super_child = self::get_super_child($measurementID);   //e.g. 528458_768436
-                    $mTypev = @$this->BodysizeDimension[$super_child];
-                    if(!$mTypev) $mTypev = 'http://purl.obolibrary.org/obo/OBA_VT0100005'; //feedback from Jen: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63749&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63749
-                }
-
-                $mValuev = self::get_uri_from_value($rec['http://rs.tdwg.org/dwc/terms/measurementValue'], 'mValue', 'Body size');
-                // print("\nsuper child of [$measurementID]: ".$super_child."\n".$mTypev."\n");
-                
-                // /* Feb 2026
-                if($val = @$this->lifeStageOf[$measurementID]) $save['occur']['lifeStage'] = self::get_uri_from_value($val, 'mValue', 'lifeStage');
-                if($val = @$this->sexOf[$measurementID])       $save['occur']['sex']       = self::get_uri_from_value($val, 'mValue', 'Sex');
-                if($val = @$this->localityOf[$measurementID])  $save['occur']['locality']  = self::get_uri_from_value($val, 'mValue', 'locality');
-                // */
-
-                $this->func->pre_add_string_types($save, $mValuev, $mTypev, "true");
-                // print_r($save); exit;
-                // break; //do this if you want to proceed create DwCA
-                continue; //part of real operation. Can go next row now
-            }
+            if($mtype == 'Body size') {} //this mType is for a parent MoF
             //========================================================================================================next task --- child of "Body size"
             $mtype = $rec['http://rs.tdwg.org/dwc/terms/measurementType']; //e.g. 'Body size > Gender'
-            if(in_array($mtype, $this->children_mTypes)) {
-                // print_r($rec); exit("\na child record\n");
-                /*Array(
-                    [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 880402
-                    [http://rs.tdwg.org/dwc/terms/measurementID] => 17650_880402
-                    [parentMeasurementID] => 17649_880402
-                    [http://rs.tdwg.org/dwc/terms/measurementType] => Functional group > Stage
-                    [http://rs.tdwg.org/dwc/terms/measurementValueID] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementValue] => adult
-                    [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => inherited from urn:lsid:marinespecies.org:taxname:1806
-                )*/
-                $save = array();
-                $save['measurementID'] = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-                /* orig but not enough, use get_super_parent() for the right parent
-                $save['parentMeasurementID'] = $rec['parentMeasurementID'];
-                */
-                $possible_pMID = self::get_super_parent($save['measurementID']);
-                if(isset($this->measurementIDz[$possible_pMID])) $save['parentMeasurementID'] = $possible_pMID;
-                else continue; //this child (e.g. 492937_734633) doesn't have a parent from actual source: measurementorfact.txt. Just disregard.
-                
-                $save['taxon_id'] = $taxon_id;
-                $save["catnum"] = $taxon_id.'_'.$rec['http://rs.tdwg.org/dwc/terms/measurementType'].$rec['http://rs.tdwg.org/dwc/terms/measurementValue']; //making it unique. no standard way of doing it.
-                $save['measurementRemarks'] = ''; //no instruction here
-                // $save['source'] = $this->taxon_page.$taxon_id; //no instruction here
-                $save = self::adjustments_4_measurementAccuracy($save, $rec);
-                $save['measurementUnit'] = self::format_measurementUnit($rec); //no instruction here
-                $mTypev = self::get_uri_from_value($rec['http://rs.tdwg.org/dwc/terms/measurementType'], 'mType', 'child of Body size');
-                $mValuev = self::get_uri_from_value($rec['http://rs.tdwg.org/dwc/terms/measurementValue'], 'mValue', "child of Body size-".$rec['http://rs.tdwg.org/dwc/terms/measurementType']);
-                // /* both of these are synonymous to one another. FILTER OUT - just the metadata, not the MoF record
-                if($mValuev == 'DISCARD') continue; //no case yet in metastats-2.tsv
-                if($mValuev == 'FILTER OUT') continue; //with case already in metastats-2.tsv
-                // */
-
-                if(stripos($mTypev, "> Life stage") !== false)       $mTypev = $this->schema_uri['lifeStage']; //found string
-                if(stripos($mTypev, "> Sex") !== false)              $mTypev = $this->schema_uri['sex']; //found string
-                // Body size > Locality (MRGID)
-                if(stripos($mTypev, "> Locality (MRGID)") !== false) $mTypev = $this->schema_uri['locality']; //found string                
-
-                $this->debug['Child MoF recs']["($mTypev)-($mValuev)"] = '';            
-
-                $this->func->pre_add_string_types($save, $mValuev, $mTypev, "child");
-                // break; //do this if you want to proceed create DwCA
-                continue; //part of real operation. Can go next row now
-            }
+            if(in_array($mtype, $this->children_mTypes)) {}
             //========================================================================================================end tasks
         }//end foreach
     }
@@ -1346,7 +1151,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             }
 
             /* removed bibCite Oct 18, 2023
-            $mr->bibliographicCitation = (string) $rec["http://purl.org/dc/terms/bibliographicCitation"];
+            $mr->bibliographicCitation = (string) $rec["bibliographicCitation"];
             */
             $mr->derivedFrom     = (string) $rec["derivedFrom"];
             $mr->LocationCreated = RemoveHTMLTagsAPI::remove_html_tags((string) $rec["LocationCreated"]);
@@ -1494,7 +1299,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $Owner      = "http://ns.adobe.com/xap/1.0/rights/Owner";
 
         $measurementRemarks = "";
-        if($val = $rec["http://purl.org/dc/terms/description"])
+        if($val = $rec["description"])
         {
                                                         self::add_string_types($rec, "Distribution", $val, "http://rs.tdwg.org/ontology/voc/SPMInfoItems#Distribution");
             if($val = (string) $rec[$derivedFrom])      self::add_string_types($rec, "Derived from", $val, $derivedFrom);
@@ -1620,7 +1425,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $m->measurementRemarks = '';
             $m->source = (string) $rec["accessURI"]; // http://www.marinespecies.org/aphia.php?p=distribution&id=274241
             /* removed bibCite Oct 18, 2023
-            $m->bibliographicCitation = (string) $rec["http://purl.org/dc/terms/bibliographicCitation"];
+            $m->bibliographicCitation = (string) $rec["bibliographicCitation"];
             */
             $m->contributor = (string) $rec["contributor"];
             if($referenceID = self::prepare_reference((string) $rec["referenceID"])) {
@@ -1792,66 +1597,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->occurrence_ids[$occurrence_id] = '';
         return $occurrence_id;
         */
-    }
-    private function get_vernaculars($records)
-    {   self::process_fields($records, "vernacular");
-        // foreach($records as $rec) {
-        //     $v = new \eol_schema\VernacularName();
-        //     $v->taxonID         = $rec["http://rs.tdwg.org/dwc/terms/taxonID"];
-        //     $v->taxonID         = str_ireplace("urn:lsid:marinespecies.org:taxname:", "", $v->taxonID);
-        //     $v->vernacularName  = $rec["http://rs.tdwg.org/dwc/terms/vernacularName"];
-        //     $v->source          = $rec["http://purl.org/dc/terms/source"];
-        //     $v->language        = $rec["http://purl.org/dc/terms/language"];
-        //     $v->isPreferredName = $rec["http://rs.gbif.org/terms/1.0/isPreferredName"];
-        //     $this->archive_builder->write_object_to_file($v);
-        // }
-    }
-    private function get_agents($records)
-    {   self::process_fields($records, "agent");
-        // foreach($records as $rec) {
-        //     $r = new \eol_schema\Agent();
-        //     $r->identifier      = (string) $rec["http://purl.org/dc/terms/identifier"];
-        //     $r->term_name       = (string) $rec["http://xmlns.com/foaf/spec/#term_name"];
-        //     $r->term_firstName  = (string) $rec["http://xmlns.com/foaf/spec/#term_firstName"];
-        //     $r->term_familyName = (string) $rec["http://xmlns.com/foaf/spec/#term_familyName"];
-        //     $r->agentRole       = (string) $rec["http://eol.org/schema/agent/agentRole"];
-        //     $r->term_mbox       = (string) $rec["http://xmlns.com/foaf/spec/#term_mbox"];
-        //     $r->term_homepage   = (string) $rec["http://xmlns.com/foaf/spec/#term_homepage"];
-        //     $r->term_logo       = (string) $rec["http://xmlns.com/foaf/spec/#term_logo"];
-        //     $r->term_currentProject = (string) $rec["http://xmlns.com/foaf/spec/#term_currentProject"];
-        //     $r->organization        = (string) $rec["http://eol.org/schema/agent/organization"];
-        //     $r->term_accountName    = (string) $rec["http://xmlns.com/foaf/spec/#term_accountName"];
-        //     $r->term_openid         = (string) $rec["http://xmlns.com/foaf/spec/#term_openid"];
-        //     $this->archive_builder->write_object_to_file($r);
-        // }
-    }
-    private function get_references($records)
-    {   self::process_fields($records, "reference");
-        // foreach($records as $rec) {
-        //     $r = new \eol_schema\Reference();
-        //     $r->identifier      = (string) $rec["http://purl.org/dc/terms/identifier"];
-        //     $r->publicationType = (string) $rec["http://eol.org/schema/reference/publicationType"];
-        //     $r->full_reference  = (string) $rec["http://eol.org/schema/reference/full_reference"];
-        //     $r->primaryTitle    = (string) $rec["http://eol.org/schema/reference/primaryTitle"];
-        //     $r->title           = (string) $rec["http://purl.org/dc/terms/title"];
-        //     $r->pages           = (string) $rec["http://purl.org/ontology/bibo/pages"];
-        //     $r->pageStart       = (string) $rec["http://purl.org/ontology/bibo/pageStart"];
-        //     $r->pageEnd         = (string) $rec["http://purl.org/ontology/bibo/pageEnd"];
-        //     $r->volume          = (string) $rec["http://purl.org/ontology/bibo/volume"];
-        //     $r->edition         = (string) $rec["http://purl.org/ontology/bibo/edition"];
-        //     $r->publisher       = (string) $rec["http://purl.org/dc/terms/publisher"];
-        //     $r->authorList      = (string) $rec["http://purl.org/ontology/bibo/authorList"];
-        //     $r->editorList      = (string) $rec["http://purl.org/ontology/bibo/editorList"];
-        //     $r->created         = (string) $rec["http://purl.org/dc/terms/created"];
-        //     $r->language        = (string) $rec["http://purl.org/dc/terms/language"];
-        //     $r->uri             = (string) $rec["http://purl.org/ontology/bibo/uri"];
-        //     $r->doi             = (string) $rec["http://purl.org/ontology/bibo/doi"];
-        //     $r->localityName    = (string) $rec["http://schemas.talis.com/2005/address/schema#localityName"];
-        //     if(!isset($this->resource_reference_ids[$r->identifier])) {
-        //        $this->resource_reference_ids[$r->identifier] = 1;
-        //        $this->archive_builder->write_object_to_file($r);
-        //     }
-        // }
     }
     // =================================================================================== WORKING OK! BUT MAY HAVE BEEN JUST ONE-TIME IMPORT
     // START dynamic hierarchy ===========================================================

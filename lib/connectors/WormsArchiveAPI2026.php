@@ -211,19 +211,20 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         else exit("\nERROR: No MoF extension. Please investigate.\n");
         
         $meta_taxon = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
+        // echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
+        /* PofMO
         echo "\n2 of 8"; self::process_extension($meta_MoF, 'before_MoF');
         echo "\n3 of 8"; self::process_extension($meta_MoF, 'prepare_MoF');
         echo "\n4 of 8"; self::process_extension($meta_MoF, 'write_MoF');
-
+        */
         unset($this->childOf); unset($this->parentOf); unset($this->ToExcludeMeasurementIDs);
         unset($this->BodysizeDimension); unset($this->FeedingType); unset($this->lifeStageOf); unset($this->measurementIDz);
 
         // /* PofMO
         $records = $harvester->process_row_type('http://eol.org/schema/media/Document');        echo "\n5 of 8";  self::get_objects($records);
-        $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference');      echo "\n6 of 8"; self::process_fields($records, "reference");
-        $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n7 of 8"; self::process_fields($records, "agent");
-        $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'); echo "\n8 of 8"; self::process_fields($records, "vernacular");
+        // $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference');      echo "\n6 of 8"; self::process_fields($records, "reference");
+        // $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n7 of 8"; self::process_fields($records, "agent");
+        // $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'); echo "\n8 of 8"; self::process_fields($records, "vernacular");
         // */
             
         $this->archive_builder->finalize(TRUE);
@@ -304,7 +305,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // =======================================================================================================
             // =======================================================================================================
             // =======================================================================================================
-            // if($i >= 100000) break; //debug only //2026
+            if($i >= 1000) break; //debug only //2026
         } //end foreach()
     }
     private function before_MoF($rec)
@@ -1209,15 +1210,55 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->occurrence_ids[$occurrence_id] = '';
         return $occurrence_id;
     }
+    private function small_field_rec($rec)
+    {   $r = array();
+        $fields = array_keys($rec);
+        foreach($fields as $field) {
+            $sfield = self::small_field($field);
+            $r[$sfield] = $rec[$field];        
+        }
+        return $r;
+    }
     private function get_objects($records)
-    {   //print_r($this->debug['Excluded taxa']); exit("\nstop muna 1\n");
-        foreach($records as $rec) {
+    {
+        foreach($records as $rec) { 
+            $rec = self::small_field_rec($rec);
+            $rec['taxonID'] = self::get_worms_taxon_id($rec['taxonID']);
             /*Array(
-                [http://purl.org/dc/terms/identifier] => WoRMS:distribution:1000000
-                [http://rs.tdwg.org/dwc/terms/taxonID] => urn:lsid:marinespecies.org:taxname:850861
-                [http://purl.org/dc/terms/type] => http://purl.org/dc/dcmitype/Text
-                ...
-            */
+                [identifier] => WoRMS:distribution:1000000
+                [taxonID] => 850861
+                [type] => http://purl.org/dc/dcmitype/Text
+                [subtype] => 
+                [format] => text/html
+                [CVterm] => http://rs.tdwg.org/ontology/voc/SPMInfoItems#Distribution
+                [title] => Distribution
+                [description] => Pakistani Exclusive Economic Zone
+                [accessURI] => https://www.marinespecies.org/aphia.php?p=distribution&id=1000000
+                [thumbnailURL] => 
+                [furtherInformationURL] => 
+                [derivedFrom] => 
+                [CreateDate] => 2017-10-04T19:05:55+01:00
+                [modified] => 2023-02-08T14:36:18+01:00
+                [language] => en
+                [Rating] => 
+                [audience] => 
+                [UsageTerms] => http://creativecommons.org/licenses/by/4.0/
+                [rights] => This work is licensed under a Creative Commons Attribution-Share Alike 4.0 License
+                [Owner] => 
+                [bibliographicCitation] => Boyer F. (2017). Révision des Marginellidae du Récifal supérieur de l'île de Masirah (Oman). <em>Xenophora Taxonomy.</em> 17: 3-31.
+                [publisher] => 
+                [contributor] => 
+                [creator] => Bouchet, Philippe
+                [agentID] => WoRMS:Person:15
+                [LocationCreated] => 
+                [spatial] => 
+                [wgs84_pos#lat] => 
+                [wgs84_pos#long] => 
+                [wgs84_pos#alt] => 
+                [referenceID] => WoRMS:sourceid:285374
+                [establishmentMeans] => 
+                [occurrenceStatus] => present
+            )*/
             $rec = array_map('trim', $rec);
             $identifier = (string) $rec["http://purl.org/dc/terms/identifier"];
             $type       = (string) $rec["http://purl.org/dc/terms/type"];

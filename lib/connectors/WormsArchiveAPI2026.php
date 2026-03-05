@@ -678,6 +678,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         else {
             $this->debug["No URI - $type_or_value"]["[$orig]--($type_or_value)--($what2)"] = ''; //log only non-numeric values
             $this->debug["No URI* - $type_or_value"][$orig] = '';
+            $this->debug["No URI** - $type_or_value"][$what2][$orig] = '';
             if($type_or_value == 'mType') return false;
             if($type_or_value == 'mValue') {
                 if($uriRequiredYN) return false;
@@ -793,7 +794,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             
             // /* remove [source] == 'DEU' per https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=67026&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67026
             if($class == "vernacular") {
-                if($rec["language"] == 'DEU') continue;
+                if($rec["http://purl.org/dc/terms/language"] == 'DEU') continue;
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/taxonID] => urn:lsid:marinespecies.org:taxname:2
                     [http://rs.tdwg.org/dwc/terms/vernacularName] => dieren

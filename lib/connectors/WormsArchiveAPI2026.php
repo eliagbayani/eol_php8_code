@@ -1280,7 +1280,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 continue;
             }
             // echo "*[$identifier]*";
-            continue; //debug only --- not part of main operation
+            continue; //debug only --- not PofMO
             
             // /* start new ticket DATA-1767: https://eol-jira.bibalex.org/browse/DATA-1767?focusedCommentId=62884&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-62884
             $title       = $rec["http://purl.org/dc/terms/title"];

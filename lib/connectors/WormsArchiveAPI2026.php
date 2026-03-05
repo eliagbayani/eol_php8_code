@@ -207,15 +207,17 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $harvester = new ContentArchiveReader(NULL, $archive_path);
         $tables = $harvester->tables;
         print_r(array_keys($tables));
-        if($meta_MoF = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) {}
-        else exit("\nERROR: No MoF extension. Please investigate.\n");
         
         $meta_taxon = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        // echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
-        /* PofMO
+        echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
+
+        /* PofMO -- this block handles measurementorfact.txt
+        if($meta_MoF = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) {}
+        else exit("\nERROR: No MoF extension. Please investigate.\n");
         echo "\n2 of 8"; self::process_extension($meta_MoF, 'before_MoF');
         echo "\n3 of 8"; self::process_extension($meta_MoF, 'prepare_MoF');
         echo "\n4 of 8"; self::process_extension($meta_MoF, 'write_MoF');
+        unset($meta_MoF);
         */
         unset($this->childOf); unset($this->parentOf); unset($this->ToExcludeMeasurementIDs);
         unset($this->BodysizeDimension); unset($this->FeedingType); unset($this->lifeStageOf); unset($this->measurementIDz);
@@ -284,7 +286,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                     [datasetName] => 
                 )*/
                 $rec = self::format_worms_fields($rec);
-                unset($rec['rights']); //no 'rights' in taxa extension schema
+                if($rec['taxonomicStatus'] != 'accepted') continue;
+                $this->taxon_ids[$rec['taxonID']] = '';
+                unset($rec['rights']); //no 'rights' in EoL taxa extension schema
                 // /* for later lookup
                 $taxon_id = $rec['taxonID'];
                 $this->taxa_rank[$taxon_id]['r'] = (string) $rec["taxonRank"];
@@ -305,7 +309,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // =======================================================================================================
             // =======================================================================================================
             // =======================================================================================================
-            if($i >= 1000) break; //debug only //2026
+            // if($i >= 1000) break; //debug only //2026
         } //end foreach()
     }
     private function before_MoF($rec)
@@ -532,7 +536,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     {   //e.g. 'https://rs.gbif.org/vocabulary/gbif/taxonomicStatus/accepted';
         if(substr($string, 0, 4) == 'http') $status = pathinfo($string, PATHINFO_FILENAME);
         else $status = $string;
-        $this->debug['taxonomicStatus'][$status] = '';
+        @$this->debug['taxonomicStatus'][$status]++;
         return $status;
     }
     private function get_EoL_terms()
@@ -663,7 +667,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
         return false;
     }
-    private function get_uri_from_value($val, $type_or_value, $what2)
+    private function get_uri_from_value($val, $type_or_value, $what2, $uriRequiredYN = false)
     {   
         // print_r($this->value_uri_map); exit("\nstop muna\n");
         if(is_numeric($val)) return $val;
@@ -675,7 +679,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $this->debug["No URI - $type_or_value"]["[$orig]--($type_or_value)--($what2)"] = ''; //log only non-numeric values
             $this->debug["No URI* - $type_or_value"][$orig] = '';
             if($type_or_value == 'mType') return false;
-            if($type_or_value == 'mValue') return $orig;
+            if($type_or_value == 'mValue') {
+                if($uriRequiredYN) return false;
+                else return $orig;
+            }
         }
     }
     private function lookup_worms_name($vtaxon_id)
@@ -1219,7 +1226,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
         return $r;
     }
-    private function get_objects($records)
+    private function get_objects($records) //2026
     {
         foreach($records as $rec) { 
             $rec = self::small_field_rec($rec);
@@ -1260,20 +1267,20 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 [occurrenceStatus] => present
             )*/
             $rec = array_map('trim', $rec);
-            $identifier = (string) $rec["http://purl.org/dc/terms/identifier"];
-            $type       = (string) $rec["http://purl.org/dc/terms/type"];
-
-            $rec["taxon_id"] = self::get_worms_taxon_id($rec["http://rs.tdwg.org/dwc/terms/taxonID"]);
-            if(isset($this->debug['Excluded taxa'][$rec["taxon_id"]])) continue;
+            $identifier = (string) $rec["identifier"];
+            $type       = (string) $rec["type"];
+            $rec["taxon_id"] = self::get_worms_taxon_id($rec["taxonID"]);
             $rec["catnum"] = "";
             
             if(strpos($identifier, "WoRMS:distribution:") !== false) {
-                $rec["catnum"] = (string) $rec["http://purl.org/dc/terms/identifier"];
+                $rec["catnum"] = (string) $rec["identifier"]; //e.g. WoRMS:distribution:1000000
                 /* self::process_distribution($rec); removed as per DATA-1522 */ 
                 $rec["catnum"] = str_ireplace("WoRMS:distribution:", "_", $rec["catnum"]);
                 self::process_establishmentMeans_occurrenceStatus($rec); //DATA-1522
                 continue;
             }
+            // echo "*[$identifier]*";
+            continue; //debug only --- not part of main operation
             
             // /* start new ticket DATA-1767: https://eol-jira.bibalex.org/browse/DATA-1767?focusedCommentId=62884&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-62884
             $title       = $rec["http://purl.org/dc/terms/title"];
@@ -1505,10 +1512,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     */
     private function process_establishmentMeans_occurrenceStatus($rec) // structured data
-    {   $location = $rec["http://purl.org/dc/terms/description"];
+    {   $location = $rec["description"]; //e.g. 'Pakistani Exclusive Economic Zone'
         if(!$location) return;
-        $establishmentMeans = trim((string) @$rec["http://rs.tdwg.org/dwc/terms/establishmentMeans"]);
-        $occurrenceStatus = trim((string) @$rec["http://rs.tdwg.org/dwc/terms/occurrenceStatus"]);
+        $establishmentMeans = trim((string) @$rec["establishmentMeans"]);
+        $occurrenceStatus = trim((string) @$rec["occurrenceStatus"]); //e.g. 'present'
 
         // /* list down all possible values of the 2 new fields
         $this->debug["establishmentMeans"][$establishmentMeans] = '';
@@ -1521,9 +1528,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         If occurrenceStatus=doubtful, add a metadata record in MeasurementOrFact:
         field= http://rs.tdwg.org/dwc/terms/measurementAccuracy, value= http://rs.tdwg.org/ontology/voc/OccurrenceStatusTerm#Questionable
         */
-        if(in_array($occurrenceStatus, array("present", "doubtful", "")) || $occurrenceStatus == "") {
+        if(in_array($occurrenceStatus, array("present", "doubtful", "")) || $occurrenceStatus == "") { //echo("\ngoes here 3\n");
             $rec["catnum"] .= "_pr";
-                                                self::add_string_types($rec, "true", $location, "http://eol.org/schema/terms/Present");
+            self::add_string_types($rec, "true", $location, "http://eol.org/schema/terms/Present");
             /* removed Feb 11, 2020 per: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=64538&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-64538
             if($occurrenceStatus == "doubtful") self::add_string_types($rec, "metadata", "http://rs.tdwg.org/ontology/voc/OccurrenceStatusTerm#Questionable", "http://rs.tdwg.org/dwc/terms/measurementAccuracy");
             */
@@ -1553,9 +1560,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $location_uri = self::get_uri_from_value($location, 'mValue', 'NativeRange');
             // */
 
-            if(isset($this->eol_terms_uri_value[$location_uri])) {
+            if(isset($this->eol_terms_uri_value[$location_uri])) { echo("\ngoes here 4\n");
                 self::add_string_types($rec, "true", $location_uri, "http://eol.org/schema/terms/NativeRange");
-                if($establishmentMeans == "Native - Endemic")         self::add_string_types($rec, "metadata", "http://rs.tdwg.org/ontology/voc/OccurrenceStatusTerm#Endemic", "http://rs.tdwg.org/dwc/terms/measurementRemarks");
+                if($establishmentMeans == "Native - Endemic") self::add_string_types($rec, "metadata", "http://rs.tdwg.org/ontology/voc/OccurrenceStatusTerm#Endemic", "http://rs.tdwg.org/dwc/terms/measurementRemarks");
                 // elseif($establishmentMeans == "Native - Non-endemic") //no metadata -> https://jira.eol.org/browse/DATA-1522?focusedCommentId=59715&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-59715    
             }
             else {
@@ -1577,7 +1584,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $location_uri = self::get_uri_from_value($location, 'mValue', 'IntroducedRange');
             // */
 
-            if(isset($this->eol_terms_uri_value[$location_uri])) {
+            if(isset($this->eol_terms_uri_value[$location_uri])) { echo("\ngoes here 5\n");
                 self::add_string_types($rec, "true", $location_uri, "http://eol.org/schema/terms/IntroducedRange");
                 /* removed Feb 11, 2020 per: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=64538&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-64538
                 if($occurrenceStatus == "doubtful") self::add_string_types($rec, "metadata", "http://rs.tdwg.org/ontology/voc/OccurrenceStatusTerm#Questionable", "http://rs.tdwg.org/dwc/terms/measurementAccuracy");
@@ -1590,12 +1597,15 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function add_string_types($rec, $label, $value, $measurementType)
     {   
+        // print_r($rec); echo "\ngot here 100\n[$label] [$value] [$measurementType]\n";
         // /* new by Eli: Nov 7, 2023 ---> value must be a URI if mType == Present
-        if($measurementType == "http://eol.org/schema/terms/Present" && substr($value, 0, 4) != "http") return;
-        // */
-
-        if(!isset($this->taxon_ids[$rec["taxon_id"]])) return; //New: Jan 1, 2026
-        if(!$rec['taxon_id']) return; //running out of options.
+        if($measurementType == "http://eol.org/schema/terms/Present" && substr($value, 0, 4) != "http") { //value is not URI e.g. 'Hokkaido'
+            if($value = self::get_uri_from_value($value, 'mValue', 'Present', true)) {} //4th param is $uriRequiredYN
+            else return;
+        }
+        // */                  
+        // exit("\nhere 1\n");
+        // if(!isset($this->taxon_ids[$rec["taxon_id"]])) return; //New: Jan 1, 2026 //PofMO
          
         $m = new \eol_schema\MeasurementOrFact_specific();
         $occurrence_id = $this->add_occurrence($rec["taxon_id"], $rec["catnum"]);
@@ -1689,6 +1699,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
 
         $m->measurementID = Functions::generate_measurementID($m, $this->resource_id);
         $this->archive_builder->write_object_to_file($m);
+        exit("\nMoF saved OK\n");
     }
     private function create_reference_for_this_MoF_using_creator($creator_str)
     {

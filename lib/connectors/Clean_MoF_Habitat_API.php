@@ -234,7 +234,7 @@ class Clean_MoF_Habitat_API
                 // */
                 
                 if($taxonID_in_question = @$this->occurID_taxonID_info[$occurrenceID]) {}
-                elseif($taxonID_in_question = $this->occurID_taxonID_info[$child_occurrenceID]) {}
+                elseif($taxonID_in_question = @$this->occurID_taxonID_info[$child_occurrenceID]) {}
                 else { 
                     /* Commented. It is allowed to have: no link to taxonID
                     print_r($rec); exit("\nERROR: no link to taxonID 1\n[$child_occurrenceID]\n"); 
@@ -282,7 +282,7 @@ class Clean_MoF_Habitat_API
                 // */
                 
                 if($taxonID_in_question = @$this->occurID_taxonID_info[$occurrenceID]) {}
-                elseif($taxonID_in_question = $this->occurID_taxonID_info[$child_occurrenceID]) {}
+                elseif($taxonID_in_question = @$this->occurID_taxonID_info[$child_occurrenceID]) {}
                 else {
                     /* Commented. It is allowed to have: no link to taxonID
                     print_r($rec); exit("\nno link to taxonID 2\n"); 

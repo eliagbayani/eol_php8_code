@@ -700,9 +700,9 @@ class DwCA_Utility
         // */
 
         if(DwCA_Utility_cmd::can_compute_higherClassification($records[0], $task)) {
-            echo "\n1 of 3\n";
+            echo "\n1 of 3*\n";
             if($task == 'gen_hC_using_pID') self::build_id_name_array($records);
-            echo "\n2 of 3\n";  $records = self::generate_higherClassification_field($records, $this->source_of_hc); //2nd param is either "gen_hC_using_pID" or "gen_hC_using_ancestry"
+            echo "\n2 of 3*\n";  $records = self::generate_higherClassification_field($records, $this->source_of_hc); //2nd param is either "gen_hC_using_pID" or "gen_hC_using_ancestry"
             /*
             Array
                 [0] => http://rs.tdwg.org/dwc/terms/taxon
@@ -710,7 +710,7 @@ class DwCA_Utility
                 [2] => http://rs.tdwg.org/dwc/terms/occurrence
                 [3] => http://rs.tdwg.org/dwc/terms/measurementorfact
             */
-            echo "\n3 of 3\n";
+            echo "\n3 of 3*\n";
             foreach($index as $row_type) {
                 $meta = $tables[$row_type][0];
                 if(@$this->extensions[$row_type]) { //process only defined row_types
@@ -1118,6 +1118,7 @@ class DwCA_Utility
                 $k++;
             }
             $rec = array_map('trim', $rec); // print_r($rec); exit("\ndebug...\n");
+            if(isset($rec['dN'])) unset($rec['dN']); //datasetName from taxon.tab from WoRMS
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/taxonID] => 90698
                 [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 318

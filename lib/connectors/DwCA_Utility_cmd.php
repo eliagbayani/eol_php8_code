@@ -295,6 +295,8 @@ class DwCA_Utility_cmd
             case "vernacularName":        return "vN"; break;
             // TreatmentBank_final
             case "references":  return "ref"; break;
+            // WoRMS
+            case "datasetName":  return "dN"; break;
             default: exit("\nUndefined field [$field] to shorten. Must be initialized before proceeding!\n");
         }
     }

@@ -235,19 +235,25 @@ class Clean_MoF_Habitat_API
                 
                 if($taxonID_in_question = @$this->occurID_taxonID_info[$occurrenceID]) {}
                 elseif($taxonID_in_question = $this->occurID_taxonID_info[$child_occurrenceID]) {}
-                else { print_r($rec); exit("\nno link to taxonID 1\n"); }
-                if(self::is_habitat_YN($mType)) {
-                    /* orig - but it includes taxon with 'intertidal zone' trait as both marine and terrestrial even it is just one trait record.
-                    if(self::is_mValue_descendant_of_marine($mValue)) $log[$taxonID_in_question]['marine'] = '';
-                    if(self::is_mValue_descendant_of_terrestrial($mValue)) $log[$taxonID_in_question]['terrestrial'] = '';
+                else { 
+                    /* Commented. It is allowed to have: no link to taxonID
+                    print_r($rec); exit("\nERROR: no link to taxonID 1\n[$child_occurrenceID]\n"); 
                     */
-                    // /* better solution
-                    if(self::is_mValue_descendant_of_marine($mValue)) $log[$taxonID_in_question]['marine'] = '';
-                    elseif(self::is_mValue_descendant_of_terrestrial($mValue)) $log[$taxonID_in_question]['terrestrial'] = '';
-                    // */
                 }
-                if(isset($log[$taxonID_in_question]['marine']) && isset($log[$taxonID_in_question]['terrestrial'])) {
-                    $this->marine_and_terrestrial[$taxonID_in_question] = '';
+                if($taxonID_in_question) {
+                    if(self::is_habitat_YN($mType)) {
+                        /* orig - but it includes taxon with 'intertidal zone' trait as both marine and terrestrial even it is just one trait record.
+                        if(self::is_mValue_descendant_of_marine($mValue)) $log[$taxonID_in_question]['marine'] = '';
+                        if(self::is_mValue_descendant_of_terrestrial($mValue)) $log[$taxonID_in_question]['terrestrial'] = '';
+                        */
+                        // /* better solution
+                        if(self::is_mValue_descendant_of_marine($mValue)) $log[$taxonID_in_question]['marine'] = '';
+                        elseif(self::is_mValue_descendant_of_terrestrial($mValue)) $log[$taxonID_in_question]['terrestrial'] = '';
+                        // */
+                    }
+                    if(isset($log[$taxonID_in_question]['marine']) && isset($log[$taxonID_in_question]['terrestrial'])) {
+                        $this->marine_and_terrestrial[$taxonID_in_question] = '';
+                    }
                 }
             }
             //===================================================================================================================
@@ -277,12 +283,17 @@ class Clean_MoF_Habitat_API
                 
                 if($taxonID_in_question = @$this->occurID_taxonID_info[$occurrenceID]) {}
                 elseif($taxonID_in_question = $this->occurID_taxonID_info[$child_occurrenceID]) {}
-                else { print_r($rec); exit("\nno link to taxonID 2\n"); }
-                
-                if(isset($this->marine_and_terrestrial[$taxonID_in_question])) { //at this pt, any taxon here has MoF recs that are both marine and terrestrial.
-                    if(self::is_habitat_YN($mType)) {
-                        if(self::is_mValue_descendant_of_marine($mValue))       $this->occurrenceIDs_2delete[$occurrenceID] = ''; //Contradicting MoF records
-                        if(self::is_mValue_descendant_of_terrestrial($mValue))  $this->occurrenceIDs_2delete[$occurrenceID] = ''; //Contradicting MoF records
+                else {
+                    /* Commented. It is allowed to have: no link to taxonID
+                    print_r($rec); exit("\nno link to taxonID 2\n"); 
+                    */
+                }
+                if($taxonID_in_question) {
+                    if(isset($this->marine_and_terrestrial[$taxonID_in_question])) { //at this pt, any taxon here has MoF recs that are both marine and terrestrial.
+                        if(self::is_habitat_YN($mType)) {
+                            if(self::is_mValue_descendant_of_marine($mValue))       $this->occurrenceIDs_2delete[$occurrenceID] = ''; //Contradicting MoF records
+                            if(self::is_mValue_descendant_of_terrestrial($mValue))  $this->occurrenceIDs_2delete[$occurrenceID] = ''; //Contradicting MoF records
+                        }
                     }
                 }
                 

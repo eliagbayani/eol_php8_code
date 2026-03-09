@@ -8,6 +8,7 @@ IMPORTANT: ALWAYS "chmod 775 MonitorDwCARefreshAPI.php" AFTER UPDATE EOL-ARCHIVE
 php update_resources/connectors/monitor_dwca_refresh.php _ protisten
 http://localhost/eol_php_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=protisten
 https://editors.eol.org/eol_php_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=protisten
+http://localhost:81/eol_php8_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=WoRMS-with-hC_neo4j_2
 */
 
 include_once(dirname(__FILE__) . "/../../config/environment.php");

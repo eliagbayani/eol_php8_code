@@ -80,7 +80,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->mUnit['m²'] = 'http://purl.obolibrary.org/obo/UO_0000080';
         
         // Before 2026:
-        $this->children_mTypes = array("Body size > Gender" ,"Body size > Stage", "Body size > Type" ,"Feedingtype > Stage", "Functional group > Stage" ,"Body size > Locality (MRGID)");
+        // $this->children_mTypes = array("Body size > Gender" ,"Body size > Stage", "Body size > Type" ,"Feedingtype > Stage", "Functional group > Stage" ,"Body size > Locality (MRGID)");
         // /* as of Feb 2026, these are the new child mTypes found in WoRMS2EoL.zip: n = 60
         $this->children_mTypes = array("Supporting structure & enclosure > Structure", "Supporting structure & enclosure > Structure > Composition", "Functional group > Life stage", 
         "Mobility > Life stage", "Body size > Type", "Body size > Dimension", "Body size (qualitative) > Life stage", 
@@ -177,7 +177,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->fType_URI['kleptovore']['rev']       = 'http://purl.obolibrary.org/obo/RO_0008504';
         $this->fType_URI['epizoic']['rev']          = 'http://purl.obolibrary.org/obo/RO_0002453';
         $this->fType_URI['kleptivore']['rev']       = 'http://purl.obolibrary.org/obo/RO_0008504';
-        $this->real_parents = array('AMBI ecological group', 'Body size', 'Body size (qualitative)', 'Feedingtype', 'Fossil range', 'Functional group', 'Paraphyletic group', 'Species importance to society', 'Supporting structure & enclosure');
+        // $this->real_parents = array('AMBI ecological group', 'Body size', 'Body size (qualitative)', 'Feedingtype', 'Fossil range', 'Functional group', 'Paraphyletic group', 'Species importance to society', 'Supporting structure & enclosure');
         $this->real_parents = array("AMBI ecological group", "Asexual reproduction", "Body shape", "Body size", "Body size (qualitative)", "Brooding", "Calcification", "Cytomorphology", "Development", "Dispersion mode", 
         "Ecological interactions", 
         "Environmental position", "Etymology classification", 

@@ -2853,12 +2853,14 @@ class Functions
     public static function remove_quote_delimiters($str)
     {
         // $str = "'123456'"; // $str = '"123456"';
-        $str = trim($str); // echo("\norig: [$str]\n");
-        $first = substr($str,0,1);
-        $last = substr($str, -1); // echo("\n[$first] [$last]\n");
-        if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
-        if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
-        // exit("\nfinal: [$str]\n");
+        if($str) {
+            $str = trim($str); // echo("\norig: [$str]\n");
+            $first = substr($str,0,1);
+            $last = substr($str, -1); // echo("\n[$first] [$last]\n");
+            if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
+            if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
+            // exit("\nfinal: [$str]\n");
+        }
         return $str;
     }
 }

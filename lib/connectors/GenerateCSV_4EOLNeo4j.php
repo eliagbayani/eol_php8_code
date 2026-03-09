@@ -8,6 +8,8 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4EOLNeo4j.code-workspace
+
+contributor_uri	compiler_uri	determined_by_uri
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -639,6 +641,13 @@ class GenerateCSV_4EOLNeo4j
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
         $s['compiler_uri'] = '';
         $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
+
+        // /* stats only
+        if($val = $s['contributor_uri']) $this->debug['stats']['contributor_uri'][$val] = '';
+        if($val = $s['determined_by_uri']) $this->debug['stats']['determined_by_uri'][$val] = '';
+        if($val = $s['compiler_uri']) $this->debug['stats']['compiler_uri'][$val] = '';
+        // */
+
         // /* for Metadata
         $s['metadata'] = self::build_metadata_json($rec);
         // */

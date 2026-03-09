@@ -91,8 +91,74 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         "Species importance to society > HELCOM Red List Category", "Species importance to society > HELCOM core biodiversity indicators", 
         "Environmental position > Life stage", "Species importance to society > CITES Annex", "Zonation > Life stage", "Body size (qualitative) > Sex", 
         "Species importance to society > IUCN Red List Category > Criteria", "Species importance to society > OSPAR candidate indicators: Celtic Seas", "Species importance to society > OSPAR candidate indicators: Greater North Sea including outside EU", "Body size > Corresponding width", "Body size > Corresponding length", 
-        "Asexual reproduction > Locality (MRGID)", "Species importance to society > Habitats Directive Annex", "Species importance to society > OSPAR Region where species is under threat and/or in decline", "Life span > Life stage", "Asexual reproduction > Life stage", "Calcification > Life stage", "Cytomorphology > Life stage", "Body shape > Life stage", "Life cycle > Life stage", "Spawning > Life stage", "Tolerance to pollutants > Life stage", "Dispersion mode > Life stage", "Gamete type > Life stage", "Thallus vertical space used > Life stage", "Gametophyte arrangement > Life stage", "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
+        "Asexual reproduction > Locality (MRGID)", "Species importance to society > Habitats Directive Annex", "Species importance to society > OSPAR Region where species is under threat and/or in decline", "Life span > Life stage", "Asexual reproduction > Life stage", "Calcification > Life stage", "Cytomorphology > Life stage", "Body shape > Life stage", "Life cycle > Life stage", "Spawning > Life stage", "Tolerance to pollutants > Life stage", "Dispersion mode > Life stage", "Gamete type > Life stage", "Thallus vertical space used > Life stage", "Gametophyte arrangement > Life stage", 
+        "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
         // */
+
+        /* Mar 9, 2026 Associations
+        =============================================================
+        Ecological interactions
+        ----- (Parent MoF) *[]  total: 3 subtotal: 12
+        Endoparasitic = 
+        Parasitic = 
+        commensal = 
+        ectoparasite = ["http://www.wikidata.org/entity/Q7880449"] = 
+        ectoparasitic = 
+        endocommensal = 
+        endoparasitic = 
+        mesoparasitic = 
+        parasitic = 
+        symbiotic = 
+        unknown = ["http://eol.org/schema/terms/unknown"] = 
+        with chemosymbionts = 
+        ----- Ecological interactions > Life stage (Child MoF)  total: 3 subtotal: 1
+        List of life stages. See separate file. [http://rs.tdwg.org/dwc/terms/lifeStage] = 
+        ----- Ecological interactions > Host (Child MoF)  total: 3 subtotal: 1
+        List of taxa e.g. Saurida gracilis = 
+        =============================================================
+        =============================================================
+        Feeding method
+        ----- (Parent MoF) *[]  total: 3 subtotal: 21
+        Not feeding = 
+        deposit feeder = ["http://eol.org/schema/terms/depositFeeder","http://polytraits.lifewatchgreece.eu/terms/FEED_D"] = 
+        epigrowth feeder = 
+        facultative = 
+        filter feeder = ["http://www.wikidata.org/entity/Q1252491"] = 
+        grazer = ["http://www.wikidata.org/entity/Q37619060"] = 
+        kleptovore = 
+        non-selective = 
+        not feeding = 
+        on algae = 
+        on mobile prey = 
+        on organic substrates = 
+        on periphyton = 
+        on sessile prey = 
+        predator = ["https://www.wikidata.org/entity/Q170430"] = 
+        predator/omnivore = 
+        scavenger = ["http://polytraits.lifewatchgreece.eu/terms/FEED_S","http://www.wikidata.org/entity/Q172867"] = 
+        selective = 
+        subsurface = 
+        surface = 
+        suspension feeder = ["http://eol.org/schema/terms/suspensionFeeder"] = 
+        ----- Feeding method > Life stage (Child MoF)  total: 3 subtotal: 1
+        List of life stages. See separate file. [http://rs.tdwg.org/dwc/terms/lifeStage] = 
+        ----- Feeding method > Food source (Child MoF)  total: 3 subtotal: 1
+        List of taxa e.g. Bucephaloides gracilescens = 
+        =============================================================
+        =============================================================
+        Trophic level
+        ----- (Parent MoF) *[["http://www.wikidata.org/entity/Q1053008"]]  total: 3 subtotal: 5
+        carnivore = ["http://www.wikidata.org/entity/Q81875","https://www.wikidata.org/entity/Q81875"] = 
+        detritivore = ["http://wikidata.org/entity/Q2750657"] = 
+        herbivore = ["https://www.wikidata.org/entity/Q59099","https://www.wikidata.org/wiki/Q59099"] = 
+        lignivore = 
+        omnivore = ["http://polytraits.lifewatchgreece.eu/terms/FEED_O","http://www.wikidata.org/entity/Q164509","https://www.wikidata.org/entity/Q164509"] = 
+        ----- Trophic level > Life stage (Child MoF)  total: 3 subtotal: 1
+        List of life stages. See separate file. [http://rs.tdwg.org/dwc/terms/lifeStage] = 
+        ----- Trophic level > Food source (Child MoF)  total: 3 subtotal: 1
+        List of taxa e.g. Acanthocyclus albatrossis = 
+        =============================================================
+        */
 
         //Aug 24, 2019 - for associations | 'reg' for regular; 'rev' for reverse
         $this->fType_URI['ectoparasitic']['reg']    = 'http://purl.obolibrary.org/obo/RO_0002632';

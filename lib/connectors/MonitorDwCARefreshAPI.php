@@ -10,13 +10,21 @@ class MonitorDwCARefreshAPI
     {
         $this->download_options = array('cache' => 1, 'resource_id' => 'dwca_monitor', 'timeout' => 3600, 'download_attempts' => 1, 
         'expire_seconds' => 60*60*1*1); // ideal 1 hr cache
-        // $this->download_options['expire_seconds'] = false; //during dev only
-        $this->harvest_dump = "https://editors.eol.org/eol_php_code/applications/content_server/resources/EOL_FreshData_connectors.txt";
+        // $this->download_options['expire_seconds'] = 0; //during dev only
         $this->fields = array("ID", "Date", "Stats");
         $this->api_package_list = "https://opendata.eol.org/api/3/action/package_list";
         $this->api_package_show = "https://opendata.eol.org/api/3/action/package_show?id=";
-        if(Functions::is_production()) $this->lookup_url = "https://editors.eol.org/eol_php_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
-        else                           $this->lookup_url = WEB_ROOT."/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
+        if(Functions::is_production()) {
+            $this->lookup_url = "https://editors.eol.org/eol_php_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
+            $this->harvest_dump_link = "https://editors.eol.org/eol_php_code/applications/content_server/resources/EOL_FreshData_connectors.txt";
+            $this->harvest_dump = "https://editors.eol.org/eol_php_code/applications/content_server/resources/EOL_FreshData_connectors.txt"; //the one being read
+        }
+        else {
+            $this->lookup_url = "http://localhost:81/eol_php8_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
+            $this->harvest_dump_link = 'http://localhost:81/eol_php8_code/applications/content_server/resources_3/EOL_FreshData_connectors.txt';
+            $this->harvest_dump = WEB_ROOT."/applications/content_server/resources_3/EOL_FreshData_connectors.txt"; //the one being read
+            echo "\nDevelopment environment:<br>[$this->lookup_url]<br>[$this->harvest_dump_link]<br>[$this->harvest_dump] (being read)<br>";
+        }
         $this->prev_date = "";
         $this->color = 'lightyellow';
     }
@@ -108,10 +116,10 @@ class MonitorDwCARefreshAPI
                     self::display($dwca_id, $lookup_id);
                 }
             }
-            echo $this->sep."--end-- <a href='$this->harvest_dump'>DwCA logs</a>".$this->sep;
+            echo $this->sep."--end-- <a href='$this->harvest_dump_link'>DwCA logs</a>".$this->sep;
             return $possible_IDs;
         }
-        echo $this->sep."--end-- <a href='$this->harvest_dump'>DwCA logs</a>".$this->sep;
+        echo $this->sep."--end-- <a href='$this->harvest_dump_link'>DwCA logs</a>".$this->sep;
         return $found_hits_YN;
     }
     private function get_date_from_date_string($str)

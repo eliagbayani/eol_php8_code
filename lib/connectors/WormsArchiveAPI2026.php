@@ -96,6 +96,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // */
         $this->association_mtypes = array('Ecological interactions > Host', 'Feeding method > Food source', 'Trophic level > Food source');
         $this->association_mtypes = array('Ecological interactions > Host'); //debug only
+        $this->association_parent_mtypes = array('Ecological interactions', 'Feeding method', 'Trophic level');
+        $this->association_parent_mtypes = array('Ecological interactions'); //done
+        $this->association_parent_mtypes = array('Feeding method');
 
 
         /* Mar 9, 2026 Associations
@@ -289,12 +292,12 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         unset($this->childOf); unset($this->parentOf); unset($this->ToExcludeMeasurementIDs);
         unset($this->BodysizeDimension); unset($this->FeedingType); unset($this->lifeStageOf); unset($this->measurementIDz);
 
-        // /* PofMO
+        /* PofMO
         $records = $harvester->process_row_type('http://eol.org/schema/media/Document');        echo "\n5 of 8";  self::get_objects($records);
         $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference');      echo "\n6 of 8"; self::process_fields($records, "reference");
         $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n7 of 8"; self::process_fields($records, "agent");
         $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'); echo "\n8 of 8"; self::process_fields($records, "vernacular");
-        // */
+        */
             
         $this->archive_builder->finalize(TRUE);
 
@@ -418,8 +421,6 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // if(stripos($mType, "Functional group") !== false) print_r($rec) //found string //debug only
 
         $parts = array(' > Life stage', ' > Sex', ' > Locality (MRGID)');
-        $parts = array_merge($parts, $this->association_mtypes);
-        print_r($parts); exit("\nstop muna\n");
         foreach($parts as $part) {
             if(stripos($mType, $part) !== false) { //exit("\nhere 1\n");
                 $arr = explode(">", $mType); $arr = array_map('trim', $arr);
@@ -441,7 +442,34 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $super_parent = self::get_super_parent($mID);
             $this->BodysizeDimension[$super_parent] = $this->BsD_URI[strtolower($mValue)];
         }
-        // --------------------------------------------
+        // -------------------------------------------- for associations
+        if(in_array($mType, $this->association_mtypes)) { //print_r($rec); exit("\nstop 3\n"); --- these are child MoF records
+            /*Array(
+                [MeasurementOrFact] => 292968
+                [measurementID] => 415015_292968
+                [parentMeasurementID] => 415014_292968
+                [measurementType] => Ecological interactions > Host
+                [measurementValueID] => urn:lsid:marinespecies.org:taxname:217662
+                [measurementValue] => Saurida gracilis (Quoy & Gaimard, 1824)
+                [measurementUnit] => 
+                [measurementAccuracy] => 
+            )*/
+            $super_parent = self::get_super_parent($parentMID);
+            $mValueID = self::get_worms_taxon_id($mValueID);
+            $arr = explode(">", $mType); $arr = array_map('trim', $arr);
+            $parent_mType = $arr[0]; //e.g. 'Ecological interactions'
+            $child_mType = $arr[1]; //e.g. 'Host'
+            $this->association_of_parent[$super_parent][strtolower($parent_mType)] = array('taxID' => $mValueID, 'taxName' => $mValue);
+            // print_r($this->association_of_parent); exit("\nstop 1\n");
+            /*Array(
+                [415013_292968] => Array(
+                        [ecological interactions] => Array(
+                                [taxID] => 217662
+                                [taxName] => Saurida gracilis (Quoy & Gaimard, 1824)
+                            )
+                    )
+            )*/
+        }
         // --------------------------------------------
     }
     private function write_MoF($rec)
@@ -453,9 +481,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $parentMID = trim($rec['parentMeasurementID']);
         if(!$parentMID) { //no parent ID means a parent MoF; not a child
             self::proceed_save_mof($rec);
-        }
-        else { //child measurements, where associations are located
-            if(in_array($mType, $this->association_mtypes)) self::process_associations($rec);
+            self::process_associations($rec);
         }
     }
     private function proceed_save_mof($rec)
@@ -593,16 +619,14 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function format_worms_fields($rec)
     {
-        $fields = array('taxonID', 'parentNameUsageID', 'acceptedNameUsageID');
+        $fields = array('taxonID', 'parentNameUsageID', 'acceptedNameUsageID'); //measurementValueID
         foreach($fields as $field) {
             if(isset($rec[$field])) $rec[$field] = self::get_worms_taxon_id($rec[$field]);
         }
-        
         $fields = array('taxonomicStatus');
         foreach($fields as $field) {
             if(isset($rec[$field])) $rec[$field] = self::format_status($rec[$field]);
         }
-
         return $rec;
     }
     private function format_status($string)
@@ -721,7 +745,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $save['measurementMethod'] = $rec['measurementAccuracy'].', '.$sciname;
             }
             else {
-                if($sciname = self::lookup_worms_name($vtaxon_id)) {
+                if($sciname = self::lookup_worms_name($vtaxon_id)) { //a step we can get away. If we don't want to then we will do remote calls to WoRMS.
                     $save['measurementMethod'] = $rec['measurementAccuracy'].', '.$sciname;
                 }
                 else {
@@ -761,7 +785,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function lookup_worms_name($vtaxon_id)
     {   $options = $this->download_options;
-        $options['expire_seconds'] = false;
+        $options['expire_seconds'] = false;         //exit("\nhuli 10 [$vtaxon_id]\n");
         if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$vtaxon_id, $options)) { //exit("\nlookup 1\n");
             $arr = json_decode($json, true); // print_r($arr); exit;
             return trim($arr['scientificname']." ".$arr['authority']);
@@ -776,7 +800,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $current = $parent;
                 $id = $current;
             }
-            else return $current;
+            else {
+                if($current) return $current;
+                else return $id; //means the $id is already the immediate and last parent. E.g. 435949_292968
+            }
         }
     }
     private function get_children_of_MoF($mID)
@@ -927,10 +954,106 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }
     }
     private function process_associations($rec)
-    {
-
+    {   /*Array( print_r($this->association_of_parent);
+            [415013_292968] => Array(
+                    [ecological interactions] => Array(
+                            [taxID] => 217662
+                            [taxName] => Saurida gracilis (Quoy & Gaimard, 1824)
+                        )
+                )
+        )*/
+        $mID = $rec['measurementID']; //'415013_292968'
+        $mType = $rec['measurementType']; //'Ecological interactions'
+        if(in_array($mType, $this->association_parent_mtypes)) { //'Ecological interactions', 'Feeding method', 'Trophic level'
+            if($rek = @$this->association_of_parent[$mID][strtolower($mType)]) { print_r($rec); print_r($rek); exit("\neli 3\n");
+                /*Array(
+                    [MeasurementOrFact] => 292968
+                    [measurementID] => 415013_292968
+                    [parentMeasurementID] => 
+                    [measurementType] => Ecological interactions
+                    [measurementValueID] => 
+                    [measurementValue] => ectoparasitic
+                    [measurementUnit] => 
+                    [measurementAccuracy] => 
+                )
+                Array(
+                    [taxID] => 217662
+                    [taxName] => Saurida gracilis (Quoy & Gaimard, 1824)
+                )*/
+                self::association_main($rec, $rek);
+            }
+        }
+        else return;
     }
-    private function get_measurements($meta)
+    private function association_main($rec, $rek)
+    {
+        /* source is: 292968   target is: 217662          ---- copied template
+        e.g. MoF
+        occurrenceID , associationType , targetOccurrenceID
+        292968_RO_0002632	http://purl.obolibrary.org/obo/RO_0002632	217662_292968_RO_0002632	http://www.marinespecies.org/aphia.php?p=taxdetails&id=292968#attributes
+        */
+        /* 2026 data below: new way to get predicate (and its reverse) instead of just 'RO_0002454' (and its reverse RO_0002453) per: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63753&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63753
+        AphiaID	measurementID	parentMeasurementID	measurementType	measurementValueID	measurementValue	measurementUnit	measurementAccuracy
+        292968	415013_292968		Ecological interactions		ectoparasitic		
+        292968	415014_292968	415013_292968	Ecological interactions > Life stage		adult		
+        292968	415015_292968	415014_292968	Ecological interactions > Host	urn:lsid:marinespecies.org:taxname:217662	Saurida gracilis (Quoy & Gaimard, 1824)		
+        */
+        /*Array( print_r($rec); print_r($rek); exit("\neli 3\n");
+            [MeasurementOrFact] => 292968
+            [measurementID] => 415013_292968
+            [parentMeasurementID] => 
+            [measurementType] => Ecological interactions
+            [measurementValueID] => 
+            [measurementValue] => ectoparasitic
+            [measurementUnit] => 
+            [measurementAccuracy] => 
+        )
+        Array(
+            [taxID] => 217662
+            [taxName] => Saurida gracilis (Quoy & Gaimard, 1824)
+        )*/
+        $mID = $rec['measurementID'];
+        $mValue = $rec['measurementValue']; //e.g. 'ectoparasitic'
+        if($value_str = strtolower($mValue)) {
+            $predicate         = $this->fType_URI[$value_str]['reg'];
+            $predicate_reverse = $this->fType_URI[$value_str]['rev'];
+        }
+        else return;
+        //get lifeStage if any
+        $lifeStage_uri = ''; $sex_uri = ''; $locality_uri = '';
+        if($lifeStage = @$this->child_of_parent[$mID]['life stage']) {
+            $lifeStage_uri = self::get_uri_from_value($lifeStage, 'mValue', 'lifeStage');
+            // exit("\nlifeStage: [$lifeStage][$lifeStage_uri]\n");
+        }
+        // else echo "\nNo lifeStage for mID = [$mID]\n"; //debug only
+        if($sex = @$this->child_of_parent[$mID]['sex']) $sex_uri = self::get_uri_from_value($sex, 'mValue', 'sex');
+        if($locality = @$this->child_of_parent[$mID]['locality']) $locality_uri = self::get_uri_from_value($locality, 'mValue', 'sex');
+
+        if($predicate) {
+            $param = array('source_taxon_id' => $rec['MeasurementOrFact'],     'predicate' => $predicate, 
+                            'target_taxon_id' => $rek['taxID'],   'target_taxon_name' => $rek['taxName'], 
+                            'lifeStage' => $lifeStage_uri, 'sex' => $sex_uri, 'locality' => $locality_uri);
+            self::add_association($param);
+        }
+
+        /* Now do the reverse, if any */
+        if($predicate_reverse) {
+            $reverse_taxonID = $rec['MeasurementOrFact'];
+            $sciname = 'will look up or create';
+            if($sciname = @$this->taxa_rank[$reverse_taxonID]['n']) {}
+            else {
+                return; //The target taxon is a synonym. Thus was not included. We wait for decision of higher-ups on this.
+                echo "\n---------------------------------------\n"; print_r($rek); print_r($rec); exit("\nWill need to add taxon first [$reverse_taxonID]\n");
+            }
+            @$this->debug['Successful reverse MoF']++;
+            $param = array('source_taxon_id' => $rek['taxID'], 'predicate' => $predicate_reverse, 
+                            'target_taxon_id' => $reverse_taxonID, 
+                            'target_taxon_name' => $sciname);
+            self::add_association($param);
+        }
+        return; //part of real operation. Can go next row now
+    }
+    private function get_measurements($meta) //copied template ---- not used here
     {   echo "\nprocess_measurementorfact...\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
             $i++; if(($i % 500000) == 0) echo "\n".number_format($i);
@@ -974,78 +1097,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
 
             // if($measurementType == 'Feedingtype > Host/prey') { //old
-            if(in_array($measurementType, $this->association_mtypes)) {
-                /*Array(
-                    [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 292968
-                    [http://rs.tdwg.org/dwc/terms/measurementID] => 415015_292968
-                    [parentMeasurementID] => 415014_292968
-                    [http://rs.tdwg.org/dwc/terms/measurementType] => Feedingtype > Host
-                    [http://rs.tdwg.org/dwc/terms/measurementValueID] => urn:lsid:marinespecies.org:taxname:217662
-                    [http://rs.tdwg.org/dwc/terms/measurementValue] => Saurida gracilis (Quoy & Gaimard, 1824)
-                    [http://rs.tdwg.org/dwc/terms/measurementUnit] => 
-                    [http://rs.tdwg.org/dwc/terms/measurementAccuracy] => 
-                )*/
-                // continue; //debug only
-                /* source is: 292968   target is: 217662
-                e.g. MoF
-                occurrenceID , associationType , targetOccurrenceID
-                292968_RO_0002454 , http://purl.obolibrary.org/obo/RO_0002454 , 217662_292968_RO_0002454
-                */
-                
-                // /* new way to get predicate (and its reverse) instead of just 'RO_0002454' (and its reverse RO_0002453) per: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63753&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63753
-                // AphiaID | measurementID | parentMeasurementID | measurementType | measurementValueID | measurementValue | measurementUnit | measurementAccuracy
-                // 292968 | 415013_292968 |  | Feedingtype |  | ectoparasitic |  | 
-                // 292968 | 415014_292968 | 415013_292968 | Feedingtype > Stage |  | adult |  | 
-                // 292968 | 415015_292968 | 415014_292968 | Feedingtype > Host | urn:lsid:marinespecies.org:taxname:217662 | Saurida gracilis (Quoy & Gaimard, 1824)
-                $mID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
-                $super_parent = self::get_super_parent($mID);
-                if($value_str = @$this->FeedingType[$super_parent]) {
-                    $this->debug['FeedingType'][$value_str] = '';
-                    if(in_array($value_str, array('carnivore', 'unknown', 'omnivore', 'commensal', 'on sessile prey', 'predator', 'scavenger'))) continue; //were not initialized in ticket, no instruction.
-                    $predicate         = $this->fType_URI[$value_str]['reg'];
-                    $predicate_reverse = $this->fType_URI[$value_str]['rev'];
-                }
-                else {
-                    print("\nInvestigate: cannot link to parent record [$super_parent].\n"); //e.g. 478430_458997 legit no parent record
-                    continue;
-                }
-                //get lifeStage if any
-                $lifeStage = ''; $sex = ''; $locality = '';
-                if($parent = $rec['parentMeasurementID']) {
-                    if($value_str = @$this->lifeStageOf[$parent]) { //e.g. 'adult'
-                        $lifeStage = self::get_uri_from_value($value_str, 'mValue', 'lifeStage');
-                    }
-                    if($value_str = @$this->sexOf[$parent]) { //e.g. 'female'
-                        $sex = self::get_uri_from_value($value_str, 'mValue', 'Sex');
-                    }
-                    if($value_str = @$this->localityOf[$parent]) { //e.g. 'Europe'
-                        $locality = self::get_uri_from_value($value_str, 'mValue', 'locality');
-                    }
-                }
-                // */
-                if($predicate) {
-                    $param = array('source_taxon_id' => $rec['http://rs.tdwg.org/dwc/terms/MeasurementOrFact'],     'predicate' => $predicate, 
-                                   'target_taxon_id' => $rec['http://rs.tdwg.org/dwc/terms/measurementValueID'],    'target_taxon_name' => $rec['http://rs.tdwg.org/dwc/terms/measurementValue'], 
-                                   'lifeStage' => $lifeStage, 'sex' => $sex, 'locality' => $locality);
-                    self::add_association($param);
-                }
-
-                /*Now do the reverse*/
-                if($predicate_reverse) {
-                    $sciname = 'will look up or create';
-                    if($sciname = $this->taxa_rank[self::get_worms_taxon_id($rec['http://rs.tdwg.org/dwc/terms/MeasurementOrFact'])]['n']) {}
-                    else {
-                        print_r($rec);
-                        exit("\nWill need to add taxon first\n");
-                    }
-                    $param = array('source_taxon_id' => self::get_worms_taxon_id($rec['http://rs.tdwg.org/dwc/terms/measurementValueID']), 'predicate' => $predicate_reverse, 
-                                   'target_taxon_id' => $rec['http://rs.tdwg.org/dwc/terms/MeasurementOrFact'], 
-                                   'target_taxon_name' => $sciname);
-                    self::add_association($param);
-                }
-                // break; //debug only --- do this if you want to proceed create DwCA
-                continue; //part of real operation. Can go next row now
-            }
+            if(in_array($measurementType, $this->association_mtypes)) {}
             //========================================================================================================next task --- worms_mapping1.csv
             /*Array( $this->match2map
                 [Feedingtype] => Array(
@@ -1063,7 +1115,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
 
     private function add_association($param)
-    {   $basename = pathinfo($param['predicate'], PATHINFO_BASENAME); //e.g. RO_0002454
+    {   print_r($param);
+        $basename = pathinfo($param['predicate'], PATHINFO_BASENAME); //e.g. RO_0002454
         $taxon_id = $param['source_taxon_id'];
         $occurrenceID = $this->add_occurrence_assoc($taxon_id, $basename, @$param['lifeStage']);
         $related_taxonID = $this->add_taxon_assoc($param['target_taxon_name'], self::get_worms_taxon_id($param['target_taxon_id']));
@@ -1723,6 +1776,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // [rank] => Kingdom
             // [scientificname] => Chromista
             // [parent_id] => 1
+            exit("\nhuli 11\n");
             if($json = Functions::lookup_with_cache($this->webservice['AphiaRecordByAphiaID'].$taxon['AphiaID'], $this->download_options)) {
                 $arr = json_decode($json, true);
                 // print_r($arr);

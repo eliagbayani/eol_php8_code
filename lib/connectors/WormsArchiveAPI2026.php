@@ -1014,8 +1014,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $mID = $rec['measurementID'];
         $mValue = $rec['measurementValue']; //e.g. 'ectoparasitic'
         if($value_str = strtolower($mValue)) {
-            $predicate         = $this->fType_URI[$value_str]['reg'];
-            $predicate_reverse = $this->fType_URI[$value_str]['rev'];
+            $predicate         = @$this->fType_URI[$value_str]['reg'];
+            $predicate_reverse = @$this->fType_URI[$value_str]['rev'];
         }
         else return;
         //get lifeStage if any

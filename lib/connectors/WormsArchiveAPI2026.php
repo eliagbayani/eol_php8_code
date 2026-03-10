@@ -95,10 +95,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
         // */
         $this->association_mtypes = array('Ecological interactions > Host', 'Feeding method > Food source', 'Trophic level > Food source');
-        $this->association_mtypes = array('Ecological interactions > Host'); //debug only
+        $this->association_mtypes = array('Ecological interactions > Host'); //Only one with instructions, from old connector.
         $this->association_parent_mtypes = array('Ecological interactions', 'Feeding method', 'Trophic level');
-        $this->association_parent_mtypes = array('Ecological interactions'); //done
-        $this->association_parent_mtypes = array('Feeding method');
+        $this->association_parent_mtypes = array('Ecological interactions'); //Only one with instructions, from old connector.
 
 
         /* Mar 9, 2026 Associations
@@ -1068,12 +1067,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 $k++;
                 // */
             } // print_r($rec); exit;
-
             $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
             @$this->debug['measurementType'][$measurementType]++;
-
             // if($rec) $rec = Functions::array_map_eol('trim', $rec); //worked OK - important!
-
             // /* Eli Dec 16. To remove 3 parentMoF without entry. From: https://editors.eol.org/eol_php_code/applications/content_server/resources/26_undefined_parentMeasurementIDs.txt
             $mID = $rec['http://rs.tdwg.org/dwc/terms/measurementID'];
             if(in_array($mID, array('749320_160945', '749321_160945', '749346_120936', '749347_120936', '749374_583525', '749375_583525'))) continue;
@@ -1084,19 +1080,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // 583525   749374_583525       Functional group        meiobenthos     
             // 583525   749375_583525   749374_583525   Functional group > Stage        adult       
             // */
-
-            /* just for testing...
-            $mtype = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
-            // if($mtype == 'Body size > Gender' && !$rec['parentMeasurementID']) print_r($rec);
-            if($mtype == 'Species importance to society > IUCN Red List Category > Year Assessed' && !$rec['parentMeasurementID']) print_r($rec);
-            continue;
-            */
-            
             if(isset($this->ToExcludeMeasurementIDs[$rec['http://rs.tdwg.org/dwc/terms/measurementID']])) continue;
             //========================================================================================================first task - association
             $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
-
-            // if($measurementType == 'Feedingtype > Host/prey') { //old
             if(in_array($measurementType, $this->association_mtypes)) {}
             //========================================================================================================next task --- worms_mapping1.csv
             /*Array( $this->match2map
@@ -1113,9 +1099,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             //========================================================================================================end tasks
         }//end foreach
     }
-
     private function add_association($param)
-    {   print_r($param);
+    {   //print_r($param);
         $basename = pathinfo($param['predicate'], PATHINFO_BASENAME); //e.g. RO_0002454
         $taxon_id = $param['source_taxon_id'];
         $occurrenceID = $this->add_occurrence_assoc($taxon_id, $basename, @$param['lifeStage']);

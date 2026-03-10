@@ -49,13 +49,13 @@ $cmdline_params['what'] = "media_objects";
 // /* //main operation
 $func = new WormsArchiveAPI2026($resource_id);
 $func->start(); 
-Functions::finalize_dwca_resource($resource_id, false, true, $timestart); //3rd param should be false so it doesn't remove the /26/ folder which will be used below when diagnosing...
+Functions::finalize_dwca_resource($resource_id, false, false, $timestart); //3rd param should be false so it doesn't remove the /26/ folder which will be used below when diagnosing...
 // */
 
-/* main operation - continued
+// /* main operation - continued
 run_utility($resource_id);
 recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH."26/"); //we can now delete folder after run_utility() - DWCADiagnoseAPI
-*/
+// */
 
 // ==============================================================================================================================
 // /* NEW Feb 11, 2020: start auto-remove children of 26_undefined_parentMeasurementIDs.txt in MoF ------------------------------

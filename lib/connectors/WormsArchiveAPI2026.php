@@ -179,9 +179,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->fType_URI['kleptivore']['rev']       = 'http://purl.obolibrary.org/obo/RO_0008504';
         // $this->real_parents = array('AMBI ecological group', 'Body size', 'Body size (qualitative)', 'Feedingtype', 'Fossil range', 'Functional group', 'Paraphyletic group', 'Species importance to society', 'Supporting structure & enclosure');
         $this->real_parents = array("AMBI ecological group", "Asexual reproduction", "Body shape", "Body size", "Body size (qualitative)", "Brooding", "Calcification", "Cytomorphology", "Development", "Dispersion mode", 
-        "Ecological interactions", 
-        "Environmental position", "Etymology classification", 
-        "Feeding method", "Fossil range", 
+        "Ecological interactions", "Environmental position", "Etymology classification", "Feeding method", "Fossil range", 
         "Functional group", "Gamete type", "Gametophyte arrangement", "Generation time", "Life cycle", "Life span", "Mobility", "Modes of reproduction", "Nomenclature code", "Paraphyletic group", "Plant habit", "Reproductive frequency", "Sociability", "Spawning", "Species exhibits underwater soniferous behaviour", "Species importance to society", "Supporting structure & enclosure", "Thallus vertical space used", "Tolerance to pollutants", "Trophic level", "Zonation");
 
         // formerly 'Feedingtype'
@@ -247,10 +245,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function initialize()
     {
-        /*
+        // /*
         $temp = CONTENT_RESOURCE_LOCAL_PATH . "26_files";
         if(!file_exists($temp)) mkdir($temp);
-        */
+        // */
         self::init_contributor_info();
         self::init_trait_generic();
         self::init_text_mappings();

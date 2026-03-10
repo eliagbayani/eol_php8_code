@@ -94,6 +94,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         "Asexual reproduction > Locality (MRGID)", "Species importance to society > Habitats Directive Annex", "Species importance to society > OSPAR Region where species is under threat and/or in decline", "Life span > Life stage", "Asexual reproduction > Life stage", "Calcification > Life stage", "Cytomorphology > Life stage", "Body shape > Life stage", "Life cycle > Life stage", "Spawning > Life stage", "Tolerance to pollutants > Life stage", "Dispersion mode > Life stage", "Gamete type > Life stage", "Thallus vertical space used > Life stage", "Gametophyte arrangement > Life stage", 
         "Trophic level > Life stage", "Trophic level > Food source", "Species importance to society > OSPAR common indicators: Celtic Seas", "Species importance to society > OSPAR common indicators: Bay of Biscay and Iberian Coast", "Species importance to society > OSPAR candidate indicators: North Sea", "Species importance to society > OSPAR common indicators: Greater North Sea", "Species importance to society > Birds Directive Annex", "Species importance to society > Mediterranean proposed indicators - Adriatic Sea", "Species importance to society > Black Sea proposed indicators", "Species importance to society > OSPAR candidate indicators: Bay of Biscay and the Iberian Coast", "Species importance to society > Mediterranean proposed indicators - Aegean-Levantine Sea", "Species importance to society > Mediterranean proposed indicators - Ionian Sea", "Species importance to society > Mediterranean proposed indicators - Western Mediterranean", "Generation time > Life stage", "Reproductive frequency > Life stage", "Species importance to society > OSPAR common indicators: Greater North Sea including outside EU");
         // */
+        $this->association_mtypes = array('Ecological interactions > Host', 'Feeding method > Food source', 'Trophic level > Food source');
+        $this->association_mtypes = array('Ecological interactions > Host'); //debug only
+
 
         /* Mar 9, 2026 Associations
         =============================================================
@@ -415,6 +418,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // if(stripos($mType, "Functional group") !== false) print_r($rec) //found string //debug only
 
         $parts = array(' > Life stage', ' > Sex', ' > Locality (MRGID)');
+        $parts = array_merge($parts, $this->association_mtypes);
+        print_r($parts); exit("\nstop muna\n");
         foreach($parts as $part) {
             if(stripos($mType, $part) !== false) { //exit("\nhere 1\n");
                 $arr = explode(">", $mType); $arr = array_map('trim', $arr);
@@ -444,9 +449,13 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $mID = $rec['measurementID'];
         if(isset($this->ToExcludeMeasurementIDs[$mID])) return;
 
+        $mType = $rec['measurementType'];
         $parentMID = trim($rec['parentMeasurementID']);
         if(!$parentMID) { //no parent ID means a parent MoF; not a child
             self::proceed_save_mof($rec);
+        }
+        else { //child measurements, where associations are located
+            if(in_array($mType, $this->association_mtypes)) self::process_associations($rec);
         }
     }
     private function proceed_save_mof($rec)
@@ -917,6 +926,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             else return $current;
         }
     }
+    private function process_associations($rec)
+    {
+
+    }
     private function get_measurements($meta)
     {   echo "\nprocess_measurementorfact...\n"; $i = 0;
         foreach(new FileIterator($meta->file_uri) as $line => $row) {
@@ -958,12 +971,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             
             if(isset($this->ToExcludeMeasurementIDs[$rec['http://rs.tdwg.org/dwc/terms/measurementID']])) continue;
             //========================================================================================================first task - association
-
             $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
-            $association_mtypes = array('Ecological interactions > Host', 'Feeding method > Food source', 'Trophic level > Food source');
 
             // if($measurementType == 'Feedingtype > Host/prey') { //old
-            if(in_array($measurementType, $association_mtypes)) {
+            if(in_array($measurementType, $this->association_mtypes)) {
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/MeasurementOrFact] => 292968
                     [http://rs.tdwg.org/dwc/terms/measurementID] => 415015_292968

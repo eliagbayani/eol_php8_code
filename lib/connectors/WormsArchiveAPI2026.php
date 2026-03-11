@@ -483,9 +483,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // --------------------------------------------
     }
     private function write_MoF($rec)
-    {
+    {   //print_r($rec); exit("\nquick 1\n");
         $mID = $rec['measurementID'];
         if(isset($this->ToExcludeMeasurementIDs[$mID])) return;
+        if(!isset($this->taxon_ids[$rec['MeasurementOrFact']])) return; //this will exclude not 'accepted' taxa
 
         $mType = $rec['measurementType'];
         $parentMID = trim($rec['parentMeasurementID']);
@@ -1111,7 +1112,21 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         }//end foreach
     }
     private function add_association($param)
-    {   //print_r($param);
+    {   //print_r($param); exit("\ncheck 01\n");
+        /*Array(
+            [source_taxon_id] => 292968
+            [predicate] => http://purl.obolibrary.org/obo/RO_0002632
+            [target_taxon_id] => 217662
+            [target_taxon_name] => Saurida gracilis (Quoy & Gaimard, 1824)
+            [lifeStage] => http://www.ebi.ac.uk/efo/EFO_0001272
+            [sex] => 
+            [locality] => 
+        )*/
+        // /* New 2026: so not to include synonyms taxa in associations.
+        if(!isset($this->taxon_ids[$param['source_taxon_id']])) return;
+        if(!isset($this->taxon_ids[$param['target_taxon_id']])) return;
+        // */
+
         $basename = pathinfo($param['predicate'], PATHINFO_BASENAME); //e.g. RO_0002454
         $taxon_id = $param['source_taxon_id'];
         $occurrenceID = $this->add_occurrence_assoc($taxon_id, $basename, $param);
@@ -1123,6 +1138,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $a->associationType = $param['predicate'];
         $a->targetOccurrenceID = $related_occurrenceID;
         $a->source = $this->taxon_page.$taxon_id.'#attributes';
+        $a->associationID = md5($a->occurrenceID . $a->associationType . $a->targetOccurrenceID . $a->source);
         $this->archive_builder->write_object_to_file($a);
     }
     private function add_taxon_assoc($taxon_name, $taxon_id)

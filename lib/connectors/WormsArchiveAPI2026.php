@@ -278,6 +278,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         print_r(array_keys($tables));
         
         $meta_taxon = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        echo "\n0 of 8"; self::process_extension($meta_taxon, 'prepare_taxon'); //PofMO
         echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
 
         // /* PofMO -- this block handles measurementorfact.txt
@@ -337,6 +338,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             // $rec = Functions::array_map_eol('trim', $rec); //caused errors
             // print_r($rec); exit;
             //===========================================================================================================================================================
+            if($what == 'prepare_taxon') {
+                $rec = self::format_worms_fields($rec);
+                if($rec['taxonomicStatus'] != 'accepted') continue;
+                $this->taxon_ids[$rec['taxonID']] = '';
+            }
             if($what == 'write_taxon') {
                 /*Array(
                     [taxonID] => urn:lsid:marinespecies.org:taxname:1
@@ -358,6 +364,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 if($rec['taxonomicStatus'] != 'accepted') continue;
                 $this->taxon_ids[$rec['taxonID']] = '';
                 unset($rec['rights']); //no 'rights' in EoL taxa extension schema
+                
+                // /* This is to prevent from have parents that don't exist. Mostly synonyms, others are really don't have entries for the parents in WoRMS taxon.txt file.
+                if(!isset($this->taxon_ids[$rec['parentNameUsageID']])) $rec['parentNameUsageID'] = '';
+                // */
+                
                 // /* for later lookup
                 $taxon_id = $rec['taxonID'];
                 $this->taxa_rank[$taxon_id]['r'] = (string) $rec["taxonRank"];

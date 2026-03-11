@@ -25,6 +25,7 @@ class ResourceUtility
         /* For environments_names.tsv processing */
         $this->ontology['env_names'] = "https://github.com/eliagbayani/vangelis_tagger/raw/master/eol_tagger/environments_names.tsv";
         $this->source_mValue = array();
+        $this->debug = array();
     }
     /*============================================================ STARTS remove_MoF_for_taxonID =================================================*/
     function remove_MoF_for_taxonID($info, $resource_name) //Func #7
@@ -49,15 +50,21 @@ class ResourceUtility
         else exit("\nResourceUtility: not yet setup.\n");
         // */
 
-        // step 1: get all occurrence ids with this taxon ID. Then write occurrence for those that are not of this taxon ID.
-        self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'get occur recs for this taxonID');
+        // step 1: get all occurrence ids with taxonIDs_in_question. Then write occurrence for those that are not questionable.
+        self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'get occur recs for this taxonID'); //$this->occurrence_IDs_2delete
 
         // /* NEW: to check URI's againt the EOL Terms file
         $this->uris = self::assemble_terms_yml();
         // */
 
-        // step 2: write MoF not in the list of occur ids from step 1.
-        self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'write MoF not of this taxonID');
+        // step 2: write MoF not in the list of occurrence_IDs_2delete from step 1.
+        self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'write MoF not of these taxonIDs_in_question');
+
+        // step 2.1: write Association not in the list of occurrence_IDs_2delete from step 1.
+        if($meta = @$tables['http://eol.org/schema/association'][0]) {
+            self::process_generic_table($meta, 'write Assoc not of these taxonIDs_in_question');
+        }
+
         // step 3: generate taxon.tab without the said taxon rows
         self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'gen taxon.tab without the not-wanted taxonIDs');
 
@@ -65,7 +72,7 @@ class ResourceUtility
         self::process_generic_table($tables['http://rs.tdwg.org/dwc/terms/occurrence'][0], 'write occurrences');
 
 
-        if(isset($this->debug)) print_r($this->debug);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //print_r($this->debug);
     }
     private function assemble_terms_yml()
     {
@@ -192,7 +199,7 @@ class ResourceUtility
                     self::loop_write($o, $rec);
                 }
             }
-            elseif($what == 'write MoF not of this taxonID') {
+            elseif($what == 'write MoF not of these taxonIDs_in_question') {
 
                 // /* ++++++++++++++++++++ NEW: log URI not found in EOL Terms file
                 $measurementType    = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
@@ -219,7 +226,7 @@ class ResourceUtility
                 }
                 if(!is_numeric($measurementValue)) {
                     if(!isset($this->uris[$measurementValue])) {
-                        @$this->debug["Missing measurementValue"][$measurementValue]++;
+                        @$this->debug["Missing measurementValue"][$measurementType][$measurementValue]++;
                         $this->occurrence_IDs_2delete[$occurrenceID] = '';
                         continue; //this can be commented actually
                     }
@@ -249,12 +256,26 @@ class ResourceUtility
                 // ++++++++++++++++++++ */
 
                 // start main write step:
-                $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
-                if(isset($this->occurrence_IDs_2delete[$occurrenceID])) continue;
-                else {
-                    $o = new \eol_schema\MeasurementOrFact_specific();
-                    self::loop_write($o, $rec);
+                if($occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID']) { //so child MoF recs like /locality/ aren't removed.
+                    if(isset($this->occurrence_IDs_2delete[$occurrenceID])) continue;
+                    else {
+                        $o = new \eol_schema\MeasurementOrFact_specific();
+                        self::loop_write($o, $rec);
+                    }
                 }
+                else { //child MoF like /locality can be saved here.
+                        $o = new \eol_schema\MeasurementOrFact_specific();
+                        self::loop_write($o, $rec);
+                }
+            }
+            elseif($what == 'write Assoc not of these taxonIDs_in_question') {
+                //associationID	occurrenceID	associationType	targetOccurrenceID	source
+                $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
+                $targetOccurrenceID = $rec['http://eol.org/schema/targetOccurrenceID'];
+                if(isset($this->occurrence_IDs_2delete[$occurrenceID]))         {@$this->debug['Deleted in Assoc 1']++; continue;} 
+                if(isset($this->occurrence_IDs_2delete[$targetOccurrenceID]))   {@$this->debug['Deleted in Assoc 2']++; continue;}
+                $o = new \eol_schema\Association();
+                self::loop_write($o, $rec);
             }
             elseif($what == 'gen taxon.tab without the not-wanted taxonIDs') { //for remove_MoF_for_taxonID()
                 $taxonID = @$rec['http://rs.tdwg.org/dwc/terms/taxonID'];

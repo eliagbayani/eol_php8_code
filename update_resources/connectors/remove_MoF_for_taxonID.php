@@ -65,7 +65,8 @@ function process_resource_url($dwca_file, $resource_id, $param)
     }
     elseif($resource_id == 'WoRMS_cleaned') {
         /* main operation. MoF and occurrence will be updated in ResourceUtility. The rest will be carried-over in DwCA_Utility. */
-        $excluded_rowtypes = array("http://rs.tdwg.org/dwc/terms/measurementorfact", "http://rs.tdwg.org/dwc/terms/occurrence", "http://rs.tdwg.org/dwc/terms/taxon");
+        $excluded_rowtypes = array("http://rs.tdwg.org/dwc/terms/measurementorfact", "http://rs.tdwg.org/dwc/terms/occurrence", "http://rs.tdwg.org/dwc/terms/taxon", 
+        "http://eol.org/schema/association");
         /* during dev only:
         $excluded_rowtypes = array_merge($excluded_rowtypes, array("http://eol.org/schema/reference/reference", "http://eol.org/schema/media/document", 
                                                                    "http://eol.org/schema/agent/agent", "http://rs.gbif.org/terms/1.0/vernacularname"));

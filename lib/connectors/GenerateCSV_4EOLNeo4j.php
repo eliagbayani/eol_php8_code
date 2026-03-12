@@ -75,6 +75,7 @@ class GenerateCSV_4EOLNeo4j
 
         // /* for Trait node
         $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'build_info_MoF_children');            
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta);
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta);
         fclose($this->WRITEx);        
@@ -254,6 +255,23 @@ class GenerateCSV_4EOLNeo4j
                 if(self::is_valid_taxonID($taxonID)) {
                     $scientificName = $this->taxon_info[$taxonID]['sN'];
                     $this->occur_info[$rec['occurrenceID']] = array('tI' => $taxonID, 'sN' => $scientificName, 'sx' => @$rec['sex'], 'lS' => @$rec['lifeStage']);
+                }
+            }
+            if($what == 'build_info_MoF_children') { //this is MoF record
+                /*
+                d9419d8666398b1463970124bb3c84cb				                        28d82a0068bf7121dce71fe84702c418	http://rs.tdwg.org/dwc/terms/locality	http://www.geonames.org/6255148
+                measurementID				        occurrenceID	measurementOfTaxon	parentMeasurementID			        measurementType				            measurementValue
+                */
+                if(!$rec['occurrenceID'] && !$rec['measurementOfTaxon'] && $rec['parentMeasurementID']) {
+                    $pMID = $rec['parentMeasurementID'];
+                    $type = pathinfo($rec['measurementType'], PATHINFO_FILENAME);
+                    $this->info_parent_mType[$pMID][$type] = $rec['measurementValue'];
+                    // print_r($this->info_parent_mType); exit("\neli x\n");
+                    /*Array(
+                        [28d82a0068bf7121dce71fe84702c418] => Array(
+                                [locality] => http://www.geonames.org/6255148
+                            )
+                    )*/
                 }
             }
             if($what == 'generate-TraitNode-csv') { //this is MoF record

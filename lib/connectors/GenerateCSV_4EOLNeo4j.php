@@ -147,11 +147,23 @@ class GenerateCSV_4EOLNeo4j
     }
     private function do_stats()
     {
-        $files = array('/nodes/Trait.csv');
-        foreach($files as $file) {
-            $file = $this->path . $file;
-            if(is_file($file)) $this->debug['Totals'][$file] = shell_exec('wc -l '.$file);
+        // $files = array('Term.csv', 'Page.csv', 'Vernacular.csv', 'Resource.csv', 'Trait.csv', 'Metadata.csv');
+        // foreach($files as $file) {
+        //     $file_path = $this->path . '/nodes/' . $file;
+        //     if(is_file($file)) $this->debug['Totals'][$file] = shell_exec('wc -l '.$file_path);
+        // }
+
+        $subfolders = array('/nodes/', '/edges/');
+        foreach($subfolders as $subfolder) {
+            $path = $this->path . $subfolder; //echo "\n[$path]\n";
+            $files = glob($path.'*.{csv,txt}', GLOB_BRACE); //print_r($files);
+            foreach ($files as $file_path) {
+                $out = shell_exec('wc -l '.$file_path);
+                $arr = explode(" ", $out);
+                $this->debug['Totals'][$subfolder][pathinfo($file_path, PATHINFO_BASENAME)] = $arr[0];
+            }
         }
+        print_r($this->debug['Totals']);
     }
     private function process_table($meta, $what)
     {
@@ -285,7 +297,8 @@ class GenerateCSV_4EOLNeo4j
             } //end of -> if($what == 'generate-TraitNode-csv')
 
             if($what == 'get_reference_ids') {
-                if($val = $rec['referenceID']) { //e.g. "WoRMS:sourceid:389854|c_4f32591232b4ade18be079dba527d520" or "WoRMS:sourceid:389854"
+                // add @ bec the Associations doesn't have referenceID. But I can check if DwCA can provide it.
+                if($val = @$rec['referenceID']) { //e.g. "WoRMS:sourceid:389854|c_4f32591232b4ade18be079dba527d520" or "WoRMS:sourceid:389854"
                     $arr = explode("|", $val);
                     $arr = array_map('trim', $arr);
                     foreach($arr as $refID) $this->reference_ids[$refID] = '';

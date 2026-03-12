@@ -72,10 +72,15 @@ class GenerateCSV_4EOLNeo4j
         // Step 4: generate Trait node
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
         self::process_table($meta, 'generate_occur_info');
+
+        // /* for Trait node
+        $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta);
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta);
+        fclose($this->WRITEx);        
         unset($meta);
         unset($this->occur_info);
+        // */
 
         // /*
         // Step 8: generate Metadata node
@@ -617,7 +622,9 @@ class GenerateCSV_4EOLNeo4j
             [lifestage] => 
         )*/
         // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	
-        // measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	contributor_uri	compiler_uri	determined_by_uri
+        // measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	
+        // contributor_uri	compiler_uri	determined_by_uri
+        // print_r($rec);
         $s = array();
         $s['page_id'] = $rec['page_id'];
         $s['scientific_name'] = $rec['scientific_name'];
@@ -671,7 +678,7 @@ class GenerateCSV_4EOLNeo4j
 
         $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
-        fwrite($this->WRITE, $csv."\n");
+        fwrite($this->WRITEx, $csv."\n");
     }
     private function value_for($rec, $field)
     {
@@ -1471,10 +1478,8 @@ class GenerateCSV_4EOLNeo4j
     {   /*  nodes/Trait.csv
             eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
         */
-        $this->WRITE = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
-        fwrite($this->WRITE, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+        fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
         self::process_table($meta, 'generate-TraitNode-csv');
-        fclose($this->WRITE);
     }
     private function prepare_ResourceNode_csv()
     {   /*  nodes/Resource.csv

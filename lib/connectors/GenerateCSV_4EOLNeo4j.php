@@ -1410,7 +1410,12 @@ class GenerateCSV_4EOLNeo4j
                         /*Array(
                             [mDD] => 2017-10-08T13:23:31+01:00          => measurementDeterminedDate
                             [rI] => WoRMS:sourceid:150276               => referenceID
+                            [l] => http://www.geonames.org/6255148      => locality
                         )*/
+                        if($locality_uri = @$metadata['l']) {
+
+                        }
+
                         
                         if($measurementDeterminedDate = @$metadata['mDD']) {
                             $p = array();
@@ -1680,8 +1685,17 @@ class GenerateCSV_4EOLNeo4j
         // http://eol.org/schema/reference/referenceID                  ==>> from MoF
         // http://rs.tdwg.org/dwc/terms/measurementDeterminedDate       ==>> from MoF
         
-        if(@$rec['measurementDeterminedDate'] || @$rec['referenceID']) {
-            $arr = array('mDD' => @$rec['measurementDeterminedDate'], 'rI' => @$rec['referenceID']);
+        // /*
+        $locality = @$this->info_parent_mType[$rec['measurementID']]['locality'];
+        // Array(
+        //     [28d82a0068bf7121dce71fe84702c418] => Array(
+        //             [locality] => http://www.geonames.org/6255148
+        //         )
+        // )
+        // */
+
+        if(@$rec['measurementDeterminedDate'] || @$rec['referenceID'] || $locality) {
+            $arr = array('mDD' => @$rec['measurementDeterminedDate'], 'rI' => @$rec['referenceID'], 'l' => $locality);
             return json_encode($arr);
         }
         else return false;

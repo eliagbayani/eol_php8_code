@@ -1139,7 +1139,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $a->targetOccurrenceID = $related_occurrenceID;
         $a->source = $this->taxon_page.$taxon_id.'#attributes';
         $a->associationID = md5($a->occurrenceID . $a->associationType . $a->targetOccurrenceID . $a->source);
-        $this->archive_builder->write_object_to_file($a);
+        if(!isset($this->assocIDs[$a->associationID])) {
+            $this->archive_builder->write_object_to_file($a);
+            $this->assocIDs[$a->associationID] = '';
+        }
     }
     private function add_taxon_assoc($taxon_name, $taxon_id)
     {   if(isset($this->taxon_ids[$taxon_id])) return $taxon_id;
@@ -1578,7 +1581,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $m->measurementDeterminedDate = $rec['CreateDate'];
             
             // /* New: Jun 7, 2021
-            if($val = trim(@$rec['creator'])) {
+            if($val = trim(@$rec['creator'])) { $this->debug['creator values'][$val] = '';
                 if($uri = @$this->contributor_id_name_info[$val]) {
                     if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
                     else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
@@ -1629,6 +1632,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             }
             // */
         }
+
+        if($val = @$m->measurementDeterminedBy) $this->debug['measurementDeterminedBy values'][$val] = '';
+        else                                    $this->debug['measurementDeterminedBy values']['wala'] = '';
 
         /* from Jen: Nov 6, 2023
         For trait records based on photo captions

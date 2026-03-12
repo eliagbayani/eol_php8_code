@@ -625,7 +625,7 @@ class MetaRecodingAPI
             // if($occurrenceID != '12e1aea54c7d8dc661f84043155a5cde_692') continue; //debug only
             // if($occurrenceID != 'b33cb50b7899db1686454eb60113ca25_692') continue; //debug only - has both eventDate and occurrenceRemarks
             //===========================================================================================================================================================
-            $this->debug['contents']['O lifeStage'][@$rec['http://rs.tdwg.org/dwc/terms/lifeStage']] = '';
+            $this->debug['contents']['lifeStage values'][@$rec['http://rs.tdwg.org/dwc/terms/lifeStage']] = '';
             
             if($what == 'task_123_info') {
                 if($val = @$rec['http://rs.tdwg.org/dwc/terms/individualCount']) $this->oID_individualCount[$occurrenceID] = $val;    //task_1

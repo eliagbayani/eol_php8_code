@@ -128,7 +128,7 @@ class ContributorsMapAPI
         
         // /* additional contributors, manually looked-up
         $url = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/addtl_contributors.txt';
-        $final = Functions::additional_mappings($final, 0, $url); //add a single mapping. 2nd param is expire_seconds
+        $final = Functions::additional_mappings($final, 60*60*24, $url); //add a single mapping. 2nd param is expire_seconds. Default is 1 day.
         echo("\nWoRMS contributors B: ".count($final)."\n");
         // */
         

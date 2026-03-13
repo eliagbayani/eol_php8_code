@@ -76,8 +76,8 @@ class GenerateCSV_4EOLNeo4j
         // /* for Trait node
         $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'build_info_MoF_children');            
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta);
-        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta);
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta, true); //2nd param is writeHeaderYN
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta, false); //2nd param is writeHeaderYN
         fclose($this->WRITEx);        
         unset($meta);
         unset($this->occur_info);
@@ -1413,10 +1413,24 @@ class GenerateCSV_4EOLNeo4j
                             [l] => http://www.geonames.org/6255148      => locality
                         )*/
                         if($locality_uri = @$metadata['l']) {
-
+                            $p = array();
+                            $p['eol_pk'] = 'Trait-' . md5($rec_json.'meta-l'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                            $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                            $p['predicate'] = 'http://rs.tdwg.org/dwc/terms/locality';
+                            $p['literal'] = $locality_uri;
+                            $p['measurement'] = '';
+                            $p['value_uri'] = '';
+                            $p['units'] = '';
+                            $p['sex'] = $rec['sex'];
+                            $p['lifestage'] = $rec['lifestage'];
+                            $p['statistical_method'] = '';
+                            $p['source'] = '';
+                            $p['is_external'] = false;
+                            $fieldz = array_keys($p);
+                            $csv = self::format_csv_entry($p, $fieldz);
+                            $csv .= 'Metadata'; //this is a Node
+                            fwrite($fhandle, $csv."\n");
                         }
-
-                        
                         if($measurementDeterminedDate = @$metadata['mDD']) {
                             $p = array();
                             $p['eol_pk'] = 'MetaTrait-' . md5($rec_json.'meta-mDD'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
@@ -1426,8 +1440,8 @@ class GenerateCSV_4EOLNeo4j
                             $p['measurement'] = '';
                             $p['value_uri'] = '';
                             $p['units'] = '';
-                            $p['sex'] = '';
-                            $p['lifestage'] = '';
+                            $p['sex'] = $rec['sex'];
+                            $p['lifestage'] = $rec['lifestage'];
                             $p['statistical_method'] = '';
                             $p['source'] = '';
                             $p['is_external'] = false;
@@ -1450,8 +1464,8 @@ class GenerateCSV_4EOLNeo4j
                                     $p['measurement'] = '';
                                     $p['value_uri'] = '';
                                     $p['units'] = '';
-                                    $p['sex'] = '';
-                                    $p['lifestage'] = '';
+                                    $p['sex'] = $rec['sex'];
+                                    $p['lifestage'] = $rec['lifestage'];
                                     $p['statistical_method'] = '';
                                     $p['source'] = '';
                                     $p['is_external'] = false;
@@ -1497,11 +1511,11 @@ class GenerateCSV_4EOLNeo4j
         if($meta) self::process_table($meta, 'generate-VernacularNode-csv');
         fclose($this->WRITE);
     }
-    private function prepare_TraitNode_csv($meta)
+    private function prepare_TraitNode_csv($meta, $writeHeaderYN)
     {   /*  nodes/Trait.csv
             eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
         */
-        fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+        if($writeHeaderYN) fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
         self::process_table($meta, 'generate-TraitNode-csv');
     }
     private function prepare_ResourceNode_csv()

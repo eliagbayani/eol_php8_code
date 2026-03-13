@@ -1024,6 +1024,10 @@ cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.WoRMS;"
 -> Detected field which spanned multiple lines for an import where --multiline-fields=false. 
    If you know that your input data include fields containing new-line characters then import with this option set to true.
 
+bash import2/worms.sh 
+bash import2/globi.sh 
+
+
 MATCH (t:Trait)<-[:TRAIT|INFERRED_TRAIT]-(p:Page),
 (t)-[:PREDICATE]->(pred:Term ),
 (t)-[:LIFESTAGE_TERM]->(stage1:Term {uri:"http://www.ebi.ac.uk/efo/EFO_0001272"})

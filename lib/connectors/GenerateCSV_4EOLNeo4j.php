@@ -167,7 +167,7 @@ class GenerateCSV_4EOLNeo4j
             foreach ($files as $file_path) {
                 $out = shell_exec('wc -l '.$file_path);
                 $arr = explode(" ", $out);
-                $this->debug['Totals'][$subfolder][pathinfo($file_path, PATHINFO_BASENAME)] = $arr[0];
+                $this->debug['Totals'][$subfolder][pathinfo($file_path, PATHINFO_BASENAME)] = $arr[0] - 1; //minus 1 to exclude the header row
             }
         }
         print_r($this->debug['Totals']);

@@ -75,7 +75,8 @@ class GenerateCSV_4EOLNeo4j
 
         // /* for Trait node
         $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'build_info_MoF_children');            
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'build_info_MoF_children');
+        $this->writtenHeaderAlreadyYN['Trait node'] = false;
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta, true); //2nd param is writeHeaderYN
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta, false); //2nd param is writeHeaderYN
         fclose($this->WRITEx);        
@@ -1074,10 +1075,7 @@ class GenerateCSV_4EOLNeo4j
         fclose($WRITE);
     }
     private function prepare_MetadataNode_csv()
-    {   /*  nodes/Metadata.csv
-            eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL
-            eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external            
-        */
+    {
         $WRITE = Functions::file_open($this->path.'/nodes/Metadata.csv', 'w');        
         fwrite($WRITE, "eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL"."\n");
         $param = array('task' => 'generate_Metadata_Node_csv', 'fhandle' => $WRITE);
@@ -1209,19 +1207,31 @@ class GenerateCSV_4EOLNeo4j
                 )*/
 
                 if($task == 'generate_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
-                    if(!self::trait_is_inferred_YN($rec['remarks'])) {
-                        $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
-                        $csv = self::format_csv_entry($rec, $fieldz);
-                        $csv .= 'TRAIT'; //relationships are designed to be in upper-case
-                        fwrite($fhandle, $csv."\n");
+                    if($val = @$rec['remarks']) {
+                        if(!self::trait_is_inferred_YN($val)) {
+                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $csv = self::format_csv_entry($rec, $fieldz);
+                            $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                            fwrite($fhandle, $csv."\n");
+                        }
                     }
+                    // /* New
+                    else {
+                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $csv = self::format_csv_entry($rec, $fieldz);
+                            $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                            fwrite($fhandle, $csv."\n");
+                    }
+                    // */
                 }
                 elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
-                    if(self::trait_is_inferred_YN($rec['remarks'])) {
-                        $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
-                        $csv = self::format_csv_entry($rec, $fieldz);
-                        $csv .= 'INFERRED_TRAIT'; //relationships are designed to be in upper-case
-                        fwrite($fhandle, $csv."\n");
+                    if($val = @$rec['remarks']) {
+                        if(self::trait_is_inferred_YN($val)) {
+                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $csv = self::format_csv_entry($rec, $fieldz);
+                            $csv .= 'INFERRED_TRAIT'; //relationships are designed to be in upper-case
+                            fwrite($fhandle, $csv."\n");
+                        }
                     }
                 }
                 
@@ -1254,11 +1264,13 @@ class GenerateCSV_4EOLNeo4j
                         [:LABEL] => Trait
                     )*/
                     // print_r($rec); exit("\nstop 4\n");
-                    if(!self::URI_in_EOL_terms_YN($rec['predicate'])) continue; //not found in EOL Terms file
-                    $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
-                    $csv = self::format_csv_entry($rec, $fieldz);
-                    $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
-                    fwrite($fhandle, $csv."\n");
+                    if($val = @$rec['predicate']) {
+                        if(!self::URI_in_EOL_terms_YN($val)) continue; //not found in EOL Terms file
+                        $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
+                        $csv = self::format_csv_entry($rec, $fieldz);
+                        $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
+                        fwrite($fhandle, $csv."\n");
+                    }
                 }
                 if($task == 'generate_PREDICATE_Meta_Term_Edge_csv') { //source is Metadata node
                     /*Array(
@@ -1284,7 +1296,7 @@ class GenerateCSV_4EOLNeo4j
                 }
                 if($task == 'generate_OBJECT_TERM_Edge_csv') {
                     // if($rec['value_uri'] == "null") continue; //cannot be blank //didn't work
-                    if(!$rec['value_uri']) continue; //cannot be blank                    
+                    if(!@$rec['value_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['value_uri'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['value_uri'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'value_uri');
@@ -1293,8 +1305,8 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_NORMAL_UNITS_TERM_Edge_csv') {
-                    if(!$rec['normal_measurement']) continue; //cannot be blank                                        
-                    if(!$rec['normal_units_uri']) continue; //cannot be blank                    
+                    if(!@$rec['normal_measurement']) continue; //cannot be blank                                        
+                    if(!@$rec['normal_units_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['normal_units_uri'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['normal_units_uri'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'normal_units_uri');
@@ -1303,8 +1315,8 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_UNITS_TERM_Edge_csv') {
-                    if(!$rec['measurement']) continue; //cannot be blank                                        
-                    if(!$rec['units']) continue; //cannot be blank                    
+                    if(!@$rec['measurement']) continue; //cannot be blank                                        
+                    if(!@$rec['units']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['units'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['units'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'units');
@@ -1314,14 +1326,14 @@ class GenerateCSV_4EOLNeo4j
                 }
                 if($task == 'generate_OBJECT_PAGE_Edge_csv') {
                     // print_r($rec); exit("\nstop 100\n");
-                    if(!$rec['object_page_id']) continue; //cannot be blank                                        
+                    if(!@$rec['object_page_id']) continue; //cannot be blank                                        
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'object_page_id');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'OBJECT_PAGE'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_DETERMINED_BY_Edge_csv') {
-                    if(!$rec['determined_by_uri']) continue; //cannot be blank                    
+                    if(!@$rec['determined_by_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['determined_by_uri'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['determined_by_uri'])) continue; //not found in EOL Terms file
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'determined_by_uri');
@@ -1330,7 +1342,7 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_CONTRIBUTOR_Edge_csv') {
-                    if(!$rec['contributor_uri']) continue; //cannot be blank                    
+                    if(!@$rec['contributor_uri']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['contributor_uri'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['contributor_uri'])) continue; //not found in EOL Terms file
 
@@ -1340,7 +1352,7 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_LIFESTAGE_TERM_Edge_csv') {
-                    if(!$rec['lifestage']) continue; //cannot be blank                    
+                    if(!@$rec['lifestage']) continue; //cannot be blank                    
                     if(!self::value_is_uri_YN($rec['lifestage'])) continue; //should always be a valid URI
                     if(!self::URI_in_EOL_terms_YN($rec['lifestage'])) continue; //not found in EOL Terms file
 
@@ -1401,7 +1413,7 @@ class GenerateCSV_4EOLNeo4j
                         [:LABEL] => Trait
                     )*/
                     $rec_json = json_encode($rec);
-                    if($json = $rec['metadata']) { //print_r($rec); exit("\nthis is a Trait node\n");
+                    if($json = @$rec['metadata']) { //print_r($rec); exit("\nthis is a Trait node\n");
                         // Metadata node fields
                         // eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external
                         // 				
@@ -1482,6 +1494,7 @@ class GenerateCSV_4EOLNeo4j
                 }
 
                 if($task == 'generate_SUPPLIER_Edge_csv') { //eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE
+                    // print_r($rec); exit("\ncheck 1\n");
                     $fieldz = array('eol_pk', 'supplier');
                     $rek = array();
                     $rek['eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
@@ -1515,7 +1528,16 @@ class GenerateCSV_4EOLNeo4j
     {   /*  nodes/Trait.csv
             eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
         */
-        if($writeHeaderYN) fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+        if($writeHeaderYN) {
+            fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+            $this->writtenHeaderAlreadyYN['Trait node'] = true;
+        }
+        else {
+            if(!$this->writtenHeaderAlreadyYN['Trait node']) {
+                fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+                $this->writtenHeaderAlreadyYN['Trait node'] = true;
+            }
+        }
         self::process_table($meta, 'generate-TraitNode-csv');
     }
     private function prepare_ResourceNode_csv()

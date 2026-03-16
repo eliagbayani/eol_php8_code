@@ -46,5 +46,4 @@ $func = new GenerateCSV_4EOLNeo4j($param);
 // $func->buildup_predicates_all(); //the way to go. generates all from EOL Terms File: type 'measurement' and 'association'
 */
 $func->assemble_data($resource_id);
-
 ?>

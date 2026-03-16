@@ -351,6 +351,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         if(isset($this->debug['counts'])) print_r($this->debug['counts']);
 
         if($val = @$this->debug['detected_first_words']) {ksort($val); echo "\ndetected_first_words: "; print_r($val);} //for TreatmentBank only
+        Functions::start_print_debug($this->debug, $this->param['resource_id']."_main");
     }
     private function run_utility($resource_id)
     {
@@ -504,8 +505,15 @@ class Annotator2EOLAPI extends Functions_Annotator
 
                 if($this->param['resource_id'] == '26_ENV') { //for WoRMS only with title = 'habitat' and 'distribution' will be processed.
                     $title = strtolower($rec['http://purl.org/dc/terms/title']);
-                    $this->debug['WoRMS titles'][$title] = '';
-                    if($title == 'habitat') @$this->WoRMS_text_that_are_habitat++;
+                    @$this->debug['WoRMS titles'][$title]++;
+                    if($title == 'habitat') {
+                        @$this->WoRMS_text_that_are_habitat++;                        
+                        $this->debug['WoRMS Habitat text']['agentID'][$rec['http://eol.org/schema/agent/agentID']] = '';
+                        $this->debug['WoRMS Habitat text']['Owner'][$rec['http://ns.adobe.com/xap/1.0/rights/Owner']] = '';
+                        $this->debug['WoRMS Habitat text']['publisher'][$rec['http://purl.org/dc/terms/publisher']] = '';
+                        $this->debug['WoRMS Habitat text']['contributor'][$rec['http://purl.org/dc/terms/contributor']] = '';
+                        $this->debug['WoRMS Habitat text']['creator'][$rec['http://purl.org/dc/terms/creator']] = '';
+                    }
                     // elseif($title == 'distribution') continue; //no longer processed in Dec 2025. //$this->ontologies = "eol-geonames";
                     else continue;
                 }

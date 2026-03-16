@@ -54,16 +54,21 @@ class DeltasHashIDsAPI
             $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";
             self::process_Occurrence($tables[$tbl][0], 'hash_identifiers', $this->extensions[$tbl]);
 
-            // /* new: to accommodate MoF child records
-            $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
-            self::process_MoF($tables[$tbl][0], 'pre_hash_identifiers', $this->extensions[$tbl]);
-            // print_r($this->old_new_measurementID);
-            // echo "\n".$this->old_new_measurementID['71aa534c631c2a69cd5487cee6028e35_26_ENV_final']."\n"; exit;
-            // */
-            
             $this->unique_ids = array();
+            $tbl = "http://eol.org/schema/association";
+            if($meta = @$tables[$tbl][0]) self::process_Association($meta, 'hash_identifiers', $this->extensions[$tbl]);
+
             $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
-            self::process_MoF($tables[$tbl][0], 'hash_identifiers', $this->extensions[$tbl]);
+            if($meta = @$tables[$tbl][0]) {
+                // /* new: to accommodate MoF child records
+                self::process_MoF($meta, 'pre_hash_identifiers', $this->extensions[$tbl]);
+                // print_r($this->old_new_measurementID);
+                // echo "\n".$this->old_new_measurementID['71aa534c631c2a69cd5487cee6028e35_26_ENV_final']."\n"; exit;
+                // */
+                
+                $this->unique_ids = array();
+                self::process_MoF($meta, 'hash_identifiers', $this->extensions[$tbl]);
+            }
         }
         
         elseif(in_array($this->resource_id, array("globi_associations_delta"))) { //Globi

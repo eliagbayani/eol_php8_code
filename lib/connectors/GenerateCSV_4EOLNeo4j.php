@@ -1619,12 +1619,26 @@ class GenerateCSV_4EOLNeo4j
     {
         $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         if(!is_dir($path)) mkdir($path);
+        self::move_bash_files($path);
         $path .= '/' . $resource_id . '_csv';
         if(is_dir($path)) recursive_rmdir($path);
         mkdir($path);
         $this->path = $path;
         $temp_dir = $path.'/nodes'; mkdir($temp_dir);
         $temp_dir = $path.'/edges'; mkdir($temp_dir);
+    }
+    private function move_bash_files($path) //Move bash files to CSV folders for import step
+    {
+        $destination = $path.'/globi.sh';
+        if(!is_file($destination)) {
+            $source = DOC_ROOT.'/applications/content_server/neo4j/globi.sh';
+            copy($source, $destination);
+        }
+        $destination = $path.'/worms.sh';
+        if(!is_file($destination)) {
+            $source = DOC_ROOT.'/applications/content_server/neo4j/worms.sh';
+            copy($source, $destination);
+        }
     }
     // private function clean_csv_item($str)
     // {

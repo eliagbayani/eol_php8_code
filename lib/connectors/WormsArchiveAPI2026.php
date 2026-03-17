@@ -281,6 +281,8 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         echo "\n0 of 8"; self::process_extension($meta_taxon, 'prepare_taxon'); //PofMO
         echo "\n1 of 8"; self::process_extension($meta_taxon, 'write_taxon'); unset($meta_taxon); //PofMO
 
+        $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n1.1 of 8"; self::process_fields($records, "agent"); //$this->agent_id_uri
+
         // /* PofMO -- this block handles measurementorfact.txt
         if($meta_MoF = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) {}
         else exit("\nERROR: No MoF extension. Please investigate.\n");
@@ -295,7 +297,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // /* PofMO
         $records = $harvester->process_row_type('http://eol.org/schema/media/Document');        echo "\n5 of 8";  self::get_objects($records);
         $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/Reference');      echo "\n6 of 8"; self::process_fields($records, "reference");
-        $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n7 of 8"; self::process_fields($records, "agent");
+        // $records = $harvester->process_row_type('http://eol.org/schema/agent/Agent');           echo "\n7 of 8"; self::process_fields($records, "agent"); Moved up
         $records = $harvester->process_row_type('http://rs.gbif.org/terms/1.0/VernacularName'); echo "\n8 of 8"; self::process_fields($records, "vernacular");
         // */
             
@@ -934,6 +936,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                     [http://xmlns.com/foaf/spec/#term_accountName] => 
                     [http://xmlns.com/foaf/spec/#term_openid] => 
                 )*/
+                // /* New
+                $identifier = $rec['http://purl.org/dc/terms/identifier']; //WoRMS:Person:81
+                if(substr($identifier,0,13) == 'WoRMS:Person:') $this->agent_id_uri[$identifier] = $rec['http://xmlns.com/foaf/spec/#term_homepage'];
+                // */
+
                 if(@$rec['http://xmlns.com/foaf/spec/#term_name'] || @$rec['http://xmlns.com/foaf/spec/#term_firstName'] || @$rec['http://xmlns.com/foaf/spec/#term_familyName']) {}
                 else continue; 
             }
@@ -1582,45 +1589,9 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             
             // /* New: Jun 7, 2021
             if($val = trim(@$rec['creator'])) { $this->debug['creator values'][$val] = '';
-                if($uri = @$this->contributor_id_name_info[$val]) {
-                    if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
-                    else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
-                }
-                else {
-                    $new_val = $this->format_remove_middle_initial($val);
-                    if($uri = @$this->contributor_id_name_info[$new_val]) {
-                        if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
-                        else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
-                    }
-                    else {
-                        if($uri = self::last_chance_to_get_contributor_uri($val, $new_val)) {
-                            if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
-                            else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
-                        }
-                        else {
-                            $this->debug['neglect uncooperative: DeterminedBy'][$val] = '';          //this one should be reported
-                            // $this->debug['neglect uncooperative: DeterminedBy'][$val] = $rec;                            //with metadata - per Jen's request. Just one-time
-                            // $this->debug['neglect uncooperative: DeterminedBy'][$val][$measurementType][$value] = $rec;  //with metadata - per Jen's request. Just one-time
 
-                            // $this->debug['neglect uncooperative: DeterminedBy'][$new_val] = '';  //no need to report this
+                $m = self::get_creator_uri($m, $val, $rec);
 
-                            // these 2 are not worth reporting:
-                            $this->debug['neglect uncooperative: DeterminedBy']['db_admin'] = '';
-                            $this->debug['neglect uncooperative: DeterminedBy']['Demo, Account (TE)'] = '';
-
-                            // /* generate a reference for a creator without URI - per Jen https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=67726&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67726
-                            $addtl_reference_id = self::create_reference_for_this_MoF_using_creator($val); //$val is creator
-                            if($addtl_reference_id) {
-                                if(@$m->referenceID) $m->referenceID .= "|" . $addtl_reference_id;
-                                else                 $m->referenceID        = $addtl_reference_id;
-                            }
-                            // */
-                        }
-                        /* neglect the most uncooperative strings in any resource for contributor, compiler or determinedBy: per https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=66158&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66158
-                        $m->measurementDeterminedBy = $val;
-                        */
-                    }
-                }
                 if($rec['type'] == "http://purl.org/dc/dcmitype/StillImage") {
                     $m->source = $rec["furtherInformationURL"];
                     /*
@@ -1659,6 +1630,63 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $m->measurementID = Functions::generate_measurementID($m, $this->resource_id);
         $this->archive_builder->write_object_to_file($m);
         // exit("\nMoF saved OK\n");
+    }
+    private function get_creator_uri($m, $val, $rec)
+    {
+        $contYN = true;
+        // /* ---------- New: 1st option to get the creator URI is from the agent.txt #homepage
+        if($agentID = $rec['agentID']) { //WoRMS:Person:10
+            if($uri = @$this->agent_id_uri[$agentID]) {
+                if(isset($this->eol_terms_uri_value[$uri])) {
+                    $m->measurementDeterminedBy = $uri;
+                    $contYN = false;
+                }
+                else $this->debug['Not found in EOL Terms file (agent)']['measurementDeterminedBy'][$uri] = '';
+            }
+        }                
+        // ---------- */
+        if($contYN) {
+            if($uri = @$this->contributor_id_name_info[$val]) {
+                if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
+                else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
+            }
+            else {
+                $new_val = $this->format_remove_middle_initial($val);
+                if($uri = @$this->contributor_id_name_info[$new_val]) {
+                    if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
+                    else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
+                }
+                else {
+                    if($uri = self::last_chance_to_get_contributor_uri($val, $new_val)) {
+                        if(isset($this->eol_terms_uri_value[$uri])) $m->measurementDeterminedBy = $uri;
+                        else $this->debug['Not found in EOL Terms file']['measurementDeterminedBy'][$uri] = '';
+                    }
+                    else {
+                        $this->debug['neglect uncooperative: DeterminedBy'][$val] = '';          //this one should be reported
+                        // $this->debug['neglect uncooperative: DeterminedBy'][$val] = $rec;                            //with metadata - per Jen's request. Just one-time
+                        // $this->debug['neglect uncooperative: DeterminedBy'][$val][$measurementType][$value] = $rec;  //with metadata - per Jen's request. Just one-time
+
+                        // $this->debug['neglect uncooperative: DeterminedBy'][$new_val] = '';  //no need to report this
+
+                        // these 2 are not worth reporting:
+                        $this->debug['neglect uncooperative: DeterminedBy']['db_admin'] = '';
+                        $this->debug['neglect uncooperative: DeterminedBy']['Demo, Account (TE)'] = '';
+
+                        // /* generate a reference for a creator without URI - per Jen https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=67726&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67726
+                        $addtl_reference_id = self::create_reference_for_this_MoF_using_creator($val); //$val is creator
+                        if($addtl_reference_id) {
+                            if(@$m->referenceID) $m->referenceID .= "|" . $addtl_reference_id;
+                            else                 $m->referenceID        = $addtl_reference_id;
+                        }
+                        // */
+                    }
+                    /* neglect the most uncooperative strings in any resource for contributor, compiler or determinedBy: per https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=66158&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66158
+                    $m->measurementDeterminedBy = $val;
+                    */
+                }
+            }
+        } //$contYN
+        return $m;
     }
     private function create_reference_for_this_MoF_using_creator($creator_str)
     {

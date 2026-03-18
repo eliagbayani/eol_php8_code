@@ -102,7 +102,7 @@ class GenerateCSV_4EOLNeo4j
         self::prepare_PREDICATE_Edge_csv();
 
         // Step 6.0: PREDICATE relationship between Metadata and Term nodes
-        self::prepare_PREDICATE_Meta_Term_Edge_csv();
+        self::prepare_PREDICATE_META_TERM_Edge_csv();
 
         // Step 6.1: OBJECT_TERM relationship between Trait and Term nodes
         self::prepare_OBJECT_TERM_Edge_csv();
@@ -1002,11 +1002,11 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
-    private function prepare_PREDICATE_Meta_Term_Edge_csv()
+    private function prepare_PREDICATE_META_TERM_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/PREDICATE_META_TERM.csv', 'w');
         fwrite($WRITE, "eol_pk:START_ID(Metadata-ID),uri:END_ID(Term-ID),:TYPE"."\n");
-        $param = array('task' => 'generate_PREDICATE_Meta_Term_Edge_csv', 'fhandle' => $WRITE);
+        $param = array('task' => 'generate_PREDICATE_META_TERM_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
@@ -1107,7 +1107,7 @@ class GenerateCSV_4EOLNeo4j
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
         
-        elseif($param['task'] == 'generate_PREDICATE_Meta_Term_Edge_csv') {
+        elseif($param['task'] == 'generate_PREDICATE_META_TERM_Edge_csv') {
             $csv_file = $this->path.'/nodes/Metadata.csv'; //source
         }
 
@@ -1272,7 +1272,7 @@ class GenerateCSV_4EOLNeo4j
                         fwrite($fhandle, $csv."\n");
                     }
                 }
-                if($task == 'generate_PREDICATE_Meta_Term_Edge_csv') { //source is Metadata node
+                if($task == 'generate_PREDICATE_META_TERM_Edge_csv') { //source is Metadata node
                     /*Array(
                         [eol_pk:ID(Metadata-ID)] => MetaTrait-542f9bc8179ef74617cb6499d5eeba2a
                         [trait_eol_pk] => worms_617c0a0c561f1fee553d61817a49b7e6

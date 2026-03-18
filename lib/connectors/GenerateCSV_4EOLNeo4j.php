@@ -1630,21 +1630,16 @@ class GenerateCSV_4EOLNeo4j
     private function move_bash_files($path) //Move bash files to CSV folders for import step
     {
         $destination = $path.'/globi.sh';
-        if(!is_file($destination)) {
+        // if(!is_file($destination)) {
             $source = DOC_ROOT.'/applications/content_server/neo4j/globi.sh';
-            copy($source, $destination);
-        }
+            copy($source, $destination); //always overwrite destination
+        // }
         $destination = $path.'/worms.sh';
-        if(!is_file($destination)) {
+        // if(!is_file($destination)) {
             $source = DOC_ROOT.'/applications/content_server/neo4j/worms.sh';
-            copy($source, $destination);
-        }
+            copy($source, $destination); //always overwrite destination
+        // }
     }
-    // private function clean_csv_item($str)
-    // {
-    //     if($str) return str_replace('"', '""', $str);
-    //     else return $str;
-    // }
     function format_csv_entry($rec, $fields)
     {
         $csv = ""; $i = -1;
@@ -1653,10 +1648,6 @@ class GenerateCSV_4EOLNeo4j
                 $val = self::process_md5_fields($field, $rec);
             }
             else $val = @$rec[$field];
-            /* working OK
-            $tmp = '"' . self::clean_csv_item($val) . '",';
-            $csv .= $tmp;
-            */
             if($i > 0) $csv .= ','; // Add delimiter for all but the first field
             $csv .= Functions::manuallyEscapeForCSV($val);
         }
@@ -1667,10 +1658,6 @@ class GenerateCSV_4EOLNeo4j
     {
         $csv = ""; $i = -1;
         foreach($arr as $val) { $i++;
-            /* working OK
-            $tmp = '"' . self::clean_csv_item($val) . '",';
-            $csv .= $tmp;
-            */
             if($i > 0) $csv .= ','; // Add delimiter for all but the first field
             $csv .= Functions::manuallyEscapeForCSV($val);
         }
@@ -1688,7 +1675,6 @@ class GenerateCSV_4EOLNeo4j
         $combined = "";
         foreach($fields as $field) {
             $val = @$rec[$field];
-            // $combined .= self::clean_csv_item($val) . '_'; //replaced by one below
             $combined .= Functions::manuallyEscapeForCSV($val) . '_'; 
         }
         $combined = substr($combined, 0, -1); //remove last char: "plants_42430800_" becomes "plants_42430800"

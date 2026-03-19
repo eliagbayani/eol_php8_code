@@ -122,11 +122,11 @@ class GenerateCSV_4EOLNeo4j
         // Step 6.6: CONTRIBUTOR relationship between Trait and Term nodes
         self::prepare_CONTRIBUTOR_Edge_csv();
 
-        // Step 6.8: LIFESTAGE_TERM relationship between Trait and Term nodes
-        self::prepare_LIFESTAGE_TERM_Edge_csv();
-
         // Step 6.7: METADATA relationship between Trait and Metadata nodes
         self::prepare_METADATA_Edge_csv();
+
+        // Step 6.8: LIFESTAGE_TERM relationship between Trait and Term nodes
+        self::prepare_LIFESTAGE_TERM_Edge_csv();
 
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();

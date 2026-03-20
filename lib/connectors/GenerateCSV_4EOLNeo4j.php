@@ -683,7 +683,7 @@ class GenerateCSV_4EOLNeo4j
         $s['citation'] = @$rec['bibliographicCitation'];
         $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
         $s['remarks'] = @$rec['measurementRemarks'];
-        $s['method'] = @$rec['measurementMethod'];
+        $s['method'] = @$rec['measurementMethod']; //seems not a URI value. From https://dwc.tdwg.org/list/#dwc_measurementMethod
 
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
         $s['compiler_uri'] = '';
@@ -1401,9 +1401,9 @@ class GenerateCSV_4EOLNeo4j
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_STATISTICAL_METHOD_TERM_Edge_csv') {
-                    if(!@$rec['statistical_method']) continue; //cannot be blank. Not a URI value.                    
-                    // if(!self::value_is_uri_YN($rec['statistical_method'])) continue; //should always be a valid URI
-                    // if(!self::URI_in_EOL_terms_YN($rec['statistical_method'])) continue; //not found in EOL Terms file
+                    if(!@$rec['statistical_method']) continue; //cannot be blank
+                    if(!self::value_is_uri_YN($rec['statistical_method'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['statistical_method'])) continue; //not found in EOL Terms file
 
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'statistical_method');
                     $csv = self::format_csv_entry($rec, $fieldz);

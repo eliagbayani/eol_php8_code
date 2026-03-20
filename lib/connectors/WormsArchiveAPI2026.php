@@ -265,11 +265,11 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
         $paths = $func->extract_archive_file($this->dwca_file, "meta.xml", array('timeout' => 172800, 'expire_seconds' => true)); //true means it will re-download, will not use cache. Set TRUE when developing
-        // print_r($paths); exit;
+        print_r($paths); exit;
         */
         // /* dev only
-        $paths['archive_path'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_59440/';
-        $paths['temp_dir'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_59440/';
+        $paths['archive_path'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_62066/';
+        $paths['temp_dir'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_62066/';
         // */
         $archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
@@ -767,6 +767,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 }
             }
         }
+        if($val = @$save['measurementMethod']) $this->debug['measurementMethod'][$val] = ''; //for stats only
         return $save;
     }
     private function get_id_from_measurementAccuracy($str)

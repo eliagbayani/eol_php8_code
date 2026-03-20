@@ -128,6 +128,12 @@ class GenerateCSV_4EOLNeo4j
         // Step 6.8: LIFESTAGE_TERM relationship between Trait and Term nodes
         self::prepare_LIFESTAGE_TERM_Edge_csv();
 
+        // Step 6.8: SEX_TERM relationship between Trait and Term nodes
+        self::prepare_SEX_TERM_Edge_csv();
+
+        // Step 6.9: STATISTICAL_METHOD_TERM relationship between Trait and Term nodes
+        self::prepare_STATISTICAL_METHOD_TERM_Edge_csv();
+
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();
 
@@ -657,6 +663,8 @@ class GenerateCSV_4EOLNeo4j
         $s['sex'] = $rec['sex'];
         $s['lifestage'] = $rec['lifestage'];
         $s['statistical_method'] = @$rec['statisticalMethod'];
+        $this->debug['statisticalMethod values'][@$rec['statisticalMethod']] = '';
+
         // /* for Associations
         $s['object_page_id'] = @$rec['object_page_id'];
         $s['target_scientific_name'] = @$rec['target_scientific_name'];
@@ -1066,6 +1074,22 @@ class GenerateCSV_4EOLNeo4j
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
     }
+    private function prepare_SEX_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/SEX_TERM.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_SEX_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_STATISTICAL_METHOD_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/STATISTICAL_METHOD_TERM.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_STATISTICAL_METHOD_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
     private function prepare_METADATA_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/METADATA.csv', 'w');        
@@ -1133,7 +1157,12 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_LIFESTAGE_TERM_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
-
+        elseif($param['task'] == 'generate_SEX_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_STATISTICAL_METHOD_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
 
         elseif($param['task'] == 'generate_METADATA_Edge_csv') {
             $csv_file = $this->path.'/nodes/Metadata.csv'; //source
@@ -1359,6 +1388,26 @@ class GenerateCSV_4EOLNeo4j
                     $fieldz = array('eol_pk:ID(Trait-ID)', 'lifestage');
                     $csv = self::format_csv_entry($rec, $fieldz);
                     $csv .= 'LIFESTAGE_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_SEX_TERM_Edge_csv') {
+                    if(!@$rec['sex']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['sex'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['sex'])) continue; //not found in EOL Terms file
+
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'sex');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'SEX_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_STATISTICAL_METHOD_TERM_Edge_csv') {
+                    if(!@$rec['statistical_method']) continue; //cannot be blank. Not a URI value.                    
+                    // if(!self::value_is_uri_YN($rec['statistical_method'])) continue; //should always be a valid URI
+                    // if(!self::URI_in_EOL_terms_YN($rec['statistical_method'])) continue; //not found in EOL Terms file
+
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'statistical_method');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'STATISTICAL_METHOD_TERM'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_METADATA_Edge_csv') { //this is Metadata node

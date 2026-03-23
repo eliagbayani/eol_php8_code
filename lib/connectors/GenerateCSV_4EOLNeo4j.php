@@ -23,14 +23,25 @@ class GenerateCSV_4EOLNeo4j
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
         self::initialize_folders($this->resource_id);
-        // /* ========== This can come from an RDBMS
+        /* ========== This can come from an RDBMS
         $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         $this->EOL_resources['globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
         $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
-        // ========== */
+        ========== */
+        $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv';
+    }
+    private function initialize()
+    {
+        $this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*1)); //1 day cache
+        $READ = Functions::file_open($this->local_csv, 'r');        
+        $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($READ);
+        unlink($this->local_csv);
     }
     function assemble_data($resource_id) 
     {
+        self::initialize();
         // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
         $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources
 
@@ -1174,9 +1185,12 @@ class GenerateCSV_4EOLNeo4j
         elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
             $csv_file = $this->path.'/nodes/Trait.csv'; //source
         }
+        if($param['task'] == 'read_eol_resources_csv') {
+            $csv_file = $this->local_csv; //source
+        }
         // ---------- end customize part ----------
-        if(in_array($this->param['eol_resource_id'], array('globi', 'worms'))) $mod = 100000;
-        else                                                                   $mod = 5000;
+        if(in_array($this->param['eol_resource_id'], array('R20', 'R533', 'R512'))) $mod = 100000;
+        else                                                                        $mod = 5000;
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
@@ -1551,6 +1565,41 @@ class GenerateCSV_4EOLNeo4j
                     $csv = self::format_csv_entry($rek, $fieldz);
                     $csv .= 'SUPPLIER'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'read_eol_resources_csv') {
+                    /*Array(
+                        [id] => 1
+                        [partner_id] => 1
+                        [name] => EOL Dynamic Hierarchy April 2022
+                        [url] => 
+                        [description] => 
+                        [notes] => 
+                        [nodes_count] => 2404791
+                        [is_browsable] => true
+                        [has_duplicate_nodes] => false
+                        [node_source_url_template] => http://eol.org/$PK&but=not_really
+                        [last_published_at] => 2022-05-13 08:08:44 -0400
+                        [last_publish_seconds] => 
+                        [dataset_license_id] => 
+                        [dataset_rights_holder] => 
+                        [dataset_rights_statement] => 
+                        [created_at] => 2017-11-22 09:54:58 -0500
+                        [updated_at] => 2022-05-13 10:43:13 -0400
+                        [icon_file_name] => 
+                        [icon_content_type] => 
+                        [icon_file_size] => 
+                        [icon_updated_at] => 
+                        [abbr] => dhv2_1
+                        [repository_id] => 1
+                        [classification] => true
+                        [native] => true
+                    )
+                    $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
+                    $this->EOL_resources['Globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
+                    $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
+                    */
+                    $repo_id = 'R'.$rec['repository_id'];
+                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['name']);
                 }
             } //end main records
         } //end while()

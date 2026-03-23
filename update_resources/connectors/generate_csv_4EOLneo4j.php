@@ -4,9 +4,9 @@ namespace php_active_record;
 php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "globi_assoc-with-hC_neo4j_2_OK"}' --- copied template
 
 start Jan 27, 2026:
-php generate_csv_4EOLneo4j.php _ '{"resource_id": "WoRMS_TraitBank_1_0", "eol_resource_id": "worms"}'
-php generate_csv_4EOLneo4j.php _ '{"resource_id": "GloBI_TraitBank_1_0", "eol_resource_id": "globi"}'
-php generate_csv_4EOLneo4j.php _ '{"resource_id": "Wikipedia_TraitBank_1_0", "eol_resource_id": "wikipedia"}'
+php generate_csv_4EOLneo4j.php _ '{"resource_id": "WoRMS_TraitBank_1_0", "eol_resource_id": "R533"}'         -> 533 worms
+php generate_csv_4EOLneo4j.php _ '{"resource_id": "GloBI_TraitBank_1_0", "eol_resource_id": "R20"}'          -> 20 globi   
+php generate_csv_4EOLneo4j.php _ '{"resource_id": "Wikipedia_TraitBank_1_0", "eol_resource_id": "R512"}'     -> 512 wikipedia
 -> generates CSV files for import to Neo4j
 
 */

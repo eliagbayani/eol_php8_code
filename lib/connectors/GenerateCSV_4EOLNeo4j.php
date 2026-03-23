@@ -147,6 +147,7 @@ class GenerateCSV_4EOLNeo4j
 
         // Step 7: SUPPLIER relationship between Trait and Resource nodes
         self::prepare_SUPPLIER_Edge_csv();
+        // Step 7.1: SUPPLIER relationship between Vernacular and Resource nodes (TO-DO TODO TO DO)
 
         //    ========== end Jan 27, 2026 ========== */
 

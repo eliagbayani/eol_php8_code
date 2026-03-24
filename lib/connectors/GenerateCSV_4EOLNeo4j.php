@@ -32,6 +32,7 @@ class GenerateCSV_4EOLNeo4j
     }
     private function initialize()
     {
+        // Reads resources.csv from EOL's RDBMS.
         $this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*1)); //1 day cache
         $READ = Functions::file_open($this->local_csv, 'r');        
         $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);

@@ -17,7 +17,22 @@ class CSV_Aggregator_For_Neo4j
         foreach($folders as $folder) {
             $subfolders = self::get_folders($folder);
             print_r($subfolders);
+            foreach($subfolders as $subfolder) {
+                self::process_a_subfolder($subfolder); // /edges or /nodes
+            }
         }
+    }
+    private function process_a_subfolder($subfolder)
+    {
+        $files = self::get_files($subfolder, '*.csv');
+        print_r($files);
+    }
+    private function get_files($folder, $pattern = false)
+    {
+        if($pattern) $path = $folder . '/'.$pattern;
+        else         $path = $folder . '/*';
+        $files = glob($folder . '/*.csv');
+        return $files;
     }
     private function get_folders($path, $pattern = false)
     {

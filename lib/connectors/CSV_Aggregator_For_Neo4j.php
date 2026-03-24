@@ -6,14 +6,37 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class CSV_Aggregator_For_Neo4j
 {
-    function __construct() {}
-    function start()
-    {
+    function __construct() {
+        $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
 
     }
+    function start()
+    {
+        $folders = self::get_folders($this->path['main'], "TraitBank_1_0");
+        print_r($folders);
+        foreach($folders as $folder) {
+            $subfolders = self::get_folders($folder);
+            print_r($subfolders);
+        }
+    }
+    private function get_folders($path, $pattern = false)
+    {
+        if($pattern) $path .= '/*'.$pattern.'*'; // The wildcard '*' is necessary for glob
+        else         $path .= "/*";
+        $directories = glob($path, GLOB_ONLYDIR); // Get only directories
+        return $directories;
+    }
     private function combine_csv_files() //PHP Script for Combining Multiple CSV Files
-    {   /*
-        Script to merge multiple CSV files into one master CSV file, removing the header line from individual files.
+    {   /* Script to merge multiple CSV files into one master CSV file, removing the header line from individual files.
+        Key Functions Used
+            -glob($pattern): Finds all the file paths matching the pattern (e.g., all .csv files in a directory).
+            -fopen($filename, $mode): Opens a file stream. The "w+" mode creates a new file for reading and writing, or truncates it if it already exists.
+            -fgetcsv($handle): Reads a line from the file pointer and parses it into an indexed array. The first call is used to simply skip the header line.
+            -fputcsv($handle, $array): Formats an array as a CSV line and writes it to the file pointer.
+        Important Considerations
+            -Memory Usage: The provided script is efficient as it processes files line by line, keeping memory usage low, which is vital for large CSV files.
+            -Header Handling: The script assumes all source files have an identical header in the first line and explicitly skips it. The destination file will contain only the data rows appended sequentially.
+            -File Naming: Ensure your destination file name (master-record.csv) is not included in the glob() pattern, or the script may enter an infinite loop trying to append to itself. 
         */
         $directory = "csv_files/*.csv"; // Directory path to the source CSV files
         $masterCSVFile = fopen('master-record.csv', "w+"); // Open and write the master CSV file

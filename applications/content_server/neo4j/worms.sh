@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cypher-shell -u neo4j -p eli_neo4j -d system "CREATE DATABASE DB.WoRMS IF NOT EXISTS;"
 cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE DB.WoRMS;"
 neo4j-admin database import full DB.WoRMS --overwrite-destination \
 --nodes=import2/WoRMS_TraitBank_1_0_csv/nodes/Resource.csv \

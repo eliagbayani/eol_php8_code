@@ -1719,7 +1719,7 @@ class GenerateCSV_4EOLNeo4j
     {
         $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         if(!is_dir($path)) mkdir($path);
-        self::move_bash_files($path);
+        self::move_bash_files($path); //exit("\nstop muna\n");
         $path .= '/' . $resource_id . '_csv';
         if(is_dir($path)) recursive_rmdir($path);
         mkdir($path);
@@ -1740,7 +1740,7 @@ class GenerateCSV_4EOLNeo4j
             copy($source, $destination); //always overwrite destination
         // }
         */
-        $files = array('globi.sh', 'worms.sh', 'combine.sh');
+        $files = array('globi.sh', 'worms.sh', 'combined.sh');
         foreach($files as $file) {
             $destination = $path."/$file";
             $source = DOC_ROOT."/applications/content_server/neo4j/$file";

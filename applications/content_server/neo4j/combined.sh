@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cypher-shell -u neo4j -p eli_neo4j -d system "CREATE DATABASE DB.EOL IF NOT EXISTS;"
 cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE DB.EOL;"
 neo4j-admin database import full DB.EOL --overwrite-destination \
 --nodes=import2/combined_CSVs/nodes/Resource.csv \

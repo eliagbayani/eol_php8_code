@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cypher-shell -u neo4j -p eli_neo4j -d system "CREATE DATABASE DB.GloBI IF NOT EXISTS;"
 cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE DB.GloBI;"
 neo4j-admin database import full DB.GloBI --overwrite-destination \
 --nodes=import2/GloBI_TraitBank_1_0_csv/nodes/Resource.csv \

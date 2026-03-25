@@ -9,6 +9,7 @@ class AggregateCSV_4Neo4j
     function __construct() {
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         $this->path['combined_dir'] = $this->path['main'].'/combined_CSVs';
+        $this->files_with_single_write = array('Resource.csv', 'Page.csv', 'Term.csv'); //all in /nodes/
     }
     function start()
     {
@@ -19,15 +20,15 @@ class AggregateCSV_4Neo4j
             $subfolders = self::get_folders($folder);
             print_r($subfolders);
             foreach($subfolders as $subfolder) {
-                self::process_a_subfolder($subfolder); // /edges or /nodes
+                self::process_a_subfolder($subfolder, $folder); // /edges or /nodes ;  2nd param $folder is just for stats
             }
         }
     }
-    private function process_a_subfolder($subfolder)
+    private function process_a_subfolder($subfolder, $folder) //2nd param $folder is just for stats
     {
         $files = self::get_files($subfolder, '*.csv');
         $subfolder_name = basename($subfolder);
-        echo "\nCSV files [$subfolder_name]:\n";
+        echo "\n[".basename($folder)."] CSV files [$subfolder_name]:\n";
         print_r($files);
         foreach($files as $source) {
             $destination = $this->path['combined_dir']."/$subfolder_name/".basename($source);
@@ -38,13 +39,27 @@ class AggregateCSV_4Neo4j
     private function write_file($source, $destination)
     {
         if(!is_file($destination))  self::append_file($source, $destination, true); //3rd param $newFile_YN
-        else                        self::append_file($source, $destination, false); //3rd param $newFile_YN
+        else {
+            $basename = basename($destination);
+            if(self::is_file_tobe_excluded_YN($basename)) {}
+            else self::append_file($source, $destination, false); //3rd param $newFile_YN
+        }
+    }
+    private function is_file_tobe_excluded_YN($haystack)
+    {
+        $needles = $this->files_with_single_write; //array('Resource.csv', 'Page.csv', 'Term.csv');
+        foreach($needles as $needle) {
+            // Case-sensitive check
+            echo "\nneedle: [$needle] | haystack: [$haystack]\n";
+            if(str_contains($haystack, $needle)) return true; //echo "Found case-sensitive.";
+        }
+        return false;
     }
     private function get_files($folder, $pattern = false)
     {
         if($pattern) $path = $folder . '/'.$pattern;
         else         $path = $folder . '/*';
-        $files = glob($folder . '/*.csv');
+        $files = glob($path);
         return $files;
     }
     private function get_folders($path, $pattern = false)

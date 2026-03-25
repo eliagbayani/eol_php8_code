@@ -8,10 +8,11 @@ class AggregateCSV_4Neo4j
 {
     function __construct() {
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
-
+        $this->path['combined_dir'] = $this->path['main'].'/combined_CSVs';
     }
     function start()
     {
+        self::initialize();
         $folders = self::get_folders($this->path['main'], "TraitBank_1_0");
         print_r($folders);
         foreach($folders as $folder) {
@@ -25,7 +26,13 @@ class AggregateCSV_4Neo4j
     private function process_a_subfolder($subfolder)
     {
         $files = self::get_files($subfolder, '*.csv');
+        $subfolder_name = basename($subfolder);
+        echo "\nCSV files [$subfolder_name]:\n";
         print_r($files);
+        foreach($files as $source) {
+            $destination = $this->path['combined_dir']."/$subfolder_name/".basename($source);
+            echo "\n".$destination;
+        }
     }
     private function get_files($folder, $pattern = false)
     {
@@ -68,6 +75,14 @@ class AggregateCSV_4Neo4j
         }
         fclose($masterCSVFile); // Close master CSV file
         echo "Successfully merged all CSV files into master-record.csv";
+    }
+    private function initialize()
+    {
+        $combined_dir = $this->path['combined_dir'];
+        if(is_dir($combined_dir)) recursive_rmdir($combined_dir);
+        mkdir($combined_dir);
+        mkdir($combined_dir."/nodes");
+        mkdir($combined_dir."/edges");
     }
 }
 ?>

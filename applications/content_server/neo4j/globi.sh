@@ -21,6 +21,8 @@ neo4j-admin database import full DB.GloBI --overwrite-destination \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/DETERMINED_BY.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/CONTRIBUTOR.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/LIFESTAGE_TERM.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/SEX_TERM.csv \
+--relationships=import2/GloBI_TraitBank_1_0_csv/edges/STATISTICAL_METHOD_TERM.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/METADATA.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/PARENT_TERM.csv \
 --relationships=import2/GloBI_TraitBank_1_0_csv/edges/SYNONYM_OF.csv \

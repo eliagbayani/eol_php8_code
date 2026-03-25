@@ -32,7 +32,13 @@ class AggregateCSV_4Neo4j
         foreach($files as $source) {
             $destination = $this->path['combined_dir']."/$subfolder_name/".basename($source);
             echo "\n".$destination;
+            self::write_file($source, $destination);
         }
+    }
+    private function write_file($source, $destination)
+    {
+        if(!is_file($destination))  self::append_file($source, $destination, true); //3rd param $newFile_YN
+        else                        self::append_file($source, $destination, false); //3rd param $newFile_YN
     }
     private function get_files($folder, $pattern = false)
     {
@@ -47,6 +53,20 @@ class AggregateCSV_4Neo4j
         else         $path .= "/*";
         $directories = glob($path, GLOB_ONLYDIR); // Get only directories
         return $directories;
+    }
+    private function append_file($source, $destination, $newFile_YN)
+    {
+        $masterCSVFile = fopen($destination, "a"); // Open and write the master CSV file
+        if (($handle = fopen($source, 'r')) !== false) {
+            if(!$newFile_YN) fgetcsv($handle); // Skip the first row (header)
+            // Collect CSV each row records and write to master file
+            while (($dataValue = fgetcsv($handle)) !== false) {
+                fputcsv($masterCSVFile, $dataValue); // Write the row to the master file
+            }
+            fclose($handle); // Close individual CSV file
+        }
+        fclose($masterCSVFile); // Close master CSV file
+        echo "\nSuccessfully merged ".basename($source)." into ".basename($destination);
     }
     private function combine_csv_files() //PHP Script for Combining Multiple CSV Files
     {   /* Script to merge multiple CSV files into one master CSV file, removing the header line from individual files.

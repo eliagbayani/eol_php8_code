@@ -30,4 +30,13 @@ rake build ; rake install ; irb -r eol_terms
 
 gem 'eol_terms', git: 'https://github.com/EOL/eol_terms.git'
 
-gem install [eol_terms] --source https://github.com/EOL/eol_terms.git
+gem install eol_terms --source https://github.com/EOL/eol_terms.git
+
+gem install eol_terms --source https://github.com/EOL/jrice-eol.org.git
+
+=========================
+from JRice:
+gem install eol_terms --git https://github.com/EOL/eol_terms.git --branch main
+=========================
+what actually is:
+https://github.com/EOL/jrice-eol.org.git

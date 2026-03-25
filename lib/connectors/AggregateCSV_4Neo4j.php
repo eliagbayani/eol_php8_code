@@ -4,7 +4,7 @@ namespace php_active_record;
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class CSV_Aggregator_For_Neo4j
+class AggregateCSV_4Neo4j
 {
     function __construct() {
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';

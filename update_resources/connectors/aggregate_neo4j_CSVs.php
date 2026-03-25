@@ -16,7 +16,7 @@ $timestart = time_elapsed();
 // $param                     = json_decode(@$argv[2], true); //print_r($param); exit;
 // $resource_id = $param['resource_id'];
 $param = array();
-require_library('connectors/CSV_Aggregator_For_Neo4j');
-$func = new CSV_Aggregator_For_Neo4j($param);
+require_library('connectors/AggregateCSV_4Neo4j');
+$func = new AggregateCSV_4Neo4j($param);
 $func->start();
 ?>

@@ -1728,7 +1728,7 @@ class GenerateCSV_4EOLNeo4j
         $temp_dir = $path.'/edges'; mkdir($temp_dir);
     }
     private function move_bash_files($path) //Move bash files to CSV folders for import step
-    {
+    {   /*
         $destination = $path.'/globi.sh';
         // if(!is_file($destination)) {
             $source = DOC_ROOT.'/applications/content_server/neo4j/globi.sh';
@@ -1739,6 +1739,13 @@ class GenerateCSV_4EOLNeo4j
             $source = DOC_ROOT.'/applications/content_server/neo4j/worms.sh';
             copy($source, $destination); //always overwrite destination
         // }
+        */
+        $files = array('globi.sh', 'worms.sh', 'combine.sh');
+        foreach($files as $file) {
+            $destination = $path."/$file";
+            $source = DOC_ROOT."/applications/content_server/neo4j/$file";
+            copy($source, $destination); //always overwrite destination
+        }
     }
     function format_csv_entry($rec, $fields)
     {

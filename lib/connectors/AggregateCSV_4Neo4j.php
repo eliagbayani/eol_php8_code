@@ -9,7 +9,7 @@ class AggregateCSV_4Neo4j
     function __construct() {
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         $this->path['combined_dir'] = $this->path['main'].'/combined_CSVs';
-        $this->files_with_single_write = array('Resource.csv', 'Page.csv', 'Term.csv'); //all in /nodes/
+        $this->files_with_single_write = array('Resource.csv', 'Page.csv', 'Term.csv', 'PARENT.csv', 'PARENT_TERM.csv', 'SYNONYM_OF.csv');
     }
     function start()
     {

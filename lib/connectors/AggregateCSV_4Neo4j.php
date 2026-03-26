@@ -70,6 +70,25 @@ class AggregateCSV_4Neo4j
             if(self::is_file_tobe_excluded_YN($basename)) {}
             else self::append_file($source, $destination, false); //3rd param $newFile_YN
         }
+
+        // /* ---------- for stats report
+        $this->report['filename'] = basename($source); //print_r($this->report);
+        // Array(
+        //     [resource_name] => WoRMS_TraitBank_1_0_csv
+        //     [what] => edges
+        //     [filename] => STATISTICAL_METHOD_TERM.csv
+        // )
+        $resource_name = $this->report['resource_name'];
+        $what = $this->report['what'];
+        $filename = $this->report['filename'];
+        if(!isset($this->report_write[$resource_name][$what][$filename])) {
+            $total = Functions::show_totals($source) - 1;
+            $this->report_write[$resource_name][$what][$filename] = $total;
+            echo "\nsource: [$source]";
+            echo "\nTotal rows: [$resource_name][$what][$filename] = $total\n";
+        }
+        // ---------- */
+
     }
     private function is_file_tobe_excluded_YN($haystack)
     {
@@ -109,7 +128,7 @@ class AggregateCSV_4Neo4j
         fclose($masterCSVFile); // Close master CSV file
         echo "\nSuccessfully merged ".basename($source)." into ".basename($destination); //e.g. Successfully merged CONTRIBUTOR.csv into CONTRIBUTOR.csv
 
-        // /* ---------- for stats report
+        /* ---------- for stats report
         $this->report['filename'] = basename($source); //print_r($this->report);
         // Array(
         //     [resource_name] => WoRMS_TraitBank_1_0_csv
@@ -125,7 +144,7 @@ class AggregateCSV_4Neo4j
             echo "\nsource: [$source]";
             echo "\nTotal rows: [$resource_name][$what][$filename] = $total\n";
         }
-        // ---------- */
+        ---------- */
     }
     private function combine_csv_files() //PHP Script for Combining Multiple CSV Files
     {   /* Script to merge multiple CSV files into one master CSV file, removing the header line from individual files.

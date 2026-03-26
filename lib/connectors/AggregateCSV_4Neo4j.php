@@ -23,17 +23,43 @@ class AggregateCSV_4Neo4j
                 self::process_a_subfolder($subfolder, $folder); // /edges or /nodes ;  2nd param $folder is just for stats
             }
         }
+        self::get_totals_for_combined_CSVs();
+        Functions::start_print_debug($this->report_write, 'CSV_report', $this->path['main']);
     }
     private function process_a_subfolder($subfolder, $folder) //2nd param $folder is just for stats
     {
         $files = self::get_files($subfolder, '*.csv');
-        $subfolder_name = basename($subfolder);
-        echo "\n[".basename($folder)."] CSV files [$subfolder_name]:\n";
+        $subfolder_name = basename($subfolder); //e.g. 'edges'
+        $resource_name = basename($folder);
+        echo "\n[".$resource_name."] CSV files [$subfolder_name]:\n"; //e.g. [GloBI_TraitBank_1_0_csv] CSV files [edges]:
+        $this->report = array();
+        $this->report['resource_name'] = $resource_name;
+        $this->report['what'] = $subfolder_name;
         print_r($files);
         foreach($files as $source) {
-            $destination = $this->path['combined_dir']."/$subfolder_name/".basename($source);
-            echo "\n".$destination;
+            $destination = $this->path['combined_dir']."/$subfolder_name/".basename($source); // /var/www/html/eol_php8_code/applications/content_server/resources_3/neo4j_imports/combined_CSVs/edges/CONTRIBUTOR.csv
+            
+            // /* ---------- for stats report
+            $main = basename($this->path['combined_dir']); //'combined_CSVs'
+            $filename = basename($source); //'CONTRIBUTOR.csv'
+            $this->report_write[$main][$subfolder_name][$filename] = $destination; //e.g. ['combined_CSVs']['edges']['CONTRIBUTOR.csv'] = $destination
+            // ---------- */
+
+            echo "\ndestination: ".$destination;
             self::write_file($source, $destination);
+        }
+    }
+    private function get_totals_for_combined_CSVs()
+    {   /* These are the variables to be used:
+        $this->report_write[$main][$subfolder_name][$filename] = $destination;
+        e.g. ['combined_CSVs']['edges']['CONTRIBUTOR.csv'] = $destination */
+        echo "\nStart get_totals_for_combined_CSVs()...\n";
+        $arr = $this->report_write['combined_CSVs'];
+        foreach($arr as $path => $filenames) {
+            //echo "\n-----\npath: $path\n"; print_r($filenames); //good debug
+            foreach($filenames as $filename => $destination) { //echo "\n[$filename] [$destination]"; //good debug
+                $this->report_write['combined_CSVs'][$path][$filename] = Functions::show_totals($destination) - 1;
+            }
         }
     }
     private function write_file($source, $destination)
@@ -50,7 +76,7 @@ class AggregateCSV_4Neo4j
         $needles = $this->files_with_single_write; //array('Resource.csv', 'Page.csv', 'Term.csv');
         foreach($needles as $needle) {
             // Case-sensitive check
-            echo "\nneedle: [$needle] | haystack: [$haystack]\n";
+            // echo "\nneedle: [$needle] | haystack: [$haystack]\n";
             if(str_contains($haystack, $needle)) return true; //echo "Found case-sensitive.";
         }
         return false;
@@ -81,7 +107,25 @@ class AggregateCSV_4Neo4j
             fclose($handle); // Close individual CSV file
         }
         fclose($masterCSVFile); // Close master CSV file
-        echo "\nSuccessfully merged ".basename($source)." into ".basename($destination);
+        echo "\nSuccessfully merged ".basename($source)." into ".basename($destination); //e.g. Successfully merged CONTRIBUTOR.csv into CONTRIBUTOR.csv
+
+        // /* ---------- for stats report
+        $this->report['filename'] = basename($source); //print_r($this->report);
+        // Array(
+        //     [resource_name] => WoRMS_TraitBank_1_0_csv
+        //     [what] => edges
+        //     [filename] => STATISTICAL_METHOD_TERM.csv
+        // )
+        $resource_name = $this->report['resource_name'];
+        $what = $this->report['what'];
+        $filename = $this->report['filename'];
+        if(!isset($this->report_write[$resource_name][$what][$filename])) {
+            $total = Functions::show_totals($source) - 1;
+            $this->report_write[$resource_name][$what][$filename] = $total;
+            echo "\nsource: [$source]";
+            echo "\nTotal rows: [$resource_name][$what][$filename] = $total\n";
+        }
+        // ---------- */
     }
     private function combine_csv_files() //PHP Script for Combining Multiple CSV Files
     {   /* Script to merge multiple CSV files into one master CSV file, removing the header line from individual files.

@@ -8,6 +8,7 @@ class AggregateCSV_4Neo4j
 {
     function __construct() {
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
+        $this->path['stats'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_stats';
         $this->path['combined_dir'] = $this->path['main'].'/combined_CSVs';
         $this->files_with_single_write = array('Resource.csv', 'Page.csv', 'Term.csv', 'PARENT.csv', 'PARENT_TERM.csv', 'SYNONYM_OF.csv');
     }
@@ -25,6 +26,7 @@ class AggregateCSV_4Neo4j
         }
         self::get_totals_for_combined_CSVs();
         Functions::start_print_debug($this->report_write, 'CSV_report', $this->path['main']);
+        self::write_csv_logs();
     }
     private function process_a_subfolder($subfolder, $folder) //2nd param $folder is just for stats
     {
@@ -47,19 +49,6 @@ class AggregateCSV_4Neo4j
 
             echo "\ndestination: ".$destination;
             self::write_file($source, $destination);
-        }
-    }
-    private function get_totals_for_combined_CSVs()
-    {   /* These are the variables to be used:
-        $this->report_write[$main][$subfolder_name][$filename] = $destination;
-        e.g. ['combined_CSVs']['edges']['CONTRIBUTOR.csv'] = $destination */
-        echo "\nStart get_totals_for_combined_CSVs()...\n";
-        $arr = $this->report_write['combined_CSVs'];
-        foreach($arr as $path => $filenames) {
-            //echo "\n-----\npath: $path\n"; print_r($filenames); //good debug
-            foreach($filenames as $filename => $destination) { //echo "\n[$filename] [$destination]"; //good debug
-                $this->report_write['combined_CSVs'][$path][$filename] = Functions::show_totals($destination) - 1;
-            }
         }
     }
     private function write_file($source, $destination)
@@ -174,10 +163,27 @@ class AggregateCSV_4Neo4j
         fclose($masterCSVFile); // Close master CSV file
         echo "Successfully merged all CSV files into master-record.csv";
     }
+    private function get_totals_for_combined_CSVs()
+    {   /* These are the variables to be used:
+        $this->report_write[$main][$subfolder_name][$filename] = $destination;
+        e.g. ['combined_CSVs']['edges']['CONTRIBUTOR.csv'] = $destination */
+        echo "\nStart get_totals_for_combined_CSVs()...\n";
+        $arr = $this->report_write['combined_CSVs'];
+        foreach($arr as $path => $filenames) {
+            //echo "\n-----\npath: $path\n"; print_r($filenames); //good debug
+            foreach($filenames as $filename => $destination) { //echo "\n[$filename] [$destination]"; //good debug
+                $this->report_write['combined_CSVs'][$path][$filename] = Functions::show_totals($destination) - 1;
+            }
+        }
+    }
+    private function write_csv_logs()
+    {
+        
+    }
     private function initialize()
     {
-        $combined_dir = $this->path['combined_dir'];
-        if(is_dir($combined_dir)) recursive_rmdir($combined_dir);
+        $stats_dir = $this->path['stats'];              if(!is_dir($stats_dir)) mkdir($stats_dir);
+        $combined_dir = $this->path['combined_dir'];    if(is_dir($combined_dir)) recursive_rmdir($combined_dir);
         mkdir($combined_dir);
         mkdir($combined_dir."/nodes");
         mkdir($combined_dir."/edges");

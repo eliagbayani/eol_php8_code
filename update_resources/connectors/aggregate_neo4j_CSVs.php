@@ -16,7 +16,6 @@ $timestart = time_elapsed();
 // $param                     = json_decode(@$argv[2], true); //print_r($param); exit;
 // $resource_id = $param['resource_id'];
 
-
 /* Working OK
 $arr['combined_CSVs']['edges']['file_1.csv'] = 'destination 1';
 $arr['combined_CSVs']['edges']['file_2.csv'] = 'destination 2';
@@ -27,7 +26,8 @@ $arr['combined_CSVs']['nodes']['file_6.csv'] = 'destination 6';
 $a = $arr['combined_CSVs'];
 foreach($a as $path => $filenames) {
     echo "\n-----\npath: $path\n";
-    print_r($filenames);
+    ksort($filenames); //important
+    // print_r($filenames);
     foreach($filenames as $fname => $destination) {
         echo "\n[$fname] [$destination]";
     }
@@ -35,6 +35,50 @@ foreach($a as $path => $filenames) {
 exit("\n-end test-\n");
 */
 
+// /* Working OK ?
+$arr['worms_CSVs']['nodes']['file_3.csv'] = 1;
+$arr['worms_CSVs']['nodes']['file_1.csv'] = 2;
+$arr['worms_CSVs']['nodes']['file_2.csv'] = 3;
+$arr['worms_CSVs']['edges']['FILE_6.csv'] = 4;
+$arr['worms_CSVs']['edges']['FILE_4.csv'] = 5;
+$arr['worms_CSVs']['edges']['FILE_5.csv'] = 6;
+
+$arr['globi_CSVs']['nodes']['file_9.csv'] = 7;
+$arr['globi_CSVs']['nodes']['file_7.csv'] = 8;
+$arr['globi_CSVs']['nodes']['file_8.csv'] = 9;
+$arr['globi_CSVs']['edges']['FILE_12.csv'] = 10;
+$arr['globi_CSVs']['edges']['FILE_10.csv'] = 11;
+$arr['globi_CSVs']['edges']['FILE_11.csv'] = 12;
+
+$r = array_keys($arr);
+$r = array_unique($r); //make unique
+$r = array_values($r); //reindex key
+
+foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]\n";
+    $a = $arr[$resource_name];
+    foreach($a as $path => $filenames) {
+        ksort($filenames); //important
+        echo "\n-----\npath: $path\n";
+        foreach($filenames as $fname => $total) {
+            echo "\n[$fname] [total = $total]";
+        }
+    }
+}
+
+// $save_path = $this->path['stats'].'/'.$resource_name.'.tsv';
+// $WRITE = Functions::file_open($save_path, 'a');
+// if(!file_exists($save_path)) {
+//     array_unshift($filenames, "Date"); //add an element on the start of an array
+//     fwrite($WRITE, implode("\t", $filenames)."\n");
+// }
+// fclose($WRITE);        
+
+
+
+
+
+exit("\n-end test-\n");
+// */
 
 $param = array();
 require_library('connectors/AggregateCSV_4Neo4j');

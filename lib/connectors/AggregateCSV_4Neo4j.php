@@ -179,10 +179,10 @@ class AggregateCSV_4Neo4j
     private function write_csv_logs()
     {
         $arr = $this->report_write;
-        $r = array_keys($arr);
-        $r = array_unique($r); //make unique
-        $r = array_values($r); //reindex key
-        foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]";
+        $resource_names = array_keys($arr);
+        $resource_names = array_unique($resource_names); //make unique
+        $resource_names = array_values($resource_names); //reindex key
+        foreach($resource_names as $resource_name) { echo "\n-----Resource: [$resource_name]";
             $save_path = $this->path['stats'].'/'.$resource_name.'.tsv';
             $a = $arr[$resource_name];
             $values = array(); $headers = array();
@@ -206,7 +206,6 @@ class AggregateCSV_4Neo4j
             fwrite($WRITE, implode("\t", $values)."\n");
             fclose($WRITE);        
         }
-        
     }
     private function initialize()
     {

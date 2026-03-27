@@ -182,7 +182,7 @@ class AggregateCSV_4Neo4j
         $r = array_unique($r); //make unique
         $r = array_values($r); //reindex key
         foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]";
-            $save_path = $this_path_stats.'/'.$resource_name.'.tsv';
+            $save_path = $this->path['stats'].'/'.$resource_name.'.tsv';
             $a = $arr[$resource_name];
             $values = array(); $headers = array();
             $headers[] = 'Date';

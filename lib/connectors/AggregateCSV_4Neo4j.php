@@ -178,7 +178,8 @@ class AggregateCSV_4Neo4j
     }
     private function write_csv_logs()
     {
-        $r = array_keys($this->report_write);
+        $arr = $this->report_write;
+        $r = array_keys($arr);
         $r = array_unique($r); //make unique
         $r = array_values($r); //reindex key
         foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]";

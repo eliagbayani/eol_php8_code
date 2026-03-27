@@ -35,17 +35,15 @@ foreach($a as $path => $filenames) {
 exit("\n-end test-\n");
 */
 
-// /* Working OK ?
+/* Working OK 
 $this_path_stats = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_stats';
 if(!is_dir($this_path_stats)) mkdir($this_path_stats);
-
 $arr['worms_CSVs']['nodes']['file_3.csv'] = 10;
 $arr['worms_CSVs']['nodes']['file_1.csv'] = 20;
 $arr['worms_CSVs']['nodes']['file_2.csv'] = 30;
 $arr['worms_CSVs']['edges']['FILE_6.csv'] = 40;
 $arr['worms_CSVs']['edges']['FILE_4.csv'] = 50;
 $arr['worms_CSVs']['edges']['FILE_5.csv'] = 60;
-
 $arr['globi_CSVs']['nodes']['file_9.csv'] = 70;
 $arr['globi_CSVs']['nodes']['file_7.csv'] = 80;
 $arr['globi_CSVs']['nodes']['file_8.csv'] = 90;
@@ -56,7 +54,6 @@ $arr['globi_CSVs']['edges']['FILE_11.csv'] = 120;
 $r = array_keys($arr);
 $r = array_unique($r); //make unique
 $r = array_values($r); //reindex key
-
 foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]";
     $save_path = $this_path_stats.'/'.$resource_name.'.tsv';
     $a = $arr[$resource_name];
@@ -72,36 +69,17 @@ foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]";
             $values[] = $total;
         }
     }
-
-    // if(!file_exists($save_path)) {
+    if(!file_exists($save_path)) {
         $WRITE = Functions::file_open($save_path, 'a');
         array_unshift($filenames, "Date"); //add an element on the start of an array
         fwrite($WRITE, implode("\t", $headers)."\n");
-    // }
+    }
     $WRITE = Functions::file_open($save_path, 'a');
     fwrite($WRITE, implode("\t", $values)."\n");
     fclose($WRITE);        
-
 }
-
-
-
-
-
-// $save_path = $this_path_stats.'/'.$resource_name.'.tsv';
-// $WRITE = Functions::file_open($save_path, 'a');
-// if(!file_exists($save_path)) {
-//     array_unshift($filenames, "Date"); //add an element on the start of an array
-//     fwrite($WRITE, implode("\t", $filenames)."\n");
-// }
-// fclose($WRITE);        
-
-
-
-
-
 exit("\n-end test-\n");
-// */
+*/
 
 $param = array();
 require_library('connectors/AggregateCSV_4Neo4j');

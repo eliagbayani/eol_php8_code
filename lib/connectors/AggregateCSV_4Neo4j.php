@@ -178,6 +178,33 @@ class AggregateCSV_4Neo4j
     }
     private function write_csv_logs()
     {
+        $r = array_keys($this->report_write);
+        $r = array_unique($r); //make unique
+        $r = array_values($r); //reindex key
+        foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]";
+            $save_path = $this_path_stats.'/'.$resource_name.'.tsv';
+            $a = $arr[$resource_name];
+            $values = array(); $headers = array();
+            $headers[] = 'Date';
+            $values[] = date('Y-m-d H:i:s A');
+            foreach($a as $path => $filenames) {
+                ksort($filenames); //important
+                echo "\npath: $path";
+                foreach($filenames as $fname => $total) {
+                    echo "\n[$fname] [total = $total]";
+                    $headers[] = $fname;
+                    $values[] = $total;
+                }
+            }
+            if(!file_exists($save_path)) {
+                $WRITE = Functions::file_open($save_path, 'a');
+                array_unshift($filenames, "Date"); //add an element on the start of an array
+                fwrite($WRITE, implode("\t", $headers)."\n");
+            }
+            $WRITE = Functions::file_open($save_path, 'a');
+            fwrite($WRITE, implode("\t", $values)."\n");
+            fclose($WRITE);        
+        }
         
     }
     private function initialize()

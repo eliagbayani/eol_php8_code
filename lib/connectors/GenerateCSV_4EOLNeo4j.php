@@ -698,6 +698,7 @@ class GenerateCSV_4EOLNeo4j
 
         if($val = @$rec['measurementRemarks']) {
             // /* New: to fix TreatmentBank: when converting MoF to Trait.csv
+            // e.g. source text: "_upper \ monta_ ne evergreen forest \"
             $mRemarks = str_replace('\\', '', $val);
             // */
         }

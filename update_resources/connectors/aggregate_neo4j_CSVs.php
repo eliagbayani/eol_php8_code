@@ -81,6 +81,10 @@ foreach($r as $resource_name) { echo "\n-----Resource: [$resource_name]";
 exit("\n-end test-\n");
 */
 
+/* Source of CSV error where no. of columns was messed up. From TreatmentBank
+source text: "_upper \ monta_ ne evergreen forest \"	
+*/
+
 $param = array();
 require_library('connectors/AggregateCSV_4Neo4j');
 $func = new AggregateCSV_4Neo4j($param);

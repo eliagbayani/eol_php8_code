@@ -695,7 +695,15 @@ class GenerateCSV_4EOLNeo4j
         $s['sample_size'] = '';
         $s['citation'] = @$rec['bibliographicCitation'];
         $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
-        $s['remarks'] = @$rec['measurementRemarks'];
+
+        if($val = @$rec['measurementRemarks']) {
+            // /* New: to fix TreatmentBank: when converting MoF to Trait.csv
+            $mRemarks = str_replace('\\', '', $val);
+            // */
+        }
+        else $mRemarks = '';
+        $s['remarks'] = $mRemarks;
+
         $s['method'] = @$rec['measurementMethod']; //seems not a URI value. From https://dwc.tdwg.org/list/#dwc_measurementMethod
 
         $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
@@ -1191,8 +1199,8 @@ class GenerateCSV_4EOLNeo4j
             $csv_file = $this->local_csv; //source
         }
         // ---------- end customize part ----------
-        if(in_array($this->param['eol_resource_id'], array('R20', 'R533', 'R512'))) $mod = 100000;
-        else                                                                        $mod = 5000;
+        if(in_array($this->param['eol_resource_id'], array('R20', 'R533', 'R512', 'R562'))) $mod = 100000;
+        else                                                                                $mod = 5000;
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
@@ -1211,8 +1219,8 @@ class GenerateCSV_4EOLNeo4j
             else { //main records
                 $values = $row;
                 if($count != count($values)) { //row validation - correct no. of columns
-                    // print_r($values); print_r($rec);
-                    exit("\nERROR: Wrong CSV format for this row.\n");
+                    print_r($values); print_r($rec);
+                    exit("\nERROR: Wrong CSV format for this row.\n[$csv_file]\nrow = [$i]\n");
                     // $this->debug['wrong csv'][$class]['identifier'][$rec['identifier']] = '';
                     continue;
                 }

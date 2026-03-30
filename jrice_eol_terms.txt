@@ -9,34 +9,8 @@ git merge new_terms ; head -n9 crib.txt
 git push ; git co new_terms ; git rebase main ; tail -n5 crib.txt
 git push ;
 
-=========================================
-This is just a list of commands for JRice to run to deploy the Terms. You can ignore this file.
 
-git co new_terms ; git pull ; rake build ; rake install ; ruby -r eol_terms -e "EolTerms.validate" && head -n4 crib.txt
-ruby -r eol_terms -e "EolTerms.rebuild_ids('/Users/jeremyrice/code/eol_terms/resources/uri_ids.yml')" ; head -n6 crib.txt
-# WATCH FOR CHANGES HERE; you *might* have to merge them if any.
-bump patch ; git add . ; git ci -m "Version bump, new terms." ; git push ; git co main ; git pull ; head -n7 crib.txt
-git push ; git co main ; git pull ; head -n8 crib.txt
-git merge new_terms ; head -n9 crib.txt
-git push ; git co new_terms ; git rebase main ; tail -n5 crib.txt
-git push ; ssh si
-ssbpub
-aliaseol
-shwork
-bin/up_terms && echo "sleep 10 ; tail -f log/term_bootstrap.log"
+============================================ to create aliases: "co" and "ci"
 
-======================
-rake build ; rake install ; irb -r eol_terms
-
-gem 'eol_terms', git: 'https://github.com/EOL/eol_terms.git'
-
-gem install eol_terms --source https://github.com/EOL/eol_terms.git
-
-gem install eol_terms --source https://github.com/EOL/jrice-eol.org.git
-
-=========================
-from JRice:
-gem install eol_terms --git https://github.com/EOL/eol_terms.git --branch main
-=========================
-what actually is:
-https://github.com/EOL/jrice-eol.org.git
+git config --global alias.co checkout
+git config --global alias.ci commit

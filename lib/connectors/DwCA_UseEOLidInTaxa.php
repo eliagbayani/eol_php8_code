@@ -263,6 +263,7 @@ class DwCA_UseEOLidInTaxa
     private function lookup_JRice_vernacular_list()
     {
         $local_tsv = Functions::save_remote_file_to_local($this->urls['preferred_vernaculars'], $this->download_options);
+        if(!$local_tsv) exit("\nERROR: File can't be accessed.\n".$this->urls['preferred_vernaculars']."\nWill terminate.\n");
         $i = 0;
         foreach(new FileIterator($local_tsv) as $line => $row) { $i++;
             $row = Functions::conv_to_utf8($row); 

@@ -1154,7 +1154,8 @@ class DwCA_MatchTaxa2DH
                     }
                 }
             }
-        }      
+        }
+        else exit("\nERROR: File can't be accessed.\n".$this->ancestry_index_file."\nWill terminate.\n");
         unlink($local); // exit("\n".count($ret)."\n");
         return $ret;
     }

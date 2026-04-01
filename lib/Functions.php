@@ -2455,7 +2455,13 @@ class Functions
         if(!$file_path) return;
         foreach (glob($file_path . "*." . $file_extension) as $filename) return pathinfo($filename, PATHINFO_BASENAME);
     }
-
+    public static function get_files($folder, $pattern = false)
+    {
+        if($pattern) $path = $folder . '/'.$pattern;
+        else         $path = $folder . '/*';
+        $files = glob($path);
+        return $files;
+    }
     function last_day_of_month($month, $year)
     {
         return idate('d', mktime(0, 0, 0, ($month + 1), 0, $year));

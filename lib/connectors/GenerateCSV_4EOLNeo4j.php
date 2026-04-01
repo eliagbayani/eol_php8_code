@@ -1766,10 +1766,19 @@ class GenerateCSV_4EOLNeo4j
             copy($source, $destination); //always overwrite destination
         // }
         */
-        $files = array('globi.sh', 'worms.sh', 'combined.sh');
-        foreach($files as $file) {
+
+        $files = Functions::get_files(DOC_ROOT.'/applications/content_server/neo4j', '*.sh'); print_r($files);
+        /*Array(
+            [0] => /var/www/html/eol_php8_code//applications/content_server/neo4j/brazilianFlora.sh
+            [1] => /var/www/html/eol_php8_code//applications/content_server/neo4j/combined.sh
+            [2] => /var/www/html/eol_php8_code//applications/content_server/neo4j/globi.sh
+            [3] => /var/www/html/eol_php8_code//applications/content_server/neo4j/treatmentbank.sh
+            [4] => /var/www/html/eol_php8_code//applications/content_server/neo4j/wikipedia.sh
+            [5] => /var/www/html/eol_php8_code//applications/content_server/neo4j/worms.sh
+        )*/
+        foreach($files as $source) {
+            $file = pathinfo($source, PATHINFO_BASENAME); //e.g. "brazilianFlora.sh"
             $destination = $path."/$file";
-            $source = DOC_ROOT."/applications/content_server/neo4j/$file";
             copy($source, $destination); //always overwrite destination
         }
     }

@@ -30,7 +30,7 @@ class AggregateCSV_4Neo4j
     }
     private function process_a_subfolder($subfolder, $folder) //2nd param $folder is just for stats
     {
-        $files = self::get_files($subfolder, '*.csv');
+        $files = Functions::get_files($subfolder, '*.csv');
         $subfolder_name = basename($subfolder); //e.g. 'edges'
         $resource_name = basename($folder);
         echo "\n[".$resource_name."] CSV files [$subfolder_name]:\n"; //e.g. [GloBI_TraitBank_1_0_csv] CSV files [edges]:
@@ -89,13 +89,13 @@ class AggregateCSV_4Neo4j
         }
         return false;
     }
-    private function get_files($folder, $pattern = false)
-    {
-        if($pattern) $path = $folder . '/'.$pattern;
-        else         $path = $folder . '/*';
-        $files = glob($path);
-        return $files;
-    }
+    // private function get_files($folder, $pattern = false)
+    // {
+    //     if($pattern) $path = $folder . '/'.$pattern;
+    //     else         $path = $folder . '/*';
+    //     $files = glob($path);
+    //     return $files;
+    // }
     private function get_folders($path, $pattern = false)
     {
         if($pattern) $path .= '/*'.$pattern.'*'; // The wildcard '*' is necessary for glob

@@ -1545,7 +1545,12 @@ class GenerateCSV_4EOLNeo4j
                                 // echo "\nreferenceID: [$referenceID]\n"; print_r(@$this->reference_ids[$referenceID]);
                                 if($literal = @$this->reference_ids[$referenceID]['literal']) {
                                     $p = array();
-                                    $p['eol_pk'] = 'Reference-' . md5($rec_json.'meta-rI'.$referenceID); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                                    $id = 'Reference-' . md5($rec_json.'meta-rI'.$referenceID); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+
+                                    if(isset($this->unique['refids'][$id])) continue;
+
+                                    $this->unique['refids'][$id] = '';
+                                    $p['eol_pk'] = $id;
                                     $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
                                     $p['predicate'] = 'http://eol.org/schema/reference/referenceID';
                                     $p['literal'] = $literal;

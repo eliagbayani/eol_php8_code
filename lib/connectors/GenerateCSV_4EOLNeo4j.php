@@ -342,8 +342,10 @@ class GenerateCSV_4EOLNeo4j
             if($what == 'get_reference_ids') {
                 // add @ bec the Associations doesn't have referenceID. But I can check if DwCA can provide it.
                 if($val = @$rec['referenceID']) { //e.g. "WoRMS:sourceid:389854|c_4f32591232b4ade18be079dba527d520" or "WoRMS:sourceid:389854"
-                    $arr = explode("|", $val);
-                    $arr = array_map('trim', $arr);
+
+                    $tmp_arr = self::get_individual_reference_ids($val);
+                    $arr = array_map('trim', $tmp_arr); //print_r($arr);
+
                     foreach($arr as $refID) $this->reference_ids[$refID] = '';
                 }
             }
@@ -388,7 +390,7 @@ class GenerateCSV_4EOLNeo4j
     private function format_literal($rec)
     {
         $uri_part = false;
-        if($uri = $rec['uri']) {
+        if($uri = @$rec['uri']) { //put @ in @$rec when processing Brazilian Flora
             if(filter_var($uri, FILTER_VALIDATE_URL)) $uri_part = "<a href='$uri'>link</a>";
         }
         $literal = false;
@@ -1536,9 +1538,9 @@ class GenerateCSV_4EOLNeo4j
                             $csv .= 'Metadata'; //this is a Node
                             fwrite($fhandle, $csv."\n");
                         }
-                        if($referenceIDs = @$metadata['rI']) {
-                            $referenceIDs = explode("|", $referenceIDs);
-                            $referenceIDs = array_map('trim', $referenceIDs);
+                        if($referenceIDs = @$metadata['rI']) { //sometimes value is: "075af965b66ad6f90f793a194433fd28; aa357cdaf661068f3769de2079889a7b"
+                            $tmp_arr = self::get_individual_reference_ids($referenceIDs);
+                            $referenceIDs = array_map('trim', $tmp_arr); //print_r($referenceIDs);
                             foreach($referenceIDs as $referenceID) {
                                 // echo "\nreferenceID: [$referenceID]\n"; print_r(@$this->reference_ids[$referenceID]);
                                 if($literal = @$this->reference_ids[$referenceID]['literal']) {
@@ -1560,7 +1562,7 @@ class GenerateCSV_4EOLNeo4j
                                     $csv .= 'Metadata'; //this is a Node
                                     fwrite($fhandle, $csv."\n");
                                 }
-                                else exit("\nERROR: No literal for this referenceID ($referenceID)\n");
+                                else exit("\nERROR: *No literal for this referenceID ($referenceID)\n");
                             } //end foreach()
                         }
                     }
@@ -1614,6 +1616,21 @@ class GenerateCSV_4EOLNeo4j
                 }
             } //end main records
         } //end while()
+    }
+    private function get_individual_reference_ids($str) //sometimes value is: "075af965b66ad6f90f793a194433fd28; aa357cdaf661068f3769de2079889a7b"
+    {
+        $arr1 = explode("|", $str);
+        $arr2 = explode(";", $str);
+        $arr3 = array_merge($arr1, $arr2);
+        foreach($arr3 as $str2) {
+            if(stripos($str2, "|") !== false) continue; //string is found
+            if(stripos($str2, ";") !== false) continue; //string is found
+            $final[] = $str2;
+        }
+        $final = array_filter($final); //remove null arrays
+        $final = array_unique($final); //make unique
+        $final = array_values($final); //reindex key
+        return $final;
     }
     private function URI_in_EOL_terms_YN($predicate)
     {

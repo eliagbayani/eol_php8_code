@@ -15,10 +15,10 @@ class AggregateCSV_4Neo4j
     function start()
     {
         self::initialize();
-        $folders = self::get_folders($this->path['main'], "TraitBank_1_0");
+        $folders = Functions::get_folders($this->path['main'], "TraitBank_1_0");
         print_r($folders);
         foreach($folders as $folder) {
-            $subfolders = self::get_folders($folder);
+            $subfolders = Functions::get_folders($folder);
             print_r($subfolders);
             foreach($subfolders as $subfolder) {
                 self::process_a_subfolder($subfolder, $folder); // /edges or /nodes ;  2nd param $folder is just for stats
@@ -88,20 +88,6 @@ class AggregateCSV_4Neo4j
             if(str_contains($haystack, $needle)) return true; //echo "Found case-sensitive.";
         }
         return false;
-    }
-    // private function get_files($folder, $pattern = false)
-    // {
-    //     if($pattern) $path = $folder . '/'.$pattern;
-    //     else         $path = $folder . '/*';
-    //     $files = glob($path);
-    //     return $files;
-    // }
-    private function get_folders($path, $pattern = false)
-    {
-        if($pattern) $path .= '/*'.$pattern.'*'; // The wildcard '*' is necessary for glob
-        else         $path .= "/*";
-        $directories = glob($path, GLOB_ONLYDIR); // Get only directories
-        return $directories;
     }
     private function append_file($source, $destination, $newFile_YN)
     {

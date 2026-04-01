@@ -2462,6 +2462,13 @@ class Functions
         $files = glob($path);
         return $files;
     }
+    public static function get_folders($path, $pattern = false)
+    {
+        if($pattern) $path .= '/*'.$pattern.'*'; // The wildcard '*' is necessary for glob
+        else         $path .= "/*";
+        $directories = glob($path, GLOB_ONLYDIR); // Get only directories
+        return $directories;
+    }
     function last_day_of_month($month, $year)
     {
         return idate('d', mktime(0, 0, 0, ($month + 1), 0, $year));

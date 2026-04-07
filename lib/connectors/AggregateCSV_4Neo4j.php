@@ -1,6 +1,9 @@
 <?php
 namespace php_active_record;
 /* Library that aggregates CSV files to generate a single set of CSV files for import to a graph database.
+cypher quere: 
+MATCH p=()-[:SUPPLIER]->(r: Resource {}) RETURN DISTINCT r.name
+MATCH p=(t: Trait)-[:SUPPLIER]->(r: Resource {}) RETURN DISTINCT r.name,  COUNT(t.eol_pk) as total ORDER BY total DESC
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2

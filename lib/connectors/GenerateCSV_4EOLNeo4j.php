@@ -696,7 +696,7 @@ class GenerateCSV_4EOLNeo4j
 
         $s['sample_size'] = '';
         $s['citation'] = @$rec['bibliographicCitation'];
-        $s['source'] = $rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
+        $s['source'] = @$rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
 
         if($val = @$rec['measurementRemarks']) {
             // /* New: to fix TreatmentBank: when converting MoF to Trait.csv

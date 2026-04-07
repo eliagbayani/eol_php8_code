@@ -1239,7 +1239,12 @@ class DwCA_MatchTaxa2DH
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
             $WRITE = fopen($file, 'w');
             $i = 0;
-            foreach($this->debug[$index] as $taxonID => $rec) { $i++; // print_r($rec); exit("\n$taxonID\n");
+            if($loop_arr = @$this->debug[$index]) {}
+            else {
+                echo "\nNo records for: [$index]\n";
+                continue;
+            }
+            foreach($loop_arr as $taxonID => $rec) { $i++; // print_r($rec); exit("\n$taxonID\n");
                 /*Array(
                     [http://rs.tdwg.org/dwc/terms/taxonID] => 130
                     [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB130

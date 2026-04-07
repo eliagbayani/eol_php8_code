@@ -51,6 +51,8 @@ class MADtoolNatDBAPI
 
         // /* un-comment in real operation
         $csv = array('file' => $this->source_csv_path."categorical.csv", 'type' => 'categorical'); //only categorical.csv have 'record type' = taxa
+        self::process_extension($csv, "pre_taxa"); //purpose = taxa
+        // exit("\nelix 1\n");
         self::process_extension($csv, "taxa"); //purpose = taxa
         // */
         /* not needed anymore
@@ -88,6 +90,11 @@ class MADtoolNatDBAPI
         // exit("\n-end for now-\n");
         Functions::start_print_debug($this->debug, $this->resource_id);
     }
+    private function adjust_mType($mType)
+    {
+        if($mType == 'http://eol.org/schema/terms/Habitat') $mType = 'http://purl.obolibrary.org/obo/RO_0002303';
+        return $mType;
+    }
     private function main_write_archive()
     {
         $taxa = array_keys($this->main);
@@ -103,6 +110,7 @@ class MADtoolNatDBAPI
                if(!@$this->main[$species]['MeasurementOfTaxon=true']) continue;
             foreach($this->main[$species]['MeasurementOfTaxon=true'] as $mType => $rec3) {
                 // echo "\n ------ $mType\n";
+                $mType = self::adjust_mType($mType);
                 // print_r($rec3);
                 foreach($rec3 as $mValue => $rec4) {
                     // echo "\n --------- $mValue\n";
@@ -263,6 +271,7 @@ class MADtoolNatDBAPI
     {
         $ret = array();
         foreach($arr as $mType => $rec) {
+            $mType = self::adjust_mType($mType);
             if(in_array($mType, array('http://purl.obolibrary.org/obo/PATO_0000146', 'http://purl.obolibrary.org/obo/EO_0007196'))) {
             // if(in_array($mType, array('http://purl.obolibrary.org/obo/PATO_0000146'))) {
             // if(in_array($mType, array('http://purl.obolibrary.org/obo/EO_0007196'))) {
@@ -408,11 +417,24 @@ class MADtoolNatDBAPI
         $taxon = new \eol_schema\Taxon();
         $taxon->taxonID         = $taxon_id;
         $taxon->scientificName  = $species;
+
+        if($val = @$this->main[$species]['ancestry']['Kingdom']) $taxon->kingdom = $val;
+        if($val = @$this->main[$species]['ancestry']['Phylum']) $taxon->phylum = $val;
+        if($val = @$this->main[$species]['ancestry']['Class']) $taxon->class = $val;
+        if($val = @$this->main[$species]['ancestry']['Order']) $taxon->order = $val;
         if($val = @$this->main[$species]['ancestry']['Family']) $taxon->family = $val;
         if($val = @$this->main[$species]['ancestry']['Genus']) $taxon->genus = $val;
-        if($val = @$this->main[$species]['ancestry']['Phylum']) $taxon->phylum = $val;
+        
         // $taxon->taxonRank             = '';
         // $taxon->furtherInformationURL = '';
+
+        // /* New: Apr 6, 2026
+        if(!@$taxon->genus) {
+            $tmp = explode(" ", $species);
+            if(count($tmp) >= 2) $taxon->genus = trim($tmp[0]);
+        }
+        // */
+
         if(!isset($this->taxon_ids[$taxon->taxonID])) {
             $this->archive_builder->write_object_to_file($taxon);
             $this->taxon_ids[$taxon->taxonID] = '';
@@ -478,14 +500,31 @@ class MADtoolNatDBAPI
         and should be copied into the measurementValue in the created record. 
         This is mostly for numeric records.
         */
-        
+
+        if($purpose == "pre_taxa") {
+            // /* New: 6Apr2026 - Eli's initiative to get ancestry values
+            // if($rec['species'] == 'Speothos venaticus') { print_r($rec); exit("\nstop muna\n"); }
+            // Array(
+            //     [blank_1] => 212124
+            //     [species] => Speothos venaticus
+            //     [metadata] => Order:CARNIVORA;Family:CANIDAE;Genus:Speothos;TaxonomicNote:;DataSource:IUCN
+            //     [variable] => TrophicLevel
+            //     [value] => Carnivore
+            //     [units] => NA
+            //     [dataset] => .kissling.2014
+            // )            
+            if($metadata = $rec['metadata']) self::parse_metadata_field($metadata, $rec);
+            // */
+            return;
+        }
+
         /* generating index value $tmp for $this->valid_set */
         if(isset($this->numeric_fields[$rec['variable']])) $value = "";
         else                                               $value = $rec['value'];
         $tmp = $rec['variable']."_".$value."_".$rec['dataset']."_".self::blank_if_NA($rec['units'])."_";
         $tmp = strtolower($tmp);
         // echo "\n[$tmp]"; exit;
-        
+
         if($mapped_record = @$this->valid_set[$tmp]) {
             if(stripos($rec['species'], "unknown") !== false) return; //string is found
             
@@ -512,9 +551,11 @@ class MADtoolNatDBAPI
             "Tsuga canadensis" -- has taxa
             "ctenomys_minutus" -- has special char in metadata "Cherem/Maur?cio"
             */
+
             
             if($purpose == "taxa") {
                 if($mapped_record['record type'] == 'taxa') self::assign_ancestry($rec, $mapped_record);
+
                 return;
             }
             elseif($purpose == "mof occurrence child") {
@@ -523,6 +564,7 @@ class MADtoolNatDBAPI
                 if($record_type == 'taxa') return;
 
                 $mType = $mapped_record['measurementType'];
+                $mType = self::adjust_mType($mType);
                 
                 // /* per Jen: https://eol-jira.bibalex.org/browse/DATA-1754?focusedCommentId=67046&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-67046
                 // I have a straight up remap for this resource, after another of those vocabulary changes of heart 
@@ -697,6 +739,7 @@ class MADtoolNatDBAPI
         )
         */
         $mType  = $mapped_record['measurementType'];
+        $mType = self::adjust_mType($mType);
         $mValue = ($mapped_record['measurementValue'] != "")                             ? $mapped_record['measurementValue']                             : $rec['value'];
         $mUnit  = ($mapped_record['http://rs.tdwg.org/dwc/terms/measurementUnit'] != "") ? $mapped_record['http://rs.tdwg.org/dwc/terms/measurementUnit'] : $rec['units'];
         if($mUnit == "NA") $mUnit = '';
@@ -731,6 +774,36 @@ class MADtoolNatDBAPI
         if    ($val = $mapped_record['measurementValue']) $value = $val;
         elseif($val = $rec['value'])                      $value = $val;
         $this->main[$rec['species']]['ancestry'][$rec['variable']] = $value;
+
+        // /* New: 6Apr2026 - Eli's initiative to get ancestry values
+        // if($metadata = $rec['metadata']) self::parse_metadata_field($metadata, $rec);
+        // */
+    }
+    private function parse_metadata_field($metadata, $rec)
+    {
+        $pairs = explode(";", $metadata); //$metadata e.g. Family:Pinaceae;Genus:Tsuga;Phylum:G
+        foreach($pairs as $pair) {
+            $arr = explode(":", $pair);
+            if($rank = $arr[0]) {}
+            else continue;
+            if($name = @$arr[1]) {}
+            else continue;
+            if(in_array($rank, array('Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus'))) {
+                if($species = $rec['species']) {
+                    if(strlen($name) > 1) {
+                        $this->main[$species]['ancestry'][$rank] = ucfirst(strtolower($name));
+                        // echo "\n[$species][ancestry $rank][$name]\n";
+                    }
+                }
+            }
+            // if($species = $rec['species']) {
+            //     if(!@$this->main[$species]['ancestry']['Genus']) {
+            //         $tmp = explode(" ", $species);   
+            //         $this->main[$species]['ancestry']['Genus'] = trim($tmp[0]);
+            //     }
+            // }
+
+        }
     }
     private function blank_if_NA($str)
     {
@@ -787,6 +860,7 @@ class MADtoolNatDBAPI
     {
         $final = array();
         foreach($arr as $mType => $rek1) {
+            $mType = self::adjust_mType($mType);
             $rec = array();
             foreach($rek1 as $mValue => $rek2) {
                 $rec['mType'] = $mType;

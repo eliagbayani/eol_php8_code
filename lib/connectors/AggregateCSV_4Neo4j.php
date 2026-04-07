@@ -3,7 +3,9 @@ namespace php_active_record;
 /* Library that aggregates CSV files to generate a single set of CSV files for import to a graph database.
 cypher quere: 
 MATCH p=()-[:SUPPLIER]->(r: Resource {}) RETURN DISTINCT r.name
-MATCH p=(t: Trait)-[:SUPPLIER]->(r: Resource {}) RETURN DISTINCT r.name,  COUNT(t.eol_pk) as total ORDER BY total DESC
+MATCH p=(t: Trait)-[:SUPPLIER]->(r: Resource {}) RETURN DISTINCT r.name as `Resource`,  COUNT(t.eol_pk) as total_traits ORDER BY total_traits DESC
+habitat values:
+MATCH (:Trait)-[:OBJECT_TERM]->(t:Term) WHERE t.uri =~ ".*\\/ENVO.*" WITH t, count(*) AS count RETURN t.name, t.uri, count ORDER BY count desc
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2

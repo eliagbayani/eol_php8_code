@@ -13,7 +13,9 @@ class AggregateCSV_4Neo4j
 {
     function __construct() {
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
-        $this->path['stats'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_stats';
+        $this->path['stats'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_stats'; //old path
+        $this->path['stats'] = DOC_ROOT . 'applications/content_server/neo4j_stats';
+
         $this->path['combined_dir'] = $this->path['main'].'/combined_CSVs';
         $this->files_with_single_write = array('Resource.csv', 'Page.csv', 'Term.csv', 'PARENT.csv', 'PARENT_TERM.csv', 'SYNONYM_OF.csv');
     }

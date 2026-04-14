@@ -84,6 +84,9 @@ class DHConnLib
         $this->all_ranks_['all_arthropoda'] = $this->all_ranks_['all'];
         $this->all_ranks_['all_passeriformes'] = $this->all_ranks_['all'];
 
+        $this->listOf_taxa['html']  = CONTENT_RESOURCE_LOCAL_PATH . '/listOfTaxa.html';
+
+
         /*Array(
         Hi Jen, looking at the actual values for taxon rank in DH.
         I will include these:
@@ -188,6 +191,10 @@ class DHConnLib
         */
         exit("\nend muna\n");
     }
+    public function list_all_taxa_in_html()
+    {
+        self::get_taxID_nodes_info($this->main_path, 'list of taxa in html', 'all'); //for original generation of map data - all taxa with EOLid
+    }
     public function get_taxID_nodes_info($txtfile, $purpose, $filter_rank = '', $returnYN = false)
     {
         if (!$txtfile) $txtfile = $this->main_path; //default value
@@ -210,6 +217,13 @@ class DHConnLib
             $FILE = Functions::file_open($this->listOf_taxa[$filter_rank], 'w'); //this file will be used DATA-1818
             fwrite($FILE, implode("\t", array('canonicalName', 'EOLid', 'taxonRank', 'taxonomicStatus')) . "\n");
         }
+        // */
+
+        // /*
+        if($purpose == 'list of taxa in html') {
+            $FILE = Functions::file_open($this->listOf_taxa['html'], 'w');
+        }
+
         // */
 
         $i = 0;
@@ -252,10 +266,8 @@ class DHConnLib
                 [Landmark] => 
             )*/
             // $EOLid = $rec['EOLid']; //old DH version
-            if ($EOLid = @$rec['eolID']) {
-            } //latest DH version: 
-            elseif ($EOLid = @$rec['taxonID']) {
-            } //for any taxon extension
+            if ($EOLid = @$rec['eolID']) {} //latest DH version: 
+            elseif ($EOLid = @$rec['taxonID']) {} //for any taxon extension
             else exit("\nTaxon extension error.\n");
 
             if ($purpose == 'taxa_info_4name_matching') {
@@ -293,7 +305,7 @@ class DHConnLib
                 }
                 
                 // /* ========== generate_synonyms_info
-// SYN-000000207590	EOL-000000462763		Cassia pendula E.Agbayani	Senna pendula	E.Agbayani	variety	not accepted	COL-15	COL:a423c550b4fd0b0feefa2477637935ff	http://www.catalogueoflife.org/annual-checklist/2019/details/species/id/19f057e06cfc7dbd915c90b6bb2e5f70/synonym/a423c550b4fd0b0feefa2477637935ff			
+                // SYN-000000207590	EOL-000000462763		Cassia pendula E.Agbayani	Senna pendula	E.Agbayani	variety	not accepted	COL-15	COL:a423c550b4fd0b0feefa2477637935ff	http://www.catalogueoflife.org/annual-checklist/2019/details/species/id/19f057e06cfc7dbd915c90b6bb2e5f70/synonym/a423c550b4fd0b0feefa2477637935ff			
                 $acceptedNameUsageID = $rec['acceptedNameUsageID'];
                 $taxonRank = $rec['taxonRank'];
                 
@@ -360,6 +372,19 @@ class DHConnLib
                 if (self::rec_is_Arthropoda_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
             } elseif ($purpose == 'list of taxa passeriformes') { //2025 - //for GBIF map data
                 if (self::rec_is_Passeriformes_YN($rec)) $found = self::proceed_save_or_not($rec, $found, $FILE);
+            }
+
+
+            elseif ($purpose == 'list of taxa in html') {
+                if($eol_id = @$rec['eolID']) {
+                    if($rec['taxonomicStatus'] == 'accepted') { $found++;
+                        $url = "https://www.eol.org/pages/$eol_id";
+                        $sciname = $rec['scientificName'];
+                        $html = "<a href='$url'>$sciname ($eol_id)</a><br>";
+                        fwrite($FILE, $html . "\n");
+                        // if($found >= 5) break; //debug only
+                    }
+                }
             }
         } //end foreach()
         if (in_array($purpose, array(

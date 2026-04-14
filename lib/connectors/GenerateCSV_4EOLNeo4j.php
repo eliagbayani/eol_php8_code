@@ -1203,7 +1203,7 @@ class GenerateCSV_4EOLNeo4j
         }
         // ---------- end customize part ----------
         if(in_array($this->param['eol_resource_id'], array('R20', 'R533', 'R512', 'R562'))) $mod = 100000;
-        else                                                                                $mod = 5000;
+        else                                                                                $mod = 50000;
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {

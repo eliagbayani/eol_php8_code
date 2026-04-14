@@ -14,3 +14,22 @@ git push ;
 
 git config --global alias.co checkout
 git config --global alias.ci commit
+
+======================================== Eli's actual experience: START ========================================
+1st line:
+git co new_terms
+git pull
+rake build 
+sudo rake install
+ruby -r eol_terms -e "EolTerms.validate" && head -n4 crib.txt
+
+2nd line:
+ruby -r eol_terms -e "EolTerms.rebuild_ids('resources/uri_ids.yml')" ; head -n6 crib.txt 
+
+3rd line:
+when running "bump patch"
+-> bump command not found
+-> I just ignored it 
+
+*And continued with other lines
+======================================== Eli's actual experience: END ========================================

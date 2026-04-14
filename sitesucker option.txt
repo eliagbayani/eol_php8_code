@@ -1,0 +1,24 @@
+@eliagbayani @JRice @jhammock @KatjaSchulz
+Will document here the SiteSucker option of downloading eol.org as static HTML files (with images).
+
+I will test a couple of pages and will estimate how big the total effort is in terms of download time and size.
+Also another thing is, this means we will open [eol.org](http://eol.org/) and [content.eol.org](http://content.eol.org/) to downloads which are now restricted using CloudFlare.
+Will open first a handful of pages for testing and see how it goes, if feasible/practical.
+
+The desired output listed here won't be certain until tested.
+
+1. all dynamic pages will be converted to static HTML pages
+2. download will include images
+3. will only include certain domains. Can be setup.
+
+- eol.org
+- content.eol.org
+
+4. all external sites will be excluded.
+5. we will use a staging point (attached) where all accepted names (from DH) will point to its respective taxon page. e.g. https://www.eol.org/pages/491995
+6. we can set the number of levels how deep we will go from the staging point.
+
+Known issues:
+
+1. As expected, It will not mimic or download any form submissions
+2. Most Javascript implementations will not be recognized.

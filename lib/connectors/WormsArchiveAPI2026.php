@@ -47,7 +47,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         //mapping from here: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63730&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63730
 
         // Exclusive mapping for WoRMS only
-        $this->native_intro_mapping = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/WoRMS_native_intro_mapping.txt';
+        $this->native_intro_mapping = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/WoRMS_native_intro_mapping.txt'; //latest update: Apr 2026
 
         $this->BsD_URI['length']                = 'http://purl.obolibrary.org/obo/CMO_0000013';
         $this->BsD_URI['total length (tl)']     = 'http://purl.obolibrary.org/obo/CMO_0000013';

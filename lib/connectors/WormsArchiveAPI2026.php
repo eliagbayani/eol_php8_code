@@ -43,7 +43,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         // $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/metastats-csv.tsv';       //old
 
         $this->match2mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/worms_mapping_ver2.csv';  //latest Mar 2026
-        $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/Feb2020/metastats-2.tsv'; //latest Feb 2020
+        $this->value_uri_mapping_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/WoRMS/Feb2020/metastats-2.tsv'; //latest Feb 2020, Apr 2026
         //mapping from here: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=63730&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-63730
 
         // Exclusive mapping for WoRMS only

@@ -240,7 +240,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     {
         require_library('connectors/TraitGeneric');
         $this->func = new TraitGeneric($this->resource_id, $this->archive_builder);
-        $this->func->initialize_terms_remapping(); //DATA-1841 terms remapping
+        $this->func->initialize_terms_remapping(); //DATA-1841 terms remapping -- This is now obsolete. Returns blank array()
         echo "\nFrom local: ".count($this->func->remapped_terms)."\n";
     }
     private function init_text_mappings()
@@ -261,16 +261,16 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     function start()
     {   
         self::initialize();
-        /* un-comment in real operation
+        // /* un-comment in real operation
         require_library('connectors/INBioAPI');
         $func = new INBioAPI();
         $paths = $func->extract_archive_file($this->dwca_file, "meta.xml", array('timeout' => 172800, 'expire_seconds' => true)); //true means it will re-download, will not use cache. Set TRUE when developing
-        print_r($paths); exit;
-        */
-        // /* dev only
-        $paths['archive_path'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_62066/';
-        $paths['temp_dir'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_62066/';
+        print_r($paths); //exit;
         // */
+        /* dev only
+        $paths['archive_path'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_60444/';
+        $paths['temp_dir'] = '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_60444/';
+        */
         $archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
         $harvester = new ContentArchiveReader(NULL, $archive_path);
@@ -304,10 +304,10 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->archive_builder->finalize(TRUE);
 
         // remove temp dir
-        /*
+        // /* part of main operation | uncomment in real operation
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
-        */
+        // */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
     }
     private function process_extension($meta, $what)

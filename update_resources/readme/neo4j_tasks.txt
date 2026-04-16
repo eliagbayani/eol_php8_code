@@ -1274,7 +1274,9 @@ bin/neo4j-admin database import full neo4j
   --relationships=import/roles2.csv
 
 =========================================================================== Provide indexes and constraints during import
-You can use the --schema option to create and populate indexes/constraints during the import process. It works for the block format and both full and incremental import. For incremental import, this functionality is available from 2025.02.
+You can use the --schema option to create and populate indexes/constraints during the import process. 
+It works for the block format and both full and incremental import. 
+For incremental import, this functionality is available from 2025.02.
 You should have a Cypher script containing only CREATE INDEX|CONSTRAINT commands to be parsed and executed. This file uses ';' as the separator.
 For example:
 CREATE INDEX PersonNameIndex FOR (i:Person) ON (i.name);

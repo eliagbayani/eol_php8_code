@@ -82,7 +82,7 @@ $func = new ZenodoAPI();
 
 // $func->list_zenodo_resources();                        //defaults to textmined and traits combined
 $func->list_zenodo_resources("+keywords:textmining");  //textmined resources only
-// $func->list_zenodo_resources("+keywords:traits");      //traits resources
+$func->list_zenodo_resources("+keywords:traits");      //traits resources
 exit("\n-- end: list_zenodo_resources --\n");
 // */
 

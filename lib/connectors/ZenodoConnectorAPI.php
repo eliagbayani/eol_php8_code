@@ -85,9 +85,9 @@ class ZenodoConnectorAPI extends ZenodoFunctions
         $filename = $this->path['zenodo_resources']."/$filename.tsv";
         echo "\n[$filename]\n";
         $WRITE = Functions::file_open($filename, 'w');
-        fwrite($WRITE, implode("\t", array('Zenodo_ID', 'Title'))."\n");
 
         if($objs = $this->get_depositions_by_part_title($q)) { //print_r($objs[0]); exit;
+            fwrite($WRITE, implode("\t", array('Zenodo_ID', 'Title | n='.count($objs)))."\n");
             $i = 0; $total = count($objs); echo "\nTotal recs to process: [$total]\n"; //exit("\nStop muna\n");
             foreach($objs as $o) { $i++;
                 echo "\n-----$i of $total. [".$o['id']."] ".$o['metadata']['title']."\n";

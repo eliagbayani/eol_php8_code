@@ -930,7 +930,7 @@ class ZenodoAPI extends ZenodoConnectorAPI
             foreach($obj as $o) { $i++;
                 $id = $o['id'];
                 $result_title = $o['metadata']['title'];
-                $publication_date = $o['metadata']['publication_date'];
+                $publication_date = @$o['metadata']['publication_date'];
                 echo "\n- [$page_num] $i. [$id] [$result_title] [$publication_date]...";
                 $final[] = $o;
             }

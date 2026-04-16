@@ -67,11 +67,12 @@ class ZenodoConnectorAPI extends ZenodoFunctions
         } //end if($objs)
         exit("\n-end rename_anne_thessen_to_2017-\n");
     }*/
-    function list_all_trait_resources()
+    function list_zenodo_resources($query = false)
     {
         // /*
         $objs = true;
-        $q = "+keywords:textmining"; //n=
+        $q = "+keywords:textmining,traits"; //n=397 as of Apr 16, 2026
+        if($query) $q = $query;
         if($objs = $this->get_depositions_by_part_title($q)) { //print_r($objs[0]); //exit;
             $i = 0; $total = count($objs); echo "\nTotal recs to process: [$total]\n"; //exit("\nStop muna\n");
             foreach($objs as $o) { $i++;
@@ -82,7 +83,6 @@ class ZenodoConnectorAPI extends ZenodoFunctions
             }
         } //end if($objs)    
         // */
-
     }
     function generate_stats_for_views_downloads()
     {   

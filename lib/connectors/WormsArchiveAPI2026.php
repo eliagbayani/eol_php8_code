@@ -204,6 +204,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->schema_uri['locality']   = 'http://rs.tdwg.org/dwc/terms/locality';
         $this->schema_uri['sex']        = 'http://rs.tdwg.org/dwc/terms/sex';
         $this->schema_uri['lifeStage']  = 'http://rs.tdwg.org/dwc/terms/lifeStage';
+        $this->expires_in_1day = 60*60*24; //0; //60*60*24 orig
     }
     private function init_contributor_info()
     {
@@ -671,19 +672,19 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         */
         $mappings = self::get_EoL_terms(); //first layer of [label => uri] values
 
-        $uris = Functions::additional_mappings($mappings, 60*60*24); //add more mappings used in the past. 2nd param is expire_seconds. 0 means expires now
+        $uris = Functions::additional_mappings($mappings, $this->expires_in_1day); //add more mappings used in the past. 2nd param is expire_seconds. 0 means expires now
         echo "\nURIs total A: ".count($uris)."\n";
         
         // /* exclusive mapping for WoRMS only
         $url = $this->native_intro_mapping;
-        $uris = Functions::additional_mappings($uris, 60*60*24, $url); //add a single mapping. 2nd param is expire_seconds
+        $uris = Functions::additional_mappings($uris, $this->expires_in_1day, $url); //add a single mapping. 2nd param is expire_seconds
         // */
         echo "\nURIs total B: ".count($uris)."\n"; //print_r($uris);
         return $uris;
     }
     private function tsv2array($url)
     {   $options = $this->download_options;
-        $options['expire_seconds'] = 60*60*1; //1 hour expires
+        $options['expire_seconds'] = $this->expires_in_1day;
         $local = Functions::save_remote_file_to_local($url, $options);
         $i = 0;
         foreach(new FileIterator($local) as $line_number => $line) {
@@ -693,7 +694,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 if(!$line[0]) break;
                 $rec = array(); $k = 0;
                 foreach($fields as $fld) {
-                    $rec[$fld] = $line[$k]; $k++;
+                    $rec[$fld] = @$line[$k]; $k++; //place @ bec. intentionally that some rows have only 1 column, means no value.
                 }
                 $rec = array_map('trim', $rec);
                 // print_r($rec); exit;
@@ -717,7 +718,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     }
     private function csv2array($url, $type)
     {   $options = $this->download_options;
-        $options['expire_seconds'] = 60*60*24; //1 day expires
+        $options['expire_seconds'] = $this->expires_in_1day; //1 day expires
         $local = Functions::save_remote_file_to_local($url, $options);
         $file = fopen($local, 'r');
         $i = 0;

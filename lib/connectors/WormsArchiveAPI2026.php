@@ -728,7 +728,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             else {
                 $rec = array(); $k = 0;
                 foreach($fields as $fld) {
-                    $rec[$fld] = $line[$k]; $k++;
+                    $rec[$fld] = @$line[$k]; $k++; //placed @ since some rows don't have a uniform number of tabs.
                 }
                 // print_r($rec); exit("\nstopx\n");
                 /*Array( type = 'match2map'

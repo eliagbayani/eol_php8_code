@@ -77,18 +77,17 @@ class ZenodoConnectorAPI extends ZenodoFunctions
     }
     function list_zenodo_resources($query = false)
     {
-        // /*
         $objs = true;
         $q = "+keywords:textmining,traits"; //n=397 as of Apr 16, 2026
         if($query) $q = $query;
         
         $filename = self::format_query_filename($q);
         $filename = $this->path['zenodo_resources']."/$filename.tsv";
-        echo "\n[$filename]\n"; //exit;        
-
+        echo "\n[$filename]\n";
         $WRITE = Functions::file_open($filename, 'w');
+        fwrite($WRITE, implode("\t", array('Zenodo_ID', 'Title'))."\n");
 
-        if($objs = $this->get_depositions_by_part_title($q)) { //print_r($objs[0]); //exit;
+        if($objs = $this->get_depositions_by_part_title($q)) { //print_r($objs[0]); exit;
             $i = 0; $total = count($objs); echo "\nTotal recs to process: [$total]\n"; //exit("\nStop muna\n");
             foreach($objs as $o) { $i++;
                 echo "\n-----$i of $total. [".$o['id']."] ".$o['metadata']['title']."\n";
@@ -103,7 +102,6 @@ class ZenodoConnectorAPI extends ZenodoFunctions
             }
         } //end if($objs)    
         fclose($WRITE);        
-        // */
     }
     function generate_stats_for_views_downloads()
     {   

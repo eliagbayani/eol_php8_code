@@ -915,7 +915,7 @@ class ZenodoAPI extends ZenodoConnectorAPI
         $page_num = 0;
         while(true) { $page_num++;
             if($allVersions) $cmd = 'curl -X GET "https://zenodo.org/api/deposit/depositions?access_token='.ZENODO_TOKEN.'&allversions=true&sort=bestmatch&size=25&page='.$page_num.'&q="'.urlencode($q).' -H "Content-Type: application/json"';
-            else             $cmd = 'curl -X GET "https://zenodo.org/api/deposit/depositions?access_token='.ZENODO_TOKEN.'&sort=bestmatch&size=25&page='.$page_num.'&q="'.urlencode($q).' -H "Content-Type: application/json"';
+            else             $cmd = 'curl -X GET "https://zenodo.org/api/deposit/depositions?access_token='.ZENODO_TOKEN.'&sort=mostrecent&size=25&page='.$page_num.'&q="'.urlencode($q).' -H "Content-Type: application/json"';
 
             $json = shell_exec($cmd);               //echo "\n--------------------\n$json\n--------------------\n";
             $obj = json_decode(trim($json), true);  //echo "\n=====by title=====\n"; print_r($obj); echo "\n=====by title=====\n"; exit;

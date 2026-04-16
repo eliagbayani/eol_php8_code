@@ -140,6 +140,10 @@ class ZenodoAPI extends ZenodoConnectorAPI
         $this->github_EOL_resource_id_and_Zenodo_id_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/Zenodo/EOL_resource_id_and_Zenodo_id_file.tsv';
         $this->api['record'] = 'https://zenodo.org/api/records/'; //e.g. https://zenodo.org/api/records/13322979
         $this->api['versions'] = "https://zenodo.org/api/records/ZENODO_ID/versions?page=PAGE_NUM&size=25&sort=version"; //e.g. "https://zenodo.org/api/records/14035881/versions?page=1&size=25&sort=version"
+
+        $tmp = DOC_ROOT . 'applications/content_server/zenodo_resources';
+        if(!is_dir($tmp)) mkdir($tmp);
+        $this->path['zenodo_resources'] = $tmp;
     }
     function start()
     {   self::log_error(array("==================== Log starts here ===================="));

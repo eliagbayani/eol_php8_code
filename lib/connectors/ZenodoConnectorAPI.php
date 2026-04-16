@@ -67,21 +67,42 @@ class ZenodoConnectorAPI extends ZenodoFunctions
         } //end if($objs)
         exit("\n-end rename_anne_thessen_to_2017-\n");
     }*/
+    private function format_query_filename($str) //e.g. +keywords:textmining,traits
+    {
+        $filename = str_replace(":", "_", $str);
+        $filename = str_replace(",", "_", $filename);
+        $filename = str_replace("+", "", $filename);
+        echo "\n[$filename]\n";
+        return trim($filename);
+    }
     function list_zenodo_resources($query = false)
     {
         // /*
         $objs = true;
         $q = "+keywords:textmining,traits"; //n=397 as of Apr 16, 2026
         if($query) $q = $query;
+        
+        $filename = self::format_query_filename($q);
+        $filename = $this->path['zenodo_resources']."/$filename.tsv";
+        echo "\n[$filename]\n"; //exit;        
+
+        $WRITE = Functions::file_open($filename, 'w');
+
         if($objs = $this->get_depositions_by_part_title($q)) { //print_r($objs[0]); //exit;
             $i = 0; $total = count($objs); echo "\nTotal recs to process: [$total]\n"; //exit("\nStop muna\n");
             foreach($objs as $o) { $i++;
                 echo "\n-----$i of $total. [".$o['id']."] ".$o['metadata']['title']."\n";
+                $arr = array();
+                $arr[] = $o['id'];
+                $arr[] = $o['metadata']['title'];
+                fwrite($WRITE, implode("\t", $arr)."\n");
+
                 // if($zenodo_id = $o['id']) $this->process_stats($zenodo_id);
                 // break; //debug only, run 1 only
                 // if($i >= 5) break; //debug only
             }
         } //end if($objs)    
+        fclose($WRITE);        
         // */
     }
     function generate_stats_for_views_downloads()

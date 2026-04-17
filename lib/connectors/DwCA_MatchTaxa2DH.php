@@ -50,6 +50,10 @@ class DwCA_MatchTaxa2DH
         $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/".$this->resource_id."_logs";
         if(is_dir($this->stats_path)) recursive_rmdir($this->stats_path);
         mkdir($this->stats_path);
+        /*
+        $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
+        preg_match($pattern, $subject, $matches);
+        */
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)

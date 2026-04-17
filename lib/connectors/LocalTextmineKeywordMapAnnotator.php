@@ -7,6 +7,7 @@ This reads a local TSV file generated from the orig Google Spreadsheet.
 task: trait annotation
 Worksheets related:
 - TraitAnnotator
+- UpdateLocalTextminingStrings
 */
 class LocalTextmineKeywordMapAnnotator
 {

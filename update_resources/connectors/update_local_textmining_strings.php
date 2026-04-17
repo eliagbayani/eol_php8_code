@@ -6,6 +6,7 @@ Related workspaces:
 - Environments_2_EOL_8
 - WikipediaInferredTrait
 - ReviseKeyWordMap
+- UpdateLocalTextminingStrings
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

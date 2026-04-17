@@ -6,7 +6,7 @@ use \AllowDynamicProperties; //for PHP 8.2
 class DwCA_MatchTaxa2DH
 {
     function __construct($archive_builder, $resource_id, $archive_path)
-    {
+    {   exit("\nERROR: OBSOLETE v3\n");
         $this->resource_id = $resource_id;
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;

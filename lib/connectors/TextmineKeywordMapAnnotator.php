@@ -33,9 +33,7 @@ class TextmineKeywordMapAnnotator
         $this->local_textmine_strings = $func->local_textmine_strings;
         echo("\nlocal_textmine_strings: [$this->local_textmine_strings]\n");
         /* local_textmine_strings: [/var/www/html/eol_php8_code/update_resources/connectors/files/Textmining_Strings_-_mapped_strings.tsv] */
-        // $this->new_file = str_replace("strings.tsv", "strings_new.tsv", $this->local_textmine_strings); //didn't have a temp file anymore
         $this->new_file = $this->local_textmine_strings;
-
     }
     function refresh_local_textmining_strings()
     {

@@ -28,5 +28,6 @@ neo4j-admin database import full DB.EOL --overwrite-destination \
 --relationships=import2/combined_CSVs/edges/PARENT_TERM.csv \
 --relationships=import2/combined_CSVs/edges/SYNONYM_OF.csv \
 --relationships=import2/combined_CSVs/edges/SUPPLIER.csv \
+--schema=import2/schema.cypher \
 --multiline-fields=true
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.EOL;"

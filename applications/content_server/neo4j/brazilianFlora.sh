@@ -28,5 +28,6 @@ neo4j-admin database import full DB.BrazilianFlora --overwrite-destination \
 --relationships=import2/Brazilian_Flora_TraitBank_1_0_csv/edges/PARENT_TERM.csv \
 --relationships=import2/Brazilian_Flora_TraitBank_1_0_csv/edges/SYNONYM_OF.csv \
 --relationships=import2/Brazilian_Flora_TraitBank_1_0_csv/edges/SUPPLIER.csv \
+--schema=import2/schema.cypher \
 --multiline-fields=true
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.BrazilianFlora;"

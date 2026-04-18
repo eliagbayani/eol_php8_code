@@ -2455,11 +2455,12 @@ class Functions
         if(!$file_path) return;
         foreach (glob($file_path . "*." . $file_extension) as $filename) return pathinfo($filename, PATHINFO_BASENAME);
     }
-    public static function get_files($folder, $pattern = false)
+    public static function get_files($folder, $pattern = false, $flags = false)
     {
         if($pattern) $path = $folder . '/'.$pattern;
         else         $path = $folder . '/*';
-        $files = glob($path);
+        if($flags) $files = glob($path, $flags); //e.g. GLOB_BRACE
+        else       $files = glob($path);
         return $files;
     }
     public static function get_folders($path, $pattern = false)

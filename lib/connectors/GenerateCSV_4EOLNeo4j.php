@@ -1759,20 +1759,10 @@ class GenerateCSV_4EOLNeo4j
         $temp_dir = $path.'/edges'; mkdir($temp_dir);
     }
     private function move_bash_files($path) //Move bash files to CSV folders for import step
-    {   /*
-        $destination = $path.'/globi.sh';
-        // if(!is_file($destination)) {
-            $source = DOC_ROOT.'/applications/content_server/neo4j/globi.sh';
-            copy($source, $destination); //always overwrite destination
-        // }
-        $destination = $path.'/worms.sh';
-        // if(!is_file($destination)) {
-            $source = DOC_ROOT.'/applications/content_server/neo4j/worms.sh';
-            copy($source, $destination); //always overwrite destination
-        // }
-        */
-
-        $files = Functions::get_files(DOC_ROOT.'/applications/content_server/neo4j', '*.sh'); print_r($files);
+    {
+        $pattern = '*.sh';
+        $pattern = '*.{sh,cypher}'; $flags = GLOB_BRACE;
+        $files = Functions::get_files(DOC_ROOT.'/applications/content_server/neo4j', $pattern, $flags); print_r($files); //exit;
         /*Array(
             [0] => /var/www/html/eol_php8_code//applications/content_server/neo4j/brazilianFlora.sh
             [1] => /var/www/html/eol_php8_code//applications/content_server/neo4j/combined.sh
@@ -1786,6 +1776,7 @@ class GenerateCSV_4EOLNeo4j
             $destination = $path."/$file";
             copy($source, $destination); //always overwrite destination
         }
+        // exit("\nx stop muna\n");
     }
     function format_csv_entry($rec, $fields)
     {

@@ -916,6 +916,7 @@ class DwCA_MatchTaxa2DH
     }
     private function search_hc_string_from_AncestryIndex_old($hc_str) //non-regex
     {   // echo "\nneedle: [$hc_str]\n"; 
+        @$this->debug['call ancestry index']['old index']++;
         foreach($this->ancestry_index_old as $index_hc => $indexes) {            
             if(self::is_ending_in_asterisk($index_hc)) {
                 // /* strict implementation
@@ -926,12 +927,16 @@ class DwCA_MatchTaxa2DH
                     // echo "\n".self::remove_last_char($index_hc);
                     // echo "\n-----------------end\n";
                     // echo("\nactually goes here\n"); 
+                    @$this->debug['call ancestry index']['old index success']++;
                     return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
                 }
                 // */
             }
             else {
-                if($index_hc == $hc_str) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
+                if($index_hc == $hc_str) {
+                    @$this->debug['call ancestry index']['old index success']++;
+                    return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
+                }
             }
         }
         return false;

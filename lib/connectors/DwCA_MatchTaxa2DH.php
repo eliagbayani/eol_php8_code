@@ -43,10 +43,11 @@ class DwCA_MatchTaxa2DH
         $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
         $this->download_options = array('resource_id' => 'neo4j', 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1);
-        $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
-        $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
+        // $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
+        $this->ancestry_index_file_old = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
-
+        $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index_regex.tsv";
+        // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
         $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/".$this->resource_id."_logs";
         if(is_dir($this->stats_path)) recursive_rmdir($this->stats_path);
         mkdir($this->stats_path);
@@ -83,11 +84,21 @@ class DwCA_MatchTaxa2DH
         echo "\nmeta file uri: [$meta->file_uri]\n";
         ---------- */
 
-        $this->ancestry_index = self::retrieve_ancestry_index(); //new from Katja
+        $this->ancestry_index = self::retrieve_ancestry_index($this->ancestry_index_file); //new from Katja
+        //print_r($this->ancestry_index); //exit("\nstop muna\n");
         foreach($this->ancestry_index as $hc => $indexes) { //checking integrity
             if(count($indexes) > 1) { //maybe it doesn't go here at all.
                 print_r($indexes);
-                exit("\n[$hc] Non-unique higherClassification in AncestryIndex.\n");
+                exit("\n[$hc] Non-unique higherClassification in AncestryIndex NEW.\n");
+            }
+        }
+
+        $this->ancestry_index_old = self::retrieve_ancestry_index($this->ancestry_index_file_old); //old from Katja
+        //print_r($this->ancestry_index_old); //exit("\nstop muna\n");
+        foreach($this->ancestry_index_old as $hc => $indexes) { //checking integrity
+            if(count($indexes) > 1) { //maybe it doesn't go here at all.
+                print_r($indexes);
+                exit("\n[$hc] Non-unique higherClassification in AncestryIndex OLD.\n");
             }
         }
 
@@ -889,9 +900,23 @@ class DwCA_MatchTaxa2DH
             exit("\nSo this is possible here. Need to plan again.\n");
         }
     }
-    private function search_hc_string_from_AncestryIndex($hc_str)
-    {   // echo "\nneedle: [$hc_str]\n"; 
+    private function search_hc_string_from_AncestryIndex($hc_str) //the regex implementation
+    {   //echo "\nneedle: [$hc_str]\n"; 
         foreach($this->ancestry_index as $index_hc => $indexes) {            
+            // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/'; //an example
+            $pattern = "/".$index_hc."/";
+            if(preg_match($pattern, $hc_str, $a)) {
+                return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
+            }
+        }
+        // /* 2nd try: using the old index:
+        if($ret = self::search_hc_string_from_AncestryIndex_old($hc_str)) return $ret;
+        // */
+        return false;
+    }
+    private function search_hc_string_from_AncestryIndex_old($hc_str) //non-regex
+    {   // echo "\nneedle: [$hc_str]\n"; 
+        foreach($this->ancestry_index_old as $index_hc => $indexes) {            
             if(self::is_ending_in_asterisk($index_hc)) {
                 // /* strict implementation
                 $len = strlen($index_hc) - 1;
@@ -1133,11 +1158,11 @@ class DwCA_MatchTaxa2DH
         }
         $this->archive_builder->write_object_to_file($o);
     }
-    private function retrieve_ancestry_index()
+    private function retrieve_ancestry_index($file_2use)
     {
         $options = $this->download_options;
-        $options['expire_seconds'] = 60*60*24*1; //60*60*24*1; //orig 1 day
-        if($local = Functions::save_remote_file_to_local($this->ancestry_index_file, $options)) {
+        $options['expire_seconds'] = 0; //60*60*24*1; //60*60*24*1; //orig 1 day
+        if($local = Functions::save_remote_file_to_local($file_2use, $options)) {
             $i = 0;
             foreach(new FileIterator($local) as $line_number => $line) {
                 $line = explode("\t", $line); $i++; 

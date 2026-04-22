@@ -13,9 +13,10 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_MatchTaxa2DH
 {
-    function __construct($archive_builder, $resource_id, $archive_path)
+    function __construct($archive_builder, $resource_id, $archive_path, $AncestryIndexVer = 'none')
     {
         $this->resource_id = $resource_id;
+        $this->AncestryIndexVer = $AncestryIndexVer; //exit("\nAncestryIndexVer: [".$AncestryIndexVer."]\n");
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
@@ -84,18 +85,18 @@ class DwCA_MatchTaxa2DH
         echo "\nmeta file uri: [$meta->file_uri]\n";
         ---------- */
 
-        $this->ancestry_index = self::retrieve_ancestry_index($this->ancestry_index_file); //new from Katja
-        //print_r($this->ancestry_index); //exit("\nstop muna\n");
-        foreach($this->ancestry_index as $hc => $indexes) { //checking integrity
+        $this->ancestry_index_info = self::retrieve_ancestry_index($this->ancestry_index_file); //new from Katja
+        //print_r($this->ancestry_index_info); //exit("\nstop muna\n");
+        foreach($this->ancestry_index_info as $hc => $indexes) { //checking integrity
             if(count($indexes) > 1) { //maybe it doesn't go here at all.
                 print_r($indexes);
                 exit("\n[$hc] Non-unique higherClassification in AncestryIndex NEW.\n");
             }
         }
 
-        $this->ancestry_index_old = self::retrieve_ancestry_index($this->ancestry_index_file_old); //old from Katja
-        //print_r($this->ancestry_index_old); //exit("\nstop muna\n");
-        foreach($this->ancestry_index_old as $hc => $indexes) { //checking integrity
+        $this->ancestry_index_info_old = self::retrieve_ancestry_index($this->ancestry_index_file_old); //old from Katja
+        //print_r($this->ancestry_index_info_old); //exit("\nstop muna\n");
+        foreach($this->ancestry_index_info_old as $hc => $indexes) { //checking integrity
             if(count($indexes) > 1) { //maybe it doesn't go here at all.
                 print_r($indexes);
                 exit("\n[$hc] Non-unique higherClassification in AncestryIndex OLD.\n");
@@ -128,16 +129,16 @@ class DwCA_MatchTaxa2DH
         echo "\n\n -> Synonym_matched_but_no_DH_EOLid: [" . number_format($Synonym_matched_but_no_DH_EOLid) . "]";
         echo "\n -> Failed_synonym_match: [" . number_format($Failed_synonym_match) . "]";
 
-        echo "\n\nD. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
+        echo "\n\nC. Matches made without_OR_lacking ancestry info: [" . number_format($matches_made_without_ancestry_info) . "]";
         $rems = array_keys(@$this->debug['without_OR_lacking'] ?? array());
         $sum = 0; $i = 0;
         foreach($rems as $rem) { $i++;
             $val = count(@$this->debug['without_OR_lacking'][$rem] ?? array());
             $sum += $val;
-            echo "\n -> D$i. [$rem]: ".number_format($val);
+            echo "\n -> C$i. [$rem]: ".number_format($val);
         }
         $diff = $matches_made_without_ancestry_info - $sum;
-        echo "\n -> D = D1 + D2 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\n -> C = C1 + C2 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         /* commented for now
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
@@ -149,7 +150,7 @@ class DwCA_MatchTaxa2DH
         echo "\nsum [".number_format($sum)."] should be equal to [Matches made without_OR_lacking ancestry info]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
         */
 
-        echo "\n\nTotal taxa from taxon.tab: "                   . number_format(@$this->debug['total taxa'] ?? 0);
+        echo "\n\nTotal taxa from taxon.tab: "      . number_format(@$this->debug['total taxa'] ?? 0);
         echo "\nBreakdown:";
         echo "\n -> excluded: invalid taxa: "       . number_format(@$this->debug['excluded: invalid taxa'] ?? 0);
         echo "\n -> excluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
@@ -161,16 +162,24 @@ class DwCA_MatchTaxa2DH
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
         echo "\nTotal = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
-
         echo "\n----------STATS end----------\n";
 
+        // /*
+        $this->debug['total EOL IDs'] = count($this->debug2['total EOLids']);
+        $this->debug['EOL ID assignments'] = $this->debug2['EOLid assignments'];
+        echo "\nAncestryIndexVer: [".$this->AncestryIndexVer."]";
+        echo "\ntotal EOL IDs: [".$this->debug['total EOL IDs']."]";
+        echo "\nEOL ID assignments: [".$this->debug['EOL ID assignments']."]\n";
+        // */
+
+        /*
         echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)";
         echo "\nsyn opt 1: ". @$this->debug['synonym option 1'];
         echo "\nsyn opt 2: ". @$this->debug['synonym option 2'];
         echo "\nsyn OK: ". @$this->debug['synonyms OK'];
-
+        */
         self::print_logs_for_Katja();
-
+        /*
         echo "\nNo canonical match: [" . number_format(count(@$this->debug['No canonical match']) ?? array()) . "]";
         echo "\ncanonical match: genus - subgenus: [" . number_format(@$this->debug['canonical match: genus - subgenus'] ?? 0) . "]";
         echo "\nOK DwCA:                           [" . number_format(@$this->debug['canonical match: genus - subgenus OK'] ?? 0) . "]";
@@ -217,9 +226,10 @@ class DwCA_MatchTaxa2DH
                 + @$this->debug['matched blank eolID'];
         $diff = $total - @$this->debug['Has canonical match'];
         echo "\nTotal 9 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
+        */
 
-        if(@$this->debug['eli']) print_r($this->debug['eli']);
-        // if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
+        if($val = @$this->debug['eli']) print_r($val);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
         unset($this->debug);
     }
     private function process_table($meta, $what)
@@ -902,22 +912,35 @@ class DwCA_MatchTaxa2DH
     }
     private function search_hc_string_from_AncestryIndex($hc_str) //the regex implementation
     {   //echo "\nneedle: [$hc_str]\n"; 
-        foreach($this->ancestry_index as $index_hc => $indexes) {            
-            // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/'; //an example
-            $pattern = "/".$index_hc."/";
-            if(preg_match($pattern, $hc_str, $a)) {
-                return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
+        
+
+        if($this->AncestryIndexVer == 'old') {
+            // /* using the old index:
+            @$this->debug['call ancestry index']['old index']++;
+            if($ret = self::search_hc_string_from_AncestryIndex_old($hc_str)) {
+                @$this->debug['call ancestry index']['old index success']++;
+                return $ret;
             }
+            // */
         }
-        // /* 2nd try: using the old index:
-        if($ret = self::search_hc_string_from_AncestryIndex_old($hc_str)) return $ret;
-        // */
+        elseif($this->AncestryIndexVer == 'new') {
+            // /* the regex implementation
+            foreach($this->ancestry_index_info as $index_hc => $indexes) {            
+                // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
+                $pattern = "/".$index_hc."/";
+                if(preg_match($pattern, $hc_str, $a)) {
+                    return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
+                }
+            }
+            // */
+        }
+        else exit("\nERROR: AncestryIndex version was not set.\n");
+
         return false;
     }
     private function search_hc_string_from_AncestryIndex_old($hc_str) //non-regex
     {   // echo "\nneedle: [$hc_str]\n"; 
-        @$this->debug['call ancestry index']['old index']++;
-        foreach($this->ancestry_index_old as $index_hc => $indexes) {            
+        foreach($this->ancestry_index_info_old as $index_hc => $indexes) {            
             if(self::is_ending_in_asterisk($index_hc)) {
                 // /* strict implementation
                 $len = strlen($index_hc) - 1;
@@ -927,16 +950,12 @@ class DwCA_MatchTaxa2DH
                     // echo "\n".self::remove_last_char($index_hc);
                     // echo "\n-----------------end\n";
                     // echo("\nactually goes here\n"); 
-                    @$this->debug['call ancestry index']['old index success']++;
                     return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
                 }
                 // */
             }
             else {
-                if($index_hc == $hc_str) {
-                    @$this->debug['call ancestry index']['old index success']++;
-                    return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
-                }
+                if($index_hc == $hc_str) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
             }
         }
         return false;
@@ -1155,18 +1174,27 @@ class DwCA_MatchTaxa2DH
     }
     private function write_2archive($rec)
     {
+        // print_r($rec);
+        if($val = @$rec['EOLid']) {
+            $this->debug2['total EOLids'][$val] = '';
+            @$this->debug2['EOLid assignments']++;
+        }
+
         $o = new \eol_schema\Taxon();
         $uris = array_keys($rec);
+        // print_r($uris);
         foreach ($uris as $uri) {
             $field = self::get_field_from_uri($uri);
             $o->$field = $rec[$uri];
+            // echo "[$field] ";
         }
+        // exit("\nstop muna x\n");
         $this->archive_builder->write_object_to_file($o);
     }
     private function retrieve_ancestry_index($file_2use)
     {
         $options = $this->download_options;
-        $options['expire_seconds'] = 0; //60*60*24*1; //60*60*24*1; //orig 1 day
+        $options['expire_seconds'] = 60*60*24*1; //60*60*24*1; //orig 1 day
         if($local = Functions::save_remote_file_to_local($file_2use, $options)) {
             $i = 0;
             foreach(new FileIterator($local) as $line_number => $line) {
@@ -1189,7 +1217,7 @@ class DwCA_MatchTaxa2DH
                 }
             }
         }
-        else exit("\nERROR: File can't be accessed.\n".$this->ancestry_index_file."\nWill terminate.\n");
+        else exit("\nERROR: File can't be accessed.\n".$file_2use."\nWill terminate.\n");
         unlink($local); // exit("\n".count($ret)."\n");
         return $ret;
     }

@@ -32,20 +32,24 @@ $timestart = time_elapsed();
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
-$tmp_id = $param['resource_id'];
-$tmp_id .= "_neo4j_1";
+$AncestryIndexVer = $param['AncestryIndexVer'];
+
+$tmp_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1"
+// $tmp_id .= "_neo4j_1"; //OBSOLETE line, "_neo4j_1" is now included in the resource_id passed.
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$tmp_id.'.tar.gz';
 $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz"; //during dev only
 
-$resource_id .= "_neo4j_2"; //the DwCA with the new column eolID from DH
+// $resource_id .= "_neo4j_2"; //the DwCA with the new column eolID from DH --- OBSOLETE
+$resource_id .= "_eolID"; //the DwCA with the new column eolID from DH
 
-process_resource_url($dwca_file, $resource_id, $timestart);
+process_resource_url($dwca_file, $resource_id, $AncestryIndexVer, $timestart);
 
-function process_resource_url($dwca_file, $resource_id, $timestart)
+function process_resource_url($dwca_file, $resource_id, $AncestryIndexVer, $timestart)
 {
     require_library('connectors/DwCA_Utility');
     $params['resource'] = "match_taxa_2DH";
+    $params['AncestryIndexVer'] = $AncestryIndexVer;
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
     $preferred_rowtypes = array("http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 

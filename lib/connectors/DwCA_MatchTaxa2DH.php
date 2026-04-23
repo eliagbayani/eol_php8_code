@@ -912,10 +912,14 @@ class DwCA_MatchTaxa2DH
             exit("\nSo this is possible here. Need to plan again.\n");
         }
     }
+    private function add_pipe_2str($str)
+    {
+        $str = trim($str);
+        if(substr($str,0,1) != "|") return "|".$str;
+        return $str;
+    }
     private function search_hc_string_from_AncestryIndex($hc_str) //the regex implementation
-    {   //echo "\nneedle: [$hc_str]\n"; 
-        
-
+    { 
         if($this->AncestryIndexVer == 'old') {
             // /* using the old index:
             @$this->debug['call ancestry index']['old index']++;
@@ -927,11 +931,13 @@ class DwCA_MatchTaxa2DH
             // */
         }
         elseif($this->AncestryIndexVer == 'new') {
+            $pipe_hc_str = self::add_pipe_2str($hc_str);
+            // echo "\nneedle: [$hc_str]";
             // /* the regex implementation
             foreach($this->ancestry_index_info as $index_hc => $indexes) {            
                 // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
                 $pattern = "/".$index_hc."/";
-                if(preg_match($pattern, $hc_str, $a)) {
+                if(preg_match($pattern, $pipe_hc_str, $a)) {
                     $this->debug3['new index'][$hc_str] = '';
                     return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
                 }

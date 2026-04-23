@@ -28,7 +28,13 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 ini_set('memory_limit','9096M'); //8096M orig
 $timestart = time_elapsed();
 
-/* file() converts rows into an array
+
+// $old = array("Eli", "Cha", "Isaiah", "Willie", "Winie", "Wilbel", "Susan");
+// $new = array("Eli", "Cha", "Willie", "Winie", "Susan");
+// $diff = array_diff($old, $new);
+// print_r($diff); exit;
+
+/*
 $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/AntWeb_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -49,6 +55,7 @@ echo "\nnew: [".count($new)."]";
 echo "\ndiff: [".count($diff)."]";
 exit("\n -globi_assoc- \n");
 */
+
 
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here

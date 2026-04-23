@@ -228,6 +228,8 @@ class DwCA_MatchTaxa2DH
         echo "\nTotal 9 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
         */
 
+        if($this->debug3) Functions::start_print_debug($this->debug3, $this->resource_id."_".$this->AncestryIndexVer);
+
         if($val = @$this->debug['eli']) print_r($val);
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
         unset($this->debug);
@@ -919,6 +921,7 @@ class DwCA_MatchTaxa2DH
             @$this->debug['call ancestry index']['old index']++;
             if($ret = self::search_hc_string_from_AncestryIndex_old($hc_str)) {
                 @$this->debug['call ancestry index']['old index success']++;
+                $this->debug3['old index'][$hc_str] = '';
                 return $ret;
             }
             // */
@@ -929,6 +932,7 @@ class DwCA_MatchTaxa2DH
                 // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
                 $pattern = "/".$index_hc."/";
                 if(preg_match($pattern, $hc_str, $a)) {
+                    $this->debug3['new index'][$hc_str] = '';
                     return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
                 }
             }

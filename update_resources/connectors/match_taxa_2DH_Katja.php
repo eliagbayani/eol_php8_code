@@ -34,27 +34,33 @@ $timestart = time_elapsed();
 // $diff = array_diff($old, $new);
 // print_r($diff); exit;
 
-/*
+// /*
 $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
 $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/AntWeb_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/AntWeb_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
 $diff = array_diff($old, $new);
 sort($diff);
 print_r($diff); 
 echo "\nold: [".count($old)."]";
 echo "\nnew: [".count($new)."]";
 echo "\ndiff: [".count($diff)."]";
-exit("\n -globi_assoc- \n");
-*/
+exit("\n -TreatmentBank- \n");
+// */
 
 
 // print_r($argv);

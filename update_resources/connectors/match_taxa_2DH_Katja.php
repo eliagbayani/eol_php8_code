@@ -35,23 +35,30 @@ $timestart = time_elapsed();
 // print_r($diff); exit;
 
 // /*
-$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/TreatmentBank_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/AntWeb_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/AntWeb_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/AntWeb_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/AntWeb_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 // $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 // $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_old_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $att = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new_attempts_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); //attempts
 
-// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_old_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$att = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new_attempts_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); //attempts
 
 // $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 // $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+$old = array_map('trim', $old);
+$new = array_map('trim', $new);
+$att = array_map('trim', $att);
 
 $diff = array_diff($old, $new);
 sort($diff);
@@ -59,7 +66,15 @@ print_r($diff);
 echo "\nold: [".count($old)."]";
 echo "\nnew: [".count($new)."]";
 echo "\ndiff: [".count($diff)."]";
-exit("\n -TreatmentBank- \n");
+
+echo "\nattempts: [".count($att)."]";
+$intersect = array_intersect($att, $diff);
+sort($intersect);
+print_r($intersect); 
+echo "\nintersect: [".count($intersect)."]";
+
+
+exit("\n -Wikipedia- \n");
 // */
 
 

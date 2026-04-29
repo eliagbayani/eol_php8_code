@@ -127,6 +127,9 @@ class DwCA_RunGNParser
                     $field = self::get_field_from_uri($uri);
                     $o->$field = $rec[$uri];
                 }
+                /* good debug: limit the no. of taxa
+                if(in_array($o->scientificName, array('Archaeognatha', 'Coleoptera'))) $this->archive_builder->write_object_to_file($o);
+                */
                 $this->archive_builder->write_object_to_file($o);
             }
             // if($i >= 5) break;

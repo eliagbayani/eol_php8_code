@@ -44,35 +44,45 @@ $timestart = time_elapsed();
 // $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 // $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Brazilian_Flora_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_old_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-// $att = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new_attempts_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); //attempts
+$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_old_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new_v4.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$att = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/WoRMS_new_attempts_v4.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); //attempts
 
 
-$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_old_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-$att = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new_attempts_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); //attempts
+// $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_old_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// $att = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/wikipedia_en_traits_new_attempts_v3.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); //attempts
 
 // $old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_old.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 // $new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/globi_assoc_new.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
+// /* ------------------------
+$old = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Cannot_be_matched_at_all_old.tsv', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$new = file(CONTENT_RESOURCE_LOCAL_PATH.'/for_Katja/Cannot_be_matched_at_all_new_v2.tsv', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+compare_CANNOT_BE_MATCHED_AT_ALL($old, $new); exit("\n-end report-\n");
+// ------------------------ */
+
+
 $old = array_map('trim', $old);
 $new = array_map('trim', $new);
+// /*
 $att = array_map('trim', $att);
-
+// */
 $diff = array_diff($old, $new);
+
 sort($diff);
 print_r($diff); 
 echo "\nold: [".count($old)."]";
 echo "\nnew: [".count($new)."]";
 echo "\ndiff: [".count($diff)."]";
 
+// /*
 echo "\nattempts: [".count($att)."]";
 $intersect = array_intersect($att, $diff);
 sort($intersect);
 print_r($intersect); 
 echo "\nintersect: [".count($intersect)."]";
-
+// */
 
 exit("\n -Wikipedia- \n");
 // */
@@ -111,5 +121,74 @@ function process_resource_url($dwca_file, $resource_id, $AncestryIndexVer, $time
     /* This will be processed in DwCA_MatchTaxa2DH.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
+}
+function compare_CANNOT_BE_MATCHED_AT_ALL($old, $new)
+{
+    // taxonID	furtherInformationURL	referenceID	acceptedNameUsageID	parentNameUsageID	
+    // scientificName	namePublishedIn	
+    // higherClassification	
+    // kingdom	phylum	class	order	family	genus	taxonRank	taxonomicStatus	
+    // taxonRemarks	
+    // canonicalName	EOLid
+    $old2 = array();
+    foreach($old as $row) {
+        $arr = explode("\t", $row); //print_r($arr); //exit;
+        /*Array(
+            [0] => taxonID
+            [1] => furtherInformationURL
+            [2] => referenceID
+            [3] => acceptedNameUsageID
+            [4] => parentNameUsageID
+            [5] => scientificName
+            [6] => namePublishedIn
+            [7] => higherClassification
+            [8] => kingdom
+            [9] => phylum
+            [10] => class
+            [11] => order
+            [12] => family
+            [13] => genus
+            [14] => taxonRank
+            [15] => taxonomicStatus
+            [16] => taxonRemarks
+            [17] => canonicalName
+            [18] => EOLid
+        )*/
+        unset($arr[7]); //print_r($arr); exit;
+        unset($arr[16]); //print_r($arr); exit;
+        $row = implode("\t", $arr);
+        $old2[$row] = '';
+    }
+    unset($old);
+
+    $new2 = array();
+    foreach($new as $row) {
+        $arr = explode("\t", $row); //print_r($arr); exit;
+        $info[$arr[0]] = array('hC' => $arr[7], 'tR' => $arr[16]);
+        unset($arr[7]);
+        unset($arr[16]);
+        $row = implode("\t", $arr);
+        $new2[$row] = '';
+    }
+    unset($new);
+
+    $diff = array();
+    foreach(array_keys($new2) as $n) {
+        if(!isset($old2[$n])) {
+            $arr = explode("\t", $n); //print_r($arr); exit;
+            $taxonID = $arr[0];
+            $n .= "\t".$info[$taxonID]['hC'];
+            $n .= "\t".$info[$taxonID]['tR'];
+            $diff[] = $n;
+            // exit("\n[$n]\n");
+        }
+    }
+
+    sort($diff);
+    echo "\nold: [".count($old2)."]";
+    echo "\nnew: [".count($new2)."]";
+    echo "\ndiff: [".count($diff)."]";
+    print_r($diff); 
+
 }
 ?>

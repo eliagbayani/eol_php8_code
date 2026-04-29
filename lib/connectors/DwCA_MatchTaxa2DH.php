@@ -43,13 +43,13 @@ class DwCA_MatchTaxa2DH
         $this->g_section = array('section', 'subsection', 'series');
         $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
-        $this->download_options = array('resource_id' => 'neo4j', 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1);
+        $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1);
         // $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
         $this->ancestry_index_file_old = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
         $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index_regex.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
-        $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/".$this->resource_id."_logs";
+        $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/".$this->resource_id."_logs_".$this->AncestryIndexVer;
         if(is_dir($this->stats_path)) recursive_rmdir($this->stats_path);
         mkdir($this->stats_path);
         /*
@@ -162,15 +162,15 @@ class DwCA_MatchTaxa2DH
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
         echo "\nTotal = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
-        echo "\n----------STATS end----------\n";
 
         // /*
         $this->debug['total EOL IDs'] = count($this->debug2['total EOLids']);
         $this->debug['EOL ID assignments'] = $this->debug2['EOLid assignments'];
-        echo "\nAncestryIndexVer: [".$this->AncestryIndexVer."]";
-        echo "\ntotal EOL IDs: [".$this->debug['total EOL IDs']."]";
-        echo "\nEOL ID assignments: [".$this->debug['EOL ID assignments']."]\n";
+        echo "\n\nAncestryIndexVer: [".$this->AncestryIndexVer."]";
+        echo "\ntotal EOL IDs (unique): [".$this->debug['total EOL IDs']."]";
+        echo "\nEOL ID assignments (multiple taxa can be assigned with same EOLid): [".$this->debug['EOL ID assignments']."]\n";
         // */
+        echo "\n----------STATS end----------\n";
 
         /*
         echo "\n*With EOLid but not matched: [" . number_format($With_EOLid_but_not_matched) . "] (a subset of B2)";
@@ -229,9 +229,10 @@ class DwCA_MatchTaxa2DH
         */
 
         if($this->debug3) Functions::start_print_debug($this->debug3, $this->resource_id."_".$this->AncestryIndexVer);
+        if(@$this->debug4) Functions::start_print_debug($this->debug4, $this->resource_id."_".$this->AncestryIndexVer."_attempts");
 
         if($val = @$this->debug['eli']) print_r($val);
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
+        // if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
         unset($this->debug);
     }
     private function process_table($meta, $what)
@@ -296,19 +297,23 @@ class DwCA_MatchTaxa2DH
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
-                    $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); exit("\nelix 1\n");
+                    $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); echo("\nelix 1\n");
                                               $rec = $ret[0];
                     $can_proceed_with_AIndex_check = $ret[1];
 
                     if($can_proceed_with_AIndex_check) {
-                        $rec = self::matching_routine_using_HC($rec, $reks); //print_r($rec); exit("\nhuli ka\n");
+                        $rec = self::matching_routine_using_HC($rec, $reks); //print_r($rec); print_r($reks); //exit("\nhuli kax\n");
+                        // if($rec['EOLid']) { print_r($rec); exit("\ndito 1\n"); }
+                        // else exit("\ngoes here 1\n");
                     }
                     else {
                         if($taxonRank) {
                             $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
+                            // if($rec['EOLid']) { print_r($rec); exit("\ndito 2\n"); }
                         }
                         if(!@$rec['EOLid']) {
                             $rec = self::matching_routine_using_HC($rec, $reks);
+                            // if($rec['EOLid']) exit("\ndito 3\n");
                         }
 
                         if(@$rec['EOLid']) {
@@ -318,7 +323,7 @@ class DwCA_MatchTaxa2DH
                         }
                         else {
                             $taxonID = $rec['taxonID'];
-                            $rec = self::append_taxonRemarks($rec, ""); //A4
+                            $rec = self::append_taxonRemarks($rec, "", 'A4'); //A4 //3rd param is just guide
                             $this->debug['Cannot be matched at all'][$taxonID] = $rec; //four
                         }
                     }
@@ -326,6 +331,7 @@ class DwCA_MatchTaxa2DH
                     if($rec['EOLid']) @$this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
                     else {
                         $rec = self::the_synonyms_way($reks, $rec);
+                        // if($rec['EOLid']) exit("\ndito 4\n");
                         if($rec['EOLid']) {
                             $taxonID = $rec['taxonID'];
                             if(@$this->debug['Cannot be matched at all'][$taxonID]) unset($this->debug['Cannot be matched at all'][$taxonID]);
@@ -337,6 +343,7 @@ class DwCA_MatchTaxa2DH
 
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;
+                // print_r($rec); exit("\ncha 1\n");
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
             }
             //========================================================================================================= 
@@ -466,7 +473,7 @@ class DwCA_MatchTaxa2DH
         if($hc_from_ancestry) $hCs[] = $hc_from_ancestry;
 
         foreach($hCs as $hc) {
-            if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc)) {
+            if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc, 'E1')) { //2nd param is guide
                 // print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
                 /*Array(
                     [IndexGroup] => Angiosperms
@@ -482,20 +489,25 @@ class DwCA_MatchTaxa2DH
         // $rec['taxonRemarks'] = "Cannot be assigned an index group."; //not needed, will be overwritten
         return $rec;
     }
-    private function given_hc_get_Ancestry_Group_and_Index($hc)
+    private function given_hc_get_Ancestry_Group_and_Index($hc, $guide)
     {
+        // echo("\nneedle: [$hc][$guide]\n");
         $dwca_hc = explode("|", $hc);
         $dwca_hc = self::normalize_array($dwca_hc);
         $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
         // $found1 = false;
         // $index_hc1 = '';
         if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
+            // @$this->debug3['called from']['given_hc_get_Ancestry_Group_and_Index']++;
+            // @$this->debug3['called from: given_hc_get_Ancestry_Group_and_Index'][$dwca_hc_string] = '';
+
             // $found1 = $ret[0];
             // $index_hc1 = $ret[1]; //stats only
             $ret['SourceHC'] = $dwca_hc_string;
-            // print_r($ret);
+            // print_r($ret); echo("\nmay nakuha\n");
             return $ret;
         }
+        // exit("\nwalang nakuha\n");
         return array();
     }
     private function matching_routine_using_HC($rec, $reks)
@@ -523,7 +535,10 @@ class DwCA_MatchTaxa2DH
         $taxonRank = @$rec['taxonRank']; //at this point, rank is blank if resource doesn't have taxonRank.
         $taxonID = $rec['taxonID'];
 
-        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank, true)) { //4th boolean param is strictYN --- matching_routine_using_HC()
+        if($this->AncestryIndexVer == 'old') $bool = true;
+        if($this->AncestryIndexVer == 'new') $bool = false;
+        if($rek = self::which_rek_to_use($rec, $reks, $taxonRank, $bool)) { //4th boolean param is strictYN --- matching_routine_using_HC()
+            // print_r($rek); echo("\nito na 1\n");
             $rek = self::get_acceptedRek_if_synonym($rek);
             if ($rek['e']) {
 
@@ -540,10 +555,56 @@ class DwCA_MatchTaxa2DH
                 $DH_canonical = $rek['c'];
                 $DH_taxonID = $rek['t'];
                 $assignYN = false;
-                if(substr(@$rek['remarkz'],0,9) == '{"Trait":') $assignYN = true; //meaning with matching IndexGroup
+                if($val = @$rek['remarkz']) {
+                    if(substr($val,0,9) == '{"Trait":') $assignYN = true; //meaning with matching IndexGroup
+                }
                 if ($taxonRank == $DH_rank) $assignYN = true;
                 if (in_array($taxonRank, $this->ok_match_higher_ranks) && in_array($DH_rank, $this->ok_match_higher_ranks)) $assignYN = true;
                 if (in_array($taxonRank, $this->ok_match_subspecific_ranks) && in_array($DH_rank, $this->ok_match_subspecific_ranks)) $assignYN = true;
+
+                // pahabol ni Eli:
+                /*Array( $rec
+                    [taxonID] => 6
+                    [furtherInformationURL] => https://www.marinespecies.org/aphia.php?p=taxdetails&id=6
+                    [referenceID] => WoRMS:citation:6
+                    [acceptedNameUsageID] => 6
+                    [parentNameUsageID] => 1
+                    [scientificName] => Bacteria
+                    [namePublishedIn] => 
+                    [higherClassification] => 
+                    [kingdom] => Bacteria
+                    [phylum] => 
+                    [class] => 
+                    [order] => 
+                    [family] => 
+                    [genus] => 
+                    [taxonRank] => kingdom
+                    [taxonomicStatus] => accepted
+                    [taxonRemarks] => No higherClassification
+                    [canonicalName] => Bacteria
+                    [EOLid] => 
+                )
+                Array( $rek
+                    [r] => domain
+                    [e] => 288
+                    [h] => Life|Cellular Organisms
+                    [c] => Bacteria
+                    [t] => EOL-000000000003
+                    [s] => a
+                )*/
+                if($rec['canonicalName'] == $rek['c'] && $rek['s'] == 'a') {
+
+                    /* to do:
+                    $this->g_kingdom_domain = array('domain', 'kingdom');
+                    $this->g_phylum = array('phylum', 'division', 'subphylum');
+                    $this->g_class = array('class', 'subclass', 'superclass', 'infraclass', 'subterclass');
+                    $this->g_order = array('order', 'suborder', 'superorder', 'infraorder', 'parvorder');
+                    $this->g_family = array('family', 'subfamily', 'superfamily', 'epifamily');
+                    */
+
+                    $assignYN = true;
+
+                }
                 // ----- end block ----- */
                 
                 if($assignYN) {
@@ -552,20 +613,22 @@ class DwCA_MatchTaxa2DH
                 }
                 else { /* at this point no legit match was found */
                     @$this->debug['With EOLid but not matched'][$taxonID] = $rec;
-                    $rec = self::append_taxonRemarks($rec, ""); //A1 failed ancestry match
+                    $rec = self::append_taxonRemarks($rec, "", 'A1'); //A1 failed ancestry match
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
-                    echo "\n-----------meron hits-------------\n"; print_r($rec); print_r($rek);
+                    // echo "\n-----------meron hits-------------\n"; 
+                    // print_r($rec); print_r($rek); echo "\nmanual check\n";
+                    // echo "\n-----------END meron hits-------------\n";
+                    // exit("\nstop muna 2\n");
+
                     $canonicalName = $rec['canonicalName'];
                     // if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) print_r($reks);
-                    echo "\n-----------END meron hits-------------\n";
-                    exit("\nstop muna 2\n");
                 }
             }
             else @$this->debug['DH blank EOLid'][$taxonID] = '';
         }
         else {
-            $rec = self::append_taxonRemarks($rec, ""); //A2 failed ancestry match
+            $rec = self::append_taxonRemarks($rec, "", 'A2'); //A2 failed ancestry match
             @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //two
 
         }
@@ -720,6 +783,7 @@ class DwCA_MatchTaxa2DH
         if($hc = @$rec['higherClassification']) {
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc, 'higherClassification')) {
                 @$this->debug['matched HC on AncestryIndex'][$taxonID] = '';
+                // exit("\nito ba 10\n");
                 return $rek;
             }
         }
@@ -732,10 +796,11 @@ class DwCA_MatchTaxa2DH
             $hc_from_ancestry = implode("|", $hc_from_ancestry)."|"; // print_r($rec); echo "\ndito eli\n";
             if($rek = self::get_rek_from_reks_byKatja($reks, $hc_from_ancestry, 'ancestry')) {
                 @$this->debug['matched ancestry on AncestryIndex'][$taxonID] = '';
+                // exit("\nito ba 11\n");
                 return $rek;
             }
         }
-
+        
         if($strictYN) return false;
 
         /* ============================ working OK but too permissive; by Eli
@@ -762,17 +827,19 @@ class DwCA_MatchTaxa2DH
         // OPTION 3: choose rek from multiple reks --- this is Eli-initiated step
         if($rek = self::choose_rek_from_multiple_reks($reks, $rec)) {
             // $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec; //wrong said Katja
+            // echo("\nito ba 12\n");
             return $rek;
         }
 
         // /* the synonym option
         if($rek = self::synonym_option($reks, $rec)) {
+            // exit("\nito ba 13\n");
             return $rek;
         }
         // */
 
         $taxonID = $rec['taxonID'];
-        $rec = self::append_taxonRemarks($rec, ""); //A3 failed rank match
+        $rec = self::append_taxonRemarks($rec, "", 'A3'); //A3 failed rank match
         $this->debug['Cannot be matched at all'][$taxonID] = $rec; //three
         return false;
     }
@@ -791,10 +858,10 @@ class DwCA_MatchTaxa2DH
             }
         }
     }
-    private function append_taxonRemarks($rec, $add_str)
+    private function append_taxonRemarks($rec, $add_str, $guide)
     {
         $rem = @$rec['taxonRemarks'];
-        if(substr($rem, 0, 8) == 'Trait: [') $add_str = "conflict IndexGroup mapping";
+        if(substr($rem, 0, 8) == 'Trait: [') $add_str = "conflict IndexGroup mapping [$guide]";
         if($add_str) $rec['taxonRemarks'] .= " => $add_str";
 
         /* not fully tested
@@ -858,7 +925,7 @@ class DwCA_MatchTaxa2DH
         $found1 = false; 
         $index_hc1 = ''; 
         $dwca_hc_string = '';
-        if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc)) {
+        if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc, 'E2')) {
                 $found1 = $ret['IndexGroup'];
                 $index_hc1 = $ret['IndexHC']; //stats only
                 $dwca_hc_string = $ret['SourceHC'];
@@ -870,6 +937,7 @@ class DwCA_MatchTaxa2DH
             $found2 = false; 
             $index_hc2 = '';
             if($ret = self::search_hc_string_from_AncestryIndex($DH_hc_string)) {
+                // @$this->debug3['called from']['matching_byKatja']++;
                 $found2 = $ret['IndexGroup'];
                 $index_hc2 = $ret['IndexHC']; //stats only
             }
@@ -919,34 +987,53 @@ class DwCA_MatchTaxa2DH
         return $str;
     }
     private function search_hc_string_from_AncestryIndex($hc_str) //the regex implementation
-    { 
+    {   $hc_str = trim($hc_str);
         if($this->AncestryIndexVer == 'old') {
             // /* using the old index:
             @$this->debug['call ancestry index']['old index']++;
             if($ret = self::search_hc_string_from_AncestryIndex_old($hc_str)) {
                 @$this->debug['call ancestry index']['old index success']++;
-                $this->debug3['old index'][$hc_str] = '';
+                $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
                 return $ret;
             }
             // */
         }
-        elseif($this->AncestryIndexVer == 'new') {
-            $pipe_hc_str = self::add_pipe_2str($hc_str);
-            // echo "\nneedle: [$hc_str]";
-            // /* the regex implementation
-            foreach($this->ancestry_index_info as $index_hc => $indexes) {            
-                // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
-                $pattern = "/".$index_hc."/";
-                if(preg_match($pattern, $pipe_hc_str, $a)) {
-                    $this->debug3['new index'][$hc_str] = '';
-                    return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
-                }
+        elseif($this->AncestryIndexVer == 'new') { //using regex index
+            // /* using the regex index:
+            @$this->debug['call ancestry index']['new index']++;
+            $this->debug4[$this->AncestryIndexVer.' - index ATTEMPTS'][$hc_str] = '';
+            if($ret = self::search_hc_string_from_AncestryIndex_regex($hc_str)) {
+                @$this->debug['call ancestry index']['new index success']++;
+                $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
+                return $ret;
             }
             // */
         }
         else exit("\nERROR: AncestryIndex version was not set.\n");
 
         return false;
+    }
+    private function search_hc_string_from_AncestryIndex_regex($hc_str) //regex
+    {
+        $pipe_hc_str = self::add_pipe_2str($hc_str);
+        // echo "\nneedle: [$hc_str]";
+        // /* the regex implementation
+        foreach($this->ancestry_index_info as $index_hc => $indexes) {            
+            // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
+            $pattern = "/".$index_hc."/";
+            /*
+            if(preg_match($pattern, $pipe_hc_str, $a)) {
+                return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
+            }
+            */
+            $result = preg_match($pattern, $pipe_hc_str, $a);
+            if($result === 1) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
+            if($result === false) {
+                exit("\nERROR: invalid regex syntax\n");
+            }
+        }
+        return false;
+        // */
     }
     private function search_hc_string_from_AncestryIndex_old($hc_str) //non-regex
     {   // echo "\nneedle: [$hc_str]\n"; 
@@ -1105,11 +1192,13 @@ class DwCA_MatchTaxa2DH
         $taxonRank = @$rec['taxonRank'];
 
         // if reks is just 1 record then no choice use it
+        // print_r($reks);
         if(count($reks) == 1) {
             foreach($reks as $DH_taxonIDx => $rek) {
                 if($taxonRank == $rek['r'] && $rek['e']) {
                     @$this->debug['matched just 1 record, same rank'][$taxonID] = '';
                     // print_r($this->rec); print_r($rek); exit("\nCheck 100\n");
+                    // echo("\nito pala 1\n");
                     return $rek;
                 }
             }
@@ -1118,6 +1207,7 @@ class DwCA_MatchTaxa2DH
             if($taxonRank == $rek['r'] && $rek['e']) { //$rek['s'] == 'a' && 
                 @$this->debug['matched same rank and status accepted'][$taxonID] = '';
                 // print_r($this->rec); print_r($rek); exit("\nCheck 200\n");
+                // exit("\nito pala 2\n");
                 return $rek;
             }
         }
@@ -1125,6 +1215,7 @@ class DwCA_MatchTaxa2DH
         if($rek = self::choose_from_matched_group($taxonRank, $reks)) {
             @$this->debug['matched group rank old'][$taxonID] = ''; 
             // print_r($this->rec); print_r($rek); exit("\nCheck 300\n");
+            // exit("\nito pala 3\n");
             return $rek;
         }
 
@@ -1205,6 +1296,7 @@ class DwCA_MatchTaxa2DH
     {
         $options = $this->download_options;
         $options['expire_seconds'] = 60*60*24*1; //60*60*24*1; //orig 1 day
+        // print_r($options); //exit;
         if($local = Functions::save_remote_file_to_local($file_2use, $options)) {
             $i = 0;
             foreach(new FileIterator($local) as $line_number => $line) {

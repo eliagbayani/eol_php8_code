@@ -601,8 +601,11 @@ class DwCA_MatchTaxa2DH
                     $this->g_order = array('order', 'suborder', 'superorder', 'infraorder', 'parvorder');
                     $this->g_family = array('family', 'subfamily', 'superfamily', 'epifamily');
                     */
-
-                    $assignYN = true;
+                        if(in_array($taxonRank, $this->g_kingdom_domain) && in_array($DH_rank, $this->g_kingdom_domain)) $assignYN = true;
+                    elseif(in_array($taxonRank, $this->g_phylum)         && in_array($DH_rank, $this->g_phylum)) $assignYN = true;
+                    elseif(in_array($taxonRank, $this->g_class)          && in_array($DH_rank, $this->g_class)) $assignYN = true;
+                    elseif(in_array($taxonRank, $this->g_order)          && in_array($DH_rank, $this->g_order)) $assignYN = true;
+                    elseif(in_array($taxonRank, $this->g_family)          && in_array($DH_rank, $this->g_family)) $assignYN = true;
 
                 }
                 // ----- end block ----- */
@@ -616,9 +619,11 @@ class DwCA_MatchTaxa2DH
                     $rec = self::append_taxonRemarks($rec, "", 'A1'); //A1 failed ancestry match
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
-                    // echo "\n-----------meron hits-------------\n"; 
-                    // print_r($rec); print_r($rek); echo "\nmanual check\n";
-                    // echo "\n-----------END meron hits-------------\n";
+                    /* Just for further investigation
+                    echo "\n-----------meron hits-------------\n"; 
+                    print_r($rec); print_r($rek); echo "\nmanual check\n";
+                    echo "\n-----------END meron hits-------------\n";
+                    */
                     // exit("\nstop muna 2\n");
 
                     $canonicalName = $rec['canonicalName'];

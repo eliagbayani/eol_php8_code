@@ -631,8 +631,6 @@ class DwCA_MatchTaxa2DH
                         print_r($rec); print_r($rek); echo "\nmanual check\n"; //worth investigating
                         echo "\n-----------END meron hits-------------\n";
                     }
-
-
                     // */
                     // exit("\nstop muna 2\n");
 
@@ -645,7 +643,6 @@ class DwCA_MatchTaxa2DH
         else {
             $rec = self::append_taxonRemarks($rec, "", 'A2'); //A2 failed ancestry match
             @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //two
-
         }
         return $rec;
     }

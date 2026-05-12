@@ -164,11 +164,11 @@ class DwCA_MatchTaxa2DH
         echo "\nTotal = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         // /*
-        $this->debug['total EOL IDs'] = count($this->debug2['total EOLids']);
-        $this->debug['EOL ID assignments'] = $this->debug2['EOLid assignments'];
+        $this->debug['total EOL IDs'] = count(@$this->debug2['total EOLids'] ?? array());
+        $this->debug['EOL ID assignments'] = @$this->debug2['EOLid assignments'];
         echo "\n\nAncestryIndexVer: [".$this->AncestryIndexVer."]";
-        echo "\ntotal EOL IDs (unique): [".$this->debug['total EOL IDs']."]";
-        echo "\nEOL ID assignments (multiple taxa can be assigned with same EOLid): [".$this->debug['EOL ID assignments']."]\n";
+        echo "\ntotal EOL IDs (unique): [".@$this->debug['total EOL IDs']."]";
+        echo "\nEOL ID assignments (multiple taxa can be assigned with same EOLid): [".@$this->debug['EOL ID assignments']."]\n";
         // */
         echo "\n----------STATS end----------\n";
 
@@ -605,7 +605,7 @@ class DwCA_MatchTaxa2DH
                     elseif(in_array($taxonRank, $this->g_phylum)         && in_array($DH_rank, $this->g_phylum)) $assignYN = true;
                     elseif(in_array($taxonRank, $this->g_class)          && in_array($DH_rank, $this->g_class)) $assignYN = true;
                     elseif(in_array($taxonRank, $this->g_order)          && in_array($DH_rank, $this->g_order)) $assignYN = true;
-                    elseif(in_array($taxonRank, $this->g_family)          && in_array($DH_rank, $this->g_family)) $assignYN = true;
+                    elseif(in_array($taxonRank, $this->g_family)         && in_array($DH_rank, $this->g_family)) $assignYN = true;
 
                 }
                 // ----- end block ----- */
@@ -619,11 +619,17 @@ class DwCA_MatchTaxa2DH
                     $rec = self::append_taxonRemarks($rec, "", 'A1'); //A1 failed ancestry match
                     @$this->debug['Cannot be matched at all'][$taxonID] = $rec; //one
 
-                    /* Just for further investigation
-                    echo "\n-----------meron hits-------------\n"; 
-                    print_r($rec); print_r($rek); echo "\nmanual check\n";
-                    echo "\n-----------END meron hits-------------\n";
-                    */
+                    // /* Just for further investigation
+                    if($rec['taxonRank'] == 'species' && $rek['r'] == 'subspecies') {}
+                    elseif($rec['taxonRank'] == 'subspecies' && $rek['r'] == 'species') {}
+                    else {
+                        echo "\n-----------START meron hits-------------\n"; 
+                        print_r($rec); print_r($rek); echo "\nmanual check\n"; //worth investigating
+                        echo "\n-----------END meron hits-------------\n";
+                    }
+
+
+                    // */
                     // exit("\nstop muna 2\n");
 
                     $canonicalName = $rec['canonicalName'];
@@ -851,7 +857,7 @@ class DwCA_MatchTaxa2DH
     private function synonym_option($reks, $rec)
     {
         foreach($reks as $DH_taxonIDx => $rek) {
-            if($rek['s'] == 'n' && $rec['taxonRank'] == $rek['r']) {
+            if($rek['s'] == 'n' && @$rec['taxonRank'] == $rek['r']) {
                 @$this->debug['synonym option 1']++;
                 return $rek;
             }
@@ -972,7 +978,7 @@ class DwCA_MatchTaxa2DH
         if(count($hits) == 1) return $hits[0];
         if(count($hits) > 1) {
 
-            $taxonRank = $this->rec['taxonRank'];
+            $taxonRank = @$this->rec['taxonRank'];
             if($rek = self::choose_from_matched_group($taxonRank, $hits)) {
                 @$this->debug['matched group rank Katja']++; 
                 return $rek;
@@ -980,9 +986,9 @@ class DwCA_MatchTaxa2DH
 
             echo "\n-----------------multiple hits detected--------------------\n[$hc]\n";
             print_r($this->rec);
-            print_r($dwca_hc);
+            print_r($arr);
             print_r($hits);
-            exit("\nSo this is possible here. Need to plan again.\n");
+            echo("\nSo this is possible here. Need to plan again.\nBut will be ignored for now.\n");
         }
     }
     private function add_pipe_2str($str)
@@ -1451,9 +1457,16 @@ class DwCA_MatchTaxa2DH
         }
         echo "\nLogs printed.\n";
     }
+    private function path_to_canonical($taxonID) //an id of this form e.g. 'EOL-000000126301'
+    {   //for reference: $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank);
+        // print_r(); exit("\nstop muna\n");
+        if($arr = @$this->DH->DH[$taxonID]) {
+            return $arr['c']; //returns the canonicalName
+        }
+    }
     private function get_acceptedRek_if_synonym($rek)
     {
-        $taxonID = $rek['t'];
+        $taxonID = $rek['t']; //an id of this form e.g. 'EOL-000000126301'
         if(substr($taxonID,0,3) == 'EOL') return $rek; //not a synonym
         if($rek['s'] == 'a')              return $rek; //accepted name
         if($acceptedNameUsageID = @$this->DH->DH_synonyms[$taxonID]) { //echo "\nsyn ID: [$taxonID] | acceptedNameUsageID: [$acceptedNameUsageID]\n"; //good debug
@@ -1468,7 +1481,10 @@ class DwCA_MatchTaxa2DH
                 if($canonicalName = $accepted_rek['c']) {
                     if($final_rek = $this->DH->DHCanonical_info[$canonicalName][$acceptedNameUsageID]) { // print_r($final_rek); exit("\nfound final rek\n");
                         @$this->debug['synonyms OK']++;
-                        $final_rek['tR'] = "syn ID: [$taxonID] | acceptedNameUsageID: [$acceptedNameUsageID]";
+                        $syn_canonical = self::path_to_canonical($taxonID);
+                        $accepted_canonical = self::path_to_canonical($acceptedNameUsageID);
+                        /* note that $syn_canonical and $canonicalName are equal */
+                        $final_rek['tR'] = "syn ID: [$taxonID][$syn_canonical] | acceptedNameUsageID: [$acceptedNameUsageID][$accepted_canonical]";
                         return $final_rek; //tested OK!
                     }
                     else exit("\nInvestigate: should not go here at least...\n");

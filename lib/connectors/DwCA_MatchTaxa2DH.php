@@ -106,8 +106,8 @@ class DwCA_MatchTaxa2DH
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
-        echo $tbl ?? '';
 
+        echo $tbl ?? '';
         $cannot_be_matched_at_all = count($this->debug['Cannot be matched at all'] ?? array());
         $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments (accepted name)'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
@@ -122,7 +122,7 @@ class DwCA_MatchTaxa2DH
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n -> B = B1 + B2 + B3 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\n -> Total = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         $Synonym_matched_but_no_DH_EOLid = count(@$this->debug['Synonym matched but no DH EOLid'] ?? array());
         $Failed_synonym_match            = count(@$this->debug['Failed synonym match'] ?? array());
@@ -138,7 +138,7 @@ class DwCA_MatchTaxa2DH
             echo "\n -> C$i. [$rem]: ".number_format($val);
         }
         $diff = $matches_made_without_ancestry_info - $sum;
-        echo "\n -> C = C1 + C2 = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\n -> Total = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         /* commented for now
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
@@ -592,7 +592,7 @@ class DwCA_MatchTaxa2DH
                     [t] => EOL-000000000003
                     [s] => a
                 )*/
-                if($rec['canonicalName'] == $rek['c'] && $rek['s'] == 'a') {
+                if($rec['canonicalName'] == $rek['c'] && $rek['c'] && $rek['s'] == 'a') {
 
                     /* to do:
                     $this->g_kingdom_domain = array('domain', 'kingdom');
@@ -606,7 +606,11 @@ class DwCA_MatchTaxa2DH
                     elseif(in_array($taxonRank, $this->g_class)          && in_array($DH_rank, $this->g_class)) $assignYN = true;
                     elseif(in_array($taxonRank, $this->g_order)          && in_array($DH_rank, $this->g_order)) $assignYN = true;
                     elseif(in_array($taxonRank, $this->g_family)         && in_array($DH_rank, $this->g_family)) $assignYN = true;
-
+                    elseif($taxonRank == '' || $DH_rank == '') { //made possible by check_the_2_ranks()                    
+                        $assignYN = true;
+                        if($val = @$rek['remarkz']) $rek['remarkz'] .= " -no rank-";
+                        else                        $rek['remarkz'] = '-no rank-';
+                    }
                 }
                 // ----- end block ----- */
                 
@@ -849,10 +853,62 @@ class DwCA_MatchTaxa2DH
         }
         // */
 
+        // /* Latest matching rule form Katja:
+        if($rek = self::check_the_2_ranks($reks, $rec)) {            
+            return $rek;
+        }
+        // */
+
+        // print_r($rec); print_r($reks); exit("\numabot 100\n");
         $taxonID = $rec['taxonID'];
         $rec = self::append_taxonRemarks($rec, "", 'A3'); //A3 failed rank match
         $this->debug['Cannot be matched at all'][$taxonID] = $rec; //three
         return false;
+    }
+    private function check_the_2_ranks($reks, $rec)
+    {   /* Latest matching rule form Katja: If the rank of one or both of the taxa is blank, we should still allow the match, 
+        but please a note "no rank" in the taxon remarks. If we disallow the matching of taxa without ranks, we are losing too many good matches.
+        From: https://github.com/EOL/ContentImport/issues/33#issuecomment-4399351906
+        That is if canonicalNames are a match. e.g.        
+        Array(
+            [taxonID] => 1831
+            [furtherInformationURL] => https://www.marinespecies.org/aphia.php?p=taxdetails&id=1831
+            [referenceID] => WoRMS:citation:1831
+            [acceptedNameUsageID] => 1831
+            [parentNameUsageID] => 1828
+            [scientificName] => Tetrapoda
+            [namePublishedIn] => 
+            [higherClassification] => Animalia|Chordata|
+            [kingdom] => Animalia
+            [phylum] => Chordata
+            [class] => 
+            [order] => 
+            [family] => 
+            [genus] => 
+            [taxonRank] => megaclass
+            [taxonomicStatus] => accepted
+            [taxonRemarks] => Trait: [IndexGroup:[Animals] - IndexHC:[.*?\|Chordata\|$]
+            [canonicalName] => Tetrapoda
+            [EOLid] => 
+        )
+        Array(
+            [EOL-000000618832] => Array(
+                    [r] => 
+                    [e] => 46557930
+                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Deuterostomia|Chordata|Vertebrata|Gnathostomata|Osteichthyes|Sarcopterygii
+                    [c] => Tetrapoda
+                    [t] => EOL-000000618832
+                    [s] => a
+                )
+        )
+        */
+        foreach($reks as $DH_taxonIDx => $rek) {
+            if(($rek['c'] == $rec['canonicalName'] && $rek['c'])) { //same canonicalName and not blank
+                @$this->debug['same canonicals, one or both ranks blank']++;
+                return $rek;
+            }
+        }
+
     }
     private function synonym_option($reks, $rec)
     {

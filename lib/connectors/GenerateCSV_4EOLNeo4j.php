@@ -1542,8 +1542,10 @@ class GenerateCSV_4EOLNeo4j
                             $tmp_arr = self::get_individual_reference_ids($referenceIDs);
                             $referenceIDs = array_map('trim', $tmp_arr); //print_r($referenceIDs);
                             foreach($referenceIDs as $referenceID) {
-                                // echo "\nreferenceID: [$referenceID]\n"; print_r(@$this->reference_ids[$referenceID]);
-                                if($literal = @$this->reference_ids[$referenceID]['literal']) {
+                                if($val = @$this->reference_ids[$referenceID]) {}
+                                else continue;
+                                // echo "\nreferenceID: [$referenceID]\n"; print_r($val); //good debug
+                                if($literal = @$val['literal']) {
                                     $p = array();
                                     $id = 'Reference-' . md5($rec_json.'meta-rI'.$referenceID); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
 

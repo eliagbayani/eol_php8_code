@@ -120,6 +120,12 @@ class DwCA_RunGNParser
                 $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec);
                 // */
 
+                // /* New May 15,2026: If blank rank and canonical has 2 words, set taxonRank to 'species'
+                if(!$taxonRank) {
+                    $rec = self::guess_taxonRank_from_canonicalName($rec);
+                }
+                // */
+
                 // print_r($rec); exit;
                 $o = new \eol_schema\Taxon();
                 $uris = array_keys($rec); // print_r($uris); //exit;
@@ -134,6 +140,13 @@ class DwCA_RunGNParser
             }
             // if($i >= 5) break;
         }
+    }
+    private function guess_taxonRank_from_canonicalName($rec)
+    {
+        if($canonical = @$rec['http://rs.tdwg.org/dwc/terms/canonicalName']) {
+            if(str_word_count($canonical) == 2) $rec['http://rs.tdwg.org/dwc/terms/taxonRank'] = 'species';
+        }
+        return $rec;
     }
     private function evaluate_name_and_rank($scientificName, $taxonRank, $rec)
     {

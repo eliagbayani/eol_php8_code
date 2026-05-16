@@ -1,4 +1,6 @@
-Zenodo_ID	Title | n=408
+Zenodo_ID	Title | n=411
+20195785	Global Biotic Interactions: GloBI, the associations resource
+20183510	Harvard Museum of Comparative Zoology
 20133495	National Museum of Natural History Type Data: NMNH type specimens
 20059160	Paleobiology Database (PBDB)
 19860191	Winfield, Abarca-Arenas and Chazaro-Olvera, 2007
@@ -17,9 +19,7 @@ Zenodo_ID	Title | n=408
 19081550	GBIF data summaries: GBIF national node type records: Netherlands
 19081476	GBIF data summaries: GBIF national node type records: France
 19081151	GBIF data summaries: GBIF national node type records: Germany
-19027600	Global Biotic Interactions: GloBI, the associations resource
 19027382	Antweb: AntWeb
-19020835	Harvard Museum of Comparative Zoology
 19011682	FishBase
 18945513	USDA PLANTS structured data DwCA
 18673514	WoRMS internal: World Register of Marine Species
@@ -379,6 +379,8 @@ Zenodo_ID	Title | n=408
 13315853	Hone et al, 2013: Pterosaur Data
 13315851	Hone et al, 2013: avian data
 13315833	Sibly et al, 2012
+13315831	Gymnodiniales: Gymnodiniales Traits
+13315823	Bergtold, 1917
 13315817	Hershkovitz Y., V. Dahm, A.W. Lorenz and D. Hering (2015)
 13315739	Milk Chemical Data: Milk Composition of Non-Dairy Animals
 13315733	Tree carbon estimates
@@ -403,6 +405,7 @@ Zenodo_ID	Title | n=408
 13312780	MammalDIET
 13312778	Barton, Pershing et al, 2013
 13312770	US Fish and Wildlife Service Endangered Species Listings
+13312751	Femorale
 13312749	Shelled animal body mass
 13312747	Bivalve body mass: Body mass bivalves
 13312631	CoralReefFish

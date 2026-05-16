@@ -35,5 +35,8 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     /* copied template, not needed here
     Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
     */
+
+    recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working');
+    unlink(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working.tar.gz');
 }
 ?>

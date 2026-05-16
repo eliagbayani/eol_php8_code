@@ -19,13 +19,51 @@ class AnalyzeMoF_API
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI($this->resource_id, $this->archive_builder);
-        $values = $func->get_terms_yml('value'); //sought_type is 'value' --- REMINDER: labels can have the same value but different uri
-        $measurements = $func->get_terms_yml('measurement');
-
-        foreach($values as $key => $val) $this->eol_term_values[$val] = '';                //list of URI values
-        foreach($measurements as $key => $val) $this->eol_term_measurements[$val] = '';    //list of URI measurements
-
+        $arr = $func->convert_EOL_Terms_2array(); //print_r($arr);
+        foreach($arr['terms'] as $r) {
+            if($r['type'] == 'value') {
+                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_values[trim($r['uri'])] = '';       //list of URI values
+            }
+            elseif($r['type'] == 'measurement') {
+                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_measurements[trim($r['uri'])] = ''; //list of URI measurements
+            }
+        }
         // print_r($this->eol_term_values); print_r($this->eol_term_measurements); exit;
+        /*
+        [2239] => Array(
+                [attribution] => International Chronostratigraphic Chart: http://www.stratigraphy.org/index.php/ics-chart-timescale
+                [definition] => 
+                [is_hidden_from_select] => 
+                [is_hidden_from_overview] => 
+                [is_hidden_from_glossary] => 
+                [is_text_only] => 
+                [name] => gzhelian age
+                [type] => value
+                [uri] => http://resource.geosciml.org/classifier/ics/ischart/Gzhelian
+                [parent_uris] => Array(
+                        [0] => http://resource.geosciml.org/classifier/ics/ischart/Pennsylvanian
+                    )
+                [synonym_of_uri] => 
+                [units_term_uri] => 
+                [alias] => 
+            )
+        [2240] => Array(
+                [attribution] => 
+                [definition] => x has habitat y if: x is an organism, y is a habitat, and y can sustain and allow the growth of a population of x
+                [is_hidden_from_select] => 
+                [is_hidden_from_overview] => 
+                [is_hidden_from_glossary] => 
+                [is_text_only] => 
+                [name] => habitat
+                [type] => measurement
+                [uri] => http://purl.obolibrary.org/obo/RO_0002303
+                [parent_uris] => Array(
+                    )
+                [synonym_of_uri] => 
+                [units_term_uri] => 
+                [alias] => habitat
+            )
+        */        
     }
     function start($info)
     {   

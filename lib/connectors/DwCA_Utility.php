@@ -175,6 +175,7 @@ class DwCA_Utility
 
             if(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") break; //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "neo4j_prep") break;                            //all extensions will be processed elsewhere.
+            if(@$this->params['resource'] == "analyze_MoF") break;                           //all extensions will be processed elsewhere.
 
             /* during dev only; comment in real operation ... Remember this
             if(@$this->params['resource'] == "add_canonical_Katja") break;    //all extensions will be processed elsewhere.
@@ -599,6 +600,12 @@ class DwCA_Utility
             $func->start($info);
         }
         // -------------------- */
+        if(@$this->params['resource'] == "analyze_MoF") {
+            require_library('connectors/AnalyzeMoF_API');
+            $func = new AnalyzeMoF_API($this->archive_builder, $this->resource_id, $this->archive_path);
+            $func->start($info);
+        }
+
         if(@$this->params['resource'] == "revise_keyword_map") {
             require_library('connectors/DwCA_ReviseKeywordMap');
             $func = new DwCA_ReviseKeywordMap($this->archive_builder, $this->resource_id, $this->archive_path);

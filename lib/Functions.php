@@ -2877,5 +2877,14 @@ class Functions
         }
         return $str;
     }
+    public static function shorten_record($rec)
+    {
+        $new = array();
+        foreach($rec as $key => $val) {
+            $small_field = pathinfo($key, PATHINFO_FILENAME);
+            $new[$small_field] = $val;
+        }
+        return $new;
+    }
 }
 ?>

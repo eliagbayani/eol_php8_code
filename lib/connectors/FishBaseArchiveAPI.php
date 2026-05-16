@@ -7,7 +7,9 @@ They then zip these files and host it in their server.
 The connector in this page then reads this zip file, extracts, assembles the information and generate the EOL DWCA.
 FishBase contacts are: Skit Barile <j.barile@fin.ph> and Emily Capuli <e.capuli@fin.ph>
 */
-
+/* Replaced from => to (as of May 16, 2026) 
+http://eol.org/schema/terms/Habitat => http://purl.obolibrary.org/obo/RO_0002303
+*/
 /* Replacement for utf8_encode() utf8_decode()
 https://php.watch/versions/8.2/utf8_encode-utf8_decode-deprecated
 https://github.com/symfony/polyfill-php72/blob/v1.26.0/Php72.php#L24-L38
@@ -300,6 +302,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                 $taxon = new \eol_schema\Taxon();
                 $taxon->taxonID             = md5($s['synonym']);
                 $taxon->scientificName      = self::iso8859_1_to_utf8($s['synonym']);
+                if(!$taxon->scientificName) continue;
                 if($val = @$this->taxa_ids[$taxon_id]) $taxon->acceptedNameUsageID = $val;
                 else continue;
                 if($s['relationship'] == 'valid name') $s['relationship'] = 'synonym';
@@ -551,6 +554,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                             $this->unique_measurements[$var] = '';
                             $rec = self::assign_adult_2_specific_mtypes($item['measurement'], $rec);
                             $ret = $this->func->pre_add_string_types($rec, $item['value'], $item['measurement'], "true"); //1
+                            $this->debug['mtype'][1][$item['measurement']] = '';
                             /* start adding child records - contributor
                             self::add_contributor_child_records($contributor_names, $rec, $ret);
                             */
@@ -673,6 +677,8 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                 $rec["catnum"] .= "-".str_replace(" ","_",$string_val).$rec['taxon_id'];
                 if($string_uri = self::get_string_uri($string_val)) {
                     $ret = $this->func->pre_add_string_types($rec, $string_uri, $mtype, "true"); //3
+                    $this->debug['mtype'][2][$mtype] = '';
+
                     
                     /* start adding child records - contributor
                     self::add_contributor_child_records($contributor_names, $rec, $ret);
@@ -807,6 +813,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
             $taxon = new \eol_schema\Taxon();
             $taxon->taxonID         = $t['dc_identifier'];
             $taxon->scientificName  = self::iso8859_1_to_utf8($t['dwc_ScientificName']);
+            if(!$taxon->scientificName) continue;
             $taxon->kingdom         = $t['dwc_Kingdom'];
             $taxon->phylum          = $t['dwc_Phylum'];
             $taxon->class           = $t['dwc_Class'];
@@ -1014,7 +1021,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                 $two_values = array("catadromous", "anadromous", "diadromous", "amphidromous", "oceano-estuarine");
                 if(!in_array($rec['value'], $two_values)) {
                     $r = array();
-                    if($rec['value'] == "non-migratory")    $r['measurement'] = "http://www.owl-ontologies.com/unnamed.owl#MigratoryStatus";
+                    if($rec['value'] == "non-migratory")    $r['measurement'] = "http://eol.org/schema/terms/migratory"; //"http://www.owl-ontologies.com/unnamed.owl#MigratoryStatus";
                     else                                    $r['measurement'] = $this->uris['habitat'];
                     $measurement = $rec['value'];
                     $r['value'] = @$this->uris[$measurement];

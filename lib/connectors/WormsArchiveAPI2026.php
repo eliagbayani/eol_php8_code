@@ -696,13 +696,16 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
                 foreach($fields as $fld) {
                     $rec[$fld] = @$line[$k]; $k++; //place @ bec. intentionally that some rows have only 1 column, means no value.
                 }
-                $rec = array_map('trim', $rec);
-                // print_r($rec); exit;
-                /*Array(
-                    [measurementValue] => Female
-                    [valueURI] => http://purl.obolibrary.org/obo/PATO_0000383
-                )*/
-                $final[strtolower($rec['measurementValue'])] = $rec['valueURI'];
+                if($rec) {
+                    $rec = array_map('trim', $rec);
+                    // print_r($rec); exit;
+                    /*Array(
+                        [measurementValue] => Female
+                        [valueURI] => http://purl.obolibrary.org/obo/PATO_0000383
+                    )*/
+                    $final[strtolower($rec['measurementValue'])] = $rec['valueURI'];
+                }
+                else echo "\nInvestigate: no rec? [$line][$url]\n";
             }
         }
         unlink($local);

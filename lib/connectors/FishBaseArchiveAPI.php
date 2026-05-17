@@ -157,7 +157,7 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
         $url = 'http://www.fishbase.org/references/FBRefSummary.php?ID=' . $ref_id;
         $options = $this->download_options;
         $options['download_wait_time'] = 1000000;
-        $options['expire_seconds'] = 60*60*24*30; //1 month
+        $options['expire_seconds'] = 60*60*24*30*3; //3 months
         if($html = Functions::lookup_with_cache($url, $options)) {
             if(preg_match("/Citation<\/td>(.*?)<\/td>/ims", $html, $arr)) {
                 $fb_full_ref = self::clean_html(strip_tags($arr[1]));
@@ -274,7 +274,19 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
         echo "\n".count($mappings). " - default URIs from EOL registry.";
         $mappings = Functions::additional_mappings($mappings); //add more mappings used in the past
         $this->uris = array_merge($mappings, $this->uris);
-        // print_r($this->uris); exit;
+        // print_r($this->uris); exit("\nelix\n");
+
+        // /* manual adjustment: replace this entry: [Pacific] => http://marineregions.org/mrgid/36323
+        $this->uris['Pacific'] = 'http://www.geonames.org/4030959'; //from EOL terms file, also from: /Volumes/AKiTiO4/web/textmine_rules/Terms_remapped/DATA_1841_terms_remapped obsolete.tsv
+        // */
+
+        /* Can be replaced in spreadsheet:
+        From: http://purl.obolibrary.org/obo/ENVO_01000321 (not found in EOL terms file) Defined as: An environmental system determined by seawater.
+
+        To: name: saline water environment
+            type: value
+            uri: http://purl.obolibrary.org/obo/ENVO_01000307
+        */
     }
     private function process_taxa_synonyms()
     {
@@ -1021,8 +1033,16 @@ class FishBaseArchiveAPI extends ContributorsMapAPI
                 $two_values = array("catadromous", "anadromous", "diadromous", "amphidromous", "oceano-estuarine");
                 if(!in_array($rec['value'], $two_values)) {
                     $r = array();
-                    if($rec['value'] == "non-migratory")    $r['measurement'] = "http://eol.org/schema/terms/migratory"; //"http://www.owl-ontologies.com/unnamed.owl#MigratoryStatus";
+
+                    /* Obsolete
+                    if($rec['value'] == "non-migratory")    $r['measurement'] = "http://www.owl-ontologies.com/unnamed.owl#MigratoryStatus";
                     else                                    $r['measurement'] = $this->uris['habitat'];
+                    */
+                    // /* New
+                    if($rec['value'] == "non-migratory")    $r['measurement'] = $this->uris['habitat'];
+                    else                                    $r['measurement'] = $this->uris['habitat'];
+                    // */
+
                     $measurement = $rec['value'];
                     $r['value'] = @$this->uris[$measurement];
                     

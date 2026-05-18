@@ -56,6 +56,16 @@ class DwCA_MatchTaxa2DH
         $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
         preg_match($pattern, $subject, $matches);
         */
+
+        $this->run_debug2_YN = true;
+        $this->run_debug3_YN = true;
+        $this->run_debug4_YN = true;
+        if($this->resource_id == 'TreatmentBank_final-with-hC_neo4j_1') {
+            $this->run_debug2_YN = false;
+            $this->run_debug3_YN = false;
+            $this->run_debug4_YN = false;
+        }
+
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -164,11 +174,13 @@ class DwCA_MatchTaxa2DH
         echo "\nTotal = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
 
         // /*
-        $this->debug['total EOL IDs'] = count(@$this->debug2['total EOLids'] ?? array());
-        $this->debug['EOL ID assignments'] = @$this->debug2['EOLid assignments'];
-        echo "\n\nAncestryIndexVer: [".$this->AncestryIndexVer."]";
-        echo "\ntotal EOL IDs (unique): [".@$this->debug['total EOL IDs']."]";
-        echo "\nEOL ID assignments (multiple taxa can be assigned with same EOLid): [".@$this->debug['EOL ID assignments']."]\n";
+        if($this->run_debug2_YN) {
+            $this->debug['total EOL IDs'] = count(@$this->debug2['total EOLids'] ?? array());
+            $this->debug['EOL ID assignments'] = @$this->debug2['EOLid assignments'];
+            echo "\n\nAncestryIndexVer: [".$this->AncestryIndexVer."]";
+            echo "\ntotal EOL IDs (unique): [".@$this->debug['total EOL IDs']."]";
+            echo "\nEOL ID assignments (multiple taxa can be assigned with same EOLid): [".@$this->debug['EOL ID assignments']."]\n";
+        }
         // */
         echo "\n----------STATS end----------\n";
 
@@ -228,8 +240,12 @@ class DwCA_MatchTaxa2DH
         echo "\nTotal 9 matches: [" . number_format($total) . "] -> should be equal to: [Has canonical match] [$diff]\n";
         */
 
-        if($this->debug3) Functions::start_print_debug($this->debug3, $this->resource_id."_".$this->AncestryIndexVer);
-        if(@$this->debug4) Functions::start_print_debug($this->debug4, $this->resource_id."_".$this->AncestryIndexVer."_attempts");
+        if($this->run_debug3_YN) {
+            if($this->debug3) Functions::start_print_debug($this->debug3, $this->resource_id."_".$this->AncestryIndexVer);
+        }
+        if($this->run_debug4_YN) {
+            if(@$this->debug4) Functions::start_print_debug($this->debug4, $this->resource_id."_".$this->AncestryIndexVer."_attempts");
+        }
 
         if($val = @$this->debug['eli']) print_r($val);
         // if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
@@ -498,9 +514,6 @@ class DwCA_MatchTaxa2DH
         // $found1 = false;
         // $index_hc1 = '';
         if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
-            // @$this->debug3['called from']['given_hc_get_Ancestry_Group_and_Index']++;
-            // @$this->debug3['called from: given_hc_get_Ancestry_Group_and_Index'][$dwca_hc_string] = '';
-
             // $found1 = $ret[0];
             // $index_hc1 = $ret[1]; //stats only
             $ret['SourceHC'] = $dwca_hc_string;
@@ -627,9 +640,9 @@ class DwCA_MatchTaxa2DH
                     if($rec['taxonRank'] == 'species' && $rek['r'] == 'subspecies') {}
                     elseif($rec['taxonRank'] == 'subspecies' && $rek['r'] == 'species') {}
                     else {
-                        echo "\n-----------START meron hits-------------\n"; 
-                        print_r($rec); print_r($rek); echo "\nmanual check\n"; //worth investigating
-                        echo "\n-----------END meron hits-------------\n";
+                        // echo "\n-----------START meron hits-------------\n"; 
+                        // print_r($rec); print_r($rek); echo "\nmanual check\n"; //worth investigating
+                        // echo "\n-----------END meron hits-------------\n";
                     }
                     // */
                     // exit("\nstop muna 2\n");
@@ -1001,7 +1014,6 @@ class DwCA_MatchTaxa2DH
             $found2 = false; 
             $index_hc2 = '';
             if($ret = self::search_hc_string_from_AncestryIndex($DH_hc_string)) {
-                // @$this->debug3['called from']['matching_byKatja']++;
                 $found2 = $ret['IndexGroup'];
                 $index_hc2 = $ret['IndexHC']; //stats only
             }
@@ -1057,7 +1069,7 @@ class DwCA_MatchTaxa2DH
             @$this->debug['call ancestry index']['old index']++;
             if($ret = self::search_hc_string_from_AncestryIndex_old($hc_str)) {
                 @$this->debug['call ancestry index']['old index success']++;
-                $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
+                if($this->run_debug3_YN) $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
                 return $ret;
             }
             // */
@@ -1065,10 +1077,10 @@ class DwCA_MatchTaxa2DH
         elseif($this->AncestryIndexVer == 'new') { //using regex index
             // /* using the regex index:
             @$this->debug['call ancestry index']['new index']++;
-            $this->debug4[$this->AncestryIndexVer.' - index ATTEMPTS'][$hc_str] = '';
+            if($this->run_debug4_YN) $this->debug4[$this->AncestryIndexVer.' - index ATTEMPTS'][$hc_str] = '';
             if($ret = self::search_hc_string_from_AncestryIndex_regex($hc_str)) {
                 @$this->debug['call ancestry index']['new index success']++;
-                $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
+                if($this->run_debug3_YN) $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
                 return $ret;
             }
             // */
@@ -1340,9 +1352,11 @@ class DwCA_MatchTaxa2DH
     private function write_2archive($rec)
     {
         // print_r($rec);
-        if($val = @$rec['EOLid']) {
-            $this->debug2['total EOLids'][$val] = '';
-            @$this->debug2['EOLid assignments']++;
+        if($this->run_debug2_YN) {
+            if($val = @$rec['EOLid']) {
+                $this->debug2['total EOLids'][$val] = '';
+                @$this->debug2['EOLid assignments']++;
+            }
         }
 
         $o = new \eol_schema\Taxon();

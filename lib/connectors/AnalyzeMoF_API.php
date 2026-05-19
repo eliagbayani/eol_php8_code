@@ -119,8 +119,8 @@ class AnalyzeMoF_API
             if($what == 'analyze_MoF') {
                 $mValue = $rec['measurementValue'];
                 $mType = $rec['measurementType'];
-                $mMethod = $rec['measurementMethod'];
-                $mRemarks = $rec['measurementRemarks'];
+                $mMethod = @$rec['measurementMethod'];
+                $mRemarks = @$rec['measurementRemarks'];
                 if(substr($mValue, 0, 4) == 'http') {
                     if(!isset($this->eol_term_values[$mValue])) $this->debug['Undefined mValue'][$mValue] = '';
                     if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';

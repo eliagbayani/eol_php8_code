@@ -60,11 +60,11 @@ class DwCA_MatchTaxa2DH
         $this->run_debug2_YN = true;
         $this->run_debug3_YN = true;
         $this->run_debug4_YN = true;
-        if($this->resource_id == 'TreatmentBank_final-with-hC_neo4j_1') {
-            $this->run_debug2_YN = false;
-            $this->run_debug3_YN = false;
-            $this->run_debug4_YN = false;
-        }
+        // if($this->resource_id == '[TreatmentBank_final-with-hC_neo4j_1_eolID]') {
+        //     $this->run_debug2_YN = false;
+        //     $this->run_debug3_YN = false;
+        //     $this->run_debug4_YN = false;
+        // }
 
     }
     /*================================================================= STARTS HERE ======================================================================*/
@@ -103,16 +103,14 @@ class DwCA_MatchTaxa2DH
                 exit("\n[$hc] Non-unique higherClassification in AncestryIndex NEW.\n");
             }
         }
-
+        /* works OK but not needed anymore
         $this->ancestry_index_info_old = self::retrieve_ancestry_index($this->ancestry_index_file_old); //old from Katja
-        //print_r($this->ancestry_index_info_old); //exit("\nstop muna\n");
         foreach($this->ancestry_index_info_old as $hc => $indexes) { //checking integrity
             if(count($indexes) > 1) { //maybe it doesn't go here at all.
                 print_r($indexes);
                 exit("\n[$hc] Non-unique higherClassification in AncestryIndex OLD.\n");
             }
-        }
-
+        } */
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
@@ -1111,28 +1109,24 @@ class DwCA_MatchTaxa2DH
         return false;
         // */
     }
+    /* works OK but not needed anymore
     private function search_hc_string_from_AncestryIndex_old($hc_str) //non-regex
-    {   // echo "\nneedle: [$hc_str]\n"; 
+    {   
         foreach($this->ancestry_index_info_old as $index_hc => $indexes) {            
             if(self::is_ending_in_asterisk($index_hc)) {
-                // /* strict implementation
+                // start - strict implementation
                 $len = strlen($index_hc) - 1;
                 if(substr($hc_str,0,$len) == self::remove_last_char($index_hc)) {
-                    // echo "\n-----------------start\n";
-                    // echo "\n".substr($hc_str,0,$len);
-                    // echo "\n".self::remove_last_char($index_hc);
-                    // echo "\n-----------------end\n";
-                    // echo("\nactually goes here\n"); 
                     return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
                 }
-                // */
+                // end - strict implementation
             }
             else {
                 if($index_hc == $hc_str) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
             }
         }
         return false;
-    }
+    } */
     private function is_ending_in_asterisk($str)
     {
         $last_char = substr($str, -1);

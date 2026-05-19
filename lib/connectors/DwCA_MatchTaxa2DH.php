@@ -302,8 +302,21 @@ class DwCA_MatchTaxa2DH
             if ($what == 'match_canonical') { @$this->debug['total taxa']++;
                 if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); @$this->debug['excluded: invalid taxa']++; continue;} 
                 if(!$canonicalName)                                {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
-                if(@$rec['EOLid'])                                 {self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;} //trait taxon already has EOLid
-                
+                if(@$rec['EOLid']) {
+                    
+                    // /* commented for: Body Length Data for North American Syrphidae & Tabanidae
+                    self::write_2archive($rec);
+                    @$this->debug['excluded: already has EOLid']++; 
+                    continue;
+                    // */
+
+                    /* if above is commented, then this should be un-commented. Toggle with above.
+                    $rec['EOLid'] = '';
+                    */
+
+
+                } //trait taxon already has EOLid
+
                 // priorities:
                 // 1. if it can be tested with AncestryIndex then proceed to test and if it fails then stop there.
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...

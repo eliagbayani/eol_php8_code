@@ -423,7 +423,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         echo "\nRun EOL annotator...\n";
         $i = 0; $saved = 0;
         // /* Used when caching. First client: 617_ENV
-        $m = Functions::show_totals($meta->file_uri); echo "\nTotal rows in media extension: [$m]";
+        $m = Functions::show_totals($meta->file_uri); echo "\nTotal rows in media extension: [".number_format($m)."]";
         $m_orig = $m;
         if($conn_run = @$this->param['conn_run']) {
             $m = $m/6;      echo "\nDivided by 6: [$m]| conn_run: [".$conn_run."]\n";

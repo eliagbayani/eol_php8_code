@@ -49,7 +49,11 @@ class DwCA_MatchTaxa2DH
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
         $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index_regex.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
-        $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/".$this->resource_id."_logs_".$this->AncestryIndexVer;
+
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
+        $this->neo4j_debug_folder = $temp;
+
+        $this->stats_path = CONTENT_RESOURCE_LOCAL_PATH . "/neo4j_debug/".$this->resource_id."_logs_".$this->AncestryIndexVer;
         if(is_dir($this->stats_path)) recursive_rmdir($this->stats_path);
         mkdir($this->stats_path);
         /*
@@ -239,10 +243,10 @@ class DwCA_MatchTaxa2DH
         */
 
         if($this->run_debug3_YN) {
-            if($this->debug3) Functions::start_print_debug($this->debug3, $this->resource_id."_".$this->AncestryIndexVer);
+            if($this->debug3) Functions::start_print_debug($this->debug3, $this->resource_id."_".$this->AncestryIndexVer, $this->neo4j_debug_folder);
         }
         if($this->run_debug4_YN) {
-            if(@$this->debug4) Functions::start_print_debug($this->debug4, $this->resource_id."_".$this->AncestryIndexVer."_attempts");
+            if(@$this->debug4) Functions::start_print_debug($this->debug4, $this->resource_id."_".$this->AncestryIndexVer."_attempts", $this->neo4j_debug_folder);
         }
 
         if($val = @$this->debug['eli']) print_r($val);

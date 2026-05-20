@@ -40,6 +40,9 @@ class DwCA_RunGNParser
         */
         $this->ranks_to_use_full_canonicals = array("subgenera", "subgenus", "sections", "section", "subsections", "subsection");
         $this->debug = array();
+
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
+        $this->neo4j_debug_folder = $temp;        
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -67,7 +70,7 @@ class DwCA_RunGNParser
             [0] => http://rs.tdwg.org/dwc/terms/taxon
         )*/
         self::process_table($meta, 'write_archive');
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id), $this->neo4j_debug_folder;
     }
     private function process_table($meta, $what)
     {   //print_r($meta);

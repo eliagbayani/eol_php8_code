@@ -46,7 +46,7 @@ $dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".ta
 $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/".$tmp_id.".tar.gz";                       //maybe the way to go
 
 $arr = explode("-with-hC", $resource_id);
-$resource_id = $arr[0]."_final"; //the DwCA using EOLid in taxonID of taxon.tab | Destination DwCA
+$resource_id = $arr[0]."_finale"; //the DwCA using EOLid in taxonID of taxon.tab | Destination DwCA
 
 process_resource_url($dwca_file, $resource_id, $timestart);
 

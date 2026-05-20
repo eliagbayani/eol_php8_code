@@ -184,6 +184,7 @@ class DwCA_Utility
             if(@$this->params['resource'] == "revise_keyword_map") break;     //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "create_Media_from_MoF") break;  //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "remove_Media_with_criteria") break;  //all extensions will be processed elsewhere.
+            if(@$this->params['resource'] == "update_taxa") break;  //all extensions will be processed elsewhere.
             */
         
             if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
@@ -304,6 +305,11 @@ class DwCA_Utility
         if(@$this->params['resource'] == 'remove_Media_with_criteria') {
             require_library('connectors/DwCA_RemoveMediaWithCriteria');
             $func = new DwCA_RemoveMediaWithCriteria($this->archive_builder, $this->resource_id);
+            $func->start($info);
+        }
+        if(@$this->params['resource'] == 'update_taxa') {
+            require_library('connectors/DwCA_UpdateTaxa');
+            $func = new DwCA_UpdateTaxa($this->archive_builder, $this->resource_id);
             $func->start($info);
         }
 
@@ -1175,7 +1181,7 @@ class DwCA_Utility
                 // /* New: needed validations
                 if($class == "document") { //if object is text type then description cannot be blank.
                     if(!$o->description && $o->type == 'http://purl.org/dc/dcmitype/Text') continue;
-                    $this->debug[$this->resource_id.' Titles'][$o->title] = '';
+                    $this->debug[$this->resource_id.' Titles'][@$o->title] = '';
                 }
                 // */
 

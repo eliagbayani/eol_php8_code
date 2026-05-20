@@ -15,4 +15,4 @@ CREATE CONSTRAINT FOR ( trait:Trait ) REQUIRE (trait.eol_pk) IS UNIQUE;
 // CREATE INDEX FOR (n:Trait) ON (n.resource_pk)
 CREATE INDEX FOR (n:Term) ON (n.name);
 
-CREATE INDEX FOR (n:Trait) ON (n.object_page_id, n.resource_pk);
+CREATE INDEX FOR (m:Trait) ON (n.object_page_id, n.resource_pk);

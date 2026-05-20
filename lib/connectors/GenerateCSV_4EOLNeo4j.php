@@ -1752,7 +1752,7 @@ class GenerateCSV_4EOLNeo4j
     {
         $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         if(!is_dir($path)) mkdir($path);
-        self::move_bash_files($path); //exit("\nstop muna\n");
+        self::move_bash_files($path);
         $path .= '/' . $resource_id . '_csv';
         if(is_dir($path)) recursive_rmdir($path);
         mkdir($path);
@@ -1778,7 +1778,6 @@ class GenerateCSV_4EOLNeo4j
             $destination = $path."/$file";
             copy($source, $destination); //always overwrite destination
         }
-        // exit("\nx stop muna\n");
     }
     function format_csv_entry($rec, $fields)
     {

@@ -24,6 +24,8 @@ class CladeSpecificFilters4Habitats_API
         else exit("\nResource ID not yet assigned. Will terminate.\n");
         $this->report_file = CONTENT_RESOURCE_LOCAL_PATH . "/reports/FTG_" . $part . "_" . "removed_MoF" . ".tsv";
         $this->to_delete_occurID = array();
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
+        $this->neo4j_debug_folder = $temp;
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initialize()
@@ -153,7 +155,7 @@ class CladeSpecificFilters4Habitats_API
         // */
         
         self::process_table($tables['http://rs.tdwg.org/dwc/terms/taxon'][0], 'write_taxa');
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_debug_folder);
         // exit("\nstop muna...\n");
     }
     private function process_table($meta, $task)

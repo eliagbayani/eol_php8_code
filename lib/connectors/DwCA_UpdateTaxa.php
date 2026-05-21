@@ -22,6 +22,9 @@ class DwCA_UpdateTaxa
         if($this->resource_id == 'MoftheAES_resources_taxaFixed') { //specific for this resource
             if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'add_genus_ancestry');
         }
+        elseif($this->resource_id == 'NorthAmericanFlora_All_2025_taxaFixed') { //specific for this resource
+            if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'add_genus_ancestry');
+        }
         else exit("\nResource ID not initialized [from: $this->class_name][$this->resource_id]\n");
     }
     private function process_extension($meta, $what)

@@ -30,6 +30,8 @@ class DwCA_UseEOLidInTaxa
         $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->urls['preferred_vernaculars'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/english_preferred_vernaculars_by_page.tsv';
         $this->debug['Duplicate taxonIDs']['First taxonID is not displayed'] = ''; //remark for print_debug()
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
+        $this->neo4j_debug_folder = $temp;
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
@@ -68,7 +70,7 @@ class DwCA_UseEOLidInTaxa
         if($meta = @$tables['http://eol.org/schema/media/document'][0]) {
             self::process_table($meta, 'write_other_extensions', 'document');
         }
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_debug_folder); //works OK
     }
     private function get_DH_info_4EOLids()
     {

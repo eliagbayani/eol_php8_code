@@ -14,16 +14,23 @@ class DwCA_UpdateTaxa
         $this->debug = array();
         $this->class_name = 'DwCA_UpdateTaxa';
     }
+    private function initialize()
+    {
+        require_library('connectors/DwCA_RunGNParser');
+        $this->gnparser = new DwCA_RunGNParser(false, false, false);
+    }
     function start($info)
-    {   echo "\n$this->class_name...\n";
+    {   
+        self::initialize();
+        echo "\n$this->class_name...\n";
         $tables = $info['harvester']->tables;
         print_r(array_keys($tables));
         
-        if($this->resource_id == 'MoftheAES_resources_taxaFixed') { //specific for this resource
+        $addgenus_clients = array('MoftheAES_resources_taxaFixed', 'NorthAmericanFlora_All_2025_taxaFixed', 'SIcontrib2Botany_taxaFixed');
+        if(in_array($this->resource_id, $addgenus_clients)) {
             if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'add_genus_ancestry');
         }
-        elseif($this->resource_id == 'NorthAmericanFlora_All_2025_taxaFixed') { //specific for this resource
-            if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'add_genus_ancestry');
+        elseif($this->resource_id == 'xxx') { //specific for this resource
         }
         else exit("\nResource ID not initialized [from: $this->class_name][$this->resource_id]\n");
     }
@@ -55,7 +62,9 @@ class DwCA_UpdateTaxa
                     [taxonID] => be2eca213a4df16097242469dd7a99f0
                     [scientificName] => Lyda abdominalis
                 )*/
-                $arr = explode(" ", Functions::canonical_form($rec['scientificName']));
+                $canonical = self::get_canonical_name($rec['scientificName']);
+                $rec['canonicalName'] = $canonical;
+                $arr = explode(" ", $canonical);
                 if(count($arr) == 2) {
                     $rec['genus'] = $arr[0];
                     $rec['taxonRank'] = 'species';
@@ -64,14 +73,21 @@ class DwCA_UpdateTaxa
                     $rec['genus'] = $arr[0];
                     // $rec['taxonRank'] = 'subspecies'; //may not be true always, thus commented.
                 }
-                else {
-                    // echo "\n[".count($arr)."]"; print_r($rec);
-                }
+                else {}
                 self::proceed_2write($rec, 'taxon');
             }
             // =======================================================================================================
             // =======================================================================================================
         }
+    }
+    private function get_canonical_name($sciname)
+    {
+        $canonical = false;
+        if($canonical = $this->gnparser->run_gnparser($sciname, 'simple')) {}
+        elseif($canonical = $this->gnparser->lookup_canonical_name($sciname, 'simple')) {}
+        elseif($canonical = Functions::canonical_form($sciname)) {}
+        if($canonical) return $canonical;
+        else return $sciname;
     }
     private function proceed_2write($rec, $class)
     {

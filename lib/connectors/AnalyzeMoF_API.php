@@ -13,8 +13,8 @@ class AnalyzeMoF_API
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->debug = array();
-        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
-        $this->neo4j_debug_folder = $temp;
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_analyzed'; if(!is_dir($temp)) mkdir($temp);
+        $this->neo4j_analyzed_folder = $temp;
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
@@ -77,7 +77,7 @@ class AnalyzeMoF_API
         $meta = $tables[$tbl][0];
         // */
         self::process_table($meta, 'analyze_MoF');
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_debug_folder);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_analyzed_folder);
         unset($this->debug);
     }
     private function process_table($meta, $what)

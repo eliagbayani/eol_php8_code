@@ -8,6 +8,10 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+
+10088_6943_ENV
+tar -czf 10088_6943_ENV.tar.gz 10088_6943_ENV/
+
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2

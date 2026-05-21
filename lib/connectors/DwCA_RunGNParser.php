@@ -312,8 +312,12 @@ class DwCA_RunGNParser
         $options['expire_seconds'] = false;
         $options['resource_id'] = 'gnparser';
         if($json = Functions::lookup_with_cache($url, $options)) {
+            // echo "\ncache is available...\n";
             $obj = json_decode($json); // print_r($obj); //exit;
             return $obj;
+        }
+        else {
+            // echo "\ncache is NOT available...\n";
         }
     }
     private function get_field_from_uri($uri)

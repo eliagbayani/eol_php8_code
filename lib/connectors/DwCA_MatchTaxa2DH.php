@@ -11,7 +11,8 @@ These ff. workspaces work together:
 
 10088_6943_ENV
 tar -czf 10088_6943_ENV.tar.gz 10088_6943_ENV/
-
+SIcontrib2Botany
+tar -czf SIcontrib2Botany.tar.gz SIcontrib2Botany/
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2

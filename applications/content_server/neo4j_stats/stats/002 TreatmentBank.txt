@@ -28,3 +28,37 @@ total EOL IDs(unique): [328240]
 EOL ID assignments(multiple taxa can be assigned with same EOLid): [498302]
 
 ----------STATS end----------
+
+Array(
+    [/nodes/] => Array(
+            [Metadata.csv] => 0
+            [Page.csv] => 2482154
+            [Resource.csv] => 1102
+            [Term.csv] => 11382
+            [Trait.csv] => 117524
+            [Vernacular.csv] => 0
+        )
+    [/edges/] => Array(
+            [CONTRIBUTOR.csv] => 0
+            [DETERMINED_BY.csv] => 0
+            [INFERRED_TRAIT.csv] => 117524
+            [LIFESTAGE_TERM.csv] => 0
+            [METADATA.csv] => 0
+            [NORMAL_UNITS_TERM.csv] => 0
+            [OBJECT_PAGE.csv] => 0
+            [OBJECT_TERM.csv] => 117524
+            [PARENT.csv] => 2474744
+            [PARENT_TERM.csv] => 6788
+            [PREDICATE.csv] => 117524
+            [PREDICATE_META_TERM.csv] => 0
+            [SEX_TERM.csv] => 0
+            [STATISTICAL_METHOD_TERM.csv] => 0
+            [SUPPLIER.csv] => 117524
+            [SYNONYM_OF.csv] => 557
+            [TRAIT.csv] => 0
+            [UNITS_TERM.csv] => 0
+            [VERNACULAR.csv] => 0
+        )
+)
+
+

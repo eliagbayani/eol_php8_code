@@ -459,7 +459,7 @@ class GenerateCSV_4EOLNeo4j
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
-        $eol_terms = $func->convert_EOL_Terms_2array();
+        $eol_terms = $func->use_yaml_parse_and_oldOrig();
         echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
 
         // /*

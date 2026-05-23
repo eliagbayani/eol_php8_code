@@ -637,7 +637,7 @@ class DwCA_Utility
         echo ("\n temporary directory removed: " . $temp_dir);
         // */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
-        else echo "\nNo debug info.\n";
+        else echo "\nNo debug info (DwCA_Utility.php).\n";
     }
     function convert_archive_files($lifedesks) //used by: connectors/lifedesk_eol_export.php
     {

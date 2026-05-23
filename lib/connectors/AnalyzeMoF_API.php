@@ -21,7 +21,7 @@ class AnalyzeMoF_API
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI($this->resource_id, $this->archive_builder);
-        $arr = $func->convert_EOL_Terms_2array(); //print_r($arr);
+        $arr = $func->use_yaml_parse_and_oldOrig(); //print_r($arr);
         foreach($arr['terms'] as $r) {
             if($r['type'] == 'value') {
                 if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_values[trim($r['uri'])] = '';       //list of URI values
@@ -125,8 +125,14 @@ class AnalyzeMoF_API
                 $mRemarks = @$rec['measurementRemarks'];
                 if(substr($mValue, 0, 4) == 'http') {
                     if(!isset($this->eol_term_values[$mValue])) $this->debug['Undefined mValue'][$mValue] = '';
-                    if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';
                 }
+                if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';
+
+                if($val = @$rec['measurementDeterminedBy']) {
+                    if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
+                }
+
+                
             }
             //========================================================================================================= 
             // if($i >= 100) break; //dev only

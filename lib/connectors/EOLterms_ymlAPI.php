@@ -98,16 +98,75 @@ class EOLterms_ymlAPI
     //     // exit("\nfinal: [$str]\n");
     //     return $str;
     // }
+    function use_yaml_parse_and_oldOrig()
+    {
+        $final = self::convert_EOL_Terms_2array(); //yaml_parse() option
+        foreach($final['terms'] as $r) { //print_r($r); exit("\nelix 1\n");
+            /*Array(
+                [attribution] => 
+                [definition] => a measure of specific growth rate
+                [is_hidden_from_select] => 
+                [is_hidden_from_overview] => 
+                [is_hidden_from_glossary] => 
+                [is_text_only] => 
+                [name] => %/month
+                [type] => value
+                [uri] => http://eol.org/schema/terms/percentPerMonth
+                [parent_uris] => Array()
+                [synonym_of_uri] => 
+                [units_term_uri] => 
+                [alias] => 
+            )*/
+            $md5 = md5($r['name'].$r['type'].$r['uri']);
+            $unique[$md5] = '';
+        }
+
+        $arr = self::get_terms_yml_4Neo4j(); //oldOrig option
+        /*[11363] => Array(
+                    [uri] => https://www.marinespecies.org/imis.php?module=person&persid=46044
+                    [name] => Trevisan Disaró, Sibelle
+                    [type] => value
+                    [definition] => 
+                    [comment] => 
+                    [attribution] => 
+                    [section_ids] => 
+                    [is_hidden_from_overview] => false
+                    [is_hidden_from_glossary] => true
+                    [position] => 
+                    [trait_row_count] => 
+                    [distinct_page_count] => 
+                    [exclusive_to_clade] => 
+                    [incompatible_with_clade] => 
+                    [parent_term] => 
+                    [synonym_of] => 
+                    [object_for_predicate] => 
+                )
+        */
+        foreach($arr as $r) {
+            $md5 = md5($r['name'].$r['type'].$r['uri']);
+            if(!isset($unique[$md5])) {
+                $final['terms'][] = array('name' => $r['name'], 'type' => $r['type'], 'uri' => $r['uri']);
+            }
+        }
+        return $final;
+    }
     function convert_EOL_Terms_2array()
     {
         $yaml_string = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options);
+
+        /* Force a string into UTF-8 before passing it to yaml_parse() */
+        $yaml_string = mb_convert_encoding($yaml_string, 'UTF-8', 'auto');
+
+        /* Replaces non-breaking spaces (U+00A0) with standard spaces */
+        $yaml_string = str_replace("\xC2\xA0", ' ', $yaml_string);        
+
         $arr = yaml_parse($yaml_string); //print_r($arr['terms'][525]);
         if(is_array($arr)) return $arr;
         else exit("\nERROR: Cannot convert EOL Terms file to array()\n");
     }
     function get_terms_yml_4Neo4j()
     {
-        exit("\nWorking but used the built-in yaml_parse() function instead. \n");
+        // exit("\nWorking but used the built-in yaml_parse() function instead. \n");
         $final = array();
         if($yml = Functions::lookup_with_cache($this->EOL_terms_yml_url, $this->download_options)) { //orig 1 day cache
             $yml .= "alias: ";

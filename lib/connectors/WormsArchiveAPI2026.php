@@ -230,7 +230,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         /* New March 1, 2026 -> this is just for stats
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
-        $eol_terms = $func->convert_EOL_Terms_2array();
+        $eol_terms = $func->use_yaml_parse_and_oldOrig();
         echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n";
         foreach($eol_terms['terms'] as $rec) { 
             $this->eol_terms_value_uri[trim($rec['name'])][] = trim($rec['uri']);
@@ -654,7 +654,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
-        $eol_terms = $func->convert_EOL_Terms_2array();
+        $eol_terms = $func->use_yaml_parse_and_oldOrig();
         echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n";
         $final = array();
         foreach($eol_terms['terms'] as $rec) { 

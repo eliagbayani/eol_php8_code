@@ -74,9 +74,9 @@ class AnalyzeMoF_API
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions); //exit;
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
-        $meta = $tables[$tbl][0];
+        if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_MoF');
+        else echo "\n--- No MoF extension at this point ---\n";
         // */
-        self::process_table($meta, 'analyze_MoF');
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_analyzed_folder);
         unset($this->debug);
     }

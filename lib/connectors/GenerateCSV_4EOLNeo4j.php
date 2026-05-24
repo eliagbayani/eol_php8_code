@@ -473,12 +473,12 @@ class GenerateCSV_4EOLNeo4j
             $rek['uri'] = $rec['uri'];
             $rek['name'] = Functions::remove_quote_delimiters($rec['name']);   //%/month
             $rek['type'] = $rec['type'];   //"measurement", "association", "value", and "metadata"
-            $rek['definition'] = Functions::remove_quote_delimiters($rec['definition']);   //
+            $rek['definition'] = Functions::remove_quote_delimiters(@$rec['definition']);   //
             $rek['comment'] = ''; //EOL curator note
             $rek['attribution'] = Functions::remove_quote_delimiters(@$rec['attribution']);
             $rek['section_ids'] = ''; //from webpage
-            $rek['is_hidden_from_overview'] = $rec['is_hidden_from_overview'];   //
-            $rek['is_hidden_from_glossary'] = $rec['is_hidden_from_glossary'];   //
+            $rek['is_hidden_from_overview'] = @$rec['is_hidden_from_overview'];   //
+            $rek['is_hidden_from_glossary'] = @$rec['is_hidden_from_glossary'];   //
             $rek['position'] = ''; //from webpage
             $rek['trait_row_count'] = ''; //a periodically calculated (offline) count
             $rek['distinct_page_count'] = ''; //a periodically calculated (offline) count

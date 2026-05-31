@@ -13,7 +13,6 @@ class AggregateCSV_4Neo4j
 {
     function __construct() {
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
-        $this->path['stats'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_stats'; //old path
         $this->path['stats'] = DOC_ROOT . 'applications/content_server/neo4j_stats';
 
         $this->path['combined_dir'] = $this->path['main'].'/combined_CSVs';

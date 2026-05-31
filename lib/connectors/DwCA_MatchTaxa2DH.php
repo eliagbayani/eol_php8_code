@@ -74,7 +74,8 @@ class DwCA_MatchTaxa2DH
         //     $this->run_debug3_YN = false;
         //     $this->run_debug4_YN = false;
         // }
-
+        $this->debug3 = array();
+        $this->debug4 = array();
     }
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)

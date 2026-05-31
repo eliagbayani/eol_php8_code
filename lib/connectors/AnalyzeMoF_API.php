@@ -123,10 +123,14 @@ class AnalyzeMoF_API
                 $mType = $rec['measurementType'];
                 $mMethod = @$rec['measurementMethod'];
                 $mRemarks = @$rec['measurementRemarks'];
+                $mOfTaxon = strtolower($rec['measurementOfTaxon']);
                 if(substr($mValue, 0, 4) == 'http') {
                     if(!isset($this->eol_term_values[$mValue])) $this->debug['Undefined mValue'][$mValue] = '';
                 }
-                if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';
+
+                if($mOfTaxon == 'true') {
+                    if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';
+                }
 
                 if($val = @$rec['measurementDeterminedBy']) {
                     if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';

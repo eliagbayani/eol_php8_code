@@ -28,6 +28,6 @@ neo4j-admin database import full DB.Test --overwrite-destination \
 --relationships=import2/SIcontrib2Botany_TraitBank_1_0_csv/edges/PARENT_TERM.csv \
 --relationships=import2/SIcontrib2Botany_TraitBank_1_0_csv/edges/SYNONYM_OF.csv \
 --relationships=import2/SIcontrib2Botany_TraitBank_1_0_csv/edges/SUPPLIER.csv \
---schema=import2/schema.cypher \
+--schema=import2/sh/schema.cypher \
 --multiline-fields=true
 cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE DB.Test;"

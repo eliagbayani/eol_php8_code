@@ -2678,8 +2678,8 @@ class Functions
         else {
             if(!is_dir($destination_folder)) exit("\nERROR: Destination folder in: [start_print_debug()] is not found.\n");
         }
+        $attrib = "w"; //orig value
         if(in_array($resource_id, array('gen_map_data_via_gbif_csv'))) $attrib = "a"; //new 2025
-        else                                                           $attrib = "w"; //orig value
         $file = $destination_folder .'/'. $resource_id."_debug_".date('Y-m-d').".txt";
         $WRITE = Functions::file_open($file, $attrib);
         foreach($this_debug as $topic => $arr) {

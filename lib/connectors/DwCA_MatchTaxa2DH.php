@@ -314,16 +314,21 @@ class DwCA_MatchTaxa2DH
                 if(!$canonicalName)                                {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
                 if(@$rec['EOLid']) {
                     
-                    // /* commented for: Body Length Data for North American Syrphidae & Tabanidae
+                    /* commented for: Body Length Data for North American Syrphidae & Tabanidae
+                                    : Fungi ecomorphological trait data
                     self::write_2archive($rec);
                     @$this->debug['excluded: already has EOLid']++; 
                     continue;
-                    // */
-
-                    /* if above is commented, then this should be un-commented. Toggle with above.
-                    $rec['EOLid'] = '';
                     */
 
+                    // /* if above is commented, then this should be un-commented. Toggle with above.
+                    $rec['EOLid'] = '';
+                    // */
+
+                    /*
+                    To do: Check if EOLid exists, if not then set => $rec['EOLid'] = '';
+                    Until then, it is safer to set => $rec['EOLid'] = ''; ... than to accept the given EOLid from the DwCA.
+                    */
 
                 } //trait taxon already has EOLid
 

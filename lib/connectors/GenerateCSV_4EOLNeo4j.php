@@ -22,7 +22,7 @@ class GenerateCSV_4EOLNeo4j
         $this->debug = array();
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
-        self::initialize_folders($this->resource_id);
+        self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
         /* ========== This can come from an RDBMS
         $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         $this->EOL_resources['globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
@@ -1752,7 +1752,11 @@ class GenerateCSV_4EOLNeo4j
     {
         $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         if(!is_dir($path)) mkdir($path);
-        self::move_bash_files($path);
+        // /* new: added a new subfolder '/sh/'
+        $sh_path = $path . "/sh";
+        if(!is_dir($sh_path)) mkdir($sh_path);
+        // */
+        self::move_bash_files($sh_path);
         $path .= '/' . $resource_id . '_csv';
         if(is_dir($path)) recursive_rmdir($path);
         mkdir($path);
@@ -1760,11 +1764,11 @@ class GenerateCSV_4EOLNeo4j
         $temp_dir = $path.'/nodes'; mkdir($temp_dir);
         $temp_dir = $path.'/edges'; mkdir($temp_dir);
     }
-    private function move_bash_files($path) //Move bash files to CSV folders for import step
-    {
+    private function move_bash_files($path)
+    {   echo "\nMove bash files to respective CSV folders for import step...";
         $pattern = '*.sh';
         $pattern = '*.{sh,cypher}'; $flags = GLOB_BRACE;
-        $files = Functions::get_files(DOC_ROOT.'/applications/content_server/neo4j', $pattern, $flags); print_r($files); //exit;
+        $files = Functions::get_files(DOC_ROOT.'/applications/content_server/neo4j', $pattern, $flags); print_r($files);
         /*Array(
             [0] => /var/www/html/eol_php8_code//applications/content_server/neo4j/brazilianFlora.sh
             [1] => /var/www/html/eol_php8_code//applications/content_server/neo4j/combined.sh

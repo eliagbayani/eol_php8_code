@@ -596,6 +596,7 @@ class DwCA_Utility
             $func->start($info);
         }
         if(@$this->params['resource'] == "match_taxa_2DH") {
+            require_library('connectors/DwCA_MatchTaxa2DH_Functions');
             require_library('connectors/DwCA_MatchTaxa2DH');
             $func = new DwCA_MatchTaxa2DH($this->archive_builder, $this->resource_id, $this->archive_path, @$this->params['AncestryIndexVer']);
             $func->start($info);

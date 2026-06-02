@@ -16,7 +16,7 @@ tar -czf SIcontrib2Botany.tar.gz SIcontrib2Botany/
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class DwCA_MatchTaxa2DH
+class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 {
     function __construct($archive_builder, $resource_id, $archive_path, $AncestryIndexVer = 'none')
     {
@@ -80,6 +80,7 @@ class DwCA_MatchTaxa2DH
     /*================================================================= STARTS HERE ======================================================================*/
     function start($info)
     {
+        $this->compatibleAncestors = $this->get_compatibleAncestors();
         require_library('connectors/DwCA_Utility_cmd');
         // /* step 1: read info from DH
         require_library('connectors/DHConnLib');
@@ -1051,13 +1052,33 @@ class DwCA_MatchTaxa2DH
                 $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
                 $remarkz = json_encode($arr);
                 $rek['remarkz'] = $remarkz;
+                $hits[] = $rek;
                 /* good debug works OK
                 echo "\n------------may na huli-----------\n";
                 print_r($rek); echo " - rek ";
                 echo "\n$remarkz";
                 echo "\n------------END may na huli-----------\n"; //exit;
                 */
-                $hits[] = $rek;
+            }
+            elseif(($found1 != $found2) && $found1 && $found2 && $rek['e']) { //#1 task here: https://github.com/EOL/ContentImport/issues/33#issuecomment-4598508858
+                
+                if($this->support_compatibleAncestors($found1, $found2)) {
+                    $arr = array();
+                    $arr['Trait'] = array('IndexGroup' => $found1, 'IndexHC' => $index_hc1);
+                    $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
+                    $remarkz = json_encode($arr);
+                    $rek['remarkz'] = $remarkz;
+
+                    if($val = @$rek['remarkz']) $rek['remarkz'] .= " -compatible ancestors-";
+                    else                        $rek['remarkz'] = '-compatible ancestors-';
+
+                    /* good debug
+                    echo "\n----------------- #1 task --------------------\n[$hc]\n [$found1] != [$found2] but compatibleAncestors\n";
+                    print_r($this->rec); print_r($hits); exit("\nHuli #1 task.\n"); 
+                    */
+
+                    $hits[] = $rek;
+                }
             }
             else {
                 /* not fully tested
@@ -1068,6 +1089,14 @@ class DwCA_MatchTaxa2DH
         }
         if(count($hits) == 1) return $hits[0];
         if(count($hits) > 1) {
+
+            // echo "\n-----------------multiple hits detected--------------------\n[$hc]\n";
+            // print_r($this->rec);
+            // print_r($arr);
+            // print_r($hits);
+            // echo("\nSo this is possible here. Need to plan again.\nBut will be ignored for now.\n");
+            // exit;
+
 
             $taxonRank = @$this->rec['taxonRank'];
             if($rek = self::choose_from_matched_group($taxonRank, $hits)) {

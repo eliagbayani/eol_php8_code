@@ -51,6 +51,19 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // ini_set('memory_limit','7096M');
 $timestart = time_elapsed();
 
+/* just for tests
+require_library('connectors/DwCA_RunGNParser');
+$func = new DwCA_RunGNParser(false, false, false);
+$taxonRank = 'family'; $sciname = "Rhopalodiaceae (Karsten) Topachevs'kyj & Oksiyuk, 1960";
+$taxonRank = 'genus'; $sciname = "Symplocastrum (Gomont) Kirchner";
+echo "\nsciname: [$sciname]\n";
+// $c = $func->run_gnparser($sciname, 'simple');   echo "\ncanonical simple: [$c]\n";
+// $c = $func->run_gnparser($sciname, 'full');     echo "\ncanonical full: [$c]\n";
+$c = $func->resubmit_gnparser_if_applicable($sciname, $taxonRank);
+echo "\ncanonical final: [$c]\n";
+exit("\n-end test-\n");
+*/
+
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;

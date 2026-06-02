@@ -120,7 +120,10 @@ class DwCA_RunGNParser
                 
                 // $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::lookup_canonical_name($scientificName, 'simple'); //working but too many calls
                 
-                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec);
+                $val = '';
+                    if($val = self::resubmit_gnparser_if_applicable($scientificName, $taxonRank)) {}
+                elseif($val = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec)) {}
+                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = $val;
                 // */
 
                 // /* New May 15,2026: If blank rank and canonical has 2 words, set taxonRank to 'species'
@@ -327,6 +330,29 @@ class DwCA_RunGNParser
         if($parts[0]) $field = $parts[0];
         if(@$parts[1]) $field = $parts[1];
         return $field;
+    }
+    public function resubmit_gnparser_if_applicable($sciname, $taxonRank) //#3 from https://github.com/EOL/ContentImport/issues/33#issuecomment-4598508858
+    {   //"Rhopalodiaceae (Karsten) Topachevs'kyj & Oksiyuk, 1960"
+        if($taxonRank == 'subgenus') return;
+        if(!self::gnparser_type_full_has_subgen($sciname)) return;
+        if($inside_parenthesis = self::get_string_inside_parenthesis($sciname)) {
+            $sciname2 = str_ireplace("($inside_parenthesis)", "", $sciname);
+            $sciname2 = Functions::remove_whitespace($sciname2);
+            if($canonical = self::run_gnparser($sciname2, 'full')) return $canonical;
+        }
+        else return;
+    }
+    private function gnparser_type_full_has_subgen($sciname)
+    {
+        if($canonical = self::run_gnparser($sciname, 'full')) {
+            if(stripos($canonical, "subgen.") !== false) return true; //string is found
+        }
+        return false;
+    }
+    private function get_string_inside_parenthesis($string)
+    {
+        $pattern = '/\((.*?)\)/';
+        if(preg_match($pattern, $string, $matches)) return $matches[1];
     }
     /* copied template
     private function get_taxonID_EOLid_list()

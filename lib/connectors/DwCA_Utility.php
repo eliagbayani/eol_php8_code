@@ -53,6 +53,8 @@ class DwCA_Utility
         
         $this->public_domains = array("http://creativecommons.org/licenses/publicdomain/", "https://creativecommons.org/share-your-work/public-domain/", "https://creativecommons.org/share-your-work/public-domain/cc0/");
         $this->shorten_fields = false; //used in computing higherClassification
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
+        $this->neo4j_debug_folder = $temp;
     }
 
     private function start($dwca_file = false, $download_options = array("timeout" => 172800, 'expire_seconds' => 60*60*24*1)) //probably default expires in 1 day 60*60*24*1. Not false.
@@ -637,7 +639,7 @@ class DwCA_Utility
         recursive_rmdir($temp_dir);
         echo ("\n temporary directory removed: " . $temp_dir);
         // */
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id."_DwCA_Util");
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id."_DwCA_Util", $this->neo4j_debug_folder);
         else echo "\nNo debug info (DwCA_Utility.php).\n";
     }
     function convert_archive_files($lifedesks) //used by: connectors/lifedesk_eol_export.php
@@ -750,7 +752,7 @@ class DwCA_Utility
             return false;
         }
         recursive_rmdir($temp_dir); echo ("\n temporary directory removed: " . $temp_dir);
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id."_DwCA_Util_HC", $this->neo4j_debug_folder);
         return true;
     }
     function convert_archive_normalized() //this same as above two, but this removes taxa that don't have objects. Only taxa with objects will remain in taxon.tab.

@@ -65,12 +65,11 @@ class DwCA_RunGNParser
         // else echo "\nNo ancestry\n";
         // exit("\nstop muna...\n");
         // ---------- */
-
         /*Array(
             [0] => http://rs.tdwg.org/dwc/terms/taxon
         )*/
         self::process_table($meta, 'write_archive');
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_debug_folder);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id."_gnparser", $this->neo4j_debug_folder);
     }
     private function process_table($meta, $what)
     {   //print_r($meta);

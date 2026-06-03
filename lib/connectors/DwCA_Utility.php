@@ -693,6 +693,7 @@ class DwCA_Utility
         $this->source_of_hc = $task; //exit("\ntask = [$task]\n"); //$task is either 'gen_hC_using_pID' or 'gen_hC_using_ancestry'
         require_library('connectors/RemoveHTMLTagsAPI');
         require_library('connectors/DwCA_Utility_cmd');
+        require_library('connectors/DwCA_MatchTaxa2DH_Functions');
         require_library('connectors/DwCA_MatchTaxa2DH');
 
         echo "\ndoing this: convert_archive_by_adding_higherClassification()\n";

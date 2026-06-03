@@ -1,64 +1,31 @@
 ----------STATS----------
-A. No canonical match: [222, 430]
-B. Has canonical match: [504, 969]
--> B1. With DH EOLid assignments(accepted name): [496, 236]
--> B2. With DH EOLid assignments(synonym): [2, 066]
--> B3. Cannot be matched at all: [6, 667]
--> Total = [504, 969] DIFF SHOULD BE ZERO[0]
+A. No canonical match: [222,430]
+B. Has canonical match: [504,969]
+ -> B1. With DH EOLid assignments (accepted name): [496,237]
+ -> B2. With DH EOLid assignments (synonym): [2,129]
+ -> B3. Cannot be matched at all: [6,603]
+ -> Total = [504,969] DIFF SHOULD BE ZERO [0]
 
--> Synonym_matched_but_no_DH_EOLid: [627]
--> Failed_synonym_match: [0]
+ -> Synonym_matched_but_no_DH_EOLid: [562]
+ -> Failed_synonym_match: [0]
 
-C. Matches made without_OR_lacking ancestry info: [933]
--> C1. [With higherClassification but cannot be mapped to any index group.]: 903
--> C2. [No higherClassification]: 30
--> Total = [933] DIFF SHOULD BE ZERO[0]
+C. Matches made without_OR_lacking ancestry info: [42,529]
+ -> C1. [-compatible ancestors-]: 41,596
+ -> C2. [With higherClassification but cannot be mapped to any index group.]: 903
+ -> C3. [No higherClassification]: 30
+ -> Total = [42,529] DIFF SHOULD BE ZERO [0]
 
-Total taxa from taxon.tab: 727, 403
+Total taxa from taxon.tab: 727,403
 Breakdown:
-    -> excluded: invalid taxa: 0
-    -> excluded: no canonicalName: 4
-    -> excluded: already has EOLid: 0
-    -> A. No canonical match: [222, 430]
-    -> B. Has canonical match: [504, 969]
-Total = [727, 403] DIFF SHOULD BE ZERO[0]
+ -> excluded: invalid taxa: 0
+ -> excluded: no canonicalName: 4
+ -> excluded: already has EOLid: 0
+ -> A. No canonical match: [222,430]
+ -> B. Has canonical match: [504,969]
+Total = [727,403] DIFF SHOULD BE ZERO [0]
 
 AncestryIndexVer: [new]
-total EOL IDs(unique): [328240]
-EOL ID assignments(multiple taxa can be assigned with same EOLid): [498302]
+total EOL IDs (unique): [328288]
+EOL ID assignments (multiple taxa can be assigned with same EOLid): [498366]
 
 ----------STATS end----------
-
-Array(
-    [/nodes/] => Array(
-            [Metadata.csv] => 0
-            [Page.csv] => 2482154
-            [Resource.csv] => 1102
-            [Term.csv] => 11382
-            [Trait.csv] => 117524
-            [Vernacular.csv] => 0
-        )
-    [/edges/] => Array(
-            [CONTRIBUTOR.csv] => 0
-            [DETERMINED_BY.csv] => 0
-            [INFERRED_TRAIT.csv] => 117524
-            [LIFESTAGE_TERM.csv] => 0
-            [METADATA.csv] => 0
-            [NORMAL_UNITS_TERM.csv] => 0
-            [OBJECT_PAGE.csv] => 0
-            [OBJECT_TERM.csv] => 117524
-            [PARENT.csv] => 2474744
-            [PARENT_TERM.csv] => 6788
-            [PREDICATE.csv] => 117524
-            [PREDICATE_META_TERM.csv] => 0
-            [SEX_TERM.csv] => 0
-            [STATISTICAL_METHOD_TERM.csv] => 0
-            [SUPPLIER.csv] => 117524
-            [SYNONYM_OF.csv] => 557
-            [TRAIT.csv] => 0
-            [UNITS_TERM.csv] => 0
-            [VERNACULAR.csv] => 0
-        )
-)
-
-

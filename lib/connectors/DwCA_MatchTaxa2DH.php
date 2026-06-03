@@ -360,9 +360,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                         }
 
                         if(@$rec['EOLid']) {
+                            // /* ---------- series of ELI001: block 1 of 2
                             $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
                             $rem = $rec['taxonRemarks'];
                             $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
+                            // ---------- */
                         }
                         else {
                             $taxonID = $rec['taxonID'];
@@ -1061,23 +1063,48 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 */
             }
             elseif(($found1 != $found2) && $found1 && $found2 && $rek['e']) { //#1 task here: https://github.com/EOL/ContentImport/issues/33#issuecomment-4598508858
-                
-                if($this->support_compatibleAncestors($found1, $found2)) {
-                    $arr = array();
-                    $arr['Trait'] = array('IndexGroup' => $found1, 'IndexHC' => $index_hc1);
-                    $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
-                    $remarkz = json_encode($arr);
+                $arr = array();
+                $arr['Trait'] = array('IndexGroup' => $found1, 'IndexHC' => $index_hc1);
+                $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
+                $remarkz = json_encode($arr);
+                    
+                if($this->have_compatibleAncestors($found1, $found2)) {
                     $rek['remarkz'] = $remarkz;
-
                     if($val = @$rek['remarkz']) $rek['remarkz'] .= " -compatible ancestors-";
                     else                        $rek['remarkz'] = '-compatible ancestors-';
+
+                    // print_r($this->rec); print_r($rek); exit("\nstop first 1\n");
+                    // /* ---------- series of ELI001: block 2 of 2
+                    $taxonID = $this->rec['taxonID'];
+                    if($rem = @$this->rec['taxonRemarks']) $rem .= " -compatible ancestors-";
+                    else                                   $rem = '-compatible ancestors-';
+                    $this->rec['taxonRemarks'] = $rem;
+                    $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $this->rec;
+                    // $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
+                    $this->debug['without_OR_lacking']['-compatible ancestors-'][$taxonID] = '';
+                    // ---------- */
 
                     /* good debug
                     echo "\n----------------- #1 task --------------------\n[$hc]\n [$found1] != [$found2] but compatibleAncestors\n";
                     print_r($this->rec); print_r($hits); exit("\nHuli #1 task.\n"); 
                     */
 
-                    $hits[] = $rek;
+                    $hits[] = $rek; //very IMPORTANT row
+
+                    // /* ---------- compatible_multimatches
+                    $taxonID = $this->rec['taxonID'];
+                    $this->rec['taxonRemarks'] = $rem . " ($found1; $found2) --> " . $remarkz;
+                    $this->debug['compatible_multimatches'][$taxonID] = $this->rec;
+                    // ---------- */
+                }
+                else { //write to incompatible_multimatches.tsv
+                    // /* ---------- incompatible_multimatches
+                    $taxonID = $this->rec['taxonID'];
+                    if($rem = @$this->rec['taxonRemarks']) $rem .= " -incompatible_multimatches-";
+                    else                                   $rem = '-incompatible_multimatches-';
+                    $this->rec['taxonRemarks'] = $rem . " ($found1; $found2) --> " . $remarkz;
+                    $this->debug['incompatible_multimatches'][$taxonID] = $this->rec;
+                    // ---------- */
                 }
             }
             else {
@@ -1096,7 +1123,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             // print_r($hits);
             // echo("\nSo this is possible here. Need to plan again.\nBut will be ignored for now.\n");
             // exit;
-
 
             $taxonRank = @$this->rec['taxonRank'];
             if($rek = self::choose_from_matched_group($taxonRank, $hits)) {
@@ -1526,7 +1552,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)');
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 
+                         'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)', 
+                         'incompatible_multimatches', 'compatible_multimatches');
         // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";

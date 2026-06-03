@@ -26,7 +26,7 @@ class DwCA_MatchTaxa2DH_Functions
         unlink($local);
         return $ret;
     }
-    function support_compatibleAncestors($indexGroup1, $indexGroup2)
+    function have_compatibleAncestors($indexGroup1, $indexGroup2)
     {   /*Array(
             [Animals; Annelida] => 
             [Annelida; Animals] => 

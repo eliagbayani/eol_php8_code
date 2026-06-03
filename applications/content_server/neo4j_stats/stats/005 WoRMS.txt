@@ -9,12 +9,13 @@ B. Has canonical match: [377,046]
  -> Synonym_matched_but_no_DH_EOLid: [1,990]
  -> Failed_synonym_match: [0]
 
-C. Matches made without_OR_lacking ancestry info: [252]
+C. Matches made without_OR_lacking ancestry info: [669]
  -> C1. [No higherClassification]: 3
  -> C2. []: 1
  -> C3. [-no rank-]: 2
- -> C4. [With higherClassification but cannot be mapped to any index group.]: 246
- -> Total = [252] DIFF SHOULD BE ZERO [0]
+ -> C4. [-compatible ancestors-]: 417
+ -> C5. [With higherClassification but cannot be mapped to any index group.]: 246
+ -> Total = [669] DIFF SHOULD BE ZERO [0]
 
 Total taxa from taxon.tab: 462,022
 Breakdown:

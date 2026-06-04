@@ -141,7 +141,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n -> Total = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\n -> Total = [".number_format($sum)."]";
+        if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
 
         $Synonym_matched_but_no_DH_EOLid = count(@$this->debug['Synonym matched but no DH EOLid'] ?? array());
         $Failed_synonym_match            = count(@$this->debug['Failed synonym match'] ?? array());
@@ -157,7 +158,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             echo "\n -> C$i. [$rem]: ".number_format($val);
         }
         $diff = $matches_made_without_ancestry_info - $sum;
-        echo "\n -> Total = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\n -> Total = [".number_format($sum)."]";
+        if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
 
         /* commented for now
         $no_hc = count(@$this->debug['M-m-w-a-i']['No hC'] ?? array());
@@ -180,7 +182,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                + count(@$this->debug['No canonical match'] ?? array())
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
-        echo "\nTotal = [".number_format($sum)."] DIFF SHOULD BE ZERO [".number_format($diff)."]";
+        echo "\nTotal = [".number_format($sum)."]";
+        if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
 
         // /*
         if($this->run_debug2_YN) {

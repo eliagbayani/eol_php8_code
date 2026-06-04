@@ -1,31 +1,32 @@
 ----------STATS----------
-A. No canonical match: [83, 287]
-B. Has canonical match: [401, 722]
--> B1. With DH EOLid assignments(accepted name): [399, 039]
--> B2. With DH EOLid assignments(synonym): [1, 834]
--> B3. Cannot be matched at all: [849]
--> Total = [401, 722] DIFF SHOULD BE ZERO[0]
+A. No canonical match: [83,287]
+B. Has canonical match: [401,722]
+ -> B1. With DH EOLid assignments (accepted name): [399,041]
+ -> B2. With DH EOLid assignments (synonym): [1,835]
+ -> B3. Cannot be matched at all: [846]
+ -> Total = [401,722] DIFF SHOULD BE ZERO [0]
 
--> Synonym_matched_but_no_DH_EOLid: [132]
--> Failed_synonym_match: [0]
+ -> Synonym_matched_but_no_DH_EOLid: [131]
+ -> Failed_synonym_match: [0]
 
-C. Matches made without_OR_lacking ancestry info: [943]
--> C1. [-no rank-]: 2
--> C2. [With higherClassification but cannot be mapped to any index group.]: 549
--> C3. [No higherClassification]: 392
--> Total = [943] DIFF SHOULD BE ZERO[0]
+C. Matches made without_OR_lacking ancestry info: [997]
+ -> C1. [-compatible ancestors-]: 54
+ -> C2. [-no rank-]: 2
+ -> C3. [With higherClassification but cannot be mapped to any index group.]: 549
+ -> C4. [No higherClassification]: 392
+ -> Total = [997] DIFF SHOULD BE ZERO [0]
 
-Total taxa from taxon.tab: 485, 171
+Total taxa from taxon.tab: 485,171
 Breakdown:
-    -> excluded: invalid taxa: 0
-    -> excluded: no canonicalName: 162
-    -> excluded: already has EOLid: 0
-    -> A. No canonical match: [83, 287]
-    -> B. Has canonical match: [401, 722]
-Total = [485, 171] DIFF SHOULD BE ZERO[0]
+ -> excluded: invalid taxa: 0
+ -> excluded: no canonicalName: 162
+ -> excluded: already has EOLid: 0
+ -> A. No canonical match: [83,287]
+ -> B. Has canonical match: [401,722]
+Total = [485,171] DIFF SHOULD BE ZERO [0]
 
 AncestryIndexVer: [new]
-total EOL IDs(unique): [395919]
-EOL ID assignments(multiple taxa can be assigned with same EOLid): [400873]
+total EOL IDs (unique): [395917]
+EOL ID assignments (multiple taxa can be assigned with same EOLid): [400876]
 
 ----------STATS end----------

@@ -1,31 +1,32 @@
 ----------STATS----------
 A. No canonical match: [445]
-B. Has canonical match: [10, 599]
--> B1. With DH EOLid assignments(accepted name): [10, 526]
--> B2. With DH EOLid assignments(synonym): [51]
--> B3. Cannot be matched at all: [22]
--> Total = [10, 599] DIFF SHOULD BE ZERO[0]
+B. Has canonical match: [10,599]
+ -> B1. With DH EOLid assignments (accepted name): [10,529]
+ -> B2. With DH EOLid assignments (synonym): [53]
+ -> B3. Cannot be matched at all: [17]
+ -> Total = [10,599] DIFF SHOULD BE ZERO [0]
 
--> Synonym_matched_but_no_DH_EOLid: [16]
--> Failed_synonym_match: [0]
+ -> Synonym_matched_but_no_DH_EOLid: [11]
+ -> Failed_synonym_match: [0]
 
-C. Matches made without_OR_lacking ancestry info: [474]
--> C1. [With higherClassification but cannot be mapped to any index group.]: 442
--> C2. [-no rank-]: 31
--> C3. [No higherClassification]: 1
--> Total = [474] DIFF SHOULD BE ZERO[0]
+C. Matches made without_OR_lacking ancestry info: [1,458]
+ -> C1. [With higherClassification but cannot be mapped to any index group.]: 442
+ -> C2. [-compatible ancestors-]: 984
+ -> C3. [-no rank-]: 31
+ -> C4. [No higherClassification]: 1
+ -> Total = [1,458] DIFF SHOULD BE ZERO [0]
 
-Total taxa from taxon.tab: 11, 044
+Total taxa from taxon.tab: 11,044
 Breakdown:
-    -> excluded: invalid taxa: 0
-    -> excluded: no canonicalName: 0
-    -> excluded: already has EOLid: 0
-    -> A. No canonical match: [445]
-    -> B. Has canonical match: [10, 599]
-Total = [11, 044] DIFF SHOULD BE ZERO[0]
+ -> excluded: invalid taxa: 0
+ -> excluded: no canonicalName: 0
+ -> excluded: already has EOLid: 0
+ -> A. No canonical match: [445]
+ -> B. Has canonical match: [10,599]
+Total = [11,044] DIFF SHOULD BE ZERO [0]
 
 AncestryIndexVer: [new]
-total EOL IDs(unique): [10552]
-EOL ID assignments(multiple taxa can be assigned with same EOLid): [10577]
+total EOL IDs (unique): [10557]
+EOL ID assignments (multiple taxa can be assigned with same EOLid): [10582]
 
 ----------STATS end----------

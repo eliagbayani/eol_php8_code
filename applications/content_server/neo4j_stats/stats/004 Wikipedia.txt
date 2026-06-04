@@ -1,32 +1,33 @@
 ----------STATS----------
-A. No canonical match: [15, 294]
-B. Has canonical match: [120, 735]
--> B1. With DH EOLid assignments(accepted name): [119, 660]
--> B2. With DH EOLid assignments(synonym): [772]
--> B3. Cannot be matched at all: [303]
--> Total = [120, 735] DIFF SHOULD BE ZERO[0]
+A. No canonical match: [15,294]
+B. Has canonical match: [120,735]
+ -> B1. With DH EOLid assignments (accepted name): [119,661]
+ -> B2. With DH EOLid assignments (synonym): [774]
+ -> B3. Cannot be matched at all: [300]
+ -> Total = [120,735] DIFF SHOULD BE ZERO [0]
 
--> Synonym_matched_but_no_DH_EOLid: [133]
--> Failed_synonym_match: [0]
+ -> Synonym_matched_but_no_DH_EOLid: [131]
+ -> Failed_synonym_match: [0]
 
-C. Matches made without_OR_lacking ancestry info: [140]
--> C1. [-no rank-]: 10
--> C2. [With higherClassification but cannot be mapped to any index group.]: 126
--> C3. []: 3
--> C4. [No higherClassification]: 1
--> Total = [140] DIFF SHOULD BE ZERO[0]
+C. Matches made without_OR_lacking ancestry info: [158]
+ -> C1. [-no rank-]: 10
+ -> C2. [With higherClassification but cannot be mapped to any index group.]: 126
+ -> C3. [-compatible ancestors-]: 18
+ -> C4. []: 3
+ -> C5. [No higherClassification]: 1
+ -> Total = [158] DIFF SHOULD BE ZERO [0]
 
-Total taxa from taxon.tab: 136, 197
+Total taxa from taxon.tab: 136,197
 Breakdown:
-    -> excluded: invalid taxa: 0
-    -> excluded: no canonicalName: 168
-    -> excluded: already has EOLid: 0
-    -> A. No canonical match: [15, 294]
-    -> B. Has canonical match: [120, 735]
-Total = [136, 197] DIFF SHOULD BE ZERO[0]
+ -> excluded: invalid taxa: 0
+ -> excluded: no canonicalName: 168
+ -> excluded: already has EOLid: 0
+ -> A. No canonical match: [15,294]
+ -> B. Has canonical match: [120,735]
+Total = [136,197] DIFF SHOULD BE ZERO [0]
 
 AncestryIndexVer: [new]
-total EOL IDs(unique): [119011]
-EOL ID assignments(multiple taxa can be assigned with same EOLid): [120432]
+total EOL IDs (unique): [119011]
+EOL ID assignments (multiple taxa can be assigned with same EOLid): [120435]
 
 ----------STATS end----------

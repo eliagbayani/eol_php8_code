@@ -150,6 +150,12 @@ class DHConnLib
     {
         self::get_taxID_nodes_info($this->main_path, 'initialize');
         self::get_taxID_nodes_info($this->main_path, 'buildup ancestry and children');
+
+        /* just debug
+        echo "\n mint2EOLid: ".count($this->mint2EOLid)."\n";
+        echo "\n taxID_info: ".count($this->taxID_info)."\n";
+        */
+            
         /* tests only - OK
         $eol_id = '46564414'; //Gadus
         if($ancestry = self::get_ancestry_of_taxID($eol_id)) print_r($ancestry); //worked OK

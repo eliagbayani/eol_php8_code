@@ -188,7 +188,9 @@ class DwCA_RunGNParser
         or subsection (aka subsection botany or subsection zoology) is of the form (A subgen. B | A sect. B | A subsect. B) respectively, 
         we have the right canonical for the taxon, and we can stop there.
         */
-        if(in_array($taxonRank, array("subgenus", "section", "subsection"))) {
+
+        // if(in_array($taxonRank, array("subgenus", "section", "subsection"))) {
+        if(in_array($taxonRank, $this->ranks_to_use_full_canonicals)) {        
             if(stripos($canonical, " ") !== false) {} //not 1 word //string is found
             else {
                 /* option 1:
@@ -249,9 +251,9 @@ class DwCA_RunGNParser
     }
     private function get_middle_part($rank)
     {
-        if($rank == 'subgenus')     return "subgen.";
-        if($rank == 'section')      return "sect.";
-        if($rank == 'subsection')   return "subsect.";
+        if(in_array($rank, array('subgenus', 'subgenera')))     return "subgen.";
+        if(in_array($rank, array('section', 'sections')))       return "sect.";
+        if(in_array($rank, array('subsection', 'subsections'))) return "subsect.";
         if($rank == 'section botany')       return "sect.";
         if($rank == 'subsection botany')    return "subsect.";
     }

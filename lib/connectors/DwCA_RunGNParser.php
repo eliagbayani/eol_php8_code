@@ -38,7 +38,12 @@ class DwCA_RunGNParser
         /* It's best to use the simple canonicals for all taxa except for those of rank subgenera, sections, and subsections. 
         For taxa with these ranks, we want to use the full canonicals.
         */
-        $this->ranks_to_use_full_canonicals = array("subgenera", "subgenus", "sections", "section", "subsections", "subsection");
+        $this->ranks_to_use_full_canonicals = array("subgenera", "subgenus", "sections", "section", "subsections", "subsection"); //used before detailed entire workflow
+        $this->ranks_to_use_full_canonicals = array("subgenus", "section", "subsection", "section botany", "subsection botany"); //strictly followed Katja
+        $this->ranks_to_use_full_canonicals[] = "subgenera";    //Eli's initiative, from old instruction
+        $this->ranks_to_use_full_canonicals[] = "sections";     //Eli's initiative, plural
+        $this->ranks_to_use_full_canonicals[] = "subsections";  //Eli's initiative, plural
+
         $this->debug = array();
 
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);

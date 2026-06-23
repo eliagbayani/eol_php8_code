@@ -1453,7 +1453,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     private function retrieve_ancestry_index($file_2use)
     {
         $options = $this->download_options;
-        $options['expire_seconds'] = 60*60*24*1; //60*60*24*1; //orig 1 day
+        $options['expire_seconds'] = 60*60*24*1; //orig 1 day
         // print_r($options); //exit;
         if($local = Functions::save_remote_file_to_local($file_2use, $options)) {
             $i = 0;

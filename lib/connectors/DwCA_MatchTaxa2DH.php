@@ -114,14 +114,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 exit("\n[$hc] Non-unique higherClassification in AncestryIndex NEW.\n");
             }
         }
-        /* works OK but not needed anymore
-        $this->ancestry_index_info_old = self::retrieve_ancestry_index($this->ancestry_index_file_old); //old from Katja
-        foreach($this->ancestry_index_info_old as $hc => $indexes) { //checking integrity
-            if(count($indexes) > 1) { //maybe it doesn't go here at all.
-                print_r($indexes);
-                exit("\n[$hc] Non-unique higherClassification in AncestryIndex OLD.\n");
-            }
-        } */
+
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
@@ -1450,6 +1443,15 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         // exit("\nstop muna x\n");
         $this->archive_builder->write_object_to_file($o);
     }
+
+    /*
+    |Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|
+    Insecta	.*?\|Hexapoda\|(.*?\|)?Pterygota\|.*?
+    Odonata	.*?\|Odonata\|.*?
+    Since .*?\|Odonata\|.*? matches closer to the end of the ancestry string than 
+          .*?\|Hexapoda\|(.*?\|)?Pterygota\|.*?, we want to choose Odonata as the Index value here.
+    */
+    
     private function retrieve_ancestry_index($file_2use)
     {
         $options = $this->download_options;

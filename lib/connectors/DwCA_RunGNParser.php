@@ -252,6 +252,8 @@ class DwCA_RunGNParser
         if($rank == 'subgenus')     return "subgen.";
         if($rank == 'section')      return "sect.";
         if($rank == 'subsection')   return "subsect.";
+        if($rank == 'section botany')       return "sect.";
+        if($rank == 'subsection botany')    return "subsect.";
     }
     private function is_one_word($str)
     {

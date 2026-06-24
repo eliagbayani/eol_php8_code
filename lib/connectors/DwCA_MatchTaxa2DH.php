@@ -115,6 +115,15 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             }
         }
 
+        /* ~~~~~~~~~~~~~~~~~~~~~~~~~~ this block is just for testing functions found in this library | force-assignment
+        $hc_str = "Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|";   //sample of compatible multimatches
+        // $hc_str = "Metazoa|Mollusca|unclassified Mollusca|Shishania|";          //sample of incompatible multimatches
+        $hc_str = "Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|Erythrochiton|";
+        self::search_hc_string_from_AncestryIndex_regex($hc_str);
+        exit("\n--- end tests ---\n");
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
@@ -1064,50 +1073,49 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
                 $remarkz = json_encode($arr);
                     
+                /* OBSOLETE: Eli's wrong implementation of 'compatible incompatible multimatches' 
                 if($this->have_compatibleAncestors($found1, $found2)) {
                     $rek['remarkz'] = $remarkz;
                     if($val = @$rek['remarkz']) $rek['remarkz'] .= " -compatible ancestors-";
                     else                        $rek['remarkz'] = '-compatible ancestors-';
 
                     // print_r($this->rec); print_r($rek); exit("\nstop first 1\n");
-                    // /* ---------- series of ELI001: block 2 of 2
+                    // ---------- series of ELI001: block 2 of 2
                     $taxonID = $this->rec['taxonID'];
                     if($rem = @$this->rec['taxonRemarks']) $rem .= " -compatible ancestors-";
                     else                                   $rem = '-compatible ancestors-';
                     $this->rec['taxonRemarks'] = $rem;
                     $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $this->rec;
-                    // $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
                     $this->debug['without_OR_lacking']['-compatible ancestors-'][$taxonID] = '';
-                    // ---------- */
+                    // ----------
 
-                    /* good debug
-                    echo "\n----------------- #1 task --------------------\n[$hc]\n [$found1] != [$found2] but compatibleAncestors\n";
-                    print_r($this->rec); print_r($hits); exit("\nHuli #1 task.\n"); 
-                    */
+                    // good debug
+                    // echo "\n----------------- #1 task --------------------\n[$hc]\n [$found1] != [$found2] but compatibleAncestors\n";
+                    // print_r($this->rec); print_r($hits); exit("\nHuli #1 task.\n"); 
 
                     $hits[] = $rek; //very IMPORTANT row
 
-                    // /* ---------- compatible_multimatches
+                    // ---------- compatible_multimatches_v1
                     $taxonID = $this->rec['taxonID'];
                     $this->rec['taxonRemarks'] = $rem . " ($found1; $found2) --> " . $remarkz;
-                    $this->debug['compatible_multimatches'][$taxonID] = $this->rec;
-                    // ---------- */
+                    $this->debug['compatible_multimatches_v1'][$taxonID] = $this->rec;
+                    // ----------
                 }
-                else { //write to incompatible_multimatches.tsv
-                    // /* ---------- incompatible_multimatches
+                else { //write to incompatible_multimatches_v1.tsv
+                    // ---------- incompatible_multimatches_v1
                     $taxonID = $this->rec['taxonID'];
-                    if($rem = @$this->rec['taxonRemarks']) $rem .= " -incompatible_multimatches-";
-                    else                                   $rem = '-incompatible_multimatches-';
+                    if($rem = @$this->rec['taxonRemarks']) $rem .= " -incompatible_multimatches_v1-";
+                    else                                   $rem = '-incompatible_multimatches_v1-';
                     $this->rec['taxonRemarks'] = $rem . " ($found1; $found2) --> " . $remarkz;
-                    $this->debug['incompatible_multimatches'][$taxonID] = $this->rec;
-                    // ---------- */
+                    $this->debug['incompatible_multimatches_v1'][$taxonID] = $this->rec;
+                    // ----------
                 }
+                */
             }
             else {
-                /* not fully tested
-                $trait_taxonID = $this->rec['taxonID'];
-                $this->sys[$trait_taxonID]['remark'] = "CONFLICT: Trait IndexGroup: [$found1] | DH IndexGroup: [$found2]";
-                */
+                // not fully tested
+                // $trait_taxonID = $this->rec['taxonID'];
+                // $this->sys[$trait_taxonID]['remark'] = "CONFLICT: Trait IndexGroup: [$found1] | DH IndexGroup: [$found2]";
             }
         }
         if(count($hits) == 1) return $hits[0];
@@ -1166,19 +1174,124 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 
         return false;
     }
+    /* From: https://github.com/EOL/ContentImport/issues/33#issuecomment-4673604104
+       Step 2: Preparing the resource file - ancestry (=higherClassification)
+       #2: Create Ancestry Index values
+    |Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|
+    Insecta	.*?\|Hexapoda\|(.*?\|)?Pterygota\|.*?
+    Odonata	.*?\|Odonata\|.*?
+    Since .*?\|Odonata\|.*? matches closer to the end of the ancestry string than 
+          .*?\|Hexapoda\|(.*?\|)?Pterygota\|.*?, we want to choose Odonata as the Index value here.
+
+    print_r($this->ancestry_index_info);
+    Array(
+        [.*?\|Acipenseriformes\|.*?] => Array(
+                [0] => Actinopterygii
+            )
+        [.*?\|Actinopteri\|.*?] => Array(
+                [0] => Actinopterygii
+            )
+        [.*?\|Actinopterygii\|.*?] => Array(
+                [0] => Actinopterygii
+            )
+    */
     private function search_hc_string_from_AncestryIndex_regex($hc_str) //regex
     {
+        if($hc_str == '|') return false;
         $pipe_hc_str = self::add_pipe_2str($hc_str);
-        // echo "\nneedle: [$hc_str]";
-        // /* the regex implementation
+        // echo "\n needle or HCx: [$hc_str]";
+        // echo "\n pipe needlex: [$pipe_hc_str]";
+        // needle or HC: [Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|]
+        // pipe needle: [|Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|]        
+
+        // /* the regex implementation --- 2nd vers. (latest)
+        $final = array(); 
+        $index_values = array(); // the Index values for a multi-matched ancestry string
+        foreach($this->ancestry_index_info as $index_hc => $indexes) {            
+            $pattern = "/".$index_hc."/";
+            $result = preg_match($pattern, $pipe_hc_str, $a);
+            if($result === 1) {
+                $final[] = array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc, 'lastItem_in_IndexHC' => self::get_rightmost($index_hc));
+                $index_values[] = $indexes[0];
+            }
+
+            if($result === false) {
+                exit("\nERROR: invalid regex syntax\n");
+            }
+        }
+        if(count($final) == 1) return $final[0];
+
+        // if(count($final) > 2) { print_r($final); echo("\nMore than 2 matched ancestry string\n"); } --- it is common to have > 2 matches
+        // if(count($index_values) > 2) exit("\nShould not come here. More than 2 Index values for a multi-matched ancestry string.\n"); --- this is also common
+        /* --- this is also common, 
+        if(count($index_values) == 2) {
+            if($index_values[0] == $index_values[1]) {
+                echo "\n--will terminate--\n";
+                print_r($final); print_r($index_values);
+                echo("\nInvestigate: the same Index values for a multi-matched ancestry string.\n");
+            }
+        } */
+        if(count($final) != count($index_values)) { echo "\n-Will terminate-\n"; print_r($final); print_r($index_values); exit("\nInvestigate: Different sums for [final] and [index_values]\n"); }
+        /*  print_r($final);
+            Array(
+                [0] => Array(
+                        [IndexGroup] => Insecta
+                        [IndexHC] => .*?\|Hexapoda\|(.*?\|)?Pterygota\|.*?
+                        [lastItem_in_IndexHC] => Pterygota
+                    )
+                [1] => Array(
+                        [IndexGroup] => Odonata
+                        [IndexHC] => .*?\|Odonata\|.*?
+                        [lastItem_in_IndexHC] => Odonata
+                    )
+            ) */
+        if(!$final) { 
+            $this->debug['No_hits_in_AncestryIndex'][$pipe_hc_str] = "report"; // exit("\nNo hits in AncestryIndex. Please investigate.\n");
+            return false;
+        }
+        else {
+            /* debug only - force-assignment
+            $index_values = array('Mollusca', 'Crustacea');
+            */
+            $index_values_str = implode("; ", $index_values);                    
+            if(self::are_the_IndexValues_compatible($index_values)) { //print_r($final);
+
+                $this->debug['compatible_multimatches_v2'][$pipe_hc_str."\t".$index_values_str] = "report";
+
+                $pipe_hc_array = explode("|", $pipe_hc_str); //print_r($pipe_hc_array);
+                $i = -1;
+                foreach($final as $a) { $i++;
+                    $lastItem = $a['lastItem_in_IndexHC'];
+                    $pos = array_search($lastItem, $pipe_hc_array);
+                    $final[$i]['posOfLastItem'] = $pos;
+                }
+                if($ret = self::get_inner_array_with_greatest_posOfLastItem($final)) {
+                    /* good debug
+                    echo "\n --this is the inner array: "; print_r($ret);
+                    if($index_values == array('Fungi', 'Fungi')) exit("\n--stop and check results--\n");
+                    if($pipe_hc_str == '|Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|') {
+                        print_r($index_values);
+                        exit("\n--stop and check results--\n");
+                    }
+                    */
+                    return $ret;
+                }
+            }
+            else { //not compatible index values
+                    $this->debug['incompatible_multimatches_v2'][$pipe_hc_str."\t".$index_values_str] = "report";
+                    echo "\nincompatible_multimatches_v2: "; print_r($this->debug['incompatible_multimatches_v2']);
+                    exit("\nstop muna: Incompatible multimatches\n");
+                    return false;
+            }
+        }
+        // exit("\nbeing developed...\n");
+        // */
+
+
+        /* the regex implementation --- 1st vers.
         foreach($this->ancestry_index_info as $index_hc => $indexes) {            
             // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
             $pattern = "/".$index_hc."/";
-            /*
-            if(preg_match($pattern, $pipe_hc_str, $a)) {
-                return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
-            }
-            */
             $result = preg_match($pattern, $pipe_hc_str, $a);
             if($result === 1) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
             if($result === false) {
@@ -1186,7 +1299,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             }
         }
         return false;
-        // */
+        */
     }
     /* works OK but not needed anymore
     private function search_hc_string_from_AncestryIndex_old($hc_str) //non-regex
@@ -1442,16 +1555,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         }
         // exit("\nstop muna x\n");
         $this->archive_builder->write_object_to_file($o);
-    }
-
-    /*
-    |Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|
-    Insecta	.*?\|Hexapoda\|(.*?\|)?Pterygota\|.*?
-    Odonata	.*?\|Odonata\|.*?
-    Since .*?\|Odonata\|.*? matches closer to the end of the ancestry string than 
-          .*?\|Hexapoda\|(.*?\|)?Pterygota\|.*?, we want to choose Odonata as the Index value here.
-    */
-    
+    }    
     private function retrieve_ancestry_index($file_2use)
     {
         $options = $this->download_options;
@@ -1555,11 +1659,13 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     {
         return substr($str, 0, -1);
     }
+                
+
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
         $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 
                          'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)', 
-                         'incompatible_multimatches', 'compatible_multimatches');
+                         'incompatible_multimatches_v2', 'compatible_multimatches_v1', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2');
         // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
@@ -1602,7 +1708,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     }
                     fwrite($WRITE, implode("\t", $rec)."\n");
                 }
-                if(is_string($rec)) exit("\nError: [$index] is string\n");
+                if(is_string($rec)) {
+                    if($rec == 'report') fwrite($WRITE, implode("\t", array($taxonID))."\n");
+                    else exit("\nError: [$index] is string\n");
+                }
             } 
             fclose($WRITE);
         }

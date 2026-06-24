@@ -1279,8 +1279,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             }
             else { //not compatible index values
                     $this->debug['incompatible_multimatches_v2'][$pipe_hc_str."\t".$index_values_str] = "report";
-                    echo "\nincompatible_multimatches_v2: "; print_r($this->debug['incompatible_multimatches_v2']);
-                    exit("\nstop muna: Incompatible multimatches\n");
+                    echo "\nincompatible_multimatches_v2: "; print_r($this->debug['incompatible_multimatches_v2']); exit("\nstop muna: Incompatible multimatches\n");
                     return false;
             }
         }

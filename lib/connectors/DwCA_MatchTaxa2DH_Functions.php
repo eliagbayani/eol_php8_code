@@ -230,5 +230,66 @@ class DwCA_MatchTaxa2DH_Functions
         // if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.
         unset($this->debug);
     }
+    private function print_logs_for_Katja()
+    {   echo "\nPrinting logs...";
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 
+                         'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)', 
+                         'incompatible_multimatches_v2', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2'); //compatible_multimatches_v1
+        // excluded: 'With EOLid but not matched'
+        foreach($indexes as $index) { echo "\n-> $index ...";
+            $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
+            $WRITE = fopen($file, 'w');
+            $i = 0;
+            if($loop_arr = @$this->debug[$index]) {}
+            else {
+                echo "\nNo records for: [$index]\n";
+                continue;
+            }
+            foreach($loop_arr as $taxonID => $rec) { $i++; // print_r($rec); exit("\n$taxonID\n");
+                /*Array(
+                    [http://rs.tdwg.org/dwc/terms/taxonID] => 130
+                    [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB130
+                    [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
+                    [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 
+                    [http://rs.tdwg.org/dwc/terms/scientificName] => Hydnoraceae C. Agardh
+                    [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
+                    [http://rs.tdwg.org/dwc/terms/higherClassification] => 
+                    [http://rs.tdwg.org/dwc/terms/kingdom] => Plantae
+                    [http://rs.tdwg.org/dwc/terms/phylum] => 
+                    [http://rs.tdwg.org/dwc/terms/class] => 
+                    [http://rs.tdwg.org/dwc/terms/order] => 
+                    [http://rs.tdwg.org/dwc/terms/family] => Hydnoraceae
+                    [http://rs.tdwg.org/dwc/terms/genus] => 
+                    [http://rs.tdwg.org/dwc/terms/taxonRank] => family
+                    [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => C. Agardh
+                    [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
+                    [http://purl.org/dc/terms/modified] => 2019-09-24 16:40:37.148
+                    [http://rs.gbif.org/terms/1.0/canonicalName] => Hydnoraceae
+                    [http://eol.org/schema/EOLid] => 
+                )*/
+                if($rec && is_array($rec)) {
+                    $uris = array_keys($rec);
+                    $headers = array();
+                    foreach($uris as $uri) $headers[] = self::small_field($uri);
+                    if($i == 1) {
+                        fwrite($WRITE, implode("\t", $headers)."\n");
+                        // print_r($headers); //good debug
+                    }
+                    fwrite($WRITE, implode("\t", $rec)."\n");
+                }
+                if(is_string($rec)) {
+                    if($rec == 'report') fwrite($WRITE, implode("\t", array($taxonID))."\n");
+                    else exit("\nError: [$index] is string\n");
+                }
+            } 
+            fclose($WRITE);
+        }
+        echo "\nLogs printed.\n";
+    }
+    private function number_format_eli($num)
+    {
+        if($num) return number_format($num);
+        else return 0;
+    }
 }
 ?>

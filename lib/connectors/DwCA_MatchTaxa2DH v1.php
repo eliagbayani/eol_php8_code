@@ -77,14 +77,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $this->debug4 = array();
     }
     /*================================================================= STARTS HERE ======================================================================*/
-    private function initialize()
+    function start($info)
     {
         $this->compatibleAncestors = $this->get_compatibleAncestors();
         require_library('connectors/DwCA_Utility_cmd');
-    }
-    function start($info)
-    {
-        self::initialize();
         // /* step 1: read info from DH
         require_library('connectors/DHConnLib');
         $this->DH = new DHConnLib(1);
@@ -112,7 +108,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $this->ancestry_index_info = self::retrieve_ancestry_index($this->ancestry_index_file); //new from Katja
         //print_r($this->ancestry_index_info); //exit("\nstop muna\n");
         foreach($this->ancestry_index_info as $hc => $indexes) { //checking integrity
-            if(count($indexes) > 1) { //it goes here sometimes, not often. Better to keep this block.
+            if(count($indexes) > 1) { //maybe it doesn't go here at all.
                 print_r($indexes);
                 exit("\n[$hc] Non-unique higherClassification in AncestryIndex NEW.\n");
             }
@@ -125,6 +121,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         self::search_hc_string_from_AncestryIndex_regex($hc_str);
         exit("\n--- end tests ---\n");
         ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
@@ -321,18 +318,21 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); @$this->debug['excluded: invalid taxa']++; continue;} 
                 if(!$canonicalName)                                {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
                 if(@$rec['EOLid']) {
+                    
                     /* commented for: Body Length Data for North American Syrphidae & Tabanidae
                                     : Fungi ecomorphological trait data
                     self::write_2archive($rec);
                     @$this->debug['excluded: already has EOLid']++; 
                     continue;
                     */
+
                     // /* if above is commented, then this should be un-commented. Toggle with above.
                     $rec['EOLid'] = '';
                     // */
+
                     /*
                     To do: Check if EOLid exists, if not then set => $rec['EOLid'] = '';
-                    Until then, it is safer to set => $rec['EOLid'] = ''; ... than to accept the given EOLid from the DwCA which oftenly is not in sync with latest working DH.
+                    Until then, it is safer to set => $rec['EOLid'] = ''; ... than to accept the given EOLid from the DwCA.
                     */
 
                 } //trait taxon already has EOLid

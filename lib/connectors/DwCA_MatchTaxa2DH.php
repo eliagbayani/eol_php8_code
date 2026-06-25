@@ -51,8 +51,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1);
         // $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
         $this->ancestry_index_file_old = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
-        // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=0#gid=0
-        $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index_regex.tsv";
+        $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry Index - new.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
 
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
@@ -1279,7 +1278,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             }
             else { //not compatible index values
                     $this->debug['incompatible_multimatches_v2'][$pipe_hc_str."\t".$index_values_str] = "report";
-                    echo "\nincompatible_multimatches_v2: "; print_r($this->debug['incompatible_multimatches_v2']); exit("\nstop muna: Incompatible multimatches\n");
+                    // echo "\nincompatible_multimatches_v2: "; print_r($this->debug['incompatible_multimatches_v2']); exit("\nstop muna: Incompatible multimatches\n");
                     return false;
             }
         }

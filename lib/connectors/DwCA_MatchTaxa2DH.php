@@ -1142,8 +1142,13 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     if($index_values == array('Fungi', 'Fungi')) exit("\n--stop and check results--\n");
                     if($pipe_hc_str == '|Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|') {
                         print_r($index_values); exit("\n--stop and check results--\n");
-                    }
-                    */
+                    }*/
+                    /*Array(
+                        [IndexGroup] => Odonata
+                        [IndexHC] => .*?\|Odonata\|.*?
+                        [lastItem_in_IndexHC] => Odonata
+                        [posOfLastItem] => 5
+                    )*/
                     return $ret;
                 }
             }

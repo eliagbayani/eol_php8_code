@@ -129,7 +129,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         self::process_table($meta, 'generate_synonyms_info');
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
-
         self::debug_reports();
     }
     private function process_table($meta, $what)
@@ -209,7 +208,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
-                    $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); exit("\nelix 1\n");
+                    $ret = self::can_proceedYN_using_AncestryIndex($rec); //print_r($ret); exit("\nelix 1\n");
                     /*  Array(
                             [0] => Array( just an example:
                                     [taxonID] => 12
@@ -369,7 +368,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         }
         else return $tobe_added;
     }
-    private function can_proceed_with_AncestryIndex_check($rec)
+    private function can_proceedYN_using_AncestryIndex($rec)
     {   /*e.g. Array(
             [taxonID] => 12
             [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
@@ -431,10 +430,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $dwca_hc = self::normalize_array($dwca_hc);
         $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" OR "Basidiomycota|"     // exit("\n[$dwca_hc_string]\nstop muna 1\n");
         if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
-            /*Array( print_r($ret)
-                [IndexGroup] => Odonata
-                [IndexHC] => .*?\|Odonata\|.*?
-                [lastItem_in_IndexHC] => Odonata
+            /*Array(
+                [IndexGroup] => Fungi
+                [IndexHC] => .*?\|Basidiomycota\|.*?
+                [lastItem_in_IndexHC] => Basidiomycota
             )*/
             $ret['SourceHC'] = $dwca_hc_string;
             // print_r($ret); echo("\nmay nakuha\n");

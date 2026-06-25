@@ -344,7 +344,33 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 if ($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
-                    $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); echo("\nelix 1\n");
+                    $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); exit("\nelix 1\n");
+                    /*  Array(
+                            [0] => Array(
+                                    [taxonID] => 12
+                                    [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
+                                    [acceptedNameUsageID] => 
+                                    [parentNameUsageID] => 120181
+                                    [scientificName] => Agaricales
+                                    [namePublishedIn] => 
+                                    [higherClassification] => Basidiomycota|
+                                    [kingdom] => Fungi
+                                    [phylum] => Basidiomycota
+                                    [class] => 
+                                    [order] => Agaricales
+                                    [family] => 
+                                    [genus] => 
+                                    [taxonRank] => order
+                                    [scientificNameAuthorship] => 
+                                    [taxonomicStatus] => accepted
+                                    [modified] => 2018-08-10 11:58:06.954
+                                    [canonicalName] => Agaricales
+                                    [EOLid] => 
+                                    [taxonRemarks] => Trait: [ IndexGroup:[Fungi] - IndexHC:[.*?\|Basidiomycota\|.*?] ]
+                                )
+                            [1] => 1
+                        )                    
+                    */
                                               $rec = $ret[0];
                     $can_proceed_with_AIndex_check = $ret[1];
 
@@ -529,8 +555,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     [IndexHC] => Anacardiaceae|*
                     [SourceHC] => Anacardiaceae|
                 )*/                
-                $remarkz  = "Trait: [".$ret['SourceHC']."] - IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."]";
-                $remarkz  = "Trait: [IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."]";
+                // $remarkz  = "Trait: [".$ret['SourceHC']."] - IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."]";
+                $remarkz  = "Trait: [ IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."] ]";
                 $rec['taxonRemarks'] = $remarkz;
                 return $rec;
             }
@@ -543,7 +569,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         // echo("\nneedle: [$hc][$guide]\n");
         $dwca_hc = explode("|", $hc);
         $dwca_hc = self::normalize_array($dwca_hc);
-        $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" //exit("\n[$dwca_hc_string]\nstop muna 1\n");
+        $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" OR "Basidiomycota|"     // exit("\n[$dwca_hc_string]\nstop muna 1\n");
         // $found1 = false;
         // $index_hc1 = '';
         if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {

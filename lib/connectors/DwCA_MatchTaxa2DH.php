@@ -917,7 +917,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         } */
         // print_r($reks); print_r($hc); exit("\n[$type]\nhere 10\n");
     }
-    private function matching_byKatja($reks, $hc) //https://github.com/EOL/ContentImport/issues/33#issuecomment-3115034620
+    private function matching_byKatja($reks, $hc) //https://github.com/EOL/ContentImport/issues/33#issuecomment-3115034620 --- Katja's main higherClassification guidelines
     {
         $found1 = false; 
         $index_hc1 = ''; 

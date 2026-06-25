@@ -431,11 +431,12 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $dwca_hc = explode("|", $hc);
         $dwca_hc = self::normalize_array($dwca_hc);
         $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" OR "Basidiomycota|"     // exit("\n[$dwca_hc_string]\nstop muna 1\n");
-        // $found1 = false;
-        // $index_hc1 = '';
         if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
-            // $found1 = $ret[0];
-            // $index_hc1 = $ret[1]; //stats only
+            /*Array( print_r($ret)
+                [IndexGroup] => Odonata
+                [IndexHC] => .*?\|Odonata\|.*?
+                [lastItem_in_IndexHC] => Odonata
+            )*/
             $ret['SourceHC'] = $dwca_hc_string;
             // print_r($ret); echo("\nmay nakuha\n");
             return $ret;
@@ -934,6 +935,12 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             $found2 = false; 
             $index_hc2 = '';
             if($ret = self::search_hc_string_from_AncestryIndex($DH_hc_string)) {
+                /*Array(
+                    [IndexGroup] => Fungi
+                    [IndexHC] => .*?\|Basidiomycota\|.*?
+                    [lastItem_in_IndexHC] => Basidiomycota
+                    [posOfLastItem] => 8
+                )*/
                 $found2 = $ret['IndexGroup'];
                 $index_hc2 = $ret['IndexHC']; //stats only
             }
@@ -1041,6 +1048,12 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             @$this->debug['call ancestry index']['new index']++;
             if($this->run_debug4_YN) $this->debug4[$this->AncestryIndexVer.' - index ATTEMPTS'][$hc_str] = '';
             if($ret = self::search_hc_string_from_AncestryIndex_regex($hc_str)) {
+                /*Array(
+                    [IndexGroup] => Odonata
+                    [IndexHC] => .*?\|Odonata\|.*?
+                    [lastItem_in_IndexHC] => Odonata
+                    [posOfLastItem] => 5
+                )*/
                 @$this->debug['call ancestry index']['new index success']++;
                 if($this->run_debug3_YN) $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
                 return $ret;

@@ -416,7 +416,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     [IndexHC] => Anacardiaceae|*
                     [SourceHC] => Anacardiaceae|
                 )*/                
-                // $remarkz  = "Trait: [".$ret['SourceHC']."] - IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."]";
                 $remarkz  = "Trait: [ IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."] ]";
                 $rec['taxonRemarks'] = $remarkz;
                 return $rec;
@@ -689,37 +688,37 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         return $rec;
     }
     private function which_rek_to_use($rec, $reks, $taxonRank, $strictYN = false)
-    {   /*e.g. $reks Array(
-            [EOL-000000020456] => Array(
-                    [r] => genus
-                    [e] => 47182486
-                    [h] => Life|Cellular Organisms|Bacteria|Proteobacteria|Gammaproteobacteria|Enterobacterales|Hafniaceae
-                )
-            [EOL-000000547422] => Array(
-                    [r] => genus
-                    [e] => 54411
-                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Cnidaria|Anthozoa|Hexacorallia|Actiniaria|Anenthemonae|Edwardsioidea|Edwardsiidae
-                )
+    {   /*Array(
+            [taxonID] => 12
+            [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
+            [acceptedNameUsageID] => 
+            [parentNameUsageID] => 120181
+            [scientificName] => Agaricales
+            [namePublishedIn] => 
+            [higherClassification] => Basidiomycota|
+            [kingdom] => Fungi
+            [phylum] => Basidiomycota
+            [class] => 
+            [order] => Agaricales
+            [family] => 
+            [genus] => 
+            [taxonRank] => order
+            [scientificNameAuthorship] => 
+            [taxonomicStatus] => accepted
+            [modified] => 2018-08-10 11:58:06.954
+            [canonicalName] => Agaricales
+            [EOLid] => 
+            [taxonRemarks] => Trait: [ IndexGroup:[Fungi] - IndexHC:[.*?\|Basidiomycota\|.*?] ]
         )
-        Array( e.g. Brazilian Flora
-            [http://rs.tdwg.org/dwc/terms/taxonID] => 12
-            [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
-            [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
-            [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 120181
-            [http://rs.tdwg.org/dwc/terms/scientificName] => Agaricales
-            [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
-            [http://rs.tdwg.org/dwc/terms/kingdom] => Fungi
-            [http://rs.tdwg.org/dwc/terms/phylum] => Basidiomycota
-            [http://rs.tdwg.org/dwc/terms/class] => 
-            [http://rs.tdwg.org/dwc/terms/order] => Agaricales
-            [http://rs.tdwg.org/dwc/terms/family] => 
-            [http://rs.tdwg.org/dwc/terms/genus] => 
-            [http://rs.tdwg.org/dwc/terms/taxonRank] => order
-            [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => 
-            [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
-            [http://purl.org/dc/terms/modified] => 2018-08-10 11:58:06.954
-            [http://rs.gbif.org/terms/1.0/canonicalName] => Agaricales
-            [http://eol.org/schema/EOLid] => 
+        Array(
+            [EOL-000002278575] => Array(
+                    [r] => order
+                    [e] => 5676
+                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Nucletmycea|Fungi|Dikarya|Basidiomycota|Agaricomycetes
+                    [c] => Agaricales
+                    [t] => EOL-000002278575
+                    [s] => a
+                )
         )*/
         // exit("\nhere 3\n");
         $taxonID = $rec['taxonID'];
@@ -965,45 +964,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 $arr['Trait'] = array('IndexGroup' => $found1, 'IndexHC' => $index_hc1);
                 $arr['DH']    = array('hC' => $DH_hc_string, 'IndexGroup' => $found2, 'IndexHC' => $index_hc2, 'DHtaxonID' => $rek['t']);
                 $remarkz = json_encode($arr);
-                    
-                /* OBSOLETE: Eli's wrong implementation of 'compatible incompatible multimatches' 
-                if($this->have_compatibleAncestors($found1, $found2)) {
-                    $rek['remarkz'] = $remarkz;
-                    if($val = @$rek['remarkz']) $rek['remarkz'] .= " -compatible ancestors-";
-                    else                        $rek['remarkz'] = '-compatible ancestors-';
-
-                    // print_r($this->rec); print_r($rek); exit("\nstop first 1\n");
-                    // ---------- series of ELI001: block 2 of 2
-                    $taxonID = $this->rec['taxonID'];
-                    if($rem = @$this->rec['taxonRemarks']) $rem .= " -compatible ancestors-";
-                    else                                   $rem = '-compatible ancestors-';
-                    $this->rec['taxonRemarks'] = $rem;
-                    $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $this->rec;
-                    $this->debug['without_OR_lacking']['-compatible ancestors-'][$taxonID] = '';
-                    // ----------
-
-                    // good debug
-                    // echo "\n----------------- #1 task --------------------\n[$hc]\n [$found1] != [$found2] but compatibleAncestors\n";
-                    // print_r($this->rec); print_r($hits); exit("\nHuli #1 task.\n"); 
-
-                    $hits[] = $rek; //very IMPORTANT row
-
-                    // ---------- compatible_multimatches_v1
-                    $taxonID = $this->rec['taxonID'];
-                    $this->rec['taxonRemarks'] = $rem . " ($found1; $found2) --> " . $remarkz;
-                    $this->debug['compatible_multimatches_v1'][$taxonID] = $this->rec;
-                    // ----------
-                }
-                else { //write to incompatible_multimatches_v1.tsv
-                    // ---------- incompatible_multimatches_v1
-                    $taxonID = $this->rec['taxonID'];
-                    if($rem = @$this->rec['taxonRemarks']) $rem .= " -incompatible_multimatches_v1-";
-                    else                                   $rem = '-incompatible_multimatches_v1-';
-                    $this->rec['taxonRemarks'] = $rem . " ($found1; $found2) --> " . $remarkz;
-                    $this->debug['incompatible_multimatches_v1'][$taxonID] = $this->rec;
-                    // ----------
-                }
-                */
+                /* OBSOLETE: Eli's wrong implementation of 'compatible incompatible multimatches' */
             }
             else {
                 // not fully tested

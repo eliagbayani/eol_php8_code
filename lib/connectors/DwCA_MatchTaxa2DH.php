@@ -1035,16 +1035,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     }
     private function search_hc_string_from_AncestryIndex($hc_str) //the regex implementation
     {   $hc_str = trim($hc_str);
-        if($this->AncestryIndexVer == 'old') {
-            // /* using the old index:
-            @$this->debug['call ancestry index']['old index']++;
-            if($ret = self::search_hc_string_from_AncestryIndex_old($hc_str)) {
-                @$this->debug['call ancestry index']['old index success']++;
-                if($this->run_debug3_YN) $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
-                return $ret;
-            }
-            // */
-        }
+        if($this->AncestryIndexVer == 'old') {}
         elseif($this->AncestryIndexVer == 'new') { //using regex index
             // /* using the regex index:
             @$this->debug['call ancestry index']['new index']++;
@@ -1057,7 +1048,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             // */
         }
         else exit("\nERROR: AncestryIndex version was not set.\n");
-
         return false;
     }
     /* From: https://github.com/EOL/ContentImport/issues/33#issuecomment-4673604104

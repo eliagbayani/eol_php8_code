@@ -211,9 +211,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     $rec['taxonRemarks'] = '';
                     $ret = self::can_proceed_with_AncestryIndex_check($rec); //print_r($ret); exit("\nelix 1\n");
                     /*  Array(
-                            [0] => Array(
+                            [0] => Array( just an example:
                                     [taxonID] => 12
-                                    [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
                                     [acceptedNameUsageID] => 
                                     [parentNameUsageID] => 120181
                                     [scientificName] => Agaricales
@@ -223,12 +222,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     [phylum] => Basidiomycota
                                     [class] => 
                                     [order] => Agaricales
-                                    [family] => 
-                                    [genus] => 
                                     [taxonRank] => order
                                     [scientificNameAuthorship] => 
                                     [taxonomicStatus] => accepted
-                                    [modified] => 2018-08-10 11:58:06.954
                                     [canonicalName] => Agaricales
                                     [EOLid] => 
                                     [taxonRemarks] => Trait: [ IndexGroup:[Fungi] - IndexHC:[.*?\|Basidiomycota\|.*?] ]
@@ -1105,9 +1101,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 $index_values[] = $indexes[0];
             }
 
-            if($result === false) {
-                exit("\nERROR: invalid regex syntax\n");
-            }
+            if($result === false) exit("\nERROR: invalid regex syntax\n");
         }
         if(count($final) == 1) return $final[0];
 

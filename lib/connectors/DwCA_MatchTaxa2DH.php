@@ -1100,7 +1100,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 $final[] = array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc, 'lastItem_in_IndexHC' => self::get_rightmost($index_hc));
                 $index_values[] = $indexes[0];
             }
-
             if($result === false) exit("\nERROR: invalid regex syntax\n");
         }
         if(count($final) == 1) return $final[0];
@@ -1169,39 +1168,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         }
         // exit("\nbeing developed...\n");
         // */
-
-
-        /* the regex implementation --- 1st vers.
-        foreach($this->ancestry_index_info as $index_hc => $indexes) {            
-            // $pattern = '/.*?\|Chordata\|(.*?\|)?Leptocephalus\|.*?/';
-            $pattern = "/".$index_hc."/";
-            $result = preg_match($pattern, $pipe_hc_str, $a);
-            if($result === 1) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
-            if($result === false) {
-                exit("\nERROR: invalid regex syntax\n");
-            }
-        }
-        return false;
-        */
     }
-    /* works OK but not needed anymore
-    private function search_hc_string_from_AncestryIndex_old($hc_str) //non-regex
-    {   
-        foreach($this->ancestry_index_info_old as $index_hc => $indexes) {            
-            if(self::is_ending_in_asterisk($index_hc)) {
-                // start - strict implementation
-                $len = strlen($index_hc) - 1;
-                if(substr($hc_str,0,$len) == self::remove_last_char($index_hc)) {
-                    return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
-                }
-                // end - strict implementation
-            }
-            else {
-                if($index_hc == $hc_str) return array('IndexGroup' => $indexes[0], 'IndexHC' => $index_hc);
-            }
-        }
-        return false;
-    } */
     private function is_ending_in_asterisk($str)
     {
         $last_char = substr($str, -1);

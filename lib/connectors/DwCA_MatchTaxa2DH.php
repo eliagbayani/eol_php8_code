@@ -1657,13 +1657,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     {
         return substr($str, 0, -1);
     }
-                
-
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
         $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 
                          'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)', 
-                         'incompatible_multimatches_v2', 'compatible_multimatches_v1', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2');
+                         'incompatible_multimatches_v2', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2'); //compatible_multimatches_v1
         // excluded: 'With EOLid but not matched'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
@@ -1762,9 +1760,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     private function shorten_record($rec)
     {
         $new = array();
-        foreach($rec as $key => $val) {
-            $new[self::small_field($key)] = $val;
-        }
+        foreach($rec as $key => $val) $new[self::small_field($key)] = $val;
         return $new;
     }
     private function small_field($uri)

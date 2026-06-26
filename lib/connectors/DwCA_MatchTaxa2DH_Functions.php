@@ -240,7 +240,7 @@ class DwCA_MatchTaxa2DH_Functions
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
             $WRITE = fopen($file, 'w');
             $i = 0;
-            if($loop_arr = @$this->debug[$index]) {}
+            if($loop_arr = @$this->debug[$index]) echo "\nHas records for: [$index] [n=".count($loop_arr)."]\n";
             else {
                 echo "\nNo records for: [$index]\n";
                 continue;
@@ -286,10 +286,20 @@ class DwCA_MatchTaxa2DH_Functions
         }
         echo "\nLogs printed.\n";
     }
-    private function number_format_eli($num)
+    function number_format_eli($num)
     {
         if($num) return number_format($num);
         else return 0;
+    }
+    function shorten_record($rec)
+    {
+        $new = array();
+        foreach($rec as $key => $val) $new[self::small_field($key)] = $val;
+        return $new;
+    }
+    function small_field($uri)
+    {
+        return pathinfo($uri, PATHINFO_FILENAME);
     }
 }
 ?>

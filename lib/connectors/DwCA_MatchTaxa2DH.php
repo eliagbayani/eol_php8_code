@@ -987,9 +987,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 return $rek;
             }
 
-            echo "\n-----------------multiple hits detected--------------------\n[$hc]\n";
+            echo "\n----------------- multiple hits detected: even after choose_from_matched_group() --------------------\n[$hc]\n";
             print_r($this->rec);
             print_r($arr);
+            print_r($reks);
             print_r($hits);
             echo("\nSo this is possible here. Need to plan again.\nBut will be ignored for now.\n");
         }
@@ -1516,16 +1517,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             exit("\nInvestigate 01: synonym doesn't have an acceptedNameUsageID\n");
         }
         return $rek;
-    }
-    private function shorten_record($rec)
-    {
-        $new = array();
-        foreach($rec as $key => $val) $new[self::small_field($key)] = $val;
-        return $new;
-    }
-    private function small_field($uri)
-    {
-        return pathinfo($uri, PATHINFO_FILENAME);
     }
     /* copied template
     private function get_taxonID_EOLid_list()

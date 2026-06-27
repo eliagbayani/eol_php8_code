@@ -479,26 +479,17 @@ class DwCA_MatchTaxa2DH_Functions
                 $pairs[$i][1]['AI'] = $arr['IndexGroup']; 
             }
         }
-        print_r($pairs); exit("\nelix 5\n");
+        // print_r($pairs); exit("\nelix 5\n"); //good debug
 
 
         /* If Ancestry Index values are the same, keep the match and go to Step 6 */
         $pairz = array();
         foreach($pairs as $pair) {
             $rec = $pair[0];
-            $rec['AI'] = self::parse_AI_from_str($rec['taxonRemarks']);
             $rek = $pair[1];
-            if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek['h'])) { // get AI for $rek['h']
-                /*Array(
-                    [IndexGroup] => Fungi
-                    [IndexHC] => .*?\|Basidiomycota\|.*?
-                    [lastItem_in_IndexHC] => Basidiomycota
-                    [posOfLastItem] => 8
-                )*/
-                $rek['AI'] = $arr['IndexGroup']; 
-            }
             if($rec['AI'] == @$rek['AI']) $pairz[] = array($rec, $rek);
         }
+        print_r($pairs); exit("\nelix 7\n");
         if($pairz) return $pairz;
 
         /*  If Ancestry Index values are different:

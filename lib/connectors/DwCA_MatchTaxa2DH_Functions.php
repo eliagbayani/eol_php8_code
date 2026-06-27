@@ -344,43 +344,136 @@ class DwCA_MatchTaxa2DH_Functions
                 )
         )*/
         /*--- If the rank values are the same, keep the match and go to Step 4 ---*/
+        $pairs = array(); //a pair consists of 1 rec and 1 rek
         foreach($reks as $rek) {
-            if($taxonRank == $rek['r']) return array($rec, $rek);
+            if($taxonRank == $rek['r']) $pairs[] = array($rec, $rek);
         }
+        if($pairs) return $pairs;
         /*--- If one or both of the rank values are empty, keep the match and go to step Step 4
                 - Add note "-no rank-" in the taxon remarks of the relevant log file ---*/
+        $pairs = array();
         foreach($reks as $rek) {
             if(!$taxonRank || !$rek['r']) {
                 if($val = @$rec['taxonRemarks']) $rec['taxonRemarks'] .= " -no rank-";
                 else                             $rec['taxonRemarks'] = '-no rank-';
-                return array($rec, $rek);
+                $pairs[] = array($rec, $rek);
             }
         }
+        if($pairs) return $pairs;
         /*---
         If the rank values are different:
             If both rank values are subspecific, keep the match and go to step Step 4
                 subspecific ranks are: subspecies|variety|form|forma|infraspecies|infraspecific name|infrasubspecific name|subvariety|subform|proles|lusus|forma specialis ---*/
+        $pairs = array();
         foreach($reks as $rek) {
             if($taxonRank != $rec['r']) {
-                if(self::rank_is_subspecific_YN($taxonRank) && self::rank_is_subspecific_YN($rek['r'])) return array($rec, $rek);
+                if(self::rank_is_subspecific_YN($taxonRank) && self::rank_is_subspecific_YN($rek['r'])) $pairs[] = array($rec, $rek);
             }
         }
+        if($pairs) return $pairs;
         /*---
             If both taxa have ranks that are not subspecific|species|genus|subgenus|section|subsection|section botany|subsection botany, keep the match and go to step 4 ---*/
+        $pairs = array();
         foreach($reks as $rek) {
             $rankz = array('subspecific', 'species', 'genus', 'subgenus', 'section', 'subsection', 'section botany', 'subsection botany');
             if($taxonRank != $rec['r']) {
-                if(!in_array($taxonRank, $rankz) && !in_array($rek['r'], $rankz)) return array($rec, $rek);
+                if(!in_array($taxonRank, $rankz) && !in_array($rek['r'], $rankz)) $pairs[] = array($rec, $rek);
             }
         }
-        /*---
+        if($pairs) return $pairs;
+        /*--- Below here are all DISCARD cases:
             If one rank value is subspecific and the other is something else (but not empty), discard the match
             If one rank value is species and the other is something else (but not empty), discard the match
             If one rank is genus and the other is something else (but not empty), discard the match
             If one rank is subgenus and the other is something else (but not empty), discard the match
             If one rank is section or section botany and the other is something else (but not empty), discard the match
-            If one rank is subsection or subsection botany and the other is something else (but not empty), discard the match ---*/        
-
+            If one rank is subsection or subsection botany and the other is something else (but not empty), discard the match ---*/
+    }
+    function name_matching_ancestry_compatibility($pairs) //Step 4: Name matching - ancestry compatibility
+    {   /*Array(
+            [0] => Array(
+                    [0] => Array(
+                            [taxonID] => 556
+                            [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB556
+                            [acceptedNameUsageID] => 
+                            [parentNameUsageID] => 212
+                            [scientificName] => Erythrochiton Nees & Mart.
+                            [higherClassification] => Rutaceae|
+                            [kingdom] => Plantae
+                            [phylum] => 
+                            [class] => 
+                            [order] => 
+                            [family] => Rutaceae
+                            [genus] => Erythrochiton
+                            [taxonRank] => genus
+                            [scientificNameAuthorship] => Nees & Mart.
+                            [taxonomicStatus] => accepted
+                            [canonicalName] => Erythrochiton
+                            [EOLid] => 
+                            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]
+                        )
+                    [1] => Array(
+                            [r] => genus
+                            [e] => 47126261
+                            [h] => Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae
+                            [c] => Erythrochiton
+                            [t] => EOL-000000458933
+                            [s] => a
+                        )
+                )
+            [1] => Array(
+                    [0] => Array(
+                            [taxonID] => 556
+                            [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB556
+                            [acceptedNameUsageID] => 
+                            [parentNameUsageID] => 212
+                            [scientificName] => Erythrochiton Nees & Mart.
+                            [higherClassification] => Rutaceae|
+                            [kingdom] => Plantae
+                            [phylum] => 
+                            [class] => 
+                            [order] => 
+                            [family] => Rutaceae
+                            [genus] => Erythrochiton
+                            [taxonRank] => genus
+                            [scientificNameAuthorship] => Nees & Mart.
+                            [taxonomicStatus] => accepted
+                            [canonicalName] => Erythrochiton
+                            [EOLid] => 
+                            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]
+                        )
+                    [1] => Array(
+                            [r] => genus
+                            [e] => 9372
+                            [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Ecdysozoa|Arthropoda|Pancrustacea|Hexapoda|Insecta|Pterygota|Neoptera|Endopterygota|Coleoptera|Polyphaga|Cucujiformia|Chrysomeloidea|Cerambycidae
+                            [c] => Erythrochiton
+                            [t] => EOL-000001554251
+                            [s] => a
+                        )
+                )
+        )        
+        */
+        foreach($pairs as $pair) {
+            $rec = $pair[0];
+            $rec_AI = self::parse_AI_from_str($rec['taxonRemarks']);
+            $rek = $pair[1];
+            // get AI for $rek['h']
+            if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek['h'])) {
+                /*Array(
+                    [IndexGroup] => Odonata
+                    [IndexHC] => .*?\|Odonata\|.*?
+                    [lastItem_in_IndexHC] => Odonata
+                    [posOfLastItem] => 5
+                )*/
+                $rek_AI = $arr['IndexGroup'];
+            }
+            print_r($pair);
+            exit("\n[$rec_AI] [$rek_AI]\neli 3\n");
+        }
+    }
+    private function parse_AI_from_str($str) //e.g. $str "Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]"
+    {
+        if(preg_match("/IndexGroup\:\[(.*?)\]/ims", $str, $a)) return $a[1];
     }
     private function rank_is_subspecific_YN($rank)
     {

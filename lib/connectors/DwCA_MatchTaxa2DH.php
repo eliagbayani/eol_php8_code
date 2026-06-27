@@ -239,10 +239,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     $can_proceed_with_AIndex_check = $ret[1];
                     // /* ----- NEW IMPLELENTATION ----- new detailed entire workflow
                     if($can_proceed_with_AIndex_check) {
-                        if($taxonRank) { //Step 3: Name matching - rank compatibility
-                            $rec = self::matching_routine_using_rank_v2($rec, $reks, $taxonRank);
-                        }
+                        if($ret = self::matching_routine_using_rank_v2($rec, $reks, $taxonRank)) { //Step 3: Name matching - rank compatibility
+                            if($ret2 = self::name_matching_ancestry_compatibility($ret)) { //Step 4: Name matching - ancestry compatibility
 
+                            }
+                        }
                     }
 
                     // */
@@ -1054,7 +1055,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 [0] => Actinopterygii
             )
     */
-    private function search_hc_string_from_AncestryIndex_regex($hc_str) //regex
+    function search_hc_string_from_AncestryIndex_regex($hc_str) //regex
     {
         if($hc_str == '|') return false;
         $pipe_hc_str = self::add_pipe_2str($hc_str);

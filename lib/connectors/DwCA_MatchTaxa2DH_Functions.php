@@ -478,27 +478,51 @@ class DwCA_MatchTaxa2DH_Functions
                 $pairs[$i][1]['tR'] = "DH: [ IndexGroup:[".$arr['IndexGroup']."] - IndexHC:[".$arr['IndexHC']."] ]";
                 $pairs[$i][1]['AI'] = $arr['IndexGroup']; 
             }
+            else {
+                $pairs[$i][1]['tR'] = '';
+                $pairs[$i][1]['AI'] = '';
+            }
         }
-        // print_r($pairs); exit("\nelix 5\n"); //good debug
-
+        // print_r($pairs); exit("\nelix 5\n"); //good debug to see what do we exactly have here.
 
         /* If Ancestry Index values are the same, keep the match and go to Step 6 */
         $pairz = array();
         foreach($pairs as $pair) {
             $rec = $pair[0];
             $rek = $pair[1];
-            if($rec['AI'] == @$rek['AI']) $pairz[] = array($rec, $rek);
+            if($rec['AI'] && $rek['AI']) {
+                if($rec['AI'] == $rek['AI']) $pairz[] = array($rec, $rek);
+            }
         }
-        print_r($pairs); exit("\nelix 7\n");
         if($pairz) return $pairz;
 
         /*  If Ancestry Index values are different:
                 Use the compatibleAncestors.txt file to determine if the Index values are compatible, i.e., if the file has a line that has both of the values, they are compatible.
                     If the ancestors are compatible, keep the match and go to Step 6
                     If the ancestors are not compatible, go to step 5. */
-        
+        $pairz = array();
+        foreach($pairs as $pair) {
+            $rec = $pair[0];
+            $rek = $pair[1];
+            if($rec['AI'] && $rek['AI']) {
+                if($rec['AI'] != $rek['AI']) {
+                    if(self::are_the_IndexValues_compatible(array($rec['AI'], $rek['AI']))) $pairz[] = array($rec, $rek);
+                    else {
+                        //go step 5
+                    }
+                }
+            }
+        }
+        if($pairz) return $pairz;
 
-
+        /* If one or both Ancestry Index values are empty, keep the match and go to Step 6 */
+        $pairz = array();
+        foreach($pairs as $pair) {
+            $rec = $pair[0];
+            $rek = $pair[1];
+            if(!$rec['AI'] || !$rek['AI']) $pairz[] = array($rec, $rek);
+        }
+        if($pairz) return $pairz;
     }
     private function parse_AI_from_str($str) //e.g. $str "Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]"
     {

@@ -233,28 +233,24 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     */
                                               $rec = $ret[0];
                     $can_proceed_with_AIndex_check = $ret[1];
+                    // /* ----- NEW IMPLELENTATION ----- new detailed entire workflow
+                    // */
 
-                    if($can_proceed_with_AIndex_check) {
-                        $rec = self::matching_routine_using_HC($rec, $reks); //print_r($rec); print_r($reks); //exit("\nhuli kax\n");
-                        // if($rec['EOLid']) { print_r($rec); exit("\ndito 1\n"); }
-                        // else exit("\ngoes here 1\n");
-                    }
+                    /* ----- OLD IMPLEMENTATION -----
+                    if($can_proceed_with_AIndex_check) $rec = self::matching_routine_using_HC($rec, $reks);
                     else {
                         if($taxonRank) {
                             $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
-                            // if($rec['EOLid']) { print_r($rec); exit("\ndito 2\n"); }
                         }
                         if(!@$rec['EOLid']) {
                             $rec = self::matching_routine_using_HC($rec, $reks);
-                            // if($rec['EOLid']) exit("\ndito 3\n");
                         }
-
                         if(@$rec['EOLid']) {
-                            // /* ---------- series of ELI001: block 1 of 2
+                            // ---------- series of ELI001: block 1 of 2
                             $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
                             $rem = $rec['taxonRemarks'];
                             $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
-                            // ---------- */
+                            // ----------
                         }
                         else {
                             $taxonID = $rec['taxonID'];
@@ -262,11 +258,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             $this->debug['Cannot be matched at all'][$taxonID] = $rec; //four
                         }
                     }
-
                     if($rec['EOLid']) @$this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
                     else {
                         $rec = self::the_synonyms_way($reks, $rec);
-                        // if($rec['EOLid']) exit("\ndito 4\n");
                         if($rec['EOLid']) {
                             $taxonID = $rec['taxonID'];
                             if(@$this->debug['Cannot be matched at all'][$taxonID]) unset($this->debug['Cannot be matched at all'][$taxonID]);
@@ -275,10 +269,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             $this->debug['Cannot be matched at all'][$taxonID] = $rec; //five //It works with or without this line.
                         }
                     }
-
+                    */
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;
-                // print_r($rec); exit("\ncha 1\n");
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
             }
             //========================================================================================================= 
@@ -391,15 +384,18 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             $this->debug['M-m-w-a-i']['No hC'][$rec['taxonID']] = '';
             return array($rec, false);
         }
-        $rec = self::can_be_assigned_an_IndexGroup($rec);
-        if(substr(@$rec['taxonRemarks'],0,6) == 'Trait:') return array($rec, true);
         else {
-            $rec['taxonRemarks'] = "With higherClassification but cannot be mapped to any index group.";
-            $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$rec['taxonID']] = '';
-            return array($rec, false);
+            $rec = self::let_us_try_to_assign_an_IndexGroup($rec);
+            if(substr(@$rec['taxonRemarks'],0,6) == 'Trait:') return array($rec, true); //an IndexGroup was assigned
+            else {
+                $rec['taxonRemarks'] = "With higherClassification but cannot be mapped to any index group.";
+                $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$rec['taxonID']] = '';
+                return array($rec, false);
+            }
         }
+        exit("\nWill terminate, should not go here.\n");
     }
-    private function can_be_assigned_an_IndexGroup($rec)
+    private function let_us_try_to_assign_an_IndexGroup($rec)
     {
         $hc = @$rec['higherClassification'];
         $hc_from_ancestry = self::get_names_from_ancestry($rec, $rec['canonicalName']); //2nd param is excluded name

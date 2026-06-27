@@ -452,24 +452,37 @@ class DwCA_MatchTaxa2DH_Functions
                         )
                 )
         )        
-        */
+        Step 4: Name matching - ancestry compatibility
+        Compare the ancestries for each pair of matched canonicals that passed the rank compatibility check
+
+        If Ancestry Index values are the same, keep the match and go to Step 6
+        If Ancestry Index values are different:
+            Use the compatibleAncestors.txt file to determine if the Index values are compatible, i.e., if the file has a line that has both of the values, they are compatible.
+                If the ancestors are compatible, keep the match and go to Step 6
+                If the ancestors are not compatible, go to step 5.
+        If one or both Ancestry Index values are empty, keep the match and go to Step 6 */
+
+        /* If Ancestry Index values are the same, keep the match and go to Step 6 */
+        $pairz = array();
         foreach($pairs as $pair) {
             $rec = $pair[0];
-            $rec_AI = self::parse_AI_from_str($rec['taxonRemarks']);
+            $rec['AI'] = self::parse_AI_from_str($rec['taxonRemarks']);
             $rek = $pair[1];
-            // get AI for $rek['h']
-            if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek['h'])) {
+            if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek['h'])) { // get AI for $rek['h']
                 /*Array(
-                    [IndexGroup] => Odonata
-                    [IndexHC] => .*?\|Odonata\|.*?
-                    [lastItem_in_IndexHC] => Odonata
-                    [posOfLastItem] => 5
+                    [IndexGroup] => Fungi
+                    [IndexHC] => .*?\|Basidiomycota\|.*?
+                    [lastItem_in_IndexHC] => Basidiomycota
+                    [posOfLastItem] => 8
                 )*/
-                $rek_AI = $arr['IndexGroup'];
+                $rek['AI'] = $arr['IndexGroup']; 
             }
-            print_r($pair);
-            exit("\n[$rec_AI] [$rek_AI]\neli 3\n");
+            if($rec['AI'] == @$rek['AI']) $pairz[] = array($rec, $rek);
         }
+        if($pairz) return $pairz;
+        /* */
+
+
     }
     private function parse_AI_from_str($str) //e.g. $str "Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]"
     {

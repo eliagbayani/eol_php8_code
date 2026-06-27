@@ -508,6 +508,7 @@ class DwCA_MatchTaxa2DH_Functions
                 if($rec['AI'] != $rek['AI']) {
                     if(self::are_the_IndexValues_compatible(array($rec['AI'], $rek['AI']))) $pairz[] = array($rec, $rek);
                     else {
+                        exit("\nWe need step 5!\n");
                         //go step 5
                     }
                 }

@@ -99,6 +99,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         echo "\nyyy2:".count($this->DH->DH_synonyms)."";                            // -> from DH: $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
         echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");       // -> from DH: $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
         // */
+        exit("\nstop muna 1\n");
 
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;

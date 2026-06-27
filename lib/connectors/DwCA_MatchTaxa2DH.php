@@ -429,7 +429,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $dwca_hc = explode("|", $hc);
         $dwca_hc = self::normalize_array($dwca_hc);
         $dwca_hc_string = implode("|", $dwca_hc)."|"; // "Plantae|" OR "Basidiomycota|"     // exit("\n[$dwca_hc_string]\nstop muna 1\n");
-        if($ret = self::search_hc_string_from_AncestryIndex($dwca_hc_string)) {
+        if($ret = self::search_hc_string_from_AI($dwca_hc_string)) {
             /*Array(
                 [IndexGroup] => Fungi
                 [IndexHC] => .*?\|Basidiomycota\|.*?
@@ -932,7 +932,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             $DH_hc_string = self::prepare_hc_string($rek['h']); //makes "Fungi|Ascomycota" to "Fungi|Ascomycota|"
             $found2 = false; 
             $index_hc2 = '';
-            if($ret = self::search_hc_string_from_AncestryIndex($DH_hc_string)) {
+            if($ret = self::search_hc_string_from_AI($DH_hc_string)) { //Eli will need to review this again...
                 /*Array(
                     [IndexGroup] => Fungi
                     [IndexHC] => .*?\|Basidiomycota\|.*?
@@ -1001,9 +1001,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         if(substr($str,0,1) != "|") return "|".$str;
         return $str;
     }
-    private function search_hc_string_from_AncestryIndex($hc_str) //the regex implementation
+    private function search_hc_string_from_AI($hc_str) //the regex implementation
     {   $hc_str = trim($hc_str);
-        if($this->AncestryIndexVer == 'old') {}
+        if($this->AncestryIndexVer == 'old') exit("\nDoes not go here anymore.\n");
         elseif($this->AncestryIndexVer == 'new') { //using regex index
             // /* using the regex index:
             @$this->debug['call ancestry index']['new index']++;

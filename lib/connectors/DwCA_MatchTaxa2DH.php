@@ -75,6 +75,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         // }
         $this->debug3 = array();
         $this->debug4 = array();
+
+        /* ===== start of entire detailed workflow ===== */
+        $ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
+        foreach($ranks as $rank) $this->subspecific_ranks[$rank] = '';
+
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initialize()
@@ -215,7 +220,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     [acceptedNameUsageID] => 
                                     [parentNameUsageID] => 120181
                                     [scientificName] => Agaricales
-                                    [namePublishedIn] => 
                                     [higherClassification] => Basidiomycota|
                                     [kingdom] => Fungi
                                     [phylum] => Basidiomycota
@@ -234,6 +238,13 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                               $rec = $ret[0];
                     $can_proceed_with_AIndex_check = $ret[1];
                     // /* ----- NEW IMPLELENTATION ----- new detailed entire workflow
+                    if($can_proceed_with_AIndex_check) {
+                        if($taxonRank) { //Step 3: Name matching - rank compatibility
+                            $rec = self::matching_routine_using_rank_v2($rec, $reks, $taxonRank);
+                        }
+
+                    }
+
                     // */
 
                     /* ----- OLD IMPLEMENTATION -----
@@ -272,7 +283,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     */
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;
+                /* uncomment in real operation
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
+                */
             }
             //========================================================================================================= 
             elseif($what == 'generate_synonyms_info') {

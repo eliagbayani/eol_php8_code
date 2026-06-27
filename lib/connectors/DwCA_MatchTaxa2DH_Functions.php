@@ -301,5 +301,91 @@ class DwCA_MatchTaxa2DH_Functions
     {
         return pathinfo($uri, PATHINFO_FILENAME);
     }
+    function matching_routine_using_rank_v2($rec, $reks, $taxonRank)
+    {   // if(count($reks) > 1) { print_r($rec); print_r($reks); exit("\neli 1\n".count($reks)."\n"); }
+        /*Array(
+            [taxonID] => 556
+            [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB556
+            [acceptedNameUsageID] => 
+            [parentNameUsageID] => 212
+            [scientificName] => Erythrochiton Nees & Mart.
+            [namePublishedIn] => 
+            [higherClassification] => Rutaceae|
+            [kingdom] => Plantae
+            [phylum] => 
+            [class] => 
+            [order] => 
+            [family] => Rutaceae
+            [genus] => Erythrochiton
+            [taxonRank] => genus
+            [scientificNameAuthorship] => Nees & Mart.
+            [taxonomicStatus] => accepted
+            [modified] => 2016-12-23 15:52:32.622
+            [canonicalName] => Erythrochiton
+            [EOLid] => 
+            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]
+        )
+        Array( it can be multiple reks like the one below, OR just a single rek.
+            [EOL-000000458933] => Array(
+                    [r] => genus
+                    [e] => 47126261
+                    [h] => Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae
+                    [c] => Erythrochiton
+                    [t] => EOL-000000458933
+                    [s] => a
+                )
+            [EOL-000001554251] => Array(
+                    [r] => genus
+                    [e] => 9372
+                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Ecdysozoa|Arthropoda|Pancrustacea|Hexapoda|Insecta|Pterygota|Neoptera|Endopterygota|Coleoptera|Polyphaga|Cucujiformia|Chrysomeloidea|Cerambycidae
+                    [c] => Erythrochiton
+                    [t] => EOL-000001554251
+                    [s] => a
+                )
+        )*/
+        /*--- If the rank values are the same, keep the match and go to Step 4 ---*/
+        foreach($reks as $rek) {
+            if($taxonRank == $rek['r']) return array($rec, $rek);
+        }
+        /*--- If one or both of the rank values are empty, keep the match and go to step Step 4
+                - Add note "-no rank-" in the taxon remarks of the relevant log file ---*/
+        foreach($reks as $rek) {
+            if(!$taxonRank || !$rek['r']) {
+                if($val = @$rec['taxonRemarks']) $rec['taxonRemarks'] .= " -no rank-";
+                else                             $rec['taxonRemarks'] = '-no rank-';
+                return array($rec, $rek);
+            }
+        }
+        /*---
+        If the rank values are different:
+            If both rank values are subspecific, keep the match and go to step Step 4
+                subspecific ranks are: subspecies|variety|form|forma|infraspecies|infraspecific name|infrasubspecific name|subvariety|subform|proles|lusus|forma specialis ---*/
+        foreach($reks as $rek) {
+            if($taxonRank != $rec['r']) {
+                if(self::rank_is_subspecific_YN($taxonRank) && self::rank_is_subspecific_YN($rek['r'])) return array($rec, $rek);
+            }
+        }
+        /*---
+            If both taxa have ranks that are not subspecific|species|genus|subgenus|section|subsection|section botany|subsection botany, keep the match and go to step 4 ---*/
+        foreach($reks as $rek) {
+            $rankz = array('subspecific', 'species', 'genus', 'subgenus', 'section', 'subsection', 'section botany', 'subsection botany');
+            if($taxonRank != $rec['r']) {
+                if(!in_array($taxonRank, $rankz) && !in_array($rek['r'], $rankz)) return array($rec, $rek);
+            }
+        }
+        /*---
+            If one rank value is subspecific and the other is something else (but not empty), discard the match
+            If one rank value is species and the other is something else (but not empty), discard the match
+            If one rank is genus and the other is something else (but not empty), discard the match
+            If one rank is subgenus and the other is something else (but not empty), discard the match
+            If one rank is section or section botany and the other is something else (but not empty), discard the match
+            If one rank is subsection or subsection botany and the other is something else (but not empty), discard the match ---*/        
+
+    }
+    private function rank_is_subspecific_YN($rank)
+    {
+        if(isset($this->subspecific_ranks[$rank])) return true;
+        else return false;
+    }
 }
 ?>

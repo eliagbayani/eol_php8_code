@@ -461,6 +461,26 @@ class DwCA_MatchTaxa2DH_Functions
                 If the ancestors are compatible, keep the match and go to Step 6
                 If the ancestors are not compatible, go to step 5.
         If one or both Ancestry Index values are empty, keep the match and go to Step 6 */
+        
+        /* First step is to assign the AI for each rec and rek */
+        $i = -1;
+        foreach($pairs as $pair) { $i++;
+            $rec = $pair[0];
+            $pairs[$i][0]['AI'] = self::parse_AI_from_str($rec['taxonRemarks']);
+            $rek = $pair[1];
+            if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek['h'])) { // get AI for $rek['h']
+                /*Array(
+                    [IndexGroup] => Fungi
+                    [IndexHC] => .*?\|Basidiomycota\|.*?
+                    [lastItem_in_IndexHC] => Basidiomycota
+                    [posOfLastItem] => 8
+                )*/
+                $pairs[$i][1]['tR'] = "DH: [ IndexGroup:[".$arr['IndexGroup']."] - IndexHC:[".$arr['IndexHC']."] ]";
+                $pairs[$i][1]['AI'] = $arr['IndexGroup']; 
+            }
+        }
+        print_r($pairs); exit("\nelix 5\n");
+
 
         /* If Ancestry Index values are the same, keep the match and go to Step 6 */
         $pairz = array();
@@ -480,7 +500,12 @@ class DwCA_MatchTaxa2DH_Functions
             if($rec['AI'] == @$rek['AI']) $pairz[] = array($rec, $rek);
         }
         if($pairz) return $pairz;
-        /* */
+
+        /*  If Ancestry Index values are different:
+                Use the compatibleAncestors.txt file to determine if the Index values are compatible, i.e., if the file has a line that has both of the values, they are compatible.
+                    If the ancestors are compatible, keep the match and go to Step 6
+                    If the ancestors are not compatible, go to step 5. */
+        
 
 
     }

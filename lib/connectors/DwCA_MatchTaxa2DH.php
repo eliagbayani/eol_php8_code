@@ -240,7 +240,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     $can_proceed_with_AIndex_check = $ret[1];
                     // /* ----- NEW IMPLELENTATION ----- new detailed entire workflow
                     if($can_proceed_with_AIndex_check) {
-                        if($ret = self::matching_routine_using_rank_v2($rec, $reks, $taxonRank)) { //Step 3: Name matching - rank compatibility
+                        if($ret = self::matching_routine_using_rank_v2($rec, $reks)) { //Step 3: Name matching - rank compatibility
                             if($ret2 = self::name_matching_ancestry_compatibility($ret)) { //Step 4: Name matching - ancestry compatibility
 
                             }

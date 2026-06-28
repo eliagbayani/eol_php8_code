@@ -367,7 +367,7 @@ class DwCA_MatchTaxa2DH_Functions
                 subspecific ranks are: subspecies|variety|form|forma|infraspecies|infraspecific name|infrasubspecific name|subvariety|subform|proles|lusus|forma specialis ---*/
         $pairs = array();
         foreach($reks as $rek) {
-            if($taxonRank != $rec['r']) {
+            if($taxonRank != $rek['r']) {
                 if(self::rank_is_subspecific_YN($taxonRank) && self::rank_is_subspecific_YN($rek['r'])) $pairs[] = array($rec, $rek);
             }
         }
@@ -527,7 +527,7 @@ class DwCA_MatchTaxa2DH_Functions
         }
         if($pairz) return $pairz;
     }
-    private name_matching_through_synonyms($rec) //Step 5: Name matching through synonyms
+    private function name_matching_through_synonyms($rec) //Step 5: Name matching through synonyms
     {   /* For reference only
         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
             , 'c' => $rec['canonicalName'] //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
@@ -538,14 +538,33 @@ class DwCA_MatchTaxa2DH_Functions
         if($synonym_reks = self::get_synonym_reks_from_DH_for_this_canonical($rec['canonicalName'])) {
             echo "\nMay synonym_reks \n"; print_r($synonym_reks);
             foreach($synonym_reks as $syn_rek) {
+                /*Array(
+                    [r] => species
+                    [e] => 
+                    [h] => 
+                    [c] => Aa brevis
+                    [t] => SYN-000000780034
+                    [s] => n
+                )*/
 
             }
         }
     }
-    private get_synonym_reks_from_DH_for_this_canonical($canonicalName)
+    private function get_synonym_reks_from_DH_for_this_canonical($canonicalName)
     {
         $synonym_reks = array();
         if($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
+            /* print_r($this->DH->DHCanonical_info['Aa brevis']);
+            Array(
+                [SYN-000000780034] => Array(
+                        [r] => species
+                        [e] => 
+                        [h] => 
+                        [c] => Aa brevis
+                        [t] => SYN-000000780034
+                        [s] => n
+                    )
+            ) */
             /*Array( it can be multiple reks like the one below, OR just a single rek.
                 [EOL-000000458933] => Array(
                         [r] => genus

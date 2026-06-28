@@ -99,7 +99,18 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         echo "\nyyy2:".count($this->DH->DH_synonyms)."";                            // -> from DH: $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
         echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");       // -> from DH: $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
         // */
-        exit("\nstop muna 1\n");
+
+        /* print_r($this->DH->DHCanonical_info['Aa brevis']);
+        Array(
+            [SYN-000000780034] => Array(
+                    [r] => species
+                    [e] => 
+                    [h] => 
+                    [c] => Aa brevis
+                    [t] => SYN-000000780034
+                    [s] => n
+                )
+        ) */
 
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
@@ -242,7 +253,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     if($can_proceed_with_AIndex_check) {
                         if($ret = self::matching_routine_using_rank_v2($rec, $reks)) { //Step 3: Name matching - rank compatibility
                             if($ret2 = self::name_matching_ancestry_compatibility($ret)) { //Step 4: Name matching - ancestry compatibility
-
+                                //print_r($ret2); exit("\nReached this point.\n");
                             }
                         }
                     }

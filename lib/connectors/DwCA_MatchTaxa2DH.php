@@ -100,6 +100,28 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");       // -> from DH: $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
         // */
 
+        /* This is a good synonyms test
+        // Array(
+        //     [0] => Array(
+        //             [r] => genus
+        //             [e] => 
+        //             [h] => 
+        //             [c] => Rotula
+        //             [t] => SYN-100000458295
+        //             [s] => n
+        //         )
+        // )
+        echo "\nThis is the synonym ID: [SYN-100000458295]";
+        $acceptedNameUsageID = $this->DH->DH_synonyms['SYN-100000458295'];
+        echo "\nThis is the acceptedNameUsageID: [$acceptedNameUsageID]";
+        $accepted_rec = $this->DH->DH[$acceptedNameUsageID];
+        echo "\nThis is the accepted record: "; print_r($accepted_rec);
+        $rek = $this->DH->DHCanonical_info[$accepted_rec['c']][$acceptedNameUsageID];
+        echo "This is a more complete record: "; print_r($rek);
+        exit("\n-stop test-\n");
+        */
+
+
         /* print_r($this->DH->DHCanonical_info['Aa brevis']);
         Array(
             [SYN-000000780034] => Array(

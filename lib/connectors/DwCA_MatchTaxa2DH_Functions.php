@@ -508,10 +508,8 @@ class DwCA_MatchTaxa2DH_Functions
             if($rec['AI'] && $rek['AI']) {
                 if($rec['AI'] != $rek['AI']) {
                     if(self::are_the_IndexValues_compatible(array($rec['AI'], $rek['AI']))) $pairz[] = array($rec, $rek);
-                    else {
-                        exit("\nWe need step 5!\n");
-                        //go step 5
-                        self::name_matching_through_synonyms($rec);
+                    else { echo "\n---> Going to Step 5...\n";
+                        self::name_matching_through_synonyms($rec); //go step 5
                     }
                 }
             }
@@ -536,7 +534,7 @@ class DwCA_MatchTaxa2DH_Functions
         /* 1st step: Check if canonical that remain unmatched after Step 4 can be matched to canonical name strings of DH synonyms (taxonomic status = "not accepted"). */
 
         if($synonym_reks = self::get_synonym_reks_from_DH_for_this_canonical($rec['canonicalName'])) {
-            echo "\nMay synonym_reks \n"; print_r($synonym_reks);
+            echo "\nMay synonym_reks \n"; print_r($synonym_reks); exit;
             foreach($synonym_reks as $syn_rek) {
                 /*Array(
                     [r] => species
@@ -552,42 +550,49 @@ class DwCA_MatchTaxa2DH_Functions
     }
     private function get_synonym_reks_from_DH_for_this_canonical($canonicalName)
     {
-        $synonym_reks = array();
         if($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
-            /* print_r($this->DH->DHCanonical_info['Aa brevis']);
-            Array(
-                [SYN-000000780034] => Array(
-                        [r] => species
-                        [e] => 
-                        [h] => 
-                        [c] => Aa brevis
-                        [t] => SYN-000000780034
-                        [s] => n
-                    )
-            ) */
-            /*Array( it can be multiple reks like the one below, OR just a single rek.
-                [EOL-000000458933] => Array(
-                        [r] => genus
-                        [e] => 47126261
-                        [h] => Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae
-                        [c] => Erythrochiton
-                        [t] => EOL-000000458933
-                        [s] => a
-                    )
-                [EOL-000001554251] => Array(
-                        [r] => genus
-                        [e] => 9372
-                        [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Ecdysozoa|Arthropoda|Pancrustacea|Hexapoda|Insecta|Pterygota|Neoptera|Endopterygota|Coleoptera|Polyphaga|Cucujiformia|Chrysomeloidea|Cerambycidae
-                        [c] => Erythrochiton
-                        [t] => EOL-000001554251
-                        [s] => a
-                    )
-            )*/
-            foreach($reks as $rek) {
-                if($rek[s] == 'n') $synonym_reks[] = $rek;
-            }
+            if($synonym_reks = self::filter_reks_only_what($reks, 'synonym')) return $synonym_reks;
         }
-        return $synonym_reks;
+    }
+    function filter_reks_only_what($reks, $tax_status) //possible values: 'accepted' OR 'synonym'
+    {
+        /* print_r($this->DH->DHCanonical_info['Aa brevis']);
+        Array(
+            [SYN-000000780034] => Array(
+                    [r] => species
+                    [e] => 
+                    [h] => 
+                    [c] => Aa brevis
+                    [t] => SYN-000000780034
+                    [s] => n
+                )
+        ) */
+        /*Array( it can be multiple reks like the one below, OR just a single rek.
+            [EOL-000000458933] => Array(
+                    [r] => genus
+                    [e] => 47126261
+                    [h] => Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae
+                    [c] => Erythrochiton
+                    [t] => EOL-000000458933
+                    [s] => a
+                )
+            [EOL-000001554251] => Array(
+                    [r] => genus
+                    [e] => 9372
+                    [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Ecdysozoa|Arthropoda|Pancrustacea|Hexapoda|Insecta|Pterygota|Neoptera|Endopterygota|Coleoptera|Polyphaga|Cucujiformia|Chrysomeloidea|Cerambycidae
+                    [c] => Erythrochiton
+                    [t] => EOL-000001554251
+                    [s] => a
+                )
+        )*/
+            if($tax_status == 'accepted') $sought = 'a';
+        elseif($tax_status == 'synonym')  $sought = 'n';
+        else exit("\nERROR: tax_status not set.\n");
+        $final = array();
+        foreach($reks as $rek) {
+            if($rek['s'] == $sought) $final[] = $rek;
+        }
+        return $final;
     }
     private function parse_AI_from_str($str) //e.g. $str "Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]"
     {

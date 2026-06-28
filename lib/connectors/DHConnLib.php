@@ -304,7 +304,7 @@ class DHConnLib
                     // if($taxonomicStatus == 'accepted') {
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
                             , 'c' => $rec['canonicalName'] //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
-                            , 't' => $rec['taxonID']     //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
+                            , 't' => $rec['taxonID']       //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
                             , 's' => substr($rec['taxonomicStatus'],0,1)); // 'a' accepted | 'n' not accepted
                         @$this->debug['breakdown'][$canonicalName]++;
                     // }
@@ -317,7 +317,6 @@ class DHConnLib
                 
                 // $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank, "t" => $taxonID); //get all records, should be no filter here
                 $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
-
 
                 if($acceptedNameUsageID) {
                     $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';

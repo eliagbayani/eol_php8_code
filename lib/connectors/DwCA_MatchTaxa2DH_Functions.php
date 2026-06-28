@@ -377,7 +377,7 @@ class DwCA_MatchTaxa2DH_Functions
         $pairs = array();
         foreach($reks as $rek) {
             $rankz = array('subspecific', 'species', 'genus', 'subgenus', 'section', 'subsection', 'section botany', 'subsection botany');
-            if($taxonRank != $rec['r']) {
+            if($taxonRank != $rek['r']) {
                 if(!in_array($taxonRank, $rankz) && !in_array($rek['r'], $rankz)) $pairs[] = array($rec, $rek);
             }
         }
@@ -390,7 +390,7 @@ class DwCA_MatchTaxa2DH_Functions
             If one rank is section or section botany and the other is something else (but not empty), discard the match
             If one rank is subsection or subsection botany and the other is something else (but not empty), discard the match ---*/
     }
-    function name_matching_ancestry_compatibility($pairs) //Step 4: Name matching - ancestry compatibility
+    function name_matching_ancestry_compatibility($pairs, $fromSynonymsYN) //Step 4: Name matching - ancestry compatibility
     {   /*Array(
             [0] => Array(
                     [0] => Array(
@@ -468,8 +468,20 @@ class DwCA_MatchTaxa2DH_Functions
         foreach($pairs as $pair) { $i++;
             $rec = $pair[0];
             $pairs[$i][0]['AI'] = self::parse_AI_from_str($rec['taxonRemarks']);
+            // /* Just for confirmation.
+            if($may_AI_na = @$rec['AI']) {
+                if($may_AI_na != $pairs[$i][0]['AI']) exit("\nInvestigate: AI should be the same\n");
+            }
+            // */
+
             $rek = $pair[1];
-            if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek['h'])) { // get AI for $rek['h']
+            // /* for the synonym Step 5
+            if(substr($rek['t'],0,4) == "SYN-") $rek = self::fill_in_accepted_data_for_this_syn($rek);
+            $rek_h = $rek['h'] ? $rek['h'] : @$rek['h2'];
+            if(@$rek['h2']) echo "\nrek_h to use: [$rek_h]";
+            // */
+            if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek_h)) { // get AI for $rek['h']
+                if($fromSynonymsYN) echo "\n Success: search_hc_string_from_AncestryIndex_regex()";
                 /*Array(
                     [IndexGroup] => Fungi
                     [IndexHC] => .*?\|Basidiomycota\|.*?
@@ -479,11 +491,12 @@ class DwCA_MatchTaxa2DH_Functions
                 $pairs[$i][1]['tR'] = "DH: [ IndexGroup:[".$arr['IndexGroup']."] - IndexHC:[".$arr['IndexHC']."] ]";
                 $pairs[$i][1]['AI'] = $arr['IndexGroup']; 
             }
-            else {
+            else { if($fromSynonymsYN) echo "\n Failed: search_hc_string_from_AncestryIndex_regex()";
                 $pairs[$i][1]['tR'] = '';
                 $pairs[$i][1]['AI'] = '';
             }
-        }
+        } //foreach()
+        if($fromSynonymsYN) { echo "\nSynonym run: "; print_r($pairs); }
         // print_r($pairs); exit("\nelix 5\n"); //good debug to see what do we exactly have here.
 
         /* If Ancestry Index values are the same, keep the match and go to Step 6 */
@@ -508,8 +521,11 @@ class DwCA_MatchTaxa2DH_Functions
             if($rec['AI'] && $rek['AI']) {
                 if($rec['AI'] != $rek['AI']) {
                     if(self::are_the_IndexValues_compatible(array($rec['AI'], $rek['AI']))) $pairz[] = array($rec, $rek);
-                    else { echo "\n---> Going to Step 5...\n";
-                        self::name_matching_through_synonyms($rec); //go step 5
+                    else { 
+                        if(!$fromSynonymsYN) {
+                            echo "\n---> Going to Step 5...\n";
+                            self::name_matching_through_synonyms($rec); //go step 5
+                        }
                     }
                 }
             }
@@ -525,6 +541,50 @@ class DwCA_MatchTaxa2DH_Functions
         }
         if($pairz) return $pairz;
     }
+    private function fill_in_accepted_data_for_this_syn($rek)
+    {
+        echo "\n --->Starting syn rek: "; print_r($rek);
+        /*Array(
+            [r] => genus
+            [e] => 
+            [h] => 
+            [c] => Rotula
+            [t] => SYN-100000458295
+            [s] => n
+        )*/
+        $syn_id = $rek['t'];
+        echo "\nThis is the synonym ID: [$syn_id]";
+        if($acceptedNameUsageID = $this->DH->DH_synonyms[$syn_id]) {
+            echo "\nThis is the acceptedNameUsageID: [$acceptedNameUsageID]";
+            if($accepted_rec = $this->DH->DH[$acceptedNameUsageID]) {
+                echo "\nThis is the accepted record: "; print_r($accepted_rec);
+                /*Array(
+                    [c] => Harmogenanina
+                    [r] => genus
+                )*/
+                if($new_rek = $this->DH->DHCanonical_info[$accepted_rec['c']][$acceptedNameUsageID]) {
+                    echo "This is a more complete accepted record: "; print_r($new_rek);
+                    /*Array(
+                        [r] => genus
+                        [e] => 48886174
+                        [h] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Helicina|Limacoidei|Helicarionoidea|Helicarionidae|Helicarioninae
+                        [c] => Harmogenanina
+                        [t] => EOL-000000768620
+                        [s] => a
+                    )*/
+                    /* Now let us to the assignment */
+                    $rek['e2'] = $new_rek['e']; //EOLid
+                    $rek['h2'] = $new_rek['h']; //higherClassification
+                }
+                else exit("\nERROR: There should be new_rek\n");
+            }
+            else exit("\nERROR: There should be accepted_rec.\n");
+        }
+        else exit("\nERROR: There should be acceptedNameUsageID.\n");
+        // exit("\n-stop test 2-\n");
+        echo "\n ---> Ending syn rek: "; print_r($rek);        
+        return $rek;
+    }
     private function name_matching_through_synonyms($rec) //Step 5: Name matching through synonyms
     {   /* For reference only
         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
@@ -533,20 +593,71 @@ class DwCA_MatchTaxa2DH_Functions
             , 's' => substr($rec['taxonomicStatus'],0,1)); // 'a' accepted | 'n' not accepted */
         /* 1st step: Check if canonical that remain unmatched after Step 4 can be matched to canonical name strings of DH synonyms (taxonomic status = "not accepted"). */
 
+        // 1. Check if any of the canonicals that remain unmatched after Step 4 can be matched to canonical name strings of DH synonyms (taxonomic status = "not accepted").
         if($synonym_reks = self::get_synonym_reks_from_DH_for_this_canonical($rec['canonicalName'])) {
-            echo "\nMay synonym_reks \n"; print_r($synonym_reks); exit;
-            foreach($synonym_reks as $syn_rek) {
+            echo "\nMay synonym_reks: "; print_r($synonym_reks);
+            /*Array(
+                [0] => Array(
+                        [r] => genus
+                        [e] => 
+                        [h] => 
+                        [c] => Rotula
+                        [t] => SYN-100000458295
+                        [s] => n
+                    )
+            )*/
+            // 2. For each matched pair, check for rank compatibility as above
+            if($ret = self::matching_routine_using_rank_v2($rec, $synonym_reks)) { //Step 3: Name matching - rank compatibility
+                echo "\nIt is rank compatible: "; print_r($ret); //exit;
                 /*Array(
-                    [r] => species
-                    [e] => 
-                    [h] => 
-                    [c] => Aa brevis
-                    [t] => SYN-000000780034
-                    [s] => n
+                    [0] => Array(
+                            [0] => Array(
+                                    [taxonID] => 16555
+                                    [furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB16555
+                                    [acceptedNameUsageID] => 
+                                    [parentNameUsageID] => 64
+                                    [scientificName] => Rotula Lour.
+                                    [namePublishedIn] => 
+                                    [higherClassification] => Boraginaceae|
+                                    [kingdom] => Plantae
+                                    [phylum] => 
+                                    [class] => 
+                                    [order] => 
+                                    [family] => Boraginaceae
+                                    [genus] => Rotula
+                                    [taxonRank] => genus
+                                    [scientificNameAuthorship] => Lour.
+                                    [taxonomicStatus] => accepted
+                                    [modified] => 2018-02-18 22:20:44.229
+                                    [canonicalName] => Rotula
+                                    [EOLid] => 
+                                    [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Boraginaceae\|.*?] ]
+                                    [AI] => Angiosperms
+                                )
+                            [1] => Array(
+                                    [r] => genus
+                                    [e] => 
+                                    [h] => 
+                                    [c] => Rotula
+                                    [t] => SYN-100000458295
+                                    [s] => n
+                                )
+                        )
                 )*/
 
+                // 3. For each pair that passed the rank compatibility check, check for ancestry compatibility as above, using the ancestry string of the synonym's accepted name.
+                $fromSynonyms = true;
+                if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
+                    print_r($ret2); exit("\nSYNONYMS: Reached this point.\n");
+                }
+                else echo " -- not ancestry compatible\n";
             }
+            else echo " -- not rank compatible\n";
+            
+            // exit("\nstop muna 9\n");
+
         }
+        else echo " No synonym_reks\n";
     }
     private function get_synonym_reks_from_DH_for_this_canonical($canonicalName)
     {

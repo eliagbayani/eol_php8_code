@@ -161,8 +161,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $hc_str = "Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|";   //sample of compatible multimatches
         // $hc_str = "Metazoa|Mollusca|unclassified Mollusca|Shishania|";          //sample of incompatible multimatches
         $hc_str = "Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|Erythrochiton|";
-        self::search_hc_string_from_AncestryIndex_regex($hc_str);
-        exit("\n--- end tests ---\n");
+        $hc_str = "Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Helicina|Limacoidei|Helicarionoidea|Helicarionidae|Helicarioninae|";
+        $ret = self::search_hc_string_from_AncestryIndex_regex($hc_str);
+        print_r($ret); exit("\n--- end tests ---\n");
         ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
         self::process_table($meta, 'generate_synonyms_info');
@@ -275,7 +276,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     // /* ----- NEW IMPLELENTATION ----- new detailed entire workflow
                     if($can_proceed_with_AIndex_check) {
                         if($ret = self::matching_routine_using_rank_v2($rec, $reks)) { //Step 3: Name matching - rank compatibility
-                            if($ret2 = self::name_matching_ancestry_compatibility($ret)) { //Step 4: Name matching - ancestry compatibility
+                            $fromSynonyms = false;
+                            if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
                                 // print_r($ret2); exit("\nReached this point.\n");
                             }
                         }

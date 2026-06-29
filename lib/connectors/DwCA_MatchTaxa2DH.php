@@ -278,7 +278,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                         if($ret = self::matching_routine_using_rank_v2($rec, $reks)) { //Step 3: Name matching - rank compatibility
                             $fromSynonyms = false;
                             if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
-                                // print_r($ret2); exit("\nReached this point.\n");
+                                // print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
                             }
                         }
                     }

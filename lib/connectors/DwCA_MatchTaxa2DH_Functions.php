@@ -475,11 +475,21 @@ class DwCA_MatchTaxa2DH_Functions
             // */
 
             $rek = $pair[1];
-            // /* for the synonym Step 5
+            // /* ---------- for the synonym Step 5
             if(substr($rek['t'],0,4) == "SYN-") $rek = self::fill_in_accepted_data_for_this_syn($rek);
+            /*Array( from GloBI
+                [r] => genus
+                [e] => 
+                [h] => 
+                [c] => Trichodina
+                [t] => SYN-100000473021
+                [s] => n
+                [e2] => 46988866
+                [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
+            )*/
             $rek_h = $rek['h'] ? $rek['h'] : @$rek['h2'];
             if(@$rek['h2']) echo "\nrek_h to use: [$rek_h]";
-            // */
+            // ---------- */
             if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek_h)) { // get AI for $rek['h']
                 if($fromSynonymsYN) echo "\n Success: search_hc_string_from_AncestryIndex_regex()";
                 /*Array(
@@ -490,10 +500,20 @@ class DwCA_MatchTaxa2DH_Functions
                 )*/
                 $pairs[$i][1]['tR'] = "DH: [ IndexGroup:[".$arr['IndexGroup']."] - IndexHC:[".$arr['IndexHC']."] ]";
                 $pairs[$i][1]['AI'] = $arr['IndexGroup']; 
+                if($fromSynonymsYN) {
+                    $pairs[$i][1]['c2'] = $rek['c2'];
+                    $pairs[$i][1]['e2'] = $rek['e2'];
+                    $pairs[$i][1]['h2'] = $rek['h2'];
+                }
             }
             else { if($fromSynonymsYN) echo "\n Failed: search_hc_string_from_AncestryIndex_regex()";
                 $pairs[$i][1]['tR'] = '';
                 $pairs[$i][1]['AI'] = '';
+                if($fromSynonymsYN) {
+                    $pairs[$i][1]['c2'] = '';
+                    $pairs[$i][1]['e2'] = '';
+                    $pairs[$i][1]['h2'] = '';
+                }
             }
         } //foreach()
         if($fromSynonymsYN) { echo "\nSynonym run: "; print_r($pairs); }
@@ -573,6 +593,7 @@ class DwCA_MatchTaxa2DH_Functions
                         [s] => a
                     )*/
                     /* Now let us to the assignment */
+                    $rek['c2'] = $new_rek['c']; //canonicalName
                     $rek['e2'] = $new_rek['e']; //EOLid
                     $rek['h2'] = $new_rek['h']; //higherClassification
                 }
@@ -583,6 +604,16 @@ class DwCA_MatchTaxa2DH_Functions
         else exit("\nERROR: There should be acceptedNameUsageID.\n");
         // exit("\n-stop test 2-\n");
         echo "\n ---> Ending syn rek: "; print_r($rek);        
+        /*Array( from GloBI
+            [r] => genus
+            [e] => 
+            [h] => 
+            [c] => Trichodina
+            [t] => SYN-100000473021
+            [s] => n
+            [e2] => 46988866
+            [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
+        )*/
         return $rek;
     }
     private function name_matching_through_synonyms($rec) //Step 5: Name matching through synonyms
@@ -648,7 +679,7 @@ class DwCA_MatchTaxa2DH_Functions
                 // 3. For each pair that passed the rank compatibility check, check for ancestry compatibility as above, using the ancestry string of the synonym's accepted name.
                 $fromSynonyms = true;
                 if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
-                    print_r($ret2); exit("\nSYNONYMS: Reached this point.\n");
+                    print_r($ret2); echo("\nSYNONYMS: Reached this point.\n");
                 }
                 else echo " -- not ancestry compatible\n";
             }

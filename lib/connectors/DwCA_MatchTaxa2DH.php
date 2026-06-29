@@ -279,19 +279,61 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             $fromSynonyms = false;
                             if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
                                 // print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
+                                $rec = self::major_assignment($ret2);
+                                
+                                /*if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI
+                                    print_r($ret2); exit("\nThis came a long way the synonyms option.\n");
+                                    // Array(
+                                    //     [0] => Array(
+                                    //             [0] => Array(
+                                    //                     [taxonID] => IRMNG:1444425
+                                    //                     [furtherInformationURL] => https://www.irmng.org/aphia.php?p=taxdetails&id=1444425
+                                    //                     [referenceID] => 
+                                    //                     [parentNameUsageID] => 
+                                    //                     [scientificName] => Trichodina
+                                    //                     [namePublishedIn] => 
+                                    //                     [higherClassification] => Animalia|Mollusca|Gastropoda|Stylommatophora|Subulinidae|
+                                    //                     [kingdom] => Animalia
+                                    //                     [phylum] => Mollusca
+                                    //                     [class] => Gastropoda
+                                    //                     [order] => Stylommatophora
+                                    //                     [family] => Subulinidae
+                                    //                     [genus] => Trichodina
+                                    //                     [taxonRank] => genus
+                                    //                     [taxonomicStatus] => 
+                                    //                     [taxonRemarks] => Trait: [ IndexGroup:[Gastropoda] - IndexHC:[.*?\|Gastropoda\|.*?] ]
+                                    //                     [canonicalName] => Trichodina
+                                    //                     [EOLid] => 46988866
+                                    //                     [AI] => Gastropoda
+                                    //                 )
+                                    //             [1] => Array(
+                                    //                     [r] => genus
+                                    //                     [e] => 
+                                    //                     [h] => 
+                                    //                     [c] => Trichodina
+                                    //                     [t] => SYN-100000473021
+                                    //                     [s] => n
+                                    //                     [tR] => DH: [ IndexGroup:[Gastropoda] - IndexHC:[.*?\|Gastropoda\|.*?] ]
+                                    //                     [AI] => Gastropoda
+                                    //                     [c2] => Petriola
+                                    //                     [e2] => 46988866
+                                    //                     [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
+                                    //                 )
+                                    //         )
+                                    // )
+                                }*/
                             }
                         }
                     }
                     // */
 
-                    /* ----- OLD IMPLEMENTATION -----
-                    */
+                    /* ----- OLD IMPLEMENTATION ----- */
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;
-                /* uncomment in real operation
+                // /* uncomment in real operation
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
-                */
-            }
+                // */
+            } //end match_canonical
             //========================================================================================================= 
             elseif($what == 'generate_synonyms_info') {
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
@@ -319,6 +361,17 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             //========================================================================================================= 
             // if($i >= 100) break; //dev only
         }
+    }
+    private function major_assignment($ret2)
+    {
+        if(count($ret2) == 1) {
+            $rec = $ret2[0][0];
+            $rek = $ret2[0][1];
+            $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
+            unset($rec['AI']);
+            return $rec;
+        }
+        else exit("\nI assume there is only 1 record here at this point. But we got: [".count($ret2)."]\n");
     }
     private function the_synonyms_way($reks, $rec)
     {

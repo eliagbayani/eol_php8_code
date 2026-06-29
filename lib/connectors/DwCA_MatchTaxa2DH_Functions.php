@@ -544,7 +544,7 @@ class DwCA_MatchTaxa2DH_Functions
                     else { 
                         if(!$fromSynonymsYN) {
                             echo "\n---> Going to Step 5...\n";
-                            self::name_matching_through_synonyms($rec); //go step 5
+                            if($syn_pair = self::name_matching_through_synonyms($rec)) $pairz[] = $syn_pair; //go step 5
                         }
                     }
                 }

@@ -718,6 +718,34 @@ class DwCA_MatchTaxa2DH_Functions
                                     )
                             )
                     )*/
+                    /*  4. If there are multiple synonym matches that pass both compatibility checks, keep the best one, using the following criteria:
+                        4.1. rank values are the same is better than rank values are different but compatible
+                        4.2. Ancestry Index values are the same is better than Ancestry Index values are different but compatible
+                        5. If there are multiple synonym matches that cannot be resolved using the criteria above, randomly pick one for the resource file EOLid assignment, 
+                           but put all of the best matches in the With_DH_EOLid_assignments_(synonym).tsv report.
+                        6. For successful synonym matches, assign the EOLid of the synonym's accepted name to the taxon in the resource file. */
+                    if(count($ret2) > 1) {
+                        print_r($ret2); exit("\nSo it can happen: multiple synonym matches that pass both compatibility checks.\n");
+                    }
+                    foreach($ret2 as $pair) {
+                        $rec = $pair[0]; $rek = $pair[1];
+                        if($rec['taxonRank'] == $rek['r']) {
+                            $rec['EOLid'] = $rek['e2']; //major assignment
+                            return array($rec, $rek);
+                        }
+                    }
+                    foreach($ret2 as $pair) {
+                        $rec = $pair[0]; $rek = $pair[1];
+                        if($rec['AI'] == $rek['AI']) {
+                            $rec['EOLid'] = $rek['e2']; //major assignment
+                            return array($rec, $rek);
+                        }
+                    }
+                    foreach($ret2 as $pair) { exit("\nHmmm... just curious to it can go here.\n");
+                        $rec = $pair[0]; $rek = $pair[1];
+                        $rec['EOLid'] = $rek['e2']; //major assignment
+                        return array($rec, $rek);
+                    }                            
                 }
                 else echo " -- not ancestry compatible\n";
             }

@@ -727,18 +727,8 @@ class DwCA_MatchTaxa2DH_Functions
                     if(count($ret2) > 1) {
                         print_r($ret2); exit("\nSo it can happen: multiple synonym matches that pass both compatibility checks.\n");
                     }
-                    foreach($ret2 as $pair) {
-                        $rec = $pair[0]; $rek = $pair[1];
-                        if($rec['taxonRank'] == $rek['r']) return array($rec, $rek);
-                    }
-                    foreach($ret2 as $pair) {
-                        $rec = $pair[0]; $rek = $pair[1];
-                        if($rec['AI'] == $rek['AI']) return array($rec, $rek);
-                    }
-                    foreach($ret2 as $pair) { exit("\nHmmm... just curious to it can go here.\n"); //just pick one
-                        $rec = $pair[0]; $rek = $pair[1];
-                        return array($rec, $rek);
-                    }                            
+                    $pair = self::choose_one_from_multiple_pairs($ret2);
+                    return $pair;
                 }
                 else echo " -- not ancestry compatible\n";
             }
@@ -746,15 +736,33 @@ class DwCA_MatchTaxa2DH_Functions
         }
         else echo " No synonym_reks\n";
     }
+    private function choose_one_from_multiple_pairs($ret2)
+    {
+        foreach($ret2 as $pair) {
+            $rec = $pair[0]; $rek = $pair[1];
+            if( ($rec['taxonRank'] == $rek['r']) && ($rec['AI'] == $rek['AI']) ) return array($rec, $rek);  //rank values and AI are the same
+        }
+        foreach($ret2 as $pair) {
+            $rec = $pair[0]; $rek = $pair[1];
+            if($rec['taxonRank'] == $rek['r']) return array($rec, $rek);                                    //rank values are the same
+        }
+        foreach($ret2 as $pair) {
+            $rec = $pair[0]; $rek = $pair[1];
+            if($rec['AI'] == $rek['AI']) return array($rec, $rek);                                          //AI values are the same
+        }
+        foreach($ret2 as $pair) { exit("\nHmmm... just curious to it can go here.\n");                      //just pick one
+            $rec = $pair[0]; $rek = $pair[1];
+            return array($rec, $rek);
+        }                            
+    }
     private function get_synonym_reks_from_DH_for_this_canonical($canonicalName)
     {
         if($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
             if($synonym_reks = self::filter_reks_only_what($reks, 'synonym')) return $synonym_reks;
         }
     }
-    function filter_reks_only_what($reks, $tax_status) //possible values: 'accepted' OR 'synonym'
-    {
-        /* print_r($this->DH->DHCanonical_info['Aa brevis']);
+    function filter_reks_only_what($reks, $tax_status) //possible tax_status values: 'accepted' OR 'synonym'
+    {   /* print_r($this->DH->DHCanonical_info['Aa brevis']);
         Array(
             [SYN-000000780034] => Array(
                     [r] => species

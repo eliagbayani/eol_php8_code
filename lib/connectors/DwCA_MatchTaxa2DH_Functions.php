@@ -729,21 +729,14 @@ class DwCA_MatchTaxa2DH_Functions
                     }
                     foreach($ret2 as $pair) {
                         $rec = $pair[0]; $rek = $pair[1];
-                        if($rec['taxonRank'] == $rek['r']) {
-                            $rec['EOLid'] = $rek['e2']; //major assignment
-                            return array($rec, $rek);
-                        }
+                        if($rec['taxonRank'] == $rek['r']) return array($rec, $rek);
                     }
                     foreach($ret2 as $pair) {
                         $rec = $pair[0]; $rek = $pair[1];
-                        if($rec['AI'] == $rek['AI']) {
-                            $rec['EOLid'] = $rek['e2']; //major assignment
-                            return array($rec, $rek);
-                        }
+                        if($rec['AI'] == $rek['AI']) return array($rec, $rek);
                     }
-                    foreach($ret2 as $pair) { exit("\nHmmm... just curious to it can go here.\n");
+                    foreach($ret2 as $pair) { exit("\nHmmm... just curious to it can go here.\n"); //just pick one
                         $rec = $pair[0]; $rek = $pair[1];
-                        $rec['EOLid'] = $rek['e2']; //major assignment
                         return array($rec, $rek);
                     }                            
                 }

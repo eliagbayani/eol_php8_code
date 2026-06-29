@@ -281,8 +281,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 // print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
                                 $rec = self::major_assignment($ret2);
                                 
-                                /*if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI
-                                    print_r($ret2); exit("\nThis came a long way the synonyms option.\n");
+                                /*
+                                if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI
+                                    print_r($rec); print_r($ret2); exit("\nThis came a long way the synonyms option.\n");
                                     // Array(
                                     //     [0] => Array(
                                     //             [0] => Array(
@@ -303,7 +304,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     //                     [taxonomicStatus] => 
                                     //                     [taxonRemarks] => Trait: [ IndexGroup:[Gastropoda] - IndexHC:[.*?\|Gastropoda\|.*?] ]
                                     //                     [canonicalName] => Trichodina
-                                    //                     [EOLid] => 46988866
+                                    //                     [EOLid] => 
                                     //                     [AI] => Gastropoda
                                     //                 )
                                     //             [1] => Array(
@@ -321,7 +322,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     //                 )
                                     //         )
                                     // )
-                                }*/
+                                }
+                                */
                             }
                         }
                     }
@@ -371,7 +373,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             unset($rec['AI']);
             return $rec;
         }
-        else exit("\nI assume there is only 1 record here at this point. But we got: [".count($ret2)."]\n");
+        else {
+            echo "\n------------investigate: "; print_r($ret2);
+            exit("\nI assume there is only 1 record here at this point. But we got: [".count($ret2)."]\n");
+        }
     }
     private function the_synonyms_way($reks, $rec)
     {

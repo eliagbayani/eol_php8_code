@@ -680,13 +680,48 @@ class DwCA_MatchTaxa2DH_Functions
                 $fromSynonyms = true;
                 if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
                     print_r($ret2); echo("\nSYNONYMS: Reached this point.\n");
+                    /*Array(
+                        [0] => Array(
+                                [0] => Array(
+                                        [taxonID] => IRMNG:1444425
+                                        [furtherInformationURL] => https://www.irmng.org/aphia.php?p=taxdetails&id=1444425
+                                        [referenceID] => 
+                                        [parentNameUsageID] => 
+                                        [scientificName] => Trichodina
+                                        [namePublishedIn] => 
+                                        [higherClassification] => Animalia|Mollusca|Gastropoda|Stylommatophora|Subulinidae|
+                                        [kingdom] => Animalia
+                                        [phylum] => Mollusca
+                                        [class] => Gastropoda
+                                        [order] => Stylommatophora
+                                        [family] => Subulinidae
+                                        [genus] => Trichodina
+                                        [taxonRank] => genus
+                                        [taxonomicStatus] => 
+                                        [taxonRemarks] => Trait: [ IndexGroup:[Gastropoda] - IndexHC:[.*?\|Gastropoda\|.*?] ]
+                                        [canonicalName] => Trichodina
+                                        [EOLid] => 
+                                        [AI] => Gastropoda
+                                    )
+                                [1] => Array(
+                                        [r] => genus
+                                        [e] => 
+                                        [h] => 
+                                        [c] => Trichodina
+                                        [t] => SYN-100000473021
+                                        [s] => n
+                                        [tR] => DH: [ IndexGroup:[Gastropoda] - IndexHC:[.*?\|Gastropoda\|.*?] ]
+                                        [AI] => Gastropoda
+                                        [c2] => Petriola
+                                        [e2] => 46988866
+                                        [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
+                                    )
+                            )
+                    )*/
                 }
                 else echo " -- not ancestry compatible\n";
             }
             else echo " -- not rank compatible\n";
-            
-            // exit("\nstop muna 9\n");
-
         }
         else echo " No synonym_reks\n";
     }

@@ -282,42 +282,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             }
                         }
                     }
-
                     // */
 
                     /* ----- OLD IMPLEMENTATION -----
-                    if($can_proceed_with_AIndex_check) $rec = self::matching_routine_using_HC($rec, $reks);
-                    else {
-                        if($taxonRank) {
-                            $rec = self::matching_routine_using_rank($rec, $reks, $taxonRank);
-                        }
-                        if(!@$rec['EOLid']) {
-                            $rec = self::matching_routine_using_HC($rec, $reks);
-                        }
-                        if(@$rec['EOLid']) {
-                            // ---------- series of ELI001: block 1 of 2
-                            $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
-                            $rem = $rec['taxonRemarks'];
-                            $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
-                            // ----------
-                        }
-                        else {
-                            $taxonID = $rec['taxonID'];
-                            $rec = self::append_taxonRemarks($rec, "", 'A4'); //A4 //3rd param is just guide
-                            $this->debug['Cannot be matched at all'][$taxonID] = $rec; //four
-                        }
-                    }
-                    if($rec['EOLid']) @$this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
-                    else {
-                        $rec = self::the_synonyms_way($reks, $rec);
-                        if($rec['EOLid']) {
-                            $taxonID = $rec['taxonID'];
-                            if(@$this->debug['Cannot be matched at all'][$taxonID]) unset($this->debug['Cannot be matched at all'][$taxonID]);
-                        }
-                        else {
-                            $this->debug['Cannot be matched at all'][$taxonID] = $rec; //five //It works with or without this line.
-                        }
-                    }
                     */
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;

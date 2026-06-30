@@ -287,7 +287,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 $rec = self::major_assignment($pair);
 
                                 // For reporting
-                                if($rec['EOLid']) @$this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
+                                if($rec['EOLid']) $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
+                                else              $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+
                                 
                                 /*
                                 if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI
@@ -336,6 +338,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                         }
                     }
                     // */
+
 
                     /* ----- OLD IMPLEMENTATION ----- */
                 }

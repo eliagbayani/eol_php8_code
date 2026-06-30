@@ -162,6 +162,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         // $hc_str = "Metazoa|Mollusca|unclassified Mollusca|Shishania|";          //sample of incompatible multimatches
         $hc_str = "Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|Erythrochiton|";
         $hc_str = "Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Helicina|Limacoidei|Helicarionoidea|Helicarionidae|Helicarioninae|";
+        $hc_str = "Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Deuterostomia|Chordata|Vertebrata|Gnathostomata|Osteichthyes"; //no AI
         $ret = self::search_hc_string_from_AncestryIndex_regex($hc_str);
         print_r($ret); exit("\n--- end tests ---\n");
         ~~~~~~~~~~~~~~~~~~~~~~~~~~ */

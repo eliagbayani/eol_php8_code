@@ -760,7 +760,12 @@ class DwCA_MatchTaxa2DH_Functions
             $rec = $pair[0]; $rek = $pair[1];
             if($rec['AI'] == $rek['AI']) return array($rec, $rek);                                          //AI values are the same
         }
-        foreach($ret2 as $pair) { exit("\nHmmm... just curious to it can go here.\n");                      //just pick one
+
+        if(count($ret2) > 1) {
+            print_r($ret2); exit("\nReady to pick one, just curious why there is >1 pairs here at this point.\n");
+        }
+        foreach($ret2 as $pair) { //exit("\nHmmm... just curious so it can go here. [$what]\n");            //just pick one
+            print_r($pair); echo " -> picked 1\n";
             $rec = $pair[0]; $rek = $pair[1];
             return array($rec, $rek);
         }                            

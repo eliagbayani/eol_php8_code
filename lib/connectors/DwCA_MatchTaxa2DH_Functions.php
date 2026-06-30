@@ -736,7 +736,7 @@ class DwCA_MatchTaxa2DH_Functions
         }
         else echo " No synonym_reks\n";
     }
-    private function choose_one_from_multiple_pairs($ret2, $what)
+    function choose_one_from_multiple_pairs($ret2, $what)
     {
         // For reporting:
         if($what == 'synonym') {

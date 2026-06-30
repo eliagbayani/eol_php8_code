@@ -375,10 +375,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             // if($i >= 100) break; //dev only
         }
     }
-    private function major_assignment($ret2)
-    {
-        $rec = $ret2[0][0];
-        $rek = $ret2[0][1];
+    private function major_assignment($pair)
+    {   // print_r($pair); exit("\nstopx 1\n");
+        $rec = $pair[0];
+        $rek = $pair[1];
         $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
         unset($rec['AI']);
         return $rec;

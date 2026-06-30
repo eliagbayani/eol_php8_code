@@ -738,6 +738,16 @@ class DwCA_MatchTaxa2DH_Functions
     }
     private function choose_one_from_multiple_pairs($ret2, $what)
     {
+        // For reporting:
+        if($what == 'synonym') {
+            foreach($ret2 as $pair) {
+                $rec = $pair[0]; $rek = $pair[1];
+                $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
+                if($rec['EOLid']) $this->debug['With DH EOLid assignments (synonym)'][$rec['taxonID']] = $rec;
+            }                       
+        }
+
+        // For both accepted and synonym
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];
             if( ($rec['taxonRank'] == $rek['r']) && ($rec['AI'] == $rek['AI']) ) return array($rec, $rek);  //rank values and AI are the same

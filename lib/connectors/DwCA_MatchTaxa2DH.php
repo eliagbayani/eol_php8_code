@@ -284,8 +284,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     print_r($ret2); exit("\nSo it can happen: multiple accepted_name matches that pass both compatibility checks.\n");
                                 }
                                 $pair = self::choose_one_from_multiple_pairs($ret2, 'accepted');
-
                                 $rec = self::major_assignment($pair);
+
+                                // For reporting
+                                if($rec['EOLid']) @$this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
                                 
                                 /*
                                 if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI

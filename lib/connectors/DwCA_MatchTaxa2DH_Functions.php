@@ -758,10 +758,10 @@ class DwCA_MatchTaxa2DH_Functions
     private function get_synonym_reks_from_DH_for_this_canonical($canonicalName)
     {
         if($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
-            if($synonym_reks = self::filter_reks_only_what($reks, 'synonym')) return $synonym_reks;
+            if($synonym_reks = self::filter_reks_by_what($reks, 'synonym')) return $synonym_reks;
         }
     }
-    function filter_reks_only_what($reks, $tax_status) //possible tax_status values: 'accepted' OR 'synonym'
+    function filter_reks_by_what($reks, $tax_status) //possible tax_status values: 'accepted' OR 'synonym'
     {   /* print_r($this->DH->DHCanonical_info['Aa brevis']);
         Array(
             [SYN-000000780034] => Array(

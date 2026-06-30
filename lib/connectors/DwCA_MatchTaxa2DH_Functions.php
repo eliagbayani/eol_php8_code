@@ -727,7 +727,7 @@ class DwCA_MatchTaxa2DH_Functions
                     if(count($ret2) > 1) {
                         print_r($ret2); exit("\nSo it can happen: multiple synonym matches that pass both compatibility checks.\n");
                     }
-                    $pair = self::choose_one_from_multiple_pairs($ret2);
+                    $pair = self::choose_one_from_multiple_pairs($ret2, 'synonym');
                     return $pair;
                 }
                 else echo " -- not ancestry compatible\n";
@@ -736,7 +736,7 @@ class DwCA_MatchTaxa2DH_Functions
         }
         else echo " No synonym_reks\n";
     }
-    private function choose_one_from_multiple_pairs($ret2)
+    private function choose_one_from_multiple_pairs($ret2, $what)
     {
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];

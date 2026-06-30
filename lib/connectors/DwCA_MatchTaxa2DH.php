@@ -279,7 +279,13 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             $fromSynonyms = false;
                             if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
                                 // print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
-                                $rec = self::major_assignment($ret2);
+
+                                if(count($ret2) > 1) {
+                                    print_r($ret2); exit("\nSo it can happen: multiple accepted_name matches that pass both compatibility checks.\n");
+                                }
+                                $pair = self::choose_one_from_multiple_pairs($ret2, 'accepted');
+
+                                $rec = self::major_assignment($pair);
                                 
                                 /*
                                 if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI
@@ -366,17 +372,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     }
     private function major_assignment($ret2)
     {
-        if(count($ret2) == 1) {
-            $rec = $ret2[0][0];
-            $rek = $ret2[0][1];
-            $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
-            unset($rec['AI']);
-            return $rec;
-        }
-        else {
-            echo "\n------------investigate: "; print_r($ret2);
-            exit("\nI assume there is only 1 record here at this point. But we got: [".count($ret2)."]\n");
-        }
+        $rec = $ret2[0][0];
+        $rek = $ret2[0][1];
+        $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
+        unset($rec['AI']);
+        return $rec;
     }
     private function the_synonyms_way($reks, $rec)
     {

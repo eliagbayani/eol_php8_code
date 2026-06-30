@@ -380,57 +380,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         unset($rec['AI']);
         return $rec;
     }
-    private function the_synonyms_way($reks, $rec)
-    {
-        foreach($reks as $taxonID => $rek) {
-            if($rek['s'] == 'n') { //this is a synonym
-                if($accepted_rek = self::get_acceptedRek_if_synonym($rek)) { // print_r($rec);
-                    /*Array( $rek
-                        [r] => species
-                        [e] => 
-                        [h] => 
-                        [c] => Raputia simulans
-                        [t] => SYN-000001435859
-                        [s] => n
-                    )
-                    Array( $accepted_rek
-                        [r] => species
-                        [e] => 47126499
-                        [h] => Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|Raputia
-                        [c] => Raputia megalantha
-                        [t] => EOL-000000457036
-                        [s] => a
-                    )*/
-                    $t = $accepted_rek['t'];
-                    $reks = array($t => $accepted_rek); //simulate creating $reks using the $accepted_rek
-                    $rec = self::matching_routine_using_HC($rec, $reks); //print_r($rek); print_r($accepted_rek); print_r($rec); exit("\neli boy...\n");
-                    if($rec['EOLid']) {
-                        if($tR = @$accepted_rek['tR']) {
-                            /* can be refactored => append_string()
-                            if($taxonRemarks = $rec['taxonRemarks']) {
-                                $new_remark = "$tR || $taxonRemarks";
-                                $rec['taxonRemarks'] = $new_remark;
-                            }
-                            else $rec['taxonRemarks'] = $tR;
-                            */
-                            $rec['taxonRemarks'] = self::append_string($rec['taxonRemarks'], $tR);
-                        }
-                        $this->debug['With DH EOLid assignments (synonym)'][$rec['taxonID']] = $rec;
-                        return $rec;
-                    }
-                    else {
-                        $rec['taxonRemarks'] = self::append_string($rec['taxonRemarks'], "Synonym matched but no DH EOLid.");
-                        $this->debug['Synonym matched but no DH EOLid'][$rec['taxonID']] = '';
-                    }
-                }
-                else {
-                    $rec['taxonRemarks'] = self::append_string($rec['taxonRemarks'], "Failed synonym match.");
-                    $this->debug['Failed synonym match'][$rec['taxonID']] = '';
-                }
-            }
-        }
-        return $rec;
-    }
+    private function the_synonyms_way($reks, $rec) {}
     private function append_string($orig, $tobe_added)
     {
         if($orig) {

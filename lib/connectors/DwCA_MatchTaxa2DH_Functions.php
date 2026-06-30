@@ -796,7 +796,10 @@ class DwCA_MatchTaxa2DH_Functions
         else exit("\nERROR: tax_status not set.\n");
         $final = array();
         foreach($reks as $rek) {
-            if($rek['s'] == $sought) $final[] = $rek;
+            if($rek['s'] == $sought) {
+                // if($rek['e']) $final[] = $rek;  //Eli's initiative: exclude reks with blank eolID's
+                $final[] = $rek;
+            }
         }
         return $final;
     }

@@ -765,7 +765,7 @@ class DwCA_MatchTaxa2DH_Functions
             print_r($ret2); exit("\nReady to pick one, just curious why there are >1 pairs here at this point.\n");
         }
         foreach($ret2 as $pair) { //exit("\nHmmm... just curious so it can go here. [$what]\n");            //just pick one
-            print_r($pair); echo " -> picked 1\n";
+            // print_r($pair); echo " -> picked 1\n";
             $rec = $pair[0]; $rek = $pair[1];
             return array($rec, $rek);
         }                            

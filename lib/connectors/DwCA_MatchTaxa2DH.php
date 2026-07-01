@@ -178,7 +178,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $i = 0;
         foreach (new FileIterator($meta->file_uri) as $line => $row) {
             $i++;
-            if (($i % 100000) == 0) echo "\n" . number_format($i) . " - "; //10k orig
+            if (($i % 10000) == 0) echo "\nrun: " . number_format($i) . " - "; //10k orig
             if ($meta->ignore_header_lines && $i == 1) continue;
             if (!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
@@ -415,9 +415,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             [taxonomicStatus] => accepted
             [canonicalName] => Agaricales
         )*/
+        $taxonID = $rec['taxonID'];
         if(!$rec['higherClassification']) {
             $rec['taxonRemarks'] = "No higherClassification";
-            $this->debug['M-m-w-a-i']['No hC'][$rec['taxonID']] = '';
+            $this->debug['M-m-w-a-i']['No hC'][$taxonID] = '';
             $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
             return array($rec, false);
         }
@@ -426,7 +427,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             if(substr(@$rec['taxonRemarks'],0,6) == 'Trait:') return array($rec, true); //an IndexGroup was assigned
             else {
                 $rec['taxonRemarks'] = "With higherClassification but cannot be mapped to any index group.";
-                $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$rec['taxonID']] = '';
+                $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$taxonID] = '';
                 $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
                 return array($rec, false);
             }

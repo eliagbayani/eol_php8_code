@@ -282,7 +282,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 // print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
 
                                 if(count($ret2) > 1) {
-                                    print_r($ret2); exit("\nSo it can happen: multiple accepted_name matches that pass both compatibility checks.\n");
+                                    // print_r($ret2); exit("\nSo it can happen: multiple accepted_name matches that pass both compatibility checks.\n");
+                                    /* So it can happen to have two reks a this point. It is up to the next steps to pick 1. 
+                                    [c] => Dichelyne diplocaecum    [t] => EOL-000003222666
+                                    [c] => Dichelyne diplocaecum    [t] => EOL-000003222668
+                                    */
                                 }
                                 $pair = self::choose_one_from_multiple_pairs($ret2, 'accepted');
                                 $rec = self::major_assignment($pair);
@@ -414,6 +418,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         if(!$rec['higherClassification']) {
             $rec['taxonRemarks'] = "No higherClassification";
             $this->debug['M-m-w-a-i']['No hC'][$rec['taxonID']] = '';
+            $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
             return array($rec, false);
         }
         else {
@@ -422,6 +427,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             else {
                 $rec['taxonRemarks'] = "With higherClassification but cannot be mapped to any index group.";
                 $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$rec['taxonID']] = '';
+                $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
                 return array($rec, false);
             }
         }

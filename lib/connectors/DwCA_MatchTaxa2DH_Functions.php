@@ -99,7 +99,7 @@ class DwCA_MatchTaxa2DH_Functions
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
         $matched_thru_a_synonym = count(@$this->debug['With DH EOLid assignments (synonym)'] ?? array()); //'Matched thru a synonym'
-        $has_canonical_match_with_DH_without_eolID = @$this->debug['Has canonical match with DH without eolID'];
+        $has_canonical_match_with_DH_without_eolID = @$this->debug['Has canonical match with DH but without eolID'];
 
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
@@ -109,7 +109,7 @@ class DwCA_MatchTaxa2DH_Functions
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_without_eolID; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n -> B4. Has canonical match with DH without eolID: [" . number_format($has_canonical_match_with_DH_without_eolID) . "]";
+        echo "\n -> B4. Has canonical match with DH but without eolID: [" . number_format($has_canonical_match_with_DH_without_eolID) . "]";
 
         echo "\n -> Total = [".number_format($sum)."]";
         if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";

@@ -419,8 +419,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $taxonID = $rec['taxonID'];
         if(!$rec['higherClassification']) {
             $rec['taxonRemarks'] = "No higherClassification";
-            $this->debug['M-m-w-a-i']['No hC'][$taxonID] = '';
+            // $this->debug['M-m-w-a-i']['No hC'][$taxonID] = ''; --- wasn't used in old version anymore
             $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
+                $rem = $rec['taxonRemarks'];
+                $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
             return array($rec, false);
         }
         else {
@@ -428,8 +430,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             if(substr(@$rec['taxonRemarks'],0,6) == 'Trait:') return array($rec, true); //an IndexGroup was assigned
             else {
                 $rec['taxonRemarks'] = "With higherClassification but cannot be mapped to any index group.";
-                $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$taxonID] = '';
+                // $this->debug['M-m-w-a-i']['With hC but cannot be mapped to any index group'][$taxonID] = ''; --- wasn't used in old version anymore
                 $this->debug['Matches made without_OR_lacking ancestry info'][$taxonID] = $rec;
+                    $rem = $rec['taxonRemarks'];
+                    $this->debug['without_OR_lacking'][$rem][$taxonID] = '';
                 return array($rec, false);
             }
         }

@@ -99,15 +99,18 @@ class DwCA_MatchTaxa2DH_Functions
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
         $matched_thru_a_synonym = count(@$this->debug['With DH EOLid assignments (synonym)'] ?? array()); //'Matched thru a synonym'
+        $has_canonical_match_with_DH_without_eolID = @$this->debug['Has canonical match with DH without eolID'];
 
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\n -> B1. With DH EOLid assignments (accepted name): [" . number_format($With_eolID_assignments) . "]";
         echo "\n -> B2. With DH EOLid assignments (synonym): [" . number_format($matched_thru_a_synonym) . "]";
-        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym; // + $With_EOLid_but_not_matched;
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_without_eolID; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
+        echo "\n -> B4. Has canonical match with DH without eolID: [" . number_format($has_canonical_match_with_DH_without_eolID) . "]";
+
         echo "\n -> Total = [".number_format($sum)."]";
         if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
 
@@ -543,7 +546,7 @@ class DwCA_MatchTaxa2DH_Functions
                     if(self::are_the_IndexValues_compatible(array($rec['AI'], $rek['AI']))) $pairz[] = array($rec, $rek);
                     else { 
                         if(!$fromSynonymsYN) {
-                            echo "\n---> Going to Step 5...\n";
+                            // echo "\n---> Going to Step 5...\n";
                             if($syn_pair = self::name_matching_through_synonyms($rec)) $pairz[] = $syn_pair; //go step 5
                         }
                     }
@@ -725,7 +728,7 @@ class DwCA_MatchTaxa2DH_Functions
                            but put all of the best matches in the With_DH_EOLid_assignments_(synonym).tsv report.
                         6. For successful synonym matches, assign the EOLid of the synonym's accepted name to the taxon in the resource file. */
                     if(count($ret2) > 1) {
-                        print_r($ret2); exit("\nSo it can happen: multiple synonym matches that pass both compatibility checks.\n");
+                        // print_r($ret2); exit("\nSo it can happen: multiple synonym matches that pass both compatibility checks.\n");
                     }
                     $pair = self::choose_one_from_multiple_pairs($ret2, 'synonym');
                     return $pair;
@@ -734,7 +737,7 @@ class DwCA_MatchTaxa2DH_Functions
             }
             else echo " -- not rank compatible\n";
         }
-        else echo " No synonym_reks\n";
+        // else echo " No synonym_reks\n";
     }
     function choose_one_from_multiple_pairs($ret2, $what)
     {
@@ -812,8 +815,8 @@ class DwCA_MatchTaxa2DH_Functions
         $final = array();
         foreach($reks as $rek) {
             if($rek['s'] == $sought) {
-                // if($rek['e']) $final[] = $rek;  //Eli's initiative: exclude reks with blank eolID's
-                $final[] = $rek;
+                if($rek['e']) $final[] = $rek;  //Eli's initiative: exclude reks with blank eolID's
+                // $final[] = $rek;
             }
         }
         return $final;

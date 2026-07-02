@@ -248,6 +248,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 
                 if($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
                     $reks = self::filter_reks_by_what($reks, 'accepted');
+                    if(!$reks) {self::write_2archive($rec); @$this->debug['Has canonical match with DH without eolID']++; continue;}
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
                     $ret = self::can_proceedYN_using_AncestryIndex($rec); //print_r($ret); exit("\nelix 1\n");
@@ -293,8 +294,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 
                                 // For reporting
                                 if($rec['EOLid']) $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
-                                else              $this->debug['Cannot be matched at all'][$taxonID] = $rec;
-
                                 
                                 /*
                                 if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI
@@ -340,10 +339,12 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 }
                                 */
                             }
+                            else $this->debug['Cannot be matched at all'][$taxonID] = $rec; //incompatible ancestry
                         }
+                        else $this->debug['Cannot be matched at all'][$taxonID] = $rec; //incompatible ranks
                     }
+                    else $this->debug['Cannot be matched at all'][$taxonID] = $rec; //no ancestry index
                     // */
-
 
                     /* ----- OLD IMPLEMENTATION ----- */
                 }

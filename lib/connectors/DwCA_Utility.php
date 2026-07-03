@@ -68,10 +68,10 @@ class DwCA_Utility
         // print_r($paths); exit("\n-exit muna-\n");
         // */
 
-        /* development only //for globi
+        /* development only
         $paths = Array(
-            'archive_path' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_39644x/',
-            'temp_dir' => '/Volumes/AKiTiO4/eol_php_code_tmp/dir_39644x/'
+            'archive_path' => '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_63956_globi/',
+                'temp_dir' => '/Volumes/T5_Black_SSD/eol_php_code_tmp/dir_63956_globi/'
         );
         */
 

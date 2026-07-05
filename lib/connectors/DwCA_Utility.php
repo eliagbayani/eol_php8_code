@@ -1218,8 +1218,30 @@ class DwCA_Utility
         if($source_of_hc == 'gen_hC_using_pID') {
             $i = -1; $total = count($records);
             foreach($records as $rec) { $i++;
+                /*Array( e.g. Brazilian Flora
+                    [tID] => 12
+                    [fIU] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
+                    [aID] => 
+                    [pID] => 120181
+                    [sN] => Agaricales
+                    [nPI] => 
+                    [aK] => Fungi
+                    [aP] => Basidiomycota
+                    [aC] => 
+                    [aO] => Agaricales
+                    [aF] => 
+                    [aG] => 
+                    [tR] => order
+                    [sNA] => 
+                    [tS] => accepted
+                    [m] => 2018-08-10 11:58:06.954
+                )*/
                 if(($i % 10000) == 0) echo "\n".number_format($i). " of $total";
-                $higherClassification = self::get_higherClassification($rec);
+                if($rec['pID']) {
+                    if($higherClassification = self::get_higherClassification($rec)) {}
+                    else $higherClassification = self::get_higherClassification_ancestry($rec);
+                }
+                else     $higherClassification = self::get_higherClassification_ancestry($rec);
                 $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
                 // print_r($records[$i]); exit("\nelix 1\n");
             }
@@ -1228,7 +1250,10 @@ class DwCA_Utility
             $i = -1; $total = count($records);
             foreach($records as $rec) { $i++;
                 if(($i % 10000) == 0) echo "\n".number_format($i). " of $total";
-                $higherClassification = self::get_higherClassification_ancestry($rec);
+                if($higherClassification = self::get_higherClassification_ancestry($rec)) {}
+                else {
+                    if(@$rec['pID']) $higherClassification = self::get_higherClassification($rec);
+                }
                 $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
             }
         }

@@ -31,12 +31,14 @@ class DwCA_MatchTaxa2DH_Functions
         return $ret;
     }
     // function have_compatibleAncestors($indexGroup1, $indexGroup2) //not used anymore...
-    function are_the_IndexValues_compatible($index_values)
+    function are_the_IndexValues_compatible($index_values, $final = array()) //2nd param $final is just for debug
     {   
         $index_values = array_unique($index_values); //make unique
         $index_values = array_values($index_values); //reindex key
         if(count($index_values) == 1) return true;
-        if(count($index_values) > 2) exit("\nWill terminate: more than 2 index_values!\n");
+        if(count($index_values) > 2) {
+            echo "\n----- will terminate -----\n"; print_r($final); print_r($index_values); exit("\nWill terminate: more than 2 index_values!\n");
+        }
         $indexGroup1 = $index_values[0];
         $indexGroup2 = $index_values[1];
         if($indexGroup1 == $indexGroup2) return true;

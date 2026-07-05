@@ -601,7 +601,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             $index_values = array('Mollusca', 'Crustacea');
             */
             $index_values_str = implode("; ", $index_values);                    
-            if(self::are_the_IndexValues_compatible($index_values)) { //print_r($final);
+            if(self::are_the_IndexValues_compatible($index_values, $final)) { //2nd param $final is just for debug //print_r($final);
                 $this->debug['compatible_multimatches_v2'][$pipe_hc_str."\t".$index_values_str] = "report";
                 $pipe_hc_array = explode("|", $pipe_hc_str); //print_r($pipe_hc_array);
                 $i = -1;

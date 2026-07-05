@@ -37,7 +37,7 @@ class DwCA_MatchTaxa2DH_Functions
         $index_values = array_values($index_values); //reindex key
         if(count($index_values) == 1) return true;
         if(count($index_values) > 2) {
-            echo "\n----- will terminate -----\n"; print_r($final); print_r($index_values); exit("\nWill terminate: more than 2 index_values!\n");
+            echo "\n----- will terminate -----\n"; echo("\npipe_hc_str: [$this->pipe_hc_str]\n"); print_r($final); print_r($index_values); exit("\nWill terminate: more than 2 index_values!\n");
         }
         $indexGroup1 = $index_values[0];
         $indexGroup2 = $index_values[1];

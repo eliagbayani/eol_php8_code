@@ -549,6 +549,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     {
         if($hc_str == '|') return false;
         $pipe_hc_str = self::add_pipe_2str($hc_str);
+        $this->pipe_hc_str = $pipe_hc_str; //so it can be accessed in other functions, no need to pass it as param.
         // echo "\n needle or HCx: [$hc_str]";
         // echo "\n pipe needlex: [$pipe_hc_str]";
         // needle or HC: [Arthropoda|Hexapoda|Insecta|Pterygota|Odonata|Lestoidea|]

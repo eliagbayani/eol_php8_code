@@ -24,7 +24,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $this->AncestryIndexVer = $AncestryIndexVer; //exit("\nAncestryIndexVer: [".$AncestryIndexVer."]\n");
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
-        $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         // $this->paths['wikidata_hierarchy'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/wikidata/wikidataEOLidMappings.txt';
         $this->debug = array();
 
@@ -48,10 +47,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $this->g_section = array('section', 'subsection', 'series');
         $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
-        $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1);
+        $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         // $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
         $this->ancestry_index_file_old = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
-        $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry Index - new.tsv";
+        // $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry Index - new.tsv"; //old
+        $this->ancestry_index_file = "https://github.com/eliagbayani/eol_php8_code/raw/refs/heads/main/update_resources/connectors/helpers/AncestryIndex_new.tsv";
         // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
 
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
@@ -790,7 +790,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     {
         $options = $this->download_options;
         $options['expire_seconds'] = 60*60*24*1; //orig 1 day
-        // print_r($options); //exit;
         if($local = Functions::save_remote_file_to_local($file_2use, $options)) {
             $i = 0;
             foreach(new FileIterator($local) as $line_number => $line) {

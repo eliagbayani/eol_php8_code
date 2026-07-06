@@ -27,10 +27,10 @@ class TextmineKeywordMapAnnotator
             /* destination_file: [/var/www/html/eol_php8_code/update_resources/connectors/helpers/Textmining_Strings_-_mapped_strings.tsv] */
         }
         elseif($what == 'AncestryIndex_new') {
-            $this->destination_file = DOC_ROOT . 'update_resources/connectors/helpers/AncestryIndex_new.tsv';
+            $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_new.tsv';
         }
         elseif($what == 'AncestryIndex_compatibleAncestors') {
-            $this->destination_file = DOC_ROOT . 'update_resources/connectors/helpers/AncestryIndex_compatibleAncestors.tsv';
+            $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv';
         }
         else exit("\nERROR: Item to process not initialized.\n");
     }

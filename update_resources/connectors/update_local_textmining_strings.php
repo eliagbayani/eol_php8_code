@@ -47,11 +47,11 @@ $p['fields'] = array('Index', 'higherClassification');
 $params['AncestryIndex_new'] = $p;
 // */
 
-// /* worksheet: [new] : https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
+// /* worksheet: [compatibleAncestors] : https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
 $p['google_sheet'] = $google_sheet;
 $p['spreadsheetID'] = '1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc';
 $p['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
-$p['range'] = 'new!A1:B55'; //where "A" is the starting column, "B" is the ending column, and "1" is the starting row.
+$p['range'] = 'compatibleAncestors!A1:B60'; //where "A" is the starting column, "B" is the ending column, and "1" is the starting row.
 $p['fields'] = array('Index_1', 'Index_2');
 $params['AncestryIndex_compatibleAncestors'] = $p;
 // */

@@ -39,22 +39,47 @@ class DwCA_MatchTaxa2DH_Functions
         if(count($index_values) == 2) {
             $indexGroup1 = $index_values[0];
             $indexGroup2 = $index_values[1];
-            if($indexGroup1 == $indexGroup2) return true;
             /*Array(
                 [Animals; Annelida] => 
                 [Annelida; Animals] => */
             $needle = "$indexGroup1; $indexGroup2";
-            if(isset($this->compatibleAncestors[$needle])) return true;
-            $needle = "$indexGroup2; $indexGroup1";
-            if(isset($this->compatibleAncestors[$needle])) return true;
+            if(self::compatibleAncestorsYN($needle)) return true;
             return false;
+            // if(isset($this->compatibleAncestors[$needle])) return true;
+            // $needle = "$indexGroup2; $indexGroup1";
+            // if(isset($this->compatibleAncestors[$needle])) return true;
+            // return false;
         }
         if(count($index_values) == 3) {
-
+            /*Array(
+                [0] => Tetrapoda
+                [1] => Bryophytes
+                [2] => Angiosperms
+            )*/
+            $indexGroup1 = $index_values[0];
+            $indexGroup2 = $index_values[1];
+            $indexGroup3 = $index_values[2];
+            $needle1 = "$indexGroup1; $indexGroup2";
+            $needle2 = "$indexGroup1; $indexGroup3";
+            $needle3 = "$indexGroup2; $indexGroup3";
+            if(self::compatibleAncestorsYN($needle1) && self::compatibleAncestorsYN($needle2) && self::compatibleAncestorsYN($needle3)) return true;
+            return false;
         }
         if(count($index_values) > 3) { //if it goes here and beyond, I will create a better func to handle it. For now let us handle it manually since we don't know if we'll ever encounter >3.
             echo "\n----- will terminate -----\n"; echo("\npipe_hc_str: [$this->pipe_hc_str]\n"); print_r($final); print_r($index_values); exit("\nWill terminate: more than 2 index_values!\n");
         }        
+    }
+    private function compatibleAncestorsYN($needle) //e.g. "Tetrapoda; Bryophytes"
+    {
+        $index_values = explode(";", $needle);
+        $index_values = array_map('trim', $index_values);
+        $indexGroup1 = $index_values[0];
+        $indexGroup2 = $index_values[1];
+        $needle = "$indexGroup1; $indexGroup2";
+        if(isset($this->compatibleAncestors[$needle])) return true;
+        $needle = "$indexGroup2; $indexGroup1";
+        if(isset($this->compatibleAncestors[$needle])) return true;
+        return false;
     }
     function get_rightmost($pattern)
     {

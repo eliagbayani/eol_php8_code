@@ -129,7 +129,7 @@ class DwCA_MatchTaxa2DH_Functions
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
         $matched_thru_a_synonym = count(@$this->debug['With DH EOLid assignments (synonym)'] ?? array()); //'Matched thru a synonym'
-        $has_canonical_match_with_DH_without_eolID = @$this->debug['Has canonical match with DH but without eolID'];
+        $has_canonical_match_with_DH_without_eolID = count(@$this->debug['Has canonical match with DH but without eolID'] ?? array());
 
         echo "\n\n----------STATS----------";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";

@@ -36,22 +36,25 @@ class DwCA_MatchTaxa2DH_Functions
         $index_values = array_unique($index_values); //make unique
         $index_values = array_values($index_values); //reindex key
         if(count($index_values) == 1) return true;
-        if(count($index_values) > 2) {
-            echo "\n----- will terminate -----\n"; echo("\npipe_hc_str: [$this->pipe_hc_str]\n"); print_r($final); print_r($index_values); exit("\nWill terminate: more than 2 index_values!\n");
+        if(count($index_values) == 2) {
+            $indexGroup1 = $index_values[0];
+            $indexGroup2 = $index_values[1];
+            if($indexGroup1 == $indexGroup2) return true;
+            /*Array(
+                [Animals; Annelida] => 
+                [Annelida; Animals] => */
+            $needle = "$indexGroup1; $indexGroup2";
+            if(isset($this->compatibleAncestors[$needle])) return true;
+            $needle = "$indexGroup2; $indexGroup1";
+            if(isset($this->compatibleAncestors[$needle])) return true;
+            return false;
         }
-        $indexGroup1 = $index_values[0];
-        $indexGroup2 = $index_values[1];
-        if($indexGroup1 == $indexGroup2) return true;
-        /*Array(
-            [Animals; Annelida] => 
-            [Annelida; Animals] => 
-            [Animals; Arthropoda] => 
-            [Arthropoda; Animals] => */
-        $needle = "$indexGroup1; $indexGroup2";
-        if(isset($this->compatibleAncestors[$needle])) return true;
-        $needle = "$indexGroup2; $indexGroup1";
-        if(isset($this->compatibleAncestors[$needle])) return true;
-        return false;
+        if(count($index_values) == 3) {
+
+        }
+        if(count($index_values) > 3) { //if it goes here and beyond, I will create a better func to handle it. For now let us handle it manually since we don't know if we'll ever encounter >3.
+            echo "\n----- will terminate -----\n"; echo("\npipe_hc_str: [$this->pipe_hc_str]\n"); print_r($final); print_r($index_values); exit("\nWill terminate: more than 2 index_values!\n");
+        }        
     }
     function get_rightmost($pattern)
     {

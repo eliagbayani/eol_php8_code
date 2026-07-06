@@ -13,39 +13,36 @@ class TextmineKeywordMapAnnotator
 {
     public $params; // Declare the property
     public $func;
-    public $local_textmine_strings, $new_file;
-    function __construct() //still being used by: [update_local_textmining_strings.php]
-    {   //exit("\nObsolete TextmineKeywordMapAnnotator. Will terminate.\n");
-        /* worksheet: [mapped strings]
-        https://docs.google.com/spreadsheets/d/1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA/edit?gid=0#gid=0        
-        */
-        $params['spreadsheetID'] = '1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA';
-        $params['expire_seconds'] = 0; //60*60*24*1; //1 day cache is ideal OK //this is working as intended, functional OK!
-
-        $params['range'] = 'mapped strings!A1:E1400'; //where "A" is the starting column, "E" is the ending column, and "1" is the starting row.
-        $this->params['mapped strings'] = $params;
-
+    public $local_textmine_strings, $destination_file;
+    function __construct($what) //still being used by: [update_local_textmining_strings.php]
+    {
         require_library('connectors/GoogleClientAPI');
         $this->func = new GoogleClientAPI();
 
-        require_library('connectors/LocalTextmineKeywordMapAnnotator');
-        $func = new LocalTextmineKeywordMapAnnotator(); //uses a local TSV file based from the orig Google Spreadsheet.
-        $this->local_textmine_strings = $func->local_textmine_strings;
-        echo("\nlocal_textmine_strings: [$this->local_textmine_strings]\n");
-        /* local_textmine_strings: [/var/www/html/eol_php8_code/update_resources/connectors/files/Textmining_Strings_-_mapped_strings.tsv] */
-        $this->new_file = $this->local_textmine_strings;
+        if($what == 'mapped_strings') {
+            require_library('connectors/LocalTextmineKeywordMapAnnotator');
+            $func = new LocalTextmineKeywordMapAnnotator(); //uses a local TSV file based from the orig Google Spreadsheet.
+            $this->destination_file = $func->local_textmine_strings;
+            echo("\n destination_file: [$this->destination_file]\n");
+            /* destination_file: [/var/www/html/eol_php8_code/update_resources/connectors/helpers/Textmining_Strings_-_mapped_strings.tsv] */
+        }
+        elseif($what == 'AncestryIndex_new') {
+            $this->destination_file = DOC_ROOT . 'update_resources/connectors/helpers/AncestryIndex_new.tsv';
+        }
+        elseif($what == 'AncestryIndex_compatibleAncestors') {
+            $this->destination_file = DOC_ROOT . 'update_resources/connectors/helpers/AncestryIndex_compatibleAncestors.tsv';
+        }
+        else exit("\nERROR: Item to process not initialized.\n");
     }
-    function refresh_local_textmining_strings()
+    function refresh_local_file_using_GoogleSheet($params)
     {
-        $params = $this->params['mapped strings'];
         $arr = $this->func->access_google_sheet($params);
         echo "\nTotal rows: [".count($arr)."]\n";
-        self::massage_result($arr);
+        self::massage_result($arr, $params['fields']);
     }
-    private function massage_result($arr)
+    private function massage_result($arr, $fields)
     {   //start massage array
-        $WRITE = fopen($this->new_file, "w");
-        $fields = array('string', 'value', 'value uri', 'predicate', 'predicate uri');
+        $WRITE = fopen($this->destination_file, "w");
         fwrite($WRITE, implode("\t", $fields)."\n");
         $i = 0;
         foreach($arr as $item) { $i++;

@@ -47,7 +47,6 @@ class TextmineKeywordMapAnnotator
         $WRITE = fopen($this->new_file, "w");
         $fields = array('string', 'value', 'value uri', 'predicate', 'predicate uri');
         fwrite($WRITE, implode("\t", $fields)."\n");
-
         $i = 0;
         foreach($arr as $item) { $i++;
             if($i == 1) $fields = $item;

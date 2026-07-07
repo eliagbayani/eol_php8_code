@@ -14,7 +14,7 @@ class LocalTextmineKeywordMapAnnotator
     public $params; // Declare the property
     public $local_textmine_strings, $mapped_strings_file, $download_options;
     public $keyword_uri, $uri_predicate;
-    function __construct($download_options)
+    function __construct($download_options = array())
     {   
         $this->local_textmine_strings = DOC_ROOT . '../cp_new/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv';
         $this->mapped_strings_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv";

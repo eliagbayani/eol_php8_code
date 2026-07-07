@@ -12,16 +12,23 @@ Worksheets related:
 class LocalTextmineKeywordMapAnnotator
 {
     public $params; // Declare the property
-    public $local_textmine_strings;
+    public $local_textmine_strings, $mapped_strings_file, $download_options;
     public $keyword_uri, $uri_predicate;
-    function __construct()
+    function __construct($download_options)
     {   
         $this->local_textmine_strings = DOC_ROOT . '../cp_new/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv';
+        $this->mapped_strings_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv";
+        $this->download_options = $download_options;
     }
     function get_keyword_mappings($sought_predicate)
     {
+        // /* We can comment this if it is being called multiple times. But for now we leave as is.
+        print_r($this->download_options); echo " -> check if download_options was passed correctly.\n -> sought_predicate: [$sought_predicate]\n";
+        // */
+        if($local = Functions::save_remote_file_to_local($this->mapped_strings_file, $this->download_options)) {}
+        else exit("\nERROR: mapped_strings_file can't be accessed.\n"."\nWill terminate.\n");
         $i = 0;
-        foreach(new FileIterator($this->local_textmine_strings) as $line_number => $line) {
+        foreach(new FileIterator($local) as $line_number => $line) {
             $line = explode("\t", $line); $i++; 
             if($i == 1) $fields = $line;
             else {
@@ -58,6 +65,7 @@ class LocalTextmineKeywordMapAnnotator
                 // */
             }
         }
+        unlink($local);
         // if(isset($this->keyword_uri)) {
             echo "\nkeyword_uri 1: ".count($this->keyword_uri); // print_r($this->keyword_uri);
             echo "\nuri_predicate 1: ".count($this->uri_predicate); // print_r($this->uri_predicate);

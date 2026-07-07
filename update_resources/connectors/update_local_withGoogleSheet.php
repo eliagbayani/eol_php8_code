@@ -28,6 +28,7 @@ $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true);
 $google_sheet = $param['google_sheet']; //e.g. 'mapped_strings'
 
+$p['expire_seconds'] = 60*60*12*1; //half day cache is ideal since Jenkins will refresh every 24 hours.
 
 // /* worksheet: [mapped strings] : https://docs.google.com/spreadsheets/d/1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA/edit?gid=0#gid=0
 $p['google_sheet'] = $google_sheet;

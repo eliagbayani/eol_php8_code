@@ -26,6 +26,8 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // ini_set('memory_limit','7096M');
 $timestart = time_elapsed();
 
+exit("\nPlease check. In Jenkins this was remarked as obsolete.\n"); //added 7Jul2026
+
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;

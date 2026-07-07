@@ -48,11 +48,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $this->g_species = array_merge(array('species'), $this->ok_match_subspecific_ranks);
 
         $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
-        // $this->ancestry_index_file = "/Volumes/AKiTiO4/web/cp_new/neo4j_tasks/Ancestry_Index_ver1.tsv"; //for testing
         $this->ancestry_index_file_old = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry_Index.tsv";
-        // $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Ancestry Index - new.tsv"; //old
-        $this->ancestry_index_file = "https://github.com/eliagbayani/eol_php8_code/raw/refs/heads/main/update_resources/connectors/helpers/AncestryIndex_new.tsv";
-        // downloaded as .tsv from: https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
+        $this->ancestry_index_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/AncestryIndex_new.tsv";
 
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
         $this->neo4j_debug_folder = $temp;

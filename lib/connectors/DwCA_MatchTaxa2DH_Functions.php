@@ -9,7 +9,7 @@ class DwCA_MatchTaxa2DH_Functions
     public $compatibleAncestors_file = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/compatibleAncestors.txt';
     this file comes from Katja's Jupyter Notebook
     */
-    public $compatibleAncestors_file = 'https://github.com/eliagbayani/eol_php8_code/raw/refs/heads/main/update_resources/connectors/helpers/AncestryIndex_compatibleAncestors.tsv';
+    public $compatibleAncestors_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv";
 
     function __construct() {}
     function get_compatibleAncestors()

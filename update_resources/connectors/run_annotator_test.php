@@ -92,7 +92,7 @@ $final = array();
 $IDs = array('24', '617_ENV', 'TreatmentBank_ENV', '26_ENV'); //normal operation --- 617_ENV -> Wikipedia EN //24 -> AntWeb resource ID
 // $IDs = array('24');                                      //dev only
 // $IDs = array('TreatmentBank_ENV'); //or TreatmentBank    //dev only
-$IDs = array('617_ENV'); //or Wikipedia EN                  //dev only
+// $IDs = array('617_ENV'); //or Wikipedia EN               //dev only
 // $IDs = array('26_ENV');                                  //dev only
 
 
@@ -119,7 +119,7 @@ foreach($IDs as $resource_id) {
             if($i == 1) {$s = "procumbent-PATO_0002389"; if($ret == $s) echo " -OK-"; else {echo " -ERROR- [$s]"; $errors++;} }
             */
         }
-        if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV'))) {
+        if(in_array($resource_id, array('TreatmentBank_ENV', '617_ENV', '24'))) {
             $q = array();
             $q[1] = array('s' => "montane species-Q1141462->RO_0002303|alpine birch forest-ENVO_01000340->RO_0002303|alpine birch forest-ENVO_01000435->RO_0002303|forest-ENVO_01000174->RO_0002303");
             $q[2] = array('s' => "mountain shrubland-ENVO_01000216->RO_0002303|shrubland-ENVO_01000176->RO_0002303");

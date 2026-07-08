@@ -913,7 +913,7 @@ class ZenodoAPI extends ZenodoConnectorAPI
         // $q = "title:($title)"; //too accepting...
         // $q = "+title:checklists -title:2019 +title:water"; //works splendidly - OK!
         $page_num = 0;
-        while(true) { $page_num++;
+        while(true) { $page_num++; sleep(3);
             if($allVersions) $cmd = 'curl -X GET "https://zenodo.org/api/deposit/depositions?access_token='.ZENODO_TOKEN.'&allversions=true&sort=bestmatch&size=25&page='.$page_num.'&q="'.urlencode($q).' -H "Content-Type: application/json"';
             else             $cmd = 'curl -X GET "https://zenodo.org/api/deposit/depositions?access_token='.ZENODO_TOKEN.'&sort=newest&size=25&page='.$page_num.'&q="'.urlencode($q).' -H "Content-Type: application/json"';
 
@@ -968,7 +968,7 @@ class ZenodoAPI extends ZenodoConnectorAPI
         // */
 
         $page_num = 0;
-        while(true) { $page_num++;
+        while(true) { $page_num++; sleep(3);
             // $cmd = 'curl -X GET "https://zenodo.org/api/deposit/depositions?access_token='.ZENODO_TOKEN.'&size=1&page=1&q="'.urlencode($q).' -H "Content-Type: application/json"';
 
             if($allVersions) $cmd = 'curl -X GET "https://zenodo.org/api/deposit/depositions?access_token='.ZENODO_TOKEN.'&allversions=true&sort=bestmatch&size=25&page='.$page_num.'&q="'.urlencode($q).' -H "Content-Type: application/json"';

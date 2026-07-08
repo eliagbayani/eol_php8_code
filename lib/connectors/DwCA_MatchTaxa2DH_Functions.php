@@ -139,7 +139,7 @@ class DwCA_MatchTaxa2DH_Functions
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_without_eolID; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n -> B4. Has canonical match with DH but without eolID: [" . number_format($has_canonical_match_with_DH_without_eolID) . "]";
+        echo "\n -> B4. Has canonical match with DH but without eolID: [" . self::number_format_eli($has_canonical_match_with_DH_without_eolID) . "]";
 
         echo "\n -> Total = [".number_format($sum)."]";
         if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
@@ -421,7 +421,7 @@ class DwCA_MatchTaxa2DH_Functions
             If one rank is genus and the other is something else (but not empty), discard the match
             If one rank is subgenus and the other is something else (but not empty), discard the match
             If one rank is section or section botany and the other is something else (but not empty), discard the match
-            If one rank is subsection or subsection botany and the other is something else (but not empty), discard the match ---*/
+            If one rank is subsection or subsection botany and the other is something else (but not empty), discard the match ---*/        
     }
     function name_matching_ancestry_compatibility($pairs, $fromSynonymsYN) //Step 4: Name matching - ancestry compatibility
     {   /*Array(
@@ -497,7 +497,7 @@ class DwCA_MatchTaxa2DH_Functions
         If one or both Ancestry Index values are empty, keep the match and go to Step 6 */
         
         if($this->debugNow) {
-            print_r($pairs); exit("\nthe pairs...\n");
+            print_r($pairs); echo(" -> the pairs...\n");
         }
         /* First step is to assign the AI for each rec and rek */
         $i = -1;
@@ -524,6 +524,9 @@ class DwCA_MatchTaxa2DH_Functions
                 [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
             )*/
             $rek_h = $rek['h'] ? $rek['h'] : @$rek['h2'];
+            
+            // $rek_h = 'Chromista|Radiozoa'; //force-assigned; during dev only
+
             if(@$rek['h2']) echo "\nrek_h to use: [$rek_h]";
             // ---------- */
             if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek_h)) { // get AI for $rek['h']
@@ -652,7 +655,7 @@ class DwCA_MatchTaxa2DH_Functions
         )*/
         return $rek;
     }
-    private function name_matching_through_synonyms($rec) //Step 5: Name matching through synonyms
+    function name_matching_through_synonyms($rec) //Step 5: Name matching through synonyms
     {   /* For reference only
         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
             , 'c' => $rec['canonicalName'] //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
@@ -766,9 +769,9 @@ class DwCA_MatchTaxa2DH_Functions
                     $pair = self::choose_one_from_multiple_pairs($ret2, 'synonym');
                     return $pair;
                 }
-                else echo " -- not ancestry compatible\n";
+                else echo " -- not ancestry compatible (syn run)\n";
             }
-            else echo " -- not rank compatible\n";
+            else echo " -- not rank compatible (syn run)\n";
         }
         // else echo " No synonym_reks\n";
     }
@@ -852,8 +855,12 @@ class DwCA_MatchTaxa2DH_Functions
         $final = array();
         foreach($reks as $rek) {
             if($rek['s'] == $sought) {
-                if($rek['e']) $final[] = $rek;  //Eli's initiative: exclude reks with blank eolID's
-                // $final[] = $rek;
+                if($tax_status == 'accepted') {
+                    if($rek['e']) $final[] = $rek;  //Eli's initiative: exclude reks with blank eolID's
+                }
+                elseif($tax_status == 'synonym') {
+                    $final[] = $rek;
+                }
             }
         }
         return $final;
@@ -866,6 +873,14 @@ class DwCA_MatchTaxa2DH_Functions
     {
         if(isset($this->subspecific_ranks[$rank])) return true;
         else return false;
+    }
+    function add_pipe_2str($str)
+    { //first and last char must be "|"
+        $str = trim($str);
+        if(substr($str,0,1) != "|") $str = "|".$str;
+        $lastChar = substr($str, -1); 
+        if($lastChar != "|") $str = $str."|";
+        return $str;
     }
 }
 ?>

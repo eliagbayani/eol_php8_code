@@ -76,7 +76,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         /* ===== start of entire detailed workflow ===== */
         $ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
         foreach($ranks as $rank) $this->subspecific_ranks[$rank] = '';
-
+        $this->debugNow = true;
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initialize()
@@ -244,7 +244,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
 
                 if($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
+                    if($this->debugNow) { echo "\n reks 1 => "; print_r($reks); }
+                    $this->reks_1 = $reks; //use this to preserve the orig reks. Accepted and synonyms are included here.
                     $reks = self::filter_reks_by_what($reks, 'accepted');
+                    if($this->debugNow) { echo "\n reks 2 => "; print_r($reks); }
                     if(!$reks) {self::write_2archive($rec); @$this->debug['Has canonical match with DH but without eolID']++; continue;}
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
@@ -277,7 +280,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                         if($ret = self::matching_routine_using_rank_v2($rec, $reks)) { //Step 3: Name matching - rank compatibility
                             $fromSynonyms = false;
                             if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
-                                // print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
+                                if($this->debugNow) {
+                                    print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
+                                }
 
                                 if(count($ret2) > 1) {
                                     // print_r($ret2); exit("\nSo it can happen: multiple accepted_name matches that pass both compatibility checks.\n");
@@ -336,19 +341,34 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 }
                                 */
                             }
-                            else $this->debug['Cannot be matched at all'][$taxonID] = $rec; //incompatible ancestry
+                            else { //incompatible ancestry
+                                if($this->debugNow) echo "\n => incompatible ancestry \n";
+                                $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                            }
                         }
-                        else $this->debug['Cannot be matched at all'][$taxonID] = $rec; //incompatible ranks
+                        else { //incompatible ranks
+                            if($this->debugNow) echo "\n => incompatible ranks \n";
+                            $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                        }
                     }
-                    else $this->debug['Cannot be matched at all'][$taxonID] = $rec; //no ancestry index
+                    else { //no ancestry index
+                        if($this->debugNow) echo "\n => no ancestry index \n";
+                        $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                    }
                     // */
 
                     /* ----- OLD IMPLEMENTATION ----- */
                 }
                 else $this->debug['No canonical match'][$taxonID] = $rec;
+
+                if($this->debugNow) {
+                    print_r($rec); self::debug_reports(); exit("\n-stop 1st rec-\n");
+                }
+
                 // /* uncomment in real operation
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
                 // */
+                if($this->debugNow) break; //dev only ; process just 1 rec
             } //end match_canonical
             //========================================================================================================= 
             elseif($what == 'generate_synonyms_info') {

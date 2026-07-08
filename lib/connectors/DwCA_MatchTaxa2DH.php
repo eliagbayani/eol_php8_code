@@ -76,7 +76,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         /* ===== start of entire detailed workflow ===== */
         $ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
         foreach($ranks as $rank) $this->subspecific_ranks[$rank] = '';
-        $this->debugNow = true;
+        $this->debugNow = false;
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initialize()
@@ -348,7 +348,16 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                         }
                         else { //incompatible ranks
                             if($this->debugNow) echo "\n => incompatible ranks \n";
-                            $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+
+                            /* Eli's initiative only
+                            if($syn_pair = $this->name_matching_through_synonyms($rec)) {
+                                print_r($syn_pair); echo(" -> what now...\n");
+                                $rec = self::major_assignment($syn_pair);
+                                // For reporting
+                                // if($rec['EOLid']) $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
+                            }
+                            */
+                            if(!$rec['EOLid']) $this->debug['Cannot be matched at all'][$taxonID] = $rec;
                         }
                     }
                     else { //no ancestry index
@@ -512,12 +521,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 
         return $rec;
     }
-    private function add_pipe_2str($str)
-    {
-        $str = trim($str);
-        if(substr($str,0,1) != "|") return "|".$str;
-        return $str;
-    }
     private function search_hc_string_from_AI($hc_str) //the regex implementation
     {   $hc_str = trim($hc_str);
         if($this->AncestryIndexVer == 'old') exit("\nDoes not go here anymore.\n");
@@ -565,7 +568,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     function search_hc_string_from_AncestryIndex_regex($hc_str) //regex
     {
         if($hc_str == '|') return false;
-        $pipe_hc_str = self::add_pipe_2str($hc_str);
+        $pipe_hc_str = $this->add_pipe_2str($hc_str);
         $this->pipe_hc_str = $pipe_hc_str; //so it can be accessed in other functions, no need to pass it as param.
         // echo "\n needle or HCx: [$hc_str]";
         // echo "\n pipe needlex: [$pipe_hc_str]";

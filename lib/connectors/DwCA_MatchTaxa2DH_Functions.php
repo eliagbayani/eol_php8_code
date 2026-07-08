@@ -496,6 +496,9 @@ class DwCA_MatchTaxa2DH_Functions
                 If the ancestors are not compatible, go to step 5.
         If one or both Ancestry Index values are empty, keep the match and go to Step 6 */
         
+        if($this->debugNow) {
+            print_r($pairs); exit("\nthe pairs...\n");
+        }
         /* First step is to assign the AI for each rec and rek */
         $i = -1;
         foreach($pairs as $pair) { $i++;
@@ -805,9 +808,13 @@ class DwCA_MatchTaxa2DH_Functions
     }
     private function get_synonym_reks_from_DH_for_this_canonical($canonicalName)
     {
+        if($this->debugNow) echo "\n --- start syn ---\n";
         if($reks = @$this->DH->DHCanonical_info[$canonicalName]) {
+            if($this->debugNow) print_r($reks);
             if($synonym_reks = self::filter_reks_by_what($reks, 'synonym')) return $synonym_reks;
+            else { if($this->debugNow) echo "\nNo synonyms for canonicalName: [$canonicalName]\n"; }
         }
+        if($this->debugNow) echo "\n --- end syn ---\n";
     }
     function filter_reks_by_what($reks, $tax_status) //possible tax_status values: 'accepted' OR 'synonym'
     {   /* print_r($this->DH->DHCanonical_info['Aa brevis']);

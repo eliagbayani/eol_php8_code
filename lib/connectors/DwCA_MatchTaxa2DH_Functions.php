@@ -524,11 +524,12 @@ class DwCA_MatchTaxa2DH_Functions
                 [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
             )*/
             $rek_h = $rek['h'] ? $rek['h'] : @$rek['h2'];
-            
             // $rek_h = 'Chromista|Radiozoa'; //force-assigned; during dev only
-
-            if(@$rek['h2']) echo "\nrek_h to use: [$rek_h]";
+            if($this->debugNow) {
+                if(@$rek['h2']) echo "\nThere is h2, rek_h to use: [$rek_h]";
+            }
             // ---------- */
+
             if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek_h)) { // get AI for $rek['h']
                 if($fromSynonymsYN) echo "\n Success: search_hc_string_from_AncestryIndex_regex()";
                 /*Array(
@@ -555,7 +556,9 @@ class DwCA_MatchTaxa2DH_Functions
                 }
             }
         } //foreach()
-        if($fromSynonymsYN) { echo "\nSynonym run: "; print_r($pairs); }
+        if($fromSynonymsYN) { 
+            if($this->debugNow) { echo "\nSynonym run: "; print_r($pairs); }
+        }
         // print_r($pairs); exit("\nelix 5\n"); //good debug to see what do we exactly have here.
 
         /* If Ancestry Index values are the same, keep the match and go to Step 6 */
@@ -601,8 +604,7 @@ class DwCA_MatchTaxa2DH_Functions
         if($pairz) return $pairz;
     }
     private function fill_in_accepted_data_for_this_syn($rek)
-    {
-        echo "\n --->Starting syn rek: "; print_r($rek);
+    {   // echo "\n --->Starting syn rek: "; print_r($rek);
         /*Array(
             [r] => genus
             [e] => 
@@ -642,7 +644,7 @@ class DwCA_MatchTaxa2DH_Functions
         }
         else exit("\nERROR: There should be acceptedNameUsageID.\n");
         // exit("\n-stop test 2-\n");
-        echo "\n ---> Ending syn rek: "; print_r($rek);        
+        // echo "\n ---> Ending syn rek: "; print_r($rek);
         /*Array( from GloBI
             [r] => genus
             [e] => 
@@ -665,7 +667,7 @@ class DwCA_MatchTaxa2DH_Functions
 
         // 1. Check if any of the canonicals that remain unmatched after Step 4 can be matched to canonical name strings of DH synonyms (taxonomic status = "not accepted").
         if($synonym_reks = self::get_synonym_reks_from_DH_for_this_canonical($rec['canonicalName'])) {
-            echo "\nMay synonym_reks: "; print_r($synonym_reks);
+            if($this->debugNow) { echo "\nMay synonym_reks: "; print_r($synonym_reks); }
             /*Array(
                 [0] => Array(
                         [r] => genus
@@ -678,7 +680,7 @@ class DwCA_MatchTaxa2DH_Functions
             )*/
             // 2. For each matched pair, check for rank compatibility as above
             if($ret = self::matching_routine_using_rank_v2($rec, $synonym_reks)) { //Step 3: Name matching - rank compatibility
-                echo "\nIt is rank compatible: "; print_r($ret); //exit;
+                if($this->debugNow) { echo "\nIt is rank compatible: "; print_r($ret); }
                 /*Array(
                     [0] => Array(
                             [0] => Array(

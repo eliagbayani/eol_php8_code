@@ -604,7 +604,8 @@ class DwCA_MatchTaxa2DH_Functions
         if($pairz) return $pairz;
     }
     private function fill_in_accepted_data_for_this_syn($rek)
-    {   // echo "\n --->Starting syn rek: "; print_r($rek);
+    {   
+        if($this->debugNow) { echo "\n --->Starting syn rek: "; print_r($rek); }
         /*Array(
             [r] => genus
             [e] => 
@@ -644,7 +645,7 @@ class DwCA_MatchTaxa2DH_Functions
         }
         else exit("\nERROR: There should be acceptedNameUsageID.\n");
         // exit("\n-stop test 2-\n");
-        // echo "\n ---> Ending syn rek: "; print_r($rek);
+        if($this->debugNow) { echo "\n ---> Ending syn rek: "; print_r($rek); }
         /*Array( from GloBI
             [r] => genus
             [e] => 

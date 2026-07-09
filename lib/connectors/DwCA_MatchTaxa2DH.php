@@ -244,10 +244,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
 
                 if($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
-                    if($this->debugNow) { echo "\n reks 1 => "; print_r($reks); }
-                    $this->reks_1 = $reks; //use this to preserve the orig reks. Accepted and synonyms are included here.
+                    if($this->debugNow) { echo "\n reks 1 => All "; print_r($reks); }
                     $reks = self::filter_reks_by_what($reks, 'accepted');
-                    if($this->debugNow) { echo "\n reks 2 => "; print_r($reks); }
+                    if($this->debugNow) { echo "\n reks 2 => Only accepted "; print_r($reks); }
                     if(!$reks) {self::write_2archive($rec); @$this->debug['Has canonical match with DH but without eolID']++; continue;}
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
@@ -351,6 +350,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                         }
                         else { //incompatible ranks
                             if($this->debugNow) echo "\n => incompatible ranks \n";
+                            $this->debug['Cannot be matched at all'][$taxonID] = $rec;
 
                             /* Eli's initiative only
                             if($syn_pair = $this->name_matching_through_synonyms($rec)) {
@@ -360,7 +360,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 // if($rec['EOLid']) $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
                             }
                             */
-                            if(!$rec['EOLid']) $this->debug['Cannot be matched at all'][$taxonID] = $rec;
                         }
                     }
                     else { //no ancestry index

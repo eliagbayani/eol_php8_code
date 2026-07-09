@@ -668,7 +668,8 @@ class DwCA_MatchTaxa2DH_Functions
 
         // 1. Check if any of the canonicals that remain unmatched after Step 4 can be matched to canonical name strings of DH synonyms (taxonomic status = "not accepted").
         if($synonym_reks = self::get_synonym_reks_from_DH_for_this_canonical($rec['canonicalName'])) {
-            if($this->debugNow) { echo "\nMay synonym_reks: "; print_r($synonym_reks); }
+            echo " -- OK synonym_reks exist (syn run)\n";
+            if($this->debugNow) { print_r($synonym_reks); }
             /*Array(
                 [0] => Array(
                         [r] => genus
@@ -681,7 +682,8 @@ class DwCA_MatchTaxa2DH_Functions
             )*/
             // 2. For each matched pair, check for rank compatibility as above
             if($ret = self::matching_routine_using_rank_v2($rec, $synonym_reks)) { //Step 3: Name matching - rank compatibility
-                if($this->debugNow) { echo "\nIt is rank compatible: "; print_r($ret); }
+                echo " -- OK rank compatible (syn run)\n";
+                if($this->debugNow) { print_r($ret); }
                 /*Array(
                     [0] => Array(
                             [0] => Array(
@@ -721,7 +723,9 @@ class DwCA_MatchTaxa2DH_Functions
                 // 3. For each pair that passed the rank compatibility check, check for ancestry compatibility as above, using the ancestry string of the synonym's accepted name.
                 $fromSynonyms = true;
                 if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
-                    print_r($ret2); echo("\nSYNONYMS: Reached this point.\n");
+                    echo " -- OK ancestry compatible (syn run)\n";
+                    if($this->debugNow) print_r($ret2);
+                    echo("\nSYNONYMS: Reached this point.\n");
                     /*Array(
                         [0] => Array(
                                 [0] => Array(
@@ -776,7 +780,7 @@ class DwCA_MatchTaxa2DH_Functions
             }
             else echo " -- not rank compatible (syn run)\n";
         }
-        // else echo " No synonym_reks\n";
+        else echo " -- No synonym_reks (syn run)\n";
     }
     function choose_one_from_multiple_pairs($ret2, $what)
     {

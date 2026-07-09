@@ -1,9 +1,9 @@
 ----------STATS----------
 A. No canonical match: [8,055]
 B. Has canonical match: [51,337]
- -> B1. With DH EOLid assignments (accepted name): [47,763]
+ -> B1. With DH EOLid assignments (accepted name): [47,760]
  -> B2. With DH EOLid assignments (synonym): [0]
- -> B3. Cannot be matched at all: [424]
+ -> B3. Cannot be matched at all: [427]
  -> B4. Has canonical match with DH but without eolID: [3,150]
  -> Total = [51,337]
 
@@ -24,7 +24,7 @@ Breakdown:
 Total = [122,658]
 
 AncestryIndexVer: [new]
-total EOL IDs (unique): [47742]
-EOL ID assignments (multiple taxa can be assigned with same EOLid): [47763]
+total EOL IDs (unique): [47739]
+EOL ID assignments (multiple taxa can be assigned with same EOLid): [47760]
 
 ----------STATS end----------

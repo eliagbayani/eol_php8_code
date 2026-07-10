@@ -298,6 +298,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     if(isset($this->debug['With DH EOLid assignments (synonym)'][$taxonID])) {}
                                     else $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
                                 }
+                                else {
+                                    echo "\nSo it goes here...\n";
+                                    print_r($ret2); print_r($pair); print_r($rec);  
+                                    $this->debug['Successful synonym match but accepted taxon does not have eolID'][$taxonID] = $rec;                                    
+                                }
                                 
                                 /*
                                 if($ret2[0][0]['taxonID'] == 'IRMNG:1444425') { //sample in GloBI

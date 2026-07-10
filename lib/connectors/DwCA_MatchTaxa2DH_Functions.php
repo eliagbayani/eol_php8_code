@@ -126,6 +126,7 @@ class DwCA_MatchTaxa2DH_Functions
     {   echo '' ?? '';
         $cannot_be_matched_at_all = count($this->debug['Cannot be matched at all'] ?? array());
         $With_eolID_assignments = count(@$this->debug['With DH EOLid assignments (accepted name)'] ?? array());
+        $Successful_syn_but_accepted_taxon_no_eolID = count(@$this->debug['Successful synonym match but accepted taxon does not have eolID'] ?? array());
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
         $matched_thru_a_synonym = count(@$this->debug['With DH EOLid assignments (synonym)'] ?? array()); //'Matched thru a synonym'
@@ -136,11 +137,11 @@ class DwCA_MatchTaxa2DH_Functions
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\n -> B1. With DH EOLid assignments (accepted name): [" . number_format($With_eolID_assignments) . "]";
         echo "\n -> B2. With DH EOLid assignments (synonym): [" . number_format($matched_thru_a_synonym) . "]";
-        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_without_eolID; // + $With_EOLid_but_not_matched;
-        $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
         echo "\n -> B4. Has canonical match with DH but without eolID: [" . self::number_format_eli($has_canonical_match_with_DH_without_eolID) . "]";
-
+        echo "\n -> B5. Successful synonym match but accepted taxon does not have eolID: [" . number_format($Successful_syn_but_accepted_taxon_no_eolID) . "]";
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_without_eolID + $Successful_syn_but_accepted_taxon_no_eolID; // + $With_EOLid_but_not_matched;
+        $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> Total = [".number_format($sum)."]";
         if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
 
@@ -265,7 +266,7 @@ class DwCA_MatchTaxa2DH_Functions
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 'Successful synonym match but accepted taxon does not have eolID',
                          'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)', 
                          'incompatible_multimatches_v2', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2'); //compatible_multimatches_v1
         // excluded: 'With EOLid but not matched'

@@ -44,10 +44,10 @@ class DataHub_NCBI_API
         $this->debug = array();
 
         /* for species-level using dumps to get totals:
-        $this->big_file  = '/Volumes/Crucial_2TB/eol_php_code_tmp2/nucl_gb.accession2taxid';  //12.47 GB
-        $this->big_file2 = '/Volumes/Crucial_2TB/eol_php_code_tmp2/nucl_wgs.accession2taxid'; //32.62 GB --- NOT USED
-        $this->big_file3 = '/Volumes/Crucial_2TB/eol_php_code_tmp2/nucl_wgs.accession2taxid.EXTRA';
-        $this->big_file4 = '/Volumes/Crucial_2TB/eol_php_code_tmp2/dead_nucl.accession2taxid';
+        $this->big_file  = '/Volumes/Crucial_2TB/eol_temp_dev/nucl_gb.accession2taxid';  //12.47 GB
+        $this->big_file2 = '/Volumes/Crucial_2TB/eol_temp_dev/nucl_wgs.accession2taxid'; //32.62 GB --- NOT USED
+        $this->big_file3 = '/Volumes/Crucial_2TB/eol_temp_dev/nucl_wgs.accession2taxid.EXTRA';
+        $this->big_file4 = '/Volumes/Crucial_2TB/eol_temp_dev/dead_nucl.accession2taxid';
         */
 
         $this->dumpfile["prot.accession2taxid"] = "https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.INDEX-NUM.gz";

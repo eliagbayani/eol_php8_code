@@ -37,7 +37,7 @@ class DataHub_GBIF_API
 
         // 1st dump: https://doi.org/10.15468/dl.y5bevt --- 0000495-240506114902167
         // $this->remote_csv = "https://api.gbif.org/v1/occurrence/download/request/0000495-240506114902167.zip"; //should make this a recurring download
-        // $this->local_csv = "/Volumes/Crucial_2TB/eol_php_code_tmp2/0000495-240506114902167.csv"; //dev only
+        // $this->local_csv = "/Volumes/Crucial_2TB/eol_temp_dev/0000495-240506114902167.csv"; //dev only
         $this->taxon_page = 'https://www.gbif.org/species/'; //e.g. 8084280
     }
     function start()

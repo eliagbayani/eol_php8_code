@@ -570,7 +570,7 @@ class Annotator2EOLAPI extends Functions_Annotator
                 // $this->eli = array(); //good debug - works OK - uncomment all rows with $this->eli if u want to test.
 
                 /* debug only; during dev only --- force assignment of string to textmine
-                $rec['http://purl.org/dc/terms/description'] = file_get_contents(DOC_ROOT."/tmp2/sample_treatment.txt");
+                $rec['http://purl.org/dc/terms/description'] = file_get_contents(DOC_ROOT."/temp_dev/sample_treatment.txt");
                 */
 
                 self::save_article_2_txtfile($rec);

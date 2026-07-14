@@ -21,8 +21,8 @@ class MonitorDwCARefreshAPI
         }
         else {
             $this->lookup_url = "http://localhost:81/eol_php8_code/update_resources/connectors/monitor_dwca_refresh.php?dwca_id=";
-            $this->harvest_dump_link = 'http://localhost:81/eol_php8_code/applications/content_server/resources_3/EOL_FreshData_connectors.txt';
-            $this->harvest_dump = WEB_ROOT."/applications/content_server/resources_3/EOL_FreshData_connectors.txt"; //the one being read
+            $this->harvest_dump_link = 'http://localhost:81/eol_php8_code/applications/content_server/resources/EOL_FreshData_connectors.txt';
+            $this->harvest_dump = WEB_ROOT."/applications/content_server/resources/EOL_FreshData_connectors.txt"; //the one being read
             echo "\nDevelopment environment:<br>[$this->lookup_url]<br>[$this->harvest_dump_link]<br>[$this->harvest_dump] (being read)<br>";
         }
         $this->prev_date = "";

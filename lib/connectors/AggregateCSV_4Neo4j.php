@@ -45,7 +45,7 @@ class AggregateCSV_4Neo4j
         $this->report['what'] = $subfolder_name;
         print_r($files);
         foreach($files as $source) {
-            $destination = $this->path['combined_dir']."/$subfolder_name/".basename($source); // /var/www/html/eol_php8_code/applications/content_server/resources_3/neo4j_imports/combined_CSVs/edges/CONTRIBUTOR.csv
+            $destination = $this->path['combined_dir']."/$subfolder_name/".basename($source); // /var/www/html/eol_php8_code/applications/content_server/resources/neo4j_imports/combined_CSVs/edges/CONTRIBUTOR.csv
             
             // /* ---------- for stats report
             $main = basename($this->path['combined_dir']); //'combined_CSVs'

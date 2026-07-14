@@ -24,7 +24,7 @@ $form = $_POST;
 // echo "<pre>"; print_r($form); echo "</pre>"; //exit("\neli 200\n");
 /*Array(
     [resource_id] => 1720970264
-    [temp_dir] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/CheckListBank_files/1720970264/
+    [temp_dir] => /opt/homebrew/var/www/eol_php_code/applications/content_server/resources/CheckListBank_files/1720970264/
     [temp_folder] => /opt/homebrew/var/www/eol_php_code//applications/CheckListBank_tool/temp/
     [Item_type] => Array(
             [0] => Journal Article

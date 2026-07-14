@@ -17,7 +17,7 @@ $browser_comment = "Choose File"; //Safari Chrome
 ?>
 <table border="1" cellpadding="15" cellspacing="1" align="center" width="40%">
     <tr align="center">
-        <td><b>Trait spreadsheet to DwC-A Tool</b>
+        <td><b>Trait spreadsheet to DwC-A Tool</b> - this may need fixing
         <!---
         <small><br><a href='https://eol-jira.bibalex.org/browse/COLLAB-1004?focusedCommentId=64188&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-64188'>(work in progress)</a></small>
         --->

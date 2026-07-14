@@ -32,12 +32,12 @@ $param                     = json_decode(@$argv[2], true); // print_r($param); e
 $resource_id = $param['resource_id'];
 
 // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
-// $path = str_replace("/var/www/html/eol_php8_code", "", CONTENT_RESOURCE_LOCAL_PATH); //e.g. /applications/content_server/resources_3/
+// $path = str_replace("/var/www/html/eol_php8_code", "", CONTENT_RESOURCE_LOCAL_PATH); //e.g. /applications/content_server/resources/
 // $dwca_file = WEB_ROOT . $path . $resource_id . ".tar.gz";
-// [http://host.docker.internal:81/eol_php8_code//applications/content_server/resources_3/Brazilian_Flora.tar.gz]
+// [http://host.docker.internal:81/eol_php8_code//applications/content_server/resources/Brazilian_Flora.tar.gz]
 
 $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz";
-// [/var/www/html/eol_php8_code/applications/content_server/resources_3/Brazilian_Flora.tar.gz]
+// [/var/www/html/eol_php8_code/applications/content_server/resources/Brazilian_Flora.tar.gz]
 
 /* copied template
 if ($resource_id == "WoRMS2EoL") $dwca_file = LOCAL_HOST . "/cp/WORMS/WoRMS2EoL.zip";

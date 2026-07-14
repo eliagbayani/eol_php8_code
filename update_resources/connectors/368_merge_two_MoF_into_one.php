@@ -19,7 +19,7 @@ $timestart = time_elapsed();
 
 $resource_id = '368_merged_MoF';
 if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/368_final.tar.gz';
-else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources_3/368_final.tar.gz';
+else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources/368_final.tar.gz';
 process_resource_url($dwca_file, $resource_id, $timestart);
 
 function process_resource_url($dwca_file, $resource_id, $timestart)

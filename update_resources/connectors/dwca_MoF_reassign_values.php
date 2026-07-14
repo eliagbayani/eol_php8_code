@@ -20,8 +20,8 @@ $params                     = json_decode(@$argv[2], true);
 $resource_id = @$params['resource_id']; 
 
 // if(Functions::is_production())  $dwca = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-// else                            $dwca = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$resource_id.'.tar.gz'; //orig
-// else                            $dwca = WEB_ROOT . '/applications/content_server/resources_3/'.$resource_id.'.tar.gz'; // PHP 8.2 compatible; OK also
+// else                            $dwca = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz'; //orig
+// else                            $dwca = WEB_ROOT . '/applications/content_server/resources/'.$resource_id.'.tar.gz'; // PHP 8.2 compatible; OK also
 $dwca = CONTENT_RESOURCE_LOCAL_PATH.$resource_id.'.tar.gz'; //seems a better sol'n.
 
 // /* ---------- CUSTOMIZE HERE: ----------

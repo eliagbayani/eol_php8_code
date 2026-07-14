@@ -254,7 +254,7 @@ php clade_filters_4_habitats.php jenkins '{"resource_id":"26_MoF_normalized"}' #
 # -------------------> total 9 php files to run
 
 #LAST STEP: copy last transactional DwCA to WoRMS.tar.gz OK
-cd /var/www/html/eol_php8_code/applications/content_server/resources_3
+cd /var/www/html/eol_php8_code/applications/content_server/resources
 cp 26_MoF_normalized_2.tar.gz WoRMS_textmined.tar.gz
 ls -lt 26_MoF_normalized_2.tar.gz
 ls -lt WoRMS_textmined.tar.gz

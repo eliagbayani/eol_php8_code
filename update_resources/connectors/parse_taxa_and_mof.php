@@ -12,7 +12,7 @@ $timestart = time_elapsed();
 $resource_id = 'parsing_dwca'; //doesn't generate a DwCA
 
 if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/xxx.tar.gz';
-else                           $dwca_file = WEB_ROOT . '/applications/content_server/resources_3/globi_assoc_2025_05_17.tar.gz';
+else                           $dwca_file = WEB_ROOT . '/applications/content_server/resources/globi_assoc_2025_05_17.tar.gz';
 
 process_resource_url($dwca_file, $resource_id, $timestart);
 

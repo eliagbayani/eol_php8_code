@@ -42,7 +42,7 @@ $tmp_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1_eolID_e
 // $tmp_id .= "_neo4j_2"; //reads this file --- OBSOLETE
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$tmp_id.'.tar.gz';
-$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz";  //during dev only
+$dwca_file = WEB_ROOT . "/applications/content_server/resources/".$tmp_id.".tar.gz";  //during dev only
 $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/".$tmp_id.".tar.gz";                       //maybe the way to go
 
 $arr = explode("-with-hC", $resource_id);

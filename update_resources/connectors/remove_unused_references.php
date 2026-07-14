@@ -18,7 +18,7 @@ print_r($param);
 
 // /*
 if(Functions::is_production()) $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . ".tar.gz";
-else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
+else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources/'.$resource_id.'.tar.gz';
 // */
 
 // /* ---------- customize here ----------

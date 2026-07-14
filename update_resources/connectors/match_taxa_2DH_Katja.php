@@ -98,7 +98,7 @@ $tmp_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1"
 // $tmp_id .= "_neo4j_1"; //OBSOLETE line, "_neo4j_1" is now included in the resource_id passed.
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$tmp_id.'.tar.gz';
-$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz"; //during dev only
+$dwca_file = WEB_ROOT . "/applications/content_server/resources/".$tmp_id.".tar.gz"; //during dev only
 
 // $resource_id .= "_neo4j_2"; //the DwCA with the new column eolID from DH --- OBSOLETE
 $resource_id .= "_eolID"; //the DwCA with the new column eolID from DH

@@ -170,7 +170,7 @@ $input["trait kind"] = "trait"; //only 2 recs here
 $func->divide_exportfile_send_2quickstatements($input); exit("\n-end divide_exportfile_send_2quickstatements() -\n");
 */
 
-// print_r(pathinfo("/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/reports/cypher/2b2b74fb3966af72c6eb34ec9855f626/export_file.qs"));
+// print_r(pathinfo("/opt/homebrew/var/www/eol_php_code/applications/content_server/resources/reports/cypher/2b2b74fb3966af72c6eb34ec9855f626/export_file.qs"));
 // exit;
 
 // Q16757851|P9566|Q101029366|S3452|Q90856597 /*Pseudohemihyalea edwardsii|diel cycle|nocturnal|inferred from|Phylogenomics reveals the... */
@@ -219,8 +219,8 @@ exit("\n----- end main operation -----\n");
 // 50
 // Q17208451|P9714|Q375816|S248|Q117034902
 
-// /Volumes/OWC_Express/resources_3/reports/cypher/ad06e5acb28ba5c95518e74182a86863/export_file.qs
-// /Volumes/OWC_Express/resources_3/reports/cypher/6c401cec15f1976a46d4eb3b47cc1c48/export_file.qs
+// /Volumes/OWC_Express/resources/reports/cypher/ad06e5acb28ba5c95518e74182a86863/export_file.qs
+// /Volumes/OWC_Express/resources/reports/cypher/6c401cec15f1976a46d4eb3b47cc1c48/export_file.qs
 
 
 /* works OK

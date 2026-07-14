@@ -457,7 +457,7 @@ if(@$ret['undefined source occurrence'] || @$ret['undefined target occurrence'])
 // */
     $resource_id = "globi_associations_final"; //DwCA with fixed Associations tab
     if(Functions::is_production()) $dwca = "https://editors.eol.org/eol_php_code/applications/content_server/resources/globi_associations.tar.gz";
-    else                           $dwca = WEB_ROOT."/applications/content_server/resources_3/globi_associations.tar.gz";
+    else                           $dwca = WEB_ROOT."/applications/content_server/resources/globi_associations.tar.gz";
     $func = new DwCA_Utility($resource_id, $dwca);
     $preferred_rowtypes = array();
     $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/occurrence', 'http://eol.org/schema/reference/reference');

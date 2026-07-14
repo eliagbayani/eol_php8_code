@@ -70,7 +70,7 @@ $param                     = json_decode(@$argv[2], true); // print_r($param); e
 $resource_id = $param['resource_id'];
 
 $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
-$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/" . $resource_id . ".tar.gz"; //during dev only
+$dwca_file = WEB_ROOT . "/applications/content_server/resources/" . $resource_id . ".tar.gz"; //during dev only
 
 // /* Customize during dev:
 if ($resource_id == "WoRMS2EoL") {

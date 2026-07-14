@@ -18,7 +18,7 @@ $params                     = json_decode(@$argv[2], true);
 $resource_id = @$params['resource_id']; 
 
 if(Functions::is_production())  $dwca = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-else                            $dwca = 'http://localhost/eol_php_code/applications/content_server/resources_3/'.$resource_id.'.tar.gz';
+else                            $dwca = 'http://localhost/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
 
 $resource_id = $params['destination_id'];
 

@@ -18,7 +18,7 @@ $param                     = json_decode(@$argv[2], true); // print_r($param); e
 $resource_id = $param['resource_id'];
 
 $tmp_id = $param['resource_id']; //e.g. "fishbase_final"
-$dwca_file = WEB_ROOT . "/applications/content_server/resources_3/".$tmp_id.".tar.gz";
+$dwca_file = WEB_ROOT . "/applications/content_server/resources/".$tmp_id.".tar.gz";
 $resource_id .= "_analyzed"; //the DwCA with MoF extension analyzed
 
 process_resource_url($dwca_file, $resource_id, $timestart);

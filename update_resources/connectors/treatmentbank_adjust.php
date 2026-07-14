@@ -9,7 +9,7 @@ $timestart = time_elapsed();
 $resource_id = 'TreatmentBank_adjustment_01'; //generates TreatmentBank_adjustment_01.tar.gz
 
 if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/TreatmentBank_ENV.tar.gz';
-else                           $dwca_file = WEB_ROOT . '/applications/content_server/resources_3/TreatmentBank_ENV.tar.gz';
+else                           $dwca_file = WEB_ROOT . '/applications/content_server/resources/TreatmentBank_ENV.tar.gz';
 
 process_resource_url($dwca_file, $resource_id, $timestart);
 

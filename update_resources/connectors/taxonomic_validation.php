@@ -27,7 +27,7 @@ require_library('connectors/TaxonomicValidationAPI');
 // $timestart = time_elapsed(); //use the one from jenkins_call.php
 
 /* tests
-// $path = "/opt/homebrew/var/www/eol_php_code/applications/content_server/resources_3/Taxonomic_Validation/1686044073.tar.gz";
+// $path = "/opt/homebrew/var/www/eol_php_code/applications/content_server/resources/Taxonomic_Validation/1686044073.tar.gz";
 // print_r(pathinfo($path));
 // echo "\n[".pathinfo($path, PATHINFO_BASENAME)."]\n";
 -------------------------------------

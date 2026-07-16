@@ -128,6 +128,7 @@ class Taxon extends DarwinCoreExtensionBase
 
     public static function valid_rank($v)
     {
+        // $v = str_replace("|", "", $v); //hack
         if($v && !in_array(strtolower($v), self::$ranks))
         {
             return false;

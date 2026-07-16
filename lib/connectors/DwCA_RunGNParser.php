@@ -138,13 +138,15 @@ class DwCA_RunGNParser
                 }
                 // */
 
-                // print_r($rec); exit;
                 $o = new \eol_schema\Taxon();
-                $uris = array_keys($rec); // print_r($uris); //exit;
+                $uris = array_keys($rec); 
+                $uris = self::move_an_element_to_last('http://rs.tdwg.org/dwc/terms/higherClassification', $uris);
                 foreach($uris as $uri) {
                     $field = self::get_field_from_uri($uri);
                     $o->$field = $rec[$uri];
                 }
+                // print_r($uris); print_r($rec); print_r($o); exit("\nInvestigate...\n");
+
                 /* good debug: limit the no. of taxa
                 if(in_array($o->scientificName, array('Archaeognatha', 'Coleoptera'))) $this->archive_builder->write_object_to_file($o);
                 */
@@ -152,6 +154,16 @@ class DwCA_RunGNParser
             }
             // if($i >= 5) break;
         }
+    }
+    private function move_an_element_to_last($target, $array)
+    {   
+        $key = array_search($target, $array); // 1. Find the current key of the URL
+        if ($key !== false) {
+            unset($array[$key]); // 2. Remove it from its current position
+            $array[] = $target; // 3. Append it to the very end
+            $array = array_values($array); // 4. Re-index keys sequentially (0, 1, 2...) instead of leaving a gap at [5]
+        }
+        return $array;
     }
     private function guess_taxonRank_from_canonicalName($rec)
     {

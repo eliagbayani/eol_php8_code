@@ -341,7 +341,7 @@ class Functions
     {
         if($oldname == $newname) return false;
         if(!self::is_within_folders_where_file_change_is_allowed($oldname)) {
-            debug("\nCannot allow file change in this folder ($oldname). Check Functions lib.\n");
+            debug("\nCannot (8) allow file change in this folder ($oldname). Check Functions lib.\n");
             return false;
         }
 
@@ -364,9 +364,7 @@ class Functions
     }
     public static function is_within_folders_where_file_change_is_allowed($file)
     {
-        $allowed_folders = array('eol_php_code/tmp/', 'eol_php_code/temp/', 'eol_php_code/public/tmp/', 'eol_php_code/applications/content_server/resources/', 'eol_php_code/applications/content_server/tmp', '/opt/resources'
-        , '/Volumes/Crucial_4TB/d_w_h/', '/Volumes/AKiTiO4/eol_php_code_tmp/', '/extra/eol_php_code_tmp/', 'temp/'
-        , 'eol_php8_code/applications/content_server/'); //allowed folders so far; we can add more.
+        $allowed_folders = array('eol_php8_code/tmp/', 'eol_php8_code/temp/', 'eol_php8_code/public/tmp/', 'applications/content_server/resources/', 'eol_php8_code/applications/content_server/tmp', '/opt/resources', "/d_w_h/", "/eol_php_code_tmp/", 'temp/', 'eol_php8_code/applications/content_server/'); //allowed folders so far; we can add more.
         foreach($allowed_folders as $folder) {
             if(strpos($file, $folder) !== false) return true;
         }
@@ -408,7 +406,7 @@ class Functions
     }
     public static function fromJenkinsYN()
     {
-        if(DOC_ROOT == "/html/eol_php_code/") return true;
+        if(DOC_ROOT == "/html/eol_php8_code/") return true;
         else return false;
     }
     public static function delete_if_exists($file_path)

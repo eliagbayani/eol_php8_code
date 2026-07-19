@@ -29,3 +29,35 @@ total EOL IDs (unique): [328288]
 EOL ID assignments (multiple taxa can be assigned with same EOLid): [498366]
 
 ----------STATS end----------
+----------STATS----------
+A. No canonical match: [222,430]
+B. Has canonical match: [504,969]
+ -> B1. With DH EOLid assignments (accepted name): [464,873]
+ -> B2. With DH EOLid assignments (synonym): [0]
+ -> B3. Cannot be matched at all: [3,824]
+ -> B4. Has canonical match with DH but without eolID: [36,272]
+ -> B5. Successful synonym match but accepted taxon does not have eolID: [0]
+ -> Total = [504,969]
+
+ -> Synonym_matched_but_no_DH_EOLid: [0]
+ -> Failed_synonym_match: [0]
+
+C. Matches made without_OR_lacking ancestry info: [1,266]
+ -> C1. [With higherClassification but cannot be mapped to any index group.]: 1,236
+ -> C2. [No higherClassification]: 30
+ -> Total = [1,266]
+
+Total taxa from taxon.tab: 727,403
+Breakdown:
+ -> excluded: invalid taxa: 0
+ -> excluded: no canonicalName: 4
+ -> excluded: already has EOLid: 0
+ -> A. No canonical match: [222,430]
+ -> B. Has canonical match: [504,969]
+Total = [727,403]
+
+AncestryIndexVer: [new]
+total EOL IDs (unique): [312131]
+EOL ID assignments (multiple taxa can be assigned with same EOLid): [464873]
+
+----------STATS end----------

@@ -35,6 +35,7 @@ $p['google_sheet'] = $google_sheet;
 $p['spreadsheetID'] = '1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA';
 $p['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
 $p['range'] = 'mapped strings!A1:E1400'; //where "A" is the starting column, "E" is the ending column, and "1" is the starting row.
+                               //-1288 as of 21Jul2026
 $p['fields'] = array('string', 'value', 'value uri', 'predicate', 'predicate uri');
 $params['mapped_strings'] = $p;
 // */
@@ -43,16 +44,18 @@ $params['mapped_strings'] = $p;
 $p['google_sheet'] = $google_sheet;
 $p['spreadsheetID'] = '1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc';
 $p['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
-$p['range'] = 'new!A1:B5200'; //where "A" is the starting column, "B" is the ending column, and "1" is the starting row.
+$p['range'] = 'new!A1:B5800'; //where "A" is the starting column, "B" is the ending column, and "1" is the starting row.
+                    //-5593 as of 21Jul2026
 $p['fields'] = array('Index', 'higherClassification');
 $params['AncestryIndex_new'] = $p;
 // */
 
-// /* worksheet: [compatibleAncestors] : https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
+// /* worksheet: [compatibleAncestors] :
 $p['google_sheet'] = $google_sheet;
 $p['spreadsheetID'] = '1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc';
 $p['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
 $p['range'] = 'compatibleAncestors!A1:B60'; //where "A" is the starting column, "B" is the ending column, and "1" is the starting row.
+                                    //-55 as of 21Jul2026
 $p['fields'] = array('Index_1', 'Index_2');
 $params['AncestryIndex_compatibleAncestors'] = $p;
 // */

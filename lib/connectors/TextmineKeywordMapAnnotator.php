@@ -38,6 +38,7 @@ class TextmineKeywordMapAnnotator
         $arr = $this->func->access_google_sheet($params);
         echo "\nTotal rows: [".count($arr)."]\n";
         self::massage_result($arr, $params['fields']);
+        sleep(5);
     }
     private function massage_result($arr, $fields)
     {   //start massage array

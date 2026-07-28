@@ -54,7 +54,8 @@ exit("\n -globi_assoc- \n");
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
-$AncestryIndexVer = $param['AncestryIndexVer'];
+// $AncestryIndexVer = $param['AncestryIndexVer'];
+$AncestryIndexVer = 'new';
 
 $tmp_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1"
 // $tmp_id .= "_neo4j_1"; //OBSOLETE line, "_neo4j_1" is now included in the resource_id passed.

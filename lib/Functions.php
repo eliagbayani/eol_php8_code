@@ -120,6 +120,9 @@ class Functions
         if(!isset($options['timeout'])) $options['timeout'] = 120;
         if(!isset($options['cache_path'])) $options['cache_path'] = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'];    //orig value in environment.php is 'tmp/cache/'
 
+
+        // exit("\n".DOC_ROOT."\n".$GLOBALS['MAIN_CACHE_PATH']."\n".$options['cache_path']."\nelix stop\n");
+
         $md5 = md5($url);
         $cache1 = substr($md5, 0, 2);
         $cache2 = substr($md5, 2, 2);

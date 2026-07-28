@@ -31,7 +31,7 @@ $params["dataset"]      = "EOL China";
 $params["resource_id"]  = 412;
 
 /* Sample way to access the generic script of converting EOL XML to EOL DWCA
-$params["eol_xml_file"] = WEB_ROOT."/applications/content_server/resources/511.xml.gz";
+$params["eol_xml_file"] = DOC_ROOT."/applications/content_server/resources/511.xml.gz";
 $params["filename"]     = "511.xml";
 $params["dataset"]      = "EOL XML";
 $params["resource_id"]  = 1;

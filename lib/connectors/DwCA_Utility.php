@@ -53,7 +53,11 @@ class DwCA_Utility
         
         $this->public_domains = array("http://creativecommons.org/licenses/publicdomain/", "https://creativecommons.org/share-your-work/public-domain/", "https://creativecommons.org/share-your-work/public-domain/cc0/");
         $this->shorten_fields = false; //used in computing higherClassification
-        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; 
+        if(!is_dir($temp)) {
+            echo "\nAttempt (2) to mkdir() [$temp]\n";
+            mkdir($temp);
+        } 
         $this->neo4j_debug_folder = $temp;
     }
 
@@ -188,7 +192,7 @@ class DwCA_Utility
             if(@$this->params['resource'] == "remove_Media_with_criteria") break;  //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "update_taxa") break;  //all extensions will be processed elsewhere.
             */
-        
+
             if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
             elseif(in_array($this->resource_id, array("BF", "gbif_classification", "gbif_classification_without_ancestry", "gbif_classification_final", 
                                                       "708", "Brazilian_Flora_with_canonical"))) break; //all extensions will be processed elsewhere.
@@ -1319,7 +1323,7 @@ class DwCA_Utility
     //start functions for the interface tool "genHigherClass"
     //=====================================================================================================================
     function tool_generate_higherClassification($file)
-    {   exit("\nThis maybe obsolete\n");
+    {   exit("<br>\nThis maybe obsolete\n<br>");
         if($records = self::create_records_array($file)) {
             self::build_id_name_array($records);                                //echo "\n1 of 3\n";
             $records = self::generate_higherClassification_field($records);     //echo "\n2 of 3\n";

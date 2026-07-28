@@ -34,10 +34,12 @@ class DHConnLib
         }
         $this->taxon_ids = array();
         $this->debug = array();
+        $cache_path = CACHE_PATH . 'active_DH_cache/';
+        if(!is_dir($cache_path)) mkdir($cache_path);
         if (Functions::is_production()) { //not yet run in production...
             exit("\nERROR: Not yet setup in production!\n");
             $this->download_options = array(
-                'cache_path'         => '/extra/active_DH_cache/',
+                'cache_path'         => $cache_path, //'/extra/active_DH_cache/',
                 'download_wait_time' => 250000,
                 'timeout' => 600,
                 'download_attempts' => 1,
@@ -47,7 +49,7 @@ class DHConnLib
             $this->main_path = "/extra/other_files/DWH/TRAM-809/DH_v1_1/";
         } else {
             $this->download_options = array(
-                'cache_path'         => '/Volumes/Crucial_4TB/active_DH_cache/',
+                'cache_path'         => $cache_path, //'/Volumes/Crucial_4TB/active_DH_cache/',
                 'download_wait_time' => 250000,
                 'timeout' => 600,
                 'download_attempts' => 1,

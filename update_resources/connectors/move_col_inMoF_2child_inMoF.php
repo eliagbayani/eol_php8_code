@@ -23,10 +23,7 @@ print_r($param);
 $extension = ".tar.gz";
 if($resource_id == "some_resource_id") $extension = ".zip"; //if the source DwCA is not .tar.gz but something else.
 
-// /*
-if(Functions::is_production()) $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . $extension; //".tar.gz";
-else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources/'.$resource_id.$extension;  //'.tar.gz';
-// */
+$dwca_file = DOC_ROOT.'/applications/content_server/resources/'.$resource_id.$extension;  //'.tar.gz';
 
 // /* ---------- customize here ----------
     if($resource_id == 'try_dbase_2024_meta_recoded')   $resource_id = "try_dbase_2024_final";

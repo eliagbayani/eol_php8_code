@@ -80,7 +80,7 @@ echo "\nDone processing.\n";
 
 function convert_xml_2_dwca($resource_id)
 {
-    $params["eol_xml_file"] = WEB_ROOT."/applications/content_server/resources/".$resource_id.".xml"; //e.g. LD_afrotropicalbirds
+    $params["eol_xml_file"] = DOC_ROOT."/applications/content_server/resources/".$resource_id.".xml"; //e.g. LD_afrotropicalbirds
     $params["filename"]     = "no need to mention here.xml";
     $params["dataset"]      = "LifeDesk XML files";
     $params["resource_id"]  = $resource_id;

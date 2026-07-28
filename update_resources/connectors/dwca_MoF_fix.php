@@ -30,8 +30,7 @@ $params['jenkins_or_cron']  = @$argv[1]; //not needed here
 $params                     = json_decode(@$argv[2], true);
 $resource_id = @$params['resource_id']; 
 
-if(Functions::is_production())  $dwca = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-else                            $dwca = WEB_ROOT . '/applications/content_server/resources/'.$resource_id.'.tar.gz';
+$dwca = DOC_ROOT . '/applications/content_server/resources/'.$resource_id.'.tar.gz';
 
 // /* ---------- CUSTOMIZE HERE: ----------
 if($resource_id == "SC_unitedstates")   $resource_id = "final_SC_unitedstates";

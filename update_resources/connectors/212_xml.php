@@ -38,11 +38,4 @@ $elapsed_time_sec = time_elapsed() - $timestart;
 echo "\n\n elapsed time = " . $elapsed_time_sec/60 . " minutes";
 echo "\n elapsed time = " . $elapsed_time_sec/60/60 . " hours";
 echo "\n Done processing. \n";
-
-/* Stats yearly for Nathan W. and Gary B.
-$xml = WEB_ROOT."/applications/content_server/resources/212 copy.xml";
-$xml = WEB_ROOT."/applications/content_server/resources/212.xml";
-$bolds->run_stats($xml);
-*/
-
 ?>

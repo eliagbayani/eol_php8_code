@@ -77,7 +77,7 @@ else //no resource_id --- used only for testing... not a real scheduled resource
     $dwca_file = LOCAL_HOST."/cp/dynamic_hierarchy/z/dynamic.tar.gz"; //this is the fixed version
     */
 
-    $dwca_file = WEB_ROOT."/applications/content_server/resources/americaninsects.zip"; //this is ghostly weird...
+    $dwca_file = DOC_ROOT."/applications/content_server/resources/americaninsects.zip"; //this is ghostly weird...
 
     $resource_id = get_base_filename($dwca_file, $cmdline_params['generate_higherClassification_YN']);
 }

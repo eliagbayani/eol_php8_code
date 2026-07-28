@@ -201,8 +201,8 @@ function remove_bhl_images_already_existing_in_eol_group($resource_id)
 
 function bhl_image_count() // just for stats
 {
-    $path = WEB_ROOT."/applications/content_server/resources/544.xml";
-    $path = WEB_ROOT."/applications/content_server/resources/544%20BHL%20in%20EOL%20Flickr%20Group.xml";
+    $path = DOC_ROOT."/applications/content_server/resources/544.xml";
+    $path = DOC_ROOT."/applications/content_server/resources/544%20BHL%20in%20EOL%20Flickr%20Group.xml";
     echo "\npath: [$path]\n";
     print "\n xml file: [$path] \n";
     $reader = new \XMLReader();

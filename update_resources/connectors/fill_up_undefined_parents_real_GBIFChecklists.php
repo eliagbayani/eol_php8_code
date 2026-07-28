@@ -65,16 +65,14 @@ exit("\nFile permission update: [$status]\n");
 // echo "\n".WEB_ROOT."\n";        //http://host.docker.internal:81/eol_php8_code/
 // echo "\n".LOCAL_HOST."\n";      //http://host.docker.internal:81
 
-if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$source_dwca.'.tar.gz';
-else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources/'.$source_dwca.'.tar.gz';
+$dwca_file = DOC_ROOT.'/applications/content_server/resources/'.$source_dwca.'.tar.gz';
 
 $ctr = 1;
 $undefined = process_resource_url($dwca_file, $resource_id, $timestart, $ctr, $param);
 // exit("\n-exit muna-\n");
 
 while($undefined) { $ctr++;
-    if(Functions::is_production()) $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/'.$resource_id.'.tar.gz';
-    else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources/'.$resource_id.'.tar.gz';
+    $dwca_file = DOC_ROOT.'/applications/content_server/resources/'.$resource_id.'.tar.gz';
     $undefined = process_resource_url($dwca_file, $resource_id, $timestart, $ctr, $param);
 }
 echo "\n--------------------END: fillup missing parent entries--------------------\n";

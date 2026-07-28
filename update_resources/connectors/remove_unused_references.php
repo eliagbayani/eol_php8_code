@@ -16,10 +16,7 @@ $param                     = json_decode(@$argv[2], true);
 $resource_id = $param['resource_id'];
 print_r($param);
 
-// /*
-if(Functions::is_production()) $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/$resource_id" . ".tar.gz";
-else                           $dwca_file = WEB_ROOT.'/applications/content_server/resources/'.$resource_id.'.tar.gz';
-// */
+$dwca_file = DOC_ROOT.'/applications/content_server/resources/'.$resource_id.'.tar.gz';
 
 // /* ---------- customize here ----------
     if($resource_id == 'globi_associations_delta')  $resource_id = "globi_associations_tmp1";

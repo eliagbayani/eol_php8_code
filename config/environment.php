@@ -94,13 +94,16 @@ if(!defined('CONTENT_TEMP_PREFIX'))         define('CONTENT_TEMP_PREFIX',       
 # where resource XML files will be downloaded to
 
 if(!defined('CONTENT_RESOURCE_LOCAL_PATH')) define('CONTENT_RESOURCE_LOCAL_PATH',   DOC_ROOT . 'applications/content_server/resources/');
-// if(!defined('CONTENT_RESOURCE_LOCAL_PATH')) define('CONTENT_RESOURCE_LOCAL_PATH',   DOC_ROOT . '../eol_resources/');
 
 // if(!defined('CONTENT_GNI_RESOURCE_PATH'))   define('CONTENT_GNI_RESOURCE_PATH',     DOC_ROOT . 'applications/content_server/gni_tcs_files/'); //seems obsolete
 # where datasets prepared by app servers will reside (must be web accessible)
 if(!defined('CONTENT_DATASET_PATH'))        define('CONTENT_DATASET_PATH',          DOC_ROOT . 'applications/content_server/datasets/');
 
-if(!isset($GLOBALS['MAIN_CACHE_PATH'])) $GLOBALS['MAIN_CACHE_PATH'] = 'tmp/cache/';
+if(!isset($GLOBALS['MAIN_CACHE_PATH'])) {
+    $GLOBALS['MAIN_CACHE_PATH'] = CACHE_PATH; //orig value is 'tmp/cache/';
+}
+
+// exit("\n".CONTENT_RESOURCE_LOCAL_PATH."\n".CACHE_PATH."\n".$GLOBALS['MAIN_CACHE_PATH']."\neli cha stop muna...\n");
 
 // this may not be needed anymore
 if(!defined('WEB_ROOT')) define('MAGICK_HOME', '/usr/local/ImageMagick/');       // path to ImageMagick home directory

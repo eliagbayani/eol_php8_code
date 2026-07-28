@@ -112,7 +112,7 @@ class INBioAPI
         
         debug("Please wait, downloading resource document...");
         $temp_dir = create_temp_dir() . "/";
-        debug($temp_dir);
+        debug("temp_dir: ".$temp_dir);
         $path_parts = pathinfo($dwca_file);
         $filename = $path_parts['basename'];
         if($force_extension) $filename = "elix.".$force_extension; //you can just make-up a filename (elix) here and add the forced extension.
@@ -121,7 +121,7 @@ class INBioAPI
         if(@$ret['contents'] || @$ret['path']) {}
         else {
             debug("Connector terminated. Remote/local file is not ready.");
-            recursive_rmdir($temp_dir); echo "\ntemp. dir removed: [$temp_dir]\n";
+            recursive_rmdir($temp_dir); echo "\ntemp. dir removed: [$temp_dir]\n"; //un-comment in real operation
             return;
         }
         if($temp_file_path = @$ret['path']) {}

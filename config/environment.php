@@ -100,7 +100,7 @@ if(!defined('CONTENT_RESOURCE_LOCAL_PATH')) define('CONTENT_RESOURCE_LOCAL_PATH'
 if(!defined('CONTENT_DATASET_PATH'))        define('CONTENT_DATASET_PATH',          DOC_ROOT . 'applications/content_server/datasets/');
 
 if(!isset($GLOBALS['MAIN_CACHE_PATH'])) {
-    $GLOBALS['MAIN_CACHE_PATH'] = CACHE_PATH; //orig value is 'tmp/cache/';
+    $GLOBALS['MAIN_CACHE_PATH'] = 'applications/content_server/resources/cache/'; //orig value is 'tmp/cache/';
 }
 
 // exit("\n".CONTENT_RESOURCE_LOCAL_PATH."\n".CACHE_PATH."\n".$GLOBALS['MAIN_CACHE_PATH']."\neli cha stop muna...\n");

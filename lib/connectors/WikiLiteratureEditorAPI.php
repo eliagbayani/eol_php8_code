@@ -9,7 +9,7 @@ class WikiLiteratureEditorAPI
         $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $resource_id . '_working/';
         $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));
 
-        $this->mediawiki_api = $mediawiki_api; //http://editors.eol.localhost/LiteratureEditor/api.php
+        $this->mediawiki_api = $mediawiki_api; //http://editors.eol.localhost/LiteratureEditor_min/api.php
         $this->download_options = array('resource_id' => $resource_id, 'expire_seconds' => true, 'download_wait_time' => 5000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->namespace = 5000; //ForHarvesting
     }
@@ -85,7 +85,7 @@ class WikiLiteratureEditorAPI
     function get_wiki_text($wiki_title)
     {
         /*
-        $url = "/LiteratureEditor/api.php?action=query&meta=userinfo&uiprop=groups|realname&format=json";
+        $url = "/LiteratureEditor_min/api.php?action=query&meta=userinfo&uiprop=groups|realname&format=json";
         $json = self::get_api_result($url);
         */
         $url = $this->mediawiki_api . "?action=query&titles=" . urlencode($wiki_title) . "&format=json&prop=revisions&rvprop=content|timestamp";
@@ -263,7 +263,7 @@ class WikiLiteratureEditorAPI
             if($agent_ids = self::create_agents($recs)) $mr->agentID = implode("; ", $agent_ids);
         }
         //=========================================
-        // [http://editors.eol.localhost/LiteratureEditor/wiki/User:Contributor1 Contributor one]; [http://editors.eol.localhost/LiteratureEditor/wiki/User:EAgbayani Eli E. Agbayani]
+        // [http://editors.eol.localhost/LiteratureEditor_min/wiki/User:Contributor1 Contributor one]; [http://editors.eol.localhost/LiteratureEditor_min/wiki/User:EAgbayani Eli E. Agbayani]
         if($temps = @$media['compiler'])
         {
             $recs = array();

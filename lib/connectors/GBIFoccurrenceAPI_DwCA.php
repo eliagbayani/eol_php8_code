@@ -111,9 +111,9 @@ class GBIFoccurrenceAPI_DwCA //this makes use of the GBIF DwCA occurrence downlo
     function jenkins_call($group, $batches, $connector_task, $filter_rank = '') //4th param $filter_rank is for gen_map_data_forTaxa_with_children() only
     {
         echo "\nCACHE_PATH 01 is ".CACHE_PATH."\n";
-        require_once(DOC_ROOT."../LiteratureEditor/Custom/lib/Functions.php");
-        require_once(DOC_ROOT."../FreshData/controllers/other.php");
-        require_once(DOC_ROOT."../FreshData/controllers/freshdata.php");
+        require_once(DOC_ROOT."../LiteratureEditor_min/Custom/lib/Functions.php");
+        require_once(DOC_ROOT."../FreshData_min/controllers/other.php");
+        require_once(DOC_ROOT."../FreshData_min/controllers/freshdata.php");
         echo "\nCACHE_PATH 02 is ".CACHE_PATH."\n";
 
         $ctrler = new \freshdata_controller(array());

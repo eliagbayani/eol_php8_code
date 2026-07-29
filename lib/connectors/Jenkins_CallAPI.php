@@ -16,9 +16,9 @@ class Jenkins_CallAPI
         )*/
         
         echo "\nCACHE_PATH 01 is ".CACHE_PATH."\n";
-        require_once(DOC_ROOT."../LiteratureEditor/Custom/lib/Functions.php");
-        require_once(DOC_ROOT."../FreshData/controllers/other.php");
-        require_once(DOC_ROOT."../FreshData/controllers/freshdata.php");
+        require_once(DOC_ROOT."../LiteratureEditor_min/Custom/lib/Functions.php");
+        require_once(DOC_ROOT."../FreshData_min/controllers/other.php");
+        require_once(DOC_ROOT."../FreshData_min/controllers/freshdata.php");
         echo "\nCACHE_PATH 02 is ".CACHE_PATH."\n";
 
         $ctrler = new \freshdata_controller(array());

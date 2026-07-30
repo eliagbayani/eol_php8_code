@@ -136,7 +136,7 @@ function prepare_jenkins($argv, $root)
             }
             else { //means Jenkins in eol-archive is running
                 $GLOBALS['ENV_NAME'] = 'jenkins_production';
-                $root = '/var/www/html/eol_php_code/';
+                $root = '/var/www/html/eol_php8_code/';
             }
         }
         else {} //means NOT Jenkins

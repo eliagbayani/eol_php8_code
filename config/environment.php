@@ -102,8 +102,11 @@ if(!defined('CONTENT_DATASET_PATH'))        define('CONTENT_DATASET_PATH',      
 if(!isset($GLOBALS['MAIN_CACHE_PATH'])) {
     $GLOBALS['MAIN_CACHE_PATH'] = 'applications/content_server/resources/cache/'; //orig value is 'tmp/cache/';
 }
-
-// exit("\n".CONTENT_RESOURCE_LOCAL_PATH."\n".CACHE_PATH."\n".$GLOBALS['MAIN_CACHE_PATH']."\neli cha stop muna...\n");
+if(!isset($GLOBALS['EOL_ANNOTATOR_PATH'])) {
+    $path = CONTENT_RESOURCE_LOCAL_PATH . 'EOL_annotator/';
+    if(!is_dir($path)) mkdir($path);
+    $GLOBALS['EOL_ANNOTATOR_PATH'] = $path; //previously '/var/www/html/Pensoft_annotator/'
+}
 
 // this may not be needed anymore
 if(!defined('WEB_ROOT')) define('MAGICK_HOME', '/usr/local/ImageMagick/');       // path to ImageMagick home directory

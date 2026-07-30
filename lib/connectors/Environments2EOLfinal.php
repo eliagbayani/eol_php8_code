@@ -24,8 +24,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
         else                           $this->root_path = '/opt/homebrew/var/www/vangelis_tagger/';
         */
         // /* NEW - Pensoft        
-        $this->root_path = '/var/www/html/Pensoft_annotator/';            
-        $this->root_path = '/var/www/html/EOL_annotator/';
+        $this->root_path = $GLOBALS['EOL_ANNOTATOR_PATH'];
 
         // new
         $tmp = str_replace('_ENV', '', $resource_id);

@@ -77,10 +77,7 @@ class Annotator2EOLAPI extends Functions_Annotator
         /*-----------------------Paths----------------------*/
         // echo "<hr>DOC_ROOT: ".DOC_ROOT."<hr>"; exit;
 
-        $this->root_path = '/var/www/html/Pensoft_annotator/';
-        $this->root_path = '/var/www/html/EOL_annotator/';
-
-        if(!is_dir($this->root_path)) mkdir($this->root_path);
+        $this->root_path = $GLOBALS['EOL_ANNOTATOR_PATH'];
         
         // if($this->param['resource_id'] == '617_ENV') {} //Wikipedia EN
         // else { //rest of the resources

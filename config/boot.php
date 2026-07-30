@@ -37,17 +37,14 @@ define('LOCAL_WEB_ROOT', WEB_ROOT);
 if(!defined('PHP_BIN_PATH')) define('PHP_BIN_PATH', PHP_BINDIR . '/php ');
 if(!defined('MYSQL_BIN_PATH')) define('MYSQL_BIN_PATH', 'mysql ');
 
-
-
 require_all_classes_recursively(DOC_ROOT . 'vendor/php_active_record/classes/');
 
-if(defined('USING_SPM') && USING_SPM)
-{
+if(defined('USING_SPM') && USING_SPM) {
     require_once(DOC_ROOT . "vendor/rdfapi-php/api/RdfAPI.php");
     require_once(DOC_ROOT . "lib/Functions.php");
     require_once(DOC_ROOT . "vendor/rdf/RDFDocument.php");
     require_once(DOC_ROOT . "vendor/rdf/RDFDocumentElement.php");
-}else require_all_classes_recursively(DOC_ROOT . 'app/models/');
+} else require_all_classes_recursively(DOC_ROOT . 'app/models/');
 
 set_exception_handler(array('php_active_record\ActiveRecordError', 'handleException'));
 set_error_handler(array('php_active_record\ActiveRecordError', 'handleError'));
@@ -64,8 +61,7 @@ if(!isset($GLOBALS['ENV_DEBUG_FILE_FLUSH']))    $GLOBALS['ENV_DEBUG_FILE_FLUSH']
 if(!isset($GLOBALS['ENV_MYSQL_READ_ONLY']))     $GLOBALS['ENV_MYSQL_READ_ONLY'] = false;
 if(!isset($GLOBALS['ENV_MYSQL_ONLY_MASTER']))   $GLOBALS['ENV_MYSQL_ONLY_MASTER'] = false;
 
-if(@$GLOBALS['ENV_USE_MYSQL'])
-{
+if(@$GLOBALS['ENV_USE_MYSQL']) {
     /* comment these 3 lines out if you are not using MySQL */
     $GLOBALS['db_connection'] = load_mysql_environment($GLOBALS['ENV_NAME']);
     $GLOBALS['mysqli_connection'] = $GLOBALS['db_connection'];
@@ -85,28 +81,23 @@ if((@$GLOBALS['ENV_DEBUG'] || @$GLOBALS['ENV_MYSQL_DEBUG']) && @$GLOBALS['ENV_DE
 /* Auto flush echo statements to the screen when debugging */
 if(@$GLOBALS['ENV_MYSQL_DEBUG'] || @$GLOBALS['ENV_DEBUG']) ob_implicit_flush(true);
 
-
 /* Caching is turned off by default */
 if(!isset($GLOBALS['ENV_ENABLE_CACHING'])) $GLOBALS['ENV_ENABLE_CACHING'] = false;
 
 /* will try to connect to memcached, or default to using memory */
 php_active_record\Cache::restart();
 
-
 /* ImageMagick */
-if(defined('MAGICK_HOME'))
-{
+if(defined('MAGICK_HOME')) {
     /* setting the ImageMagick path */
     putenv('MAGICK_HOME='. MAGICK_HOME);
     putenv('PATH='. MAGICK_HOME .'/bin/:'.getenv('PATH'));
     putenv('DYLD_LIBRARY_PATH='. MAGICK_HOME .'/lib');
 }
 
-
 /* unicode characters for regular expressions */
 define('UPPER','A-ZÀÂÅÅÃÄÁÆČÇÉÈÊËÍÌÎÏÑÓÒÔØÕÖÚÙÛÜßĶŘŠŞŽŒ');
 define('LOWER','a-záááàâåãäăæčćçéèêëĕíìîïǐĭñńóòôøõöŏúùûüůśšşřğžźýýÿœœ');
-
 
 /* file downloads should be throttled by adding delays */
 if(!defined('DOWNLOAD_WAIT_TIME')) define('DOWNLOAD_WAIT_TIME', '300000'); //.3 seconds
@@ -120,19 +111,15 @@ php_active_record\time_elapsed();
 
 function environment_defined($environment_name)
 {
-    if(!file_exists(DOC_ROOT . 'config/database.yml'))
-    {
+    if(!file_exists(DOC_ROOT . 'config/database.yml')) {
         // trigger_error('Booting failure: /config/database.yml doesn\'t exist', E_USER_ERROR);
         return false;
     }
     $environments = Spyc::YAMLLoad(DOC_ROOT . 'config/database.yml');
-    
     $possible_environments = array_keys($environments);
-    if(in_array($environment_name, $possible_environments))
-    {
+    if(in_array($environment_name, $possible_environments)) {
         return true;
     }
-    
     // trigger_error('Booting failure: environment `'. $environment .'` doesn\'t exist', E_USER_ERROR);
     return false;
 }

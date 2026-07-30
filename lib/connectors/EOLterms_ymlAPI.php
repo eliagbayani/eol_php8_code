@@ -160,7 +160,7 @@ class EOLterms_ymlAPI
         /* Replaces non-breaking spaces (U+00A0) with standard spaces */
         $yaml_string = str_replace("\xC2\xA0", ' ', $yaml_string);        
 
-        $arr = yaml_parse($yaml_string); //print_r($arr['terms'][525]);
+        $arr = \yaml_parse($yaml_string); //print_r($arr['terms'][525]);
         if(is_array($arr)) return $arr;
         else exit("\nERROR: Cannot convert EOL Terms file to array()\n");
     }

@@ -19,13 +19,19 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $this->taxon_ids = array();
         $this->object_ids = array();
         
-        if(Functions::is_production()) {
-            $url = "http://www.marinespecies.org/export/eol/WoRMS2EoL.zip";              //WORMS online copy
-            if(Functions::ping_v2($url)) $this->dwca_file = $url;
-            else                         $this->dwca_file = "https://editors.eol.org/other_files/WoRMS/WoRMS2EoL.zip";
+        $worms_zip_file = CONTENT_RESOURCE_LOCAL_PATH.'/downloads/WoRMS2EoL.zip'; 
+        if(file_exists($worms_zip_file)) { echo "\nWoRMS zip file available in [downloads]: [$worms_zip_file]\n";
+            $this->dwca_file = $worms_zip_file;
         }
-        else                            $this->dwca_file = "http://host.docker.internal:81/cp/WORMS/WoRMS2EoL.zip";         //local - when developing only
-        //                              $this->dwca_file = LOCAL_HOST."/cp/WORMS/Archive.zip";                              //local subset copy
+        else {
+            if(Functions::is_production()) {
+                $url = "http://www.marinespecies.org/export/eol/WoRMS2EoL.zip";              //WORMS online copy
+                if(Functions::ping_v2($url)) $this->dwca_file = $url;
+                else                         $this->dwca_file = "https://editors.eol.org/other_files/WoRMS/WoRMS2EoL.zip";
+            }
+            else                            $this->dwca_file = "http://host.docker.internal:81/cp/WORMS/WoRMS2EoL.zip";         //local - when developing only
+            //                              $this->dwca_file = LOCAL_HOST."/cp/WORMS/Archive.zip";                              //local subset copy            
+        }
         
         $this->occurrence_ids = array();
         $this->taxon_page = "http://www.marinespecies.org/aphia.php?p=taxdetails&id=";
@@ -691,7 +697,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
             $line = explode("\t", $line); $i++;
             if($i == 1) $fields = $line;
             else {
-                if(!$line[0]) break;
+                if(!@$line[0]) break;
                 $rec = array(); $k = 0;
                 foreach($fields as $fld) {
                     $rec[$fld] = @$line[$k]; $k++; //place @ bec. intentionally that some rows have only 1 column, means no value.

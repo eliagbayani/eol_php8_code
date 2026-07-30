@@ -23,21 +23,9 @@ class Environments2EOLfinal extends ContributorsMapAPI
         if(Functions::is_production()) $this->root_path = '/u/scripts/vangelis_tagger/';
         else                           $this->root_path = '/opt/homebrew/var/www/vangelis_tagger/';
         */
-        // /* NEW - Pensoft
-        if(Functions::is_production()) $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/html/Pensoft_annotator/';
-        else                           $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/opt/homebrew/var/www/Pensoft_annotator/';
-
-        if(Functions::is_production()) $this->root_path = '/var/www/html/EOL_annotator/';
-        else                           $this->root_path = '/var/www/html/EOL_annotator/';
-        
-
-        // obsolete
-        // if($resource_id == '617_ENV') {} //Wikipedia EN
-        // else { //rest of the resources
-        //     $tmp = str_replace('_ENV', '', $resource_id);
-        //     $this->root_path .= $tmp.'/';
-        //     if(!is_dir($this->root_path)) mkdir($this->root_path);
-        // }
+        // /* NEW - Pensoft        
+        $this->root_path = '/var/www/html/Pensoft_annotator/';            
+        $this->root_path = '/var/www/html/EOL_annotator/';
 
         // new
         $tmp = str_replace('_ENV', '', $resource_id);

@@ -76,11 +76,10 @@ class Annotator2EOLAPI extends Functions_Annotator
         */
         /*-----------------------Paths----------------------*/
         // echo "<hr>DOC_ROOT: ".DOC_ROOT."<hr>"; exit;
-        if(Functions::is_production()) $this->root_path = '/var/www/html/EOL_annotator/'; //'/html/Pensoft_annotator/';
-        else {
-            $this->root_path = '/var/www/html/Pensoft_annotator/';                                          //PHP 8.2
-            $this->root_path = '/var/www/html/EOL_annotator/';                                              //PHP 8.2
-        }
+
+        $this->root_path = '/var/www/html/Pensoft_annotator/';
+        $this->root_path = '/var/www/html/EOL_annotator/';
+
         if(!is_dir($this->root_path)) mkdir($this->root_path);
         
         // if($this->param['resource_id'] == '617_ENV') {} //Wikipedia EN

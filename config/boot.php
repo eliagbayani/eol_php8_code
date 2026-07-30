@@ -164,30 +164,6 @@ function prepare_jenkins($argv, $root)
     return array($root, $cache_path);
 }
 
-/*
-function prepare_jenkins($argv, $root)
-{
-    if($jenkins_or_cron = @$argv[1]) {
-        if($jenkins_or_cron == "jenkins") {
-            if($root != "/opt/homebrew/var/www/eol_php_code/") { //means Jenkins in eol-archive is running
-                $GLOBALS['ENV_NAME'] = 'jenkins_production';
-                define('CACHE_PATH', '/html/cache_LiteratureEditor/');  //for archive
-                return '/html/eol_php_code/';
-            }
-            else { //means Jenkins in Mac mini is running
-                $GLOBALS['ENV_NAME'] = 'jenkins_development';
-                define('CACHE_PATH', '/var/www/html/cache_LiteratureEditor/');   //for mac mini
-            }
-        }
-        else { //means NOT Jenkins
-            if($root != "/opt/homebrew/var/www/eol_php_code/") define('CACHE_PATH', '/var/www/html/cache_LiteratureEditor/');        //for archive
-            else                                                      define('CACHE_PATH', '/var/www/html/cache_LiteratureEditor/'); //for mac mini
-        }
-    }
-    return $root;
-}
-*/
-
 function load_mysql_environment($environment = NULL)
 {
     if(!file_exists(DOC_ROOT . 'config/database.yml'))

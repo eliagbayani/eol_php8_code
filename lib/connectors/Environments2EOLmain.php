@@ -24,12 +24,9 @@ class Environments2EOLmain extends ContributorsMapAPI //Environments2EOLmain is 
         else                           $this->root_path = '/opt/homebrew/var/www/vangelis_tagger/';
         */
         // /* NEW - Pensoft
-        if(Functions::is_production()) $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/html/Pensoft_annotator/';
-        else                           $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/opt/homebrew/var/www/Pensoft_annotator/';
-
-        if(Functions::is_production()) $this->root_path = '/var/www/html/EOL_annotator/';
-        else                           $this->root_path = '/var/www/html/EOL_annotator/';
-        
+            
+        $this->root_path = '/var/www/html/Pensoft_annotator/';
+        $this->root_path = '/var/www/html/EOL_annotator/';
 
         // obsolete
         // if($resource_id == '617_ENV') {} //Wikipedia EN

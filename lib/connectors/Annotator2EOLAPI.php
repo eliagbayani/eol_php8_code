@@ -78,8 +78,6 @@ class Annotator2EOLAPI extends Functions_Annotator
         // echo "<hr>DOC_ROOT: ".DOC_ROOT."<hr>"; exit;
         if(Functions::is_production()) $this->root_path = '/var/www/html/EOL_annotator/'; //'/html/Pensoft_annotator/';
         else {
-            // $this->root_path = '/opt/homebrew/var/www/Pensoft_annotator/';                               //obsolete - orig PHP 5.6
-            // $this->root_path = '/Volumes/Macintosh HD/opt/homebrew/var/www/Pensoft_annotator/';          //might work but not used
             $this->root_path = '/var/www/html/Pensoft_annotator/';                                          //PHP 8.2
             $this->root_path = '/var/www/html/EOL_annotator/';                                              //PHP 8.2
         }

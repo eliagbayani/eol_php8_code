@@ -91,9 +91,9 @@ if($final_archive_gzip_url) {
         <a href='../dwc_validator/index.php?file_url=$final_archive_gzip_url' target='_blank'>Click here</a> to validate now.<br><br>
         Thank you.<br><br><a href='index.php'>Try another</a>";
     echo "<br>=======================================================<br><br>";
-}else
-{
-    echo "There were problems processing this file 200:<br><br>";
+}
+else {
+    echo "There were problems processing this file 200 (8):<br><br>";
     if($errors) {
         foreach($errors as $error) {
             echo "$error<br>";

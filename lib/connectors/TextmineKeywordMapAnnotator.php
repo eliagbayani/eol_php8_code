@@ -26,9 +26,11 @@ class TextmineKeywordMapAnnotator
         }
         elseif($what == 'AncestryIndex_new') {
             $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_new.tsv';
+            $this->destination_file = DOC_ROOT . 'applications/content_server/resources/neo4j_tasks/AncestryIndex_new.tsv';
         }
         elseif($what == 'AncestryIndex_compatibleAncestors') {
             $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv';
+            $this->destination_file = DOC_ROOT . 'applications/content_server/resources/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv';
         }
         else exit("\nERROR: Item to process not initialized.\n");
         echo("\n destination_file: [$this->destination_file]\n");

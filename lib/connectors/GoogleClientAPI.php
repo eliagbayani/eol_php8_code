@@ -11,9 +11,11 @@ class GoogleClientAPI
 {
     function __construct()
     {
-        if(Functions::is_production()) $this->cache_path = '/extra/other_files/wikidata_cache/';
-        else                           $this->cache_path = '/Volumes/Crucial_2TB/wikidata_cache/';
-        if(!is_dir($this->cache_path)) mkdir($this->cache_path);
+        // $this->cache_path = '/extra/other_files/wikidata_cache/';
+        // $this->cache_path = '/Volumes/Crucial_2TB/wikidata_cache/';
+        $path = CACHE_PATH . 'wikidata_cache/';
+        if(!is_dir($path)) mkdir($path);
+        $this->cache_path = $path;
 
         $this->credentials_json_path = __DIR__ . '/../../vendor/google_client_lib_2023/json/credentials.json';
     }

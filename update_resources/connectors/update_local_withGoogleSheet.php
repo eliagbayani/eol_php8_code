@@ -2,9 +2,9 @@
 namespace php_active_record;
 /* This will update the local Textmining Strings TSV file.
 
-php update_local_textmining_strings.php _ '{"google_sheet": "mapped_strings"}'
-php update_local_textmining_strings.php _ '{"google_sheet": "AncestryIndex_new"}'
-php update_local_textmining_strings.php _ '{"google_sheet": "AncestryIndex_compatibleAncestors"}'
+php update_local_textmining_strings.php _ '{"resource": "mapped_strings"}'
+php update_local_textmining_strings.php _ '{"resource": "AncestryIndex_new"}'
+php update_local_textmining_strings.php _ '{"resource": "AncestryIndex_compatibleAncestors"}'
 
 
 Related workspaces:
@@ -26,7 +26,7 @@ $timestart = time_elapsed();
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true);
-$google_sheet = $param['google_sheet']; //e.g. 'mapped_strings'
+$google_sheet = $param['resource']; //e.g. 'mapped_strings'
 
 $p['expire_seconds'] = 60*60*12*1; //half day cache is ideal since Jenkins will refresh every 24 hours.
 

@@ -19,18 +19,21 @@ class TextmineKeywordMapAnnotator
         require_library('connectors/GoogleClientAPI');
         $this->func = new GoogleClientAPI();
 
+        $dir = DOC_ROOT . 'applications/content_server/resources/neo4j_tasks/';
+        if(!is_dir($dir)) mkdir($dir);
+
         if($what == 'mapped_strings') {
             require_library('connectors/LocalTextmineKeywordMapAnnotator');
             $func = new LocalTextmineKeywordMapAnnotator(); //uses a local TSV file based from the orig Google Spreadsheet.
             $this->destination_file = $func->local_textmine_strings;
         }
         elseif($what == 'AncestryIndex_new') {
-            $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_new.tsv';
-            $this->destination_file = DOC_ROOT . 'applications/content_server/resources/neo4j_tasks/AncestryIndex_new.tsv';
+            // $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_new.tsv'; //old
+            $this->destination_file = $dir . '/AncestryIndex_new.tsv';
         }
         elseif($what == 'AncestryIndex_compatibleAncestors') {
-            $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv';
-            $this->destination_file = DOC_ROOT . 'applications/content_server/resources/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv';
+            // $this->destination_file = DOC_ROOT . '../cp_new/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv'; //old
+            $this->destination_file = $dir . '/AncestryIndex_compatibleAncestors.tsv';
         }
         else exit("\nERROR: Item to process not initialized.\n");
         echo("\n destination_file: [$this->destination_file]\n");

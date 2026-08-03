@@ -15,9 +15,12 @@ class LocalTextmineKeywordMapAnnotator
     public $local_textmine_strings, $mapped_strings_file, $download_options;
     public $keyword_uri, $uri_predicate;
     function __construct($download_options = array())
-    {   
-        $this->local_textmine_strings = DOC_ROOT . '../cp_new/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv';
-        $this->local_textmine_strings = DOC_ROOT . 'applications/content_server/resources/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv';
+    {
+        $dir = DOC_ROOT . 'applications/content_server/resources/neo4j_tasks/';
+        if(!is_dir($dir)) mkdir($dir);
+
+        // $this->local_textmine_strings = DOC_ROOT . '../cp_new/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv'; //old
+        $this->local_textmine_strings = $dir . '/Textmining_Strings_-_mapped_strings.tsv';
         $this->mapped_strings_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/Textmining_Strings_-_mapped_strings.tsv";
         $this->download_options = $download_options;
     }

@@ -12,6 +12,10 @@ ini_set('display_errors', false);
 
 /* Default Environment */
 if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = 'development';
+// if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = 'production';
+
+echo("\nEnv: ".$GLOBALS['ENV_NAME']."\n");
+
 // passing in the CLI arguments
 set_and_load_proper_environment($argv);
 

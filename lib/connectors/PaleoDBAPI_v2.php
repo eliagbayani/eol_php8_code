@@ -933,7 +933,7 @@ class PaleoDBAPI_v2
         // */
         
         echo "\ncount parent_ids to process = ".count($parent_ids)."\n";
-        echo "\ncount parentID_taxonID info list = ".count($this->parentID_taxonID)."\n";
+        if($val = $this->parentID_taxonID) echo "\ncount parentID_taxonID info list = ".count($val)."\n";
         
         $final = array();
         foreach($parent_ids as $parent_id) {

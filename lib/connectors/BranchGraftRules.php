@@ -232,8 +232,8 @@ class BranchGraftRules
             //###############################################################################################
             if($task == "save File B descendants and its synonyms") {
                 $taxonID = $rec['taxonID'];
-                $parentNameUsageID = $rec['parentNameUsageID'];
-                $acceptedNameUsageID = $rec['acceptedNameUsageID'];
+                $parentNameUsageID = @$rec['parentNameUsageID'];        //this might be a required field
+                $acceptedNameUsageID = @$rec['acceptedNameUsageID'];    //this might be a required field
 
                 // /* 5. Change the parentNameUsageID of the immediate children of yyy to xxx.
                 $fileA_taxonID = $this->arr_json['fileA_taxonID'];  // xxx

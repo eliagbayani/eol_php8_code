@@ -1,7 +1,7 @@
 <?php
-require_once("../../../LiteratureEditor/Custom/lib/Functions.php");
-require_once("../../../FreshData/controllers/other.php");
-require_once("../../../FreshData/controllers/freshdata.php");
+require_once("../../../LiteratureEditor_min/Custom/lib/Functions.php");
+require_once("../../../FreshData_min/controllers/other.php");
+require_once("../../../FreshData_min/controllers/freshdata.php");
 
 /* normal operation
 ini_set('error_reporting', false);

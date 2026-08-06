@@ -2,9 +2,9 @@
 namespace php_active_record;
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 
-require_once("../../../LiteratureEditor/Custom/lib/Functions.php");
-require_once("../../../FreshData/controllers/other.php");
-require_once("../../../FreshData/controllers/freshdata.php");
+require_once("../../../LiteratureEditor_min/Custom/lib/Functions.php");
+require_once("../../../FreshData_min/controllers/other.php");
+require_once("../../../FreshData_min/controllers/freshdata.php");
 
 $GLOBALS['ENV_DEBUG'] = false;
 /* during development

@@ -132,7 +132,7 @@ class DwCA_MatchTaxa2DH_Functions
         $matched_thru_a_synonym = count(@$this->debug['With DH EOLid assignments (synonym)'] ?? array()); //'Matched thru a synonym'
         $has_canonical_match_with_DH_without_eolID = @$this->debug['Has canonical match with DH but without eolID'];
 
-        echo "\n\n----------STATS----------";
+        echo "\n\n----------STATS----------[".date('D Y-m-d h:i:s A')."]";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\nB. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         echo "\n -> B1. With DH EOLid assignments (accepted name): [" . number_format($With_eolID_assignments) . "]";
@@ -781,7 +781,7 @@ class DwCA_MatchTaxa2DH_Functions
             }
             else echo " -- not rank compatible (syn run)\n";
         }
-        else echo " -- No synonym_reks (syn run)\n";
+        // else echo " -- No synonym_reks (syn run)\n"; //good debug
     }
     function choose_one_from_multiple_pairs($ret2, $what)
     {

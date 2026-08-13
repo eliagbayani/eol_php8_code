@@ -13,6 +13,11 @@ These ff. workspaces work together:
 tar -czf 10088_6943_ENV.tar.gz 10088_6943_ENV/
 SIcontrib2Botany
 tar -czf SIcontrib2Botany.tar.gz SIcontrib2Botany/
+
+From JRice:
+https://github.com/EOL/publishing/blob/main/app/models/trait_node.rb
+https://github.com/EOL/publishing/blob/main/app/models/term_node.rb
+https://github.com/EOL/jrice-eol.org/blob/7be2913753ab711ae132aacaf73c9fe4d3aee6f3/resources/uri_ids.yml
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -82,6 +87,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     private function initialize()
     {
         $this->compatibleAncestors = $this->get_compatibleAncestors();
+        echo "\ncompatibleAncestors: [".count($this->compatibleAncestors)."]\n";
         require_library('connectors/DwCA_Utility_cmd');
     }
     function start($info)

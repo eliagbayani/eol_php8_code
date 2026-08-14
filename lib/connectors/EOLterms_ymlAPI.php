@@ -118,7 +118,11 @@ class EOLterms_ymlAPI
                 [alias] => 
             )*/
             $md5 = md5($r['name'].$r['type'].$r['uri']);
-            $unique[$md5] = '';
+            if(!isset($unique[$md5])) {
+                $final['terms'][] = array('name' => $r['name'], 'type' => $r['type'], 'uri' => $r['uri']);
+                $unique[$md5] = '';
+                // if($r['uri'] == 'http://eol.org/schema/terms/TrophicGuild') {print_r($r); exit("\nelix 1\n");}
+            }
         }
 
         $arr = self::get_terms_yml_4Neo4j(); //oldOrig option
@@ -146,6 +150,8 @@ class EOLterms_ymlAPI
             $md5 = md5($r['name'].$r['type'].$r['uri']);
             if(!isset($unique[$md5])) {
                 $final['terms'][] = array('name' => $r['name'], 'type' => $r['type'], 'uri' => $r['uri']);
+                $unique[$md5] = '';
+                // if($r['uri'] == 'http://eol.org/schema/terms/TrophicGuild') {print_r($r); exit("\nelix 2\n");}
             }
         }
         return $final;

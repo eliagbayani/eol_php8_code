@@ -29,8 +29,11 @@ class AnalyzeMoF_API
             elseif($r['type'] == 'measurement') {
                 if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_measurements[trim($r['uri'])] = ''; //list of URI measurements
             }
+            elseif($r['type'] == 'association') {
+                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($r['uri'])] = ''; //list of URI associations
+            }
         }
-        // print_r($this->eol_term_values); print_r($this->eol_term_measurements); exit;
+        // print_r($this->eol_term_values); print_r($this->eol_term_measurements); print_r($this->eol_term_associations) exit;
         /*
         [2239] => Array(
                 [attribution] => International Chronostratigraphic Chart: http://www.stratigraphy.org/index.php/ics-chart-timescale
@@ -155,7 +158,7 @@ class AnalyzeMoF_API
                 )*/
                 $aType = $rec['associationType'];
                 if(substr($aType, 0, 4) == 'http') {
-                    if(!isset($this->eol_term_measurements[$aType])) $this->debug['Undefined mType'][$aType] = '';
+                    if(!isset($this->eol_term_associations[$aType])) $this->debug['Undefined mType'][$aType] = '';
                 }
                 if($val = @$rec['measurementDeterminedBy']) {
                     if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
@@ -164,8 +167,8 @@ class AnalyzeMoF_API
             //========================================================================================================= 
             if($what == 'write') {
                 $uris = array_keys($rec);            
-                    if($class == "occurrence")      $o = new \eol_schema\Occurrence();
-                elseif($class == "mof")             $o = new \eol_schema\MeasurementOrFact();
+                    if($class == "occurrence")      $o = new \eol_schema\Occurrence_specific();
+                elseif($class == "mof")             $o = new \eol_schema\MeasurementOrFact_specific();
                 elseif($class == "association")     $o = new \eol_schema\Association();
                 else exit("\nUndefined class [$class]. Will terminate.\n");                
                 foreach($uris as $uri) {
@@ -202,13 +205,18 @@ class AnalyzeMoF_API
                     )*/
                     $aType = $rec['associationType'];
                     if(substr($aType, 0, 4) == 'http') {
-                        if(!isset($this->eol_term_measurements[$aType])) { $this->debug['Undefined aType'][$aType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
+                        if(!isset($this->eol_term_associations[$aType])) { $this->debug['Undefined aType'][$aType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
                     }
                     if($val = @$rec['measurementDeterminedBy']) {
                         if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
                     }
                 }
 
+                /*
+User Warning: Undefined property `basisOfRecord` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
+User Warning: Undefined property `physiologicalState` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
+User Warning: Undefined property `bodyPart` on eol_schema                
+                */
                 if($class == "occurrence") {
                     if(isset($this->del_oID[$rec['occurrenceID']])) continue;
                 }

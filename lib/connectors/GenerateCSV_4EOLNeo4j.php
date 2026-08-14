@@ -767,7 +767,15 @@ class GenerateCSV_4EOLNeo4j
         $fields = array('taxonID', 'md5_vernacularName_taxonID_language');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
-        fwrite($this->WRITE, $csv."\n");
+        // fwrite($this->WRITE, $csv."\n");
+        
+        // /* new: Aug15,2026 - prevent duplicate rows - for some reason WoRMS had duplicates
+        $md5 = md5($csv);
+        if(!isset($this->unique_VERNACULARS_edge[$md5])) {
+            fwrite($this->WRITE, $csv."\n");
+            $this->unique_VERNACULARS_edge[$md5] = '';
+        }
+        // */
     }
     private function generate_measurements_csv($rec)
     {   /*Array(

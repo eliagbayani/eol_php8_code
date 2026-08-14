@@ -181,7 +181,10 @@ class DwCA_Utility
 
             if(@$this->params['resource'] == "fillup_missing_parents_GBIFChecklists") break; //all extensions will be processed elsewhere.
             if(@$this->params['resource'] == "neo4j_prep") break;                            //all extensions will be processed elsewhere.
-            if(@$this->params['resource'] == "analyze_MoF") break;                           //all extensions will be processed elsewhere.
+
+            // /* all extensions will be processed here except for these 3: MoF Associations and Occurrence
+            // if(@$this->params['resource'] == "analyze_MoF") break; //all extensions will be processed elsewhere. //debug only; comment in real operation.
+            // */
 
             /* during dev only; comment in real operation ... Remember this
             if(@$this->params['resource'] == "add_canonical_Katja") break;    //all extensions will be processed elsewhere.

@@ -73,15 +73,26 @@ class AnalyzeMoF_API
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions); //exit;
-        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";
-        if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_MoF');
-        else echo "\n--- No MoF extension at this point ---\n";
+
+        // --------------------- get undefined mTypes and mValues
+        /* not needed anymore...
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_MoF');
+        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_Assoc');
+        */
+
+        // --------------------- write extensions
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
+        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
+        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'occurrence');
+
+        // $this->archive_builder->finalize(TRUE);
+
         // */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_analyzed_folder);
         unset($this->debug);
     }
-    private function process_table($meta, $what)
-    {   echo "\nprocess_table: [$what] [$meta->file_uri]...\n"; $i = 0;
+    private function process_table($meta, $what, $class = false)
+    {   echo "\nprocess_table analyze: [$what] [$meta->file_uri]...\n"; $i = 0;
         foreach (new FileIterator($meta->file_uri) as $line => $row) {
             $i++;
             if (($i % 20000) == 0) echo "\n" . number_format($i) . " - ";
@@ -119,26 +130,93 @@ class AnalyzeMoF_API
             )*/
             //========================================================================================================= 
             if($what == 'analyze_MoF') {
+                $mOfTaxon = strtolower($rec['measurementOfTaxon']);
                 $mValue = $rec['measurementValue'];
                 $mType = $rec['measurementType'];
-                $mMethod = @$rec['measurementMethod'];
-                $mRemarks = @$rec['measurementRemarks'];
-                $mOfTaxon = strtolower($rec['measurementOfTaxon']);
                 if(substr($mValue, 0, 4) == 'http') {
                     if(!isset($this->eol_term_values[$mValue])) $this->debug['Undefined mValue'][$mValue] = '';
                 }
-
                 if($mOfTaxon == 'true') {
                     if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';
                 }
-
                 if($val = @$rec['measurementDeterminedBy']) {
                     if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
                 }
-
-                
             }
             //========================================================================================================= 
+            if($what == 'analyze_Assoc') {
+                /*Array(
+                    [associationType] => http://purl.obolibrary.org/obo/RO_0002556
+                    [measurementDeterminedBy] => 
+                    [measurementMethod] => 
+                    [measurementRemarks] => 
+                    [bibliographicCitation] => 
+                    [contributor] => 
+                )*/
+                $aType = $rec['associationType'];
+                if(substr($aType, 0, 4) == 'http') {
+                    if(!isset($this->eol_term_measurements[$aType])) $this->debug['Undefined mType'][$aType] = '';
+                }
+                if($val = @$rec['measurementDeterminedBy']) {
+                    if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
+                }
+            }
+            //========================================================================================================= 
+            if($what == 'write') {
+                $uris = array_keys($rec);            
+                    if($class == "occurrence")      $o = new \eol_schema\Occurrence();
+                elseif($class == "mof")             $o = new \eol_schema\MeasurementOrFact();
+                elseif($class == "association")     $o = new \eol_schema\Association();
+                else exit("\nUndefined class [$class]. Will terminate.\n");                
+                foreach($uris as $uri) {
+                    $field = pathinfo($uri, PATHINFO_BASENAME);
+                    $parts = explode("#", $field);
+                    if($parts[0]) $field = $parts[0];
+                    if(@$parts[1]) $field = $parts[1];
+                    $o->$field = $rec[$uri];
+                }
+
+                if($class == "measurementorfact") {
+                    $mOfTaxon = strtolower($rec['measurementOfTaxon']);
+                    $mValue = $rec['measurementValue'];
+                    $mType = $rec['measurementType'];
+                    if(substr($mValue, 0, 4) == 'http') {
+                        if(!isset($this->eol_term_values[$mValue])) { $this->debug['Undefined mValue'][$mValue] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
+                    }
+                    if($mOfTaxon == 'true') {
+                        if(!isset($this->eol_term_measurements[$mType])) { $this->debug['Undefined mType'][$mType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
+                    }
+                    if($val = @$rec['measurementDeterminedBy']) {
+                        if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
+                    }
+                }
+
+                if($class == "association") {
+                    /*Array(
+                        [associationType] => http://purl.obolibrary.org/obo/RO_0002556
+                        [measurementDeterminedBy] => 
+                        [measurementMethod] => 
+                        [measurementRemarks] => 
+                        [bibliographicCitation] => 
+                        [contributor] => 
+                    )*/
+                    $aType = $rec['associationType'];
+                    if(substr($aType, 0, 4) == 'http') {
+                        if(!isset($this->eol_term_measurements[$aType])) { $this->debug['Undefined aType'][$aType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
+                    }
+                    if($val = @$rec['measurementDeterminedBy']) {
+                        if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
+                    }
+                }
+
+                if($class == "occurrence") {
+                    if(isset($this->del_oID[$rec['occurrenceID']])) continue;
+                }
+
+                $this->archive_builder->write_object_to_file($o);
+            }
+            //========================================================================================================= 
+
             // if($i >= 100) break; //dev only
         }
     }

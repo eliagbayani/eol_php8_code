@@ -9,7 +9,7 @@ ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // */
-ini_set('memory_limit','8096M');
+ini_set('memory_limit','10096M');
 $timestart = time_elapsed();
 
 // print_r($argv);
@@ -29,14 +29,16 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $params['resource'] = "analyze_MoF";
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
     $preferred_rowtypes = array();
-    $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
+    $excluded_rowtypes = array();
+
+    $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
+    // these 3 will be processed in AnalyzeMoF_API.php. The rest will be saved in DwCA_Utility.php.
+
     /* This will be processed in AnalyzeMoF_API.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
-    /* copied template, not needed here
     Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
-    */
 
-    recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working');
-    unlink(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working.tar.gz');
+    // recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working');
+    // unlink(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working.tar.gz');
 }
 ?>

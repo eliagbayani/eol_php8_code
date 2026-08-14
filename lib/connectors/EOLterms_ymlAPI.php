@@ -100,8 +100,9 @@ class EOLterms_ymlAPI
     // }
     function use_yaml_parse_and_oldOrig()
     {
-        $final = self::convert_EOL_Terms_2array(); //yaml_parse() option
-        foreach($final['terms'] as $r) { //print_r($r); exit("\nelix 1\n");
+        $final = array();
+        $arr = self::convert_EOL_Terms_2array(); //yaml_parse() option
+        foreach($arr['terms'] as $r) { //print_r($r); exit("\nelix 1\n");
             /*Array(
                 [attribution] => 
                 [definition] => a measure of specific growth rate
@@ -154,6 +155,7 @@ class EOLterms_ymlAPI
                 // if($r['uri'] == 'http://eol.org/schema/terms/TrophicGuild') {print_r($r); exit("\nelix 2\n");}
             }
         }
+        // print_r($final); exit("\nstop Aug 14\n");
         return $final;
     }
     function convert_EOL_Terms_2array()

@@ -1355,7 +1355,7 @@ class GenerateCSV_4EOLNeo4j
                     if(!self::URI_in_EOL_terms_YN($rec['predicate'])) continue;
                     $fieldz = array('eol_pk:ID(Metadata-ID)', 'predicate');
                     $csv = self::format_csv_entry($rec, $fieldz);
-                    $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
+                    $csv .= 'PREDICATE_META_TERM'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
                 if($task == 'generate_OBJECT_TERM_Edge_csv') {

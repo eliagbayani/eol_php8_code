@@ -26,7 +26,7 @@ class DwCA_UpdateTaxa
         $tables = $info['harvester']->tables;
         print_r(array_keys($tables));
         
-        $addgenus_clients = array('MoftheAES_resources_taxaFixed', 'NorthAmericanFlora_All_2025_taxaFixed', 'SIcontrib2Botany_taxaFixed');
+        $addgenus_clients = array('MoftheAES_resources_taxaFixed', 'NorthAmericanFlora_All_2025_taxaFixed', 'SIcontrib2Botany_taxaFixed', 'saproxylicnov25_taxaFixed');
         if(in_array($this->resource_id, $addgenus_clients)) {
             if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'add_genus_ancestry');
         }

@@ -33,12 +33,15 @@ class GenerateCSV_4EOLNeo4j
     private function initialize()
     {
         // Reads resources.csv from EOL's RDBMS.
-        $this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*1)); //1 day cache
-        $READ = Functions::file_open($this->local_csv, 'r');        
-        $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);
-        $ret = self::do_things_in_a_csv($param);
-        fclose($READ);
-        unlink($this->local_csv);
+        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*1))) {
+            if($READ = Functions::file_open($this->local_csv, 'r')) {
+                $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);
+                $ret = self::do_things_in_a_csv($param);
+                fclose($READ);
+            }
+        }
+        else exit("\nERROR: Will terminate, EOL resources file cannot be accessed.\n");
+        if(is_file($this->local_csv)) unlink($this->local_csv);
     }
     function assemble_data($resource_id) 
     {
@@ -1231,7 +1234,7 @@ class GenerateCSV_4EOLNeo4j
                 $values = $row;
                 if($count != count($values)) { //row validation - correct no. of columns
                     print_r($values); print_r($rec);
-                    exit("\nERROR: Wrong CSV format for this row.\n[$csv_file]\nrow = [$i]\n");
+                    echo("\nERROR: Wrong CSV format for this row.\n[$csv_file]\nrow = [$i]\n"); //exit("\n-exit muna-\n");
                     // $this->debug['wrong csv'][$class]['identifier'][$rec['identifier']] = '';
                     continue;
                 }

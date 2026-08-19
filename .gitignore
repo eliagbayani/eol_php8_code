@@ -239,3 +239,4 @@ jrice_eol_terms.txt
 update_resources/connectors/helpers/Textmining_Strings_-_mapped_strings copy.tsv
 applications/content_server/resources_3 x
 applications/content_server/neo4j_stats/sh_files/schema wrong.cypher
+applications/content_server/zenodo_resources/zenodo_eol_by_size copy.csv

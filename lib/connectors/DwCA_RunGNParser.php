@@ -323,10 +323,12 @@ class DwCA_RunGNParser
                 [parserVersion] => v1.7.1
             )
         )*/
+        if(!$type) exit("\nUndefined gnparser-call type. Will exit.\n");
         $obj = $obj[0];
-        if($type == 'simple') return $obj->canonical->simple;
-        elseif($type == 'full') return $obj->canonical->full;
-        else exit("\nUndefined type. Will exit.\n");
+        if($obj->parsed) {
+            if($type == 'simple') return $obj->canonical->simple;
+            elseif($type == 'full') return $obj->canonical->full;
+        }
     }
     private function call_gnparser_service($sciname)
     {

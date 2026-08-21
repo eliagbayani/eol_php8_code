@@ -113,13 +113,14 @@ class DwCA_UpdateTaxa
             $arr = json_decode($json, true); //print_r($arr); //exit;
             if($arr['total']) {
                 $rek = $arr['results'][0]; //just pick 1st record
-                $rek = array_map('trim', $rek);
-                if($val = @$rek['kingdom']) $final['kingdom'] = $val;
-                if($val = @$rek['phylum']) $final['phylum'] = $val;
-                if($val = @$rek['class']) $final['class'] = $val;
-                if($val = @$rek['order']) $final['order'] = $val;
-                if($val = @$rek['family']) $final['family'] = $val;
-                if($val = @$rek['genus']) $final['genus'] = $val;
+                // $rek = array_map('trim', $rek); //problematic
+                if($val = @$rek['kingdom']) $final['kingdom'] = trim($val);
+                if($val = @$rek['phylum']) $final['phylum'] = trim($val);
+                if($val = @$rek['class']) $final['class'] = trim($val);
+                if($val = @$rek['order']) $final['order'] = trim($val);
+                if($val = @$rek['family']) $final['family'] = trim($val);
+                if($val = @$rek['genus']) $final['genus'] = trim($val);
+                if($val = @$rek['taxonRank']) $final['taxonRank'] = strtolower(trim($val));
             }
         }
         return $final;

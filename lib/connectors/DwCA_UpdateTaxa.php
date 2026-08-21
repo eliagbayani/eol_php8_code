@@ -108,7 +108,8 @@ class DwCA_UpdateTaxa
     private function get_ancestry_from_obis($sciname)
     {
         $final = array();
-        $url = "https://api.obis.org/v3/taxon/" . urlencode($sciname);
+        $canonical = self::get_canonical_name($sciname);
+        $url = "https://api.obis.org/v3/taxon/" . rawurlencode($canonical);
         if($json = Functions::lookup_with_cache($url, $this->download_options)) {
             $arr = json_decode($json, true); //print_r($arr); //exit;
             if($arr['total']) {

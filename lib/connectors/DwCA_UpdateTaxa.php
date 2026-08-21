@@ -27,10 +27,16 @@ class DwCA_UpdateTaxa
         print_r(array_keys($tables));
         
         $addgenus_clients = array('MoftheAES_resources_taxaFixed', 'NorthAmericanFlora_All_2025_taxaFixed', 'SIcontrib2Botany_taxaFixed', 'saproxylicnov25_taxaFixed', 
-        'BHL_taxaFixed', 'OBISenvDataRecords_taxaFixed');
+        'BHL_taxaFixed'); //OBISenvDataRecords_taxaFixed 
         if(in_array($this->resource_id, $addgenus_clients)) {
             if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'add_genus_ancestry');
         }
+        
+        elseif($this->resource_id == 'OBISenvDataRecords_taxaFixed') {
+            $this->download_options['expire_seconds'] = false; //deliberately false; should not expire; access once only
+            if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'get_ancestry_from_obis_api');
+        }
+
         elseif($this->resource_id == 'xxx') { //specific for this resource
         }
         else exit("\nResource ID not initialized [from: $this->class_name][$this->resource_id]\n");
@@ -78,8 +84,45 @@ class DwCA_UpdateTaxa
                 self::proceed_2write($rec, 'taxon');
             }
             // =======================================================================================================
+            if($what == 'get_ancestry_from_obis_api') { //Eli's initiative
+                /*Array(
+                    [taxonID] => 831047
+                    [scientificName] => Globigerinoides quadrilobatus immaturus
+                )*/
+                if($sciname = $rec['scientificName']) {
+                    if($ret = self::get_ancestry_from_obis($sciname)) {
+                        $rec['kingdom'] = @$ret['kingdom'];
+                        $rec['phylum'] = @$ret['phylum'];
+                        $rec['class'] = @$ret['class'];
+                        $rec['order'] = @$ret['order'];
+                        $rec['family'] = @$ret['family'];
+                        $rec['genus'] = @$ret['genus'];
+                        $rec['taxonRank'] = @$ret['taxonRank'];
+                    }
+                }
+                self::proceed_2write($rec, 'taxon');
+            }
             // =======================================================================================================
         }
+    }
+    private function get_ancestry_from_obis($sciname)
+    {
+        $final = array();
+        $url = "https://api.obis.org/v3/taxon/" . urlencode($sciname);
+        if($json = Functions::lookup_with_cache($url, $this->download_options)) {
+            $arr = json_decode($json, true); //print_r($arr); //exit;
+            if($arr['total']) {
+                $rek = $arr['results'][0]; //just pick 1st record
+                $rek = array_map('trim', $rek);
+                if($val = @$rek['kingdom']) $final['kingdom'] = $val;
+                if($val = @$rek['phylum']) $final['phylum'] = $val;
+                if($val = @$rek['class']) $final['class'] = $val;
+                if($val = @$rek['order']) $final['order'] = $val;
+                if($val = @$rek['family']) $final['family'] = $val;
+                if($val = @$rek['genus']) $final['genus'] = $val;
+            }
+        }
+        return $final;
     }
     private function get_canonical_name($sciname)
     {

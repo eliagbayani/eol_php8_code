@@ -20,6 +20,8 @@ $dwca = CONTENT_RESOURCE_LOCAL_PATH.$source_dwca.'.tar.gz';
 $func = new DwCA_Utility($resource_id, $dwca, $params);
 $preferred_rowtypes = array();
 $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
+// $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence'); //debug only
+
 $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
 Functions::finalize_dwca_resource($resource_id, true, false, $timestart); //3rd param true means delete folder
 

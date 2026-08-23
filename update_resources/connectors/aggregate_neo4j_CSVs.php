@@ -1,6 +1,8 @@
 <?php
 namespace php_active_record;
-/* 
+/*
+php aggregate_neo4j_CSVs.php
+php aggregate_neo4j_CSVs.php _ '{"folder_2_append": "TRYdbase_TraitBank_1_0_csv"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -11,10 +13,13 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // ini_set('memory_limit','8096M');
 $timestart = time_elapsed();
 
-// print_r($argv);
-// $params['jenkins_or_cron'] = @$argv[1]; //not needed here
-// $param                     = json_decode(@$argv[2], true); //print_r($param); exit;
-// $resource_id = $param['resource_id'];
+print_r($argv);
+$params['jenkins_or_cron'] = @$argv[1]; //not needed here
+if($val = @$argv[2]) {
+    $param = json_decode(@$argv[2], true);
+}
+else $param = array();
+// print_r($param); //exit("\nstop muna\n");
 
 /* Working OK
 $arr['combined_CSVs']['edges']['file_1.csv'] = 'destination 1';
@@ -85,7 +90,6 @@ exit("\n-end test-\n");
 source text: "_upper \ monta_ ne evergreen forest \"
 */
 
-$param = array();
 require_library('connectors/AggregateCSV_4Neo4j');
 $func = new AggregateCSV_4Neo4j($param);
 $func->start();

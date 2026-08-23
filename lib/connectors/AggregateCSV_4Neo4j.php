@@ -11,7 +11,8 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class AggregateCSV_4Neo4j
 {
-    function __construct() {
+    function __construct($param) {
+        $this->param = $param; print_r($param);
         $this->path['main'] = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
         $this->path['stats'] = DOC_ROOT . 'applications/content_server/neo4j_stats';
 
@@ -21,15 +22,22 @@ class AggregateCSV_4Neo4j
     function start()
     {
         self::initialize();
-        $folders = Functions::get_folders($this->path['main'], "TraitBank_1_0");
-        print_r($folders);
+        if($val = @$this->param['folder_2_append']) $folders = array($this->path['main']."/$val");
+        else                                        $folders = Functions::get_folders($this->path['main'], "TraitBank_1_0");
+        echo "\nMain folders to process:"; print_r($folders); //exit("\nstopx\n");
+        $processed_folders = self::get_processed_folders();
+        if($processed_folders) { echo "\nProcessed folders already: "; print_r($processed_folders); }
         foreach($folders as $folder) {
-            $subfolders = Functions::get_folders($folder);
-            print_r($subfolders);
-            foreach($subfolders as $subfolder) {
-                self::process_a_subfolder($subfolder, $folder); // /edges or /nodes ;  2nd param $folder is just for stats
-            }
+            $folder_name = pathinfo($folder, PATHINFO_FILENAME);
+            if(isset($processed_folders[$folder_name])) { echo "\nDataset already processed: [".$folder_name."]\n"; continue; }
+            // $subfolders = Functions::get_folders($folder);
+            // print_r($subfolders);
+            // foreach($subfolders as $subfolder) {
+            //     self::process_a_subfolder($subfolder, $folder); // /edges or /nodes ;  2nd param $folder is just for stats
+            // }
+            self::save_folder_names(array($folder)); //so no duplicate appends
         }
+        exit;
         self::get_totals_for_combined_CSVs();
         Functions::start_print_debug($this->report_write, 'CSV_report', $this->path['main']);
         self::write_csv_logs();
@@ -39,7 +47,7 @@ class AggregateCSV_4Neo4j
         $files = Functions::get_files($subfolder, '*.csv');
         $subfolder_name = basename($subfolder); //e.g. 'edges'
         $resource_name = basename($folder);
-        echo "\n[".$resource_name."] CSV files [$subfolder_name]:\n"; //e.g. [GloBI_TraitBank_1_0_csv] CSV files [edges]:
+        echo "\n[".$resource_name."] CSV files [$subfolder_name]: ".count($files)."\n"; //e.g. [GloBI_TraitBank_1_0_csv] CSV files [edges]:
         $this->report = array();
         $this->report['resource_name'] = $resource_name;
         $this->report['what'] = $subfolder_name;
@@ -201,11 +209,33 @@ class AggregateCSV_4Neo4j
     }
     private function initialize()
     {
-        $stats_dir = $this->path['stats'];              if(!is_dir($stats_dir)) mkdir($stats_dir);
-        $combined_dir = $this->path['combined_dir'];    if(is_dir($combined_dir)) recursive_rmdir($combined_dir);
-        mkdir($combined_dir);
-        mkdir($combined_dir."/nodes");
-        mkdir($combined_dir."/edges");
+        $stats_dir = $this->path['stats'];                  if(!is_dir($stats_dir)) mkdir($stats_dir);
+        if(!@$this->param['folder_2_append']) {
+            $combined_dir = $this->path['combined_dir'];    if(is_dir($combined_dir)) { recursive_rmdir($combined_dir); echo "\nTRUNCATED all datasets.\n"; }
+            mkdir($combined_dir);
+            mkdir($combined_dir."/nodes");
+            mkdir($combined_dir."/edges");
+        }
+    }
+    private function save_folder_names($folders)
+    {
+        $txtFile = $this->path['combined_dir']."/already_processed_folders.txt";
+        if($file = fopen($txtFile, "a")) {
+            foreach($folders as $folder) fwrite($file, pathinfo($folder, PATHINFO_FILENAME)."\n");
+            fclose($file);
+        } 
+    }
+    private function get_processed_folders()
+    {
+        $tsv_file = $this->path['combined_dir']."/already_processed_folders.txt";
+        if(!is_file($tsv_file)) return array();
+        $final = array();
+        $file = fopen($tsv_file, "r");
+        if ($file) {
+            while (($line = fgets($file)) !== false) $final[trim($line)] = '';
+            fclose($file);
+        }
+        return $final;
     }
 }
 ?>

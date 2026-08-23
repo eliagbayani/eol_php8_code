@@ -208,7 +208,11 @@ class AggregateCSV_4Neo4j
     {
         $stats_dir = $this->path['stats'];                  if(!is_dir($stats_dir)) mkdir($stats_dir);
         if(!@$this->param['folder_2_append']) {
-            $combined_dir = $this->path['combined_dir'];    if(is_dir($combined_dir)) { recursive_rmdir($combined_dir); echo "\nTRUNCATED all datasets.\n"; }
+            $combined_dir = $this->path['combined_dir'];
+            if(is_dir($combined_dir)) {
+                recursive_rmdir($combined_dir); 
+                echo "\nTRUNCATED all datasets.\n";
+            }
             mkdir($combined_dir);
             mkdir($combined_dir."/nodes");
             mkdir($combined_dir."/edges");
@@ -224,7 +228,7 @@ class AggregateCSV_4Neo4j
     }
     private function save_folder_names($folders)
     {
-        $txtFile = $this->path['combined_dir']."/already_processed_folders.txt";
+        $txtFile = $this->path['combined_dir']."/already_processed_folders.tsv";
         if($file = fopen($txtFile, "a")) {
             foreach($folders as $folder) fwrite($file, pathinfo($folder, PATHINFO_FILENAME)."\n");
             fclose($file);
@@ -232,7 +236,7 @@ class AggregateCSV_4Neo4j
     }
     private function get_processed_folders()
     {
-        $tsv_file = $this->path['combined_dir']."/already_processed_folders.txt";
+        $tsv_file = $this->path['combined_dir']."/already_processed_folders.tsv";
         if(!is_file($tsv_file)) return array();
         $final = array();
         $file = fopen($tsv_file, "r");

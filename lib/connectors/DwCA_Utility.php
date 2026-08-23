@@ -979,7 +979,7 @@ class DwCA_Utility
                 /* Need to have unique taxon ids. It is confined to a pre-defined list of resources bec. it is memory intensive and most resources have already unique taxon ids.
                 Useful for e.g. DATA-1724 resource 'plant_forms_habitat_and_distribution'.
                 */
-                if(in_array($this->resource_id, array("plant_forms_habitat_and_distribution-adjusted", "1000_final", "fwater_marine_image_bank_meta_recoded", "PlantFormsHabiDistrib-with-hC")) 
+                if(in_array($this->resource_id, array("plant_forms_habitat_and_distribution-adjusted", "1000_final", "fwater_marine_image_bank_meta_recoded")) 
                     || in_array(substr($this->resource_id,0,3), array("LD_", "EOL"))) 
                 {
                     if($class == "taxon") {

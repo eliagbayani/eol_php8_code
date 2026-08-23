@@ -44,8 +44,20 @@ class DwCA_UpdateTaxa
     private function process_extension($meta, $what)
     {   //print_r($meta);
         echo "\nprocess_extension [$what]...$this->class_name...\n"; $i = 0;
-        foreach(new FileIterator($meta->file_uri) as $line => $row) {
-            $i++; if(($i % 100000) == 0) echo "\n".number_format($i);
+        foreach(new FileIterator($meta->file_uri) as $line => $row) { $i++; 
+
+            /* breakdown when caching
+            $m = 162188/4;
+            $cont = false;
+            if($i >= 1    && $i < $m)    $cont = true;
+            // if($i >= $m   && $i < $m*2)  $cont = true;
+            // if($i >= $m*2 && $i < $m*3)  $cont = true;
+            // if($i >= $m*3 && $i < $m*4)  $cont = true;
+            if(!$cont) continue;
+            if(($i % 20) == 0) echo "\n".number_format($i);            
+            */
+
+            if(($i % 100000) == 0) echo "\n".number_format($i);
             if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template

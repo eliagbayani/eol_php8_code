@@ -30,17 +30,14 @@ class AggregateCSV_4Neo4j
         foreach($folders as $folder) {
             $folder_name = pathinfo($folder, PATHINFO_FILENAME);
             if(isset($processed_folders[$folder_name])) { echo "\nDataset already processed: [".$folder_name."]\n"; continue; }
-            // $subfolders = Functions::get_folders($folder);
-            // print_r($subfolders);
-            // foreach($subfolders as $subfolder) {
-            //     self::process_a_subfolder($subfolder, $folder); // /edges or /nodes ;  2nd param $folder is just for stats
-            // }
+            $subfolders = Functions::get_folders($folder);
+            print_r($subfolders);
+            foreach($subfolders as $subfolder) {
+                self::process_a_subfolder($subfolder, $folder); // /edges or /nodes ;  2nd param $folder is just for stats
+            }
             self::save_folder_names(array($folder)); //so no duplicate appends
         }
-        exit;
-        self::get_totals_for_combined_CSVs();
-        Functions::start_print_debug($this->report_write, 'CSV_report', $this->path['main']);
-        self::write_csv_logs();
+        self::logs_and_reports();
     }
     private function process_a_subfolder($subfolder, $folder) //2nd param $folder is just for stats
     {
@@ -215,6 +212,14 @@ class AggregateCSV_4Neo4j
             mkdir($combined_dir);
             mkdir($combined_dir."/nodes");
             mkdir($combined_dir."/edges");
+        }
+    }
+    private function logs_and_reports()
+    {
+        if(@$this->report_write) {
+            self::get_totals_for_combined_CSVs();
+            Functions::start_print_debug($this->report_write, 'CSV_report', $this->path['main']);
+            self::write_csv_logs();
         }
     }
     private function save_folder_names($folders)

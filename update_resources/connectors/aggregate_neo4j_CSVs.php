@@ -13,7 +13,7 @@ $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // ini_set('memory_limit','8096M');
 $timestart = time_elapsed();
 
-print_r($argv);
+// print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 if($val = @$argv[2]) {
     $param = json_decode(@$argv[2], true);

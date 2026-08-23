@@ -25,16 +25,23 @@ class DwCA_UpdateTaxa
         echo "\n$this->class_name...\n";
         $tables = $info['harvester']->tables;
         print_r(array_keys($tables));
+
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) {}
+        else exit("\nERROR: Taxon extension does not exitst.\n");
         
         $addgenus_clients = array('MoftheAES_resources_taxaFixed', 'NorthAmericanFlora_All_2025_taxaFixed', 'SIcontrib2Botany_taxaFixed', 'saproxylicnov25_taxaFixed', 
-        'BHL_taxaFixed'); //OBISenvDataRecords_taxaFixed 
+        'BHL_taxaFixed'); 
         if(in_array($this->resource_id, $addgenus_clients)) {
-            if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'add_genus_ancestry');
+            self::process_extension($meta, 'add_genus_ancestry');
         }
         
         elseif($this->resource_id == 'OBISenvDataRecords_taxaFixed') {
             $this->download_options['expire_seconds'] = false; //deliberately false; should not expire; access once only
-            if($meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0]) self::process_extension($meta, 'get_ancestry_from_obis_api');
+            self::process_extension($meta, 'get_ancestry_from_obis_api');
+        }
+
+        elseif($this->resource_id == 'PlantFormsHabiDistrib-taxaFixed') {
+            self::process_extension($meta, 'make_taxonID_unique');
         }
 
         elseif($this->resource_id == 'xxx') { //specific for this resource
@@ -96,7 +103,7 @@ class DwCA_UpdateTaxa
                 self::proceed_2write($rec, 'taxon');
             }
             // =======================================================================================================
-            if($what == 'get_ancestry_from_obis_api') { //Eli's initiative
+            elseif($what == 'get_ancestry_from_obis_api') { //Eli's initiative
                 /*Array(
                     [taxonID] => 831047
                     [scientificName] => Globigerinoides quadrilobatus immaturus
@@ -115,6 +122,16 @@ class DwCA_UpdateTaxa
                 self::proceed_2write($rec, 'taxon');
             }
             // =======================================================================================================
+            elseif($what == 'make_taxonID_unique') {
+                $taxonID = $rec['taxonID'];
+                if(!isset($unique_IDs[$taxonID])) {
+                    self::proceed_2write($rec, 'taxon');
+                    $unique_IDs[$taxonID] = '';
+                }
+                else continue;
+            }
+            // =======================================================================================================
+
         }
     }
     private function get_ancestry_from_obis($sciname)

@@ -104,10 +104,13 @@ class AggregateCSV_4Neo4j
     {
         $masterCSVFile = fopen($destination, "a"); // Open and write the master CSV file
         if (($handle = fopen($source, 'r')) !== false) {
-            if(!$newFile_YN) fgetcsv($handle); // Skip the first row (header)
+            if(!$newFile_YN) fgetcsv($handle, 0, ",", "\"", ""); // Skip the first row (header)
             // Collect CSV each row records and write to master file
-            while (($dataValue = fgetcsv($handle)) !== false) {
-                fputcsv($masterCSVFile, $dataValue); // Write the row to the master file
+            // NOTE: escape param set to "" (empty string) to disable PHP's special backslash-escape
+            // handling in fgetcsv/fputcsv, which otherwise corrupts fields containing literal
+            // backslash-quote sequences (e.g. JSON-escaped quotes like \"Oropsyche?\").
+            while (($dataValue = fgetcsv($handle, 0, ",", "\"", "")) !== false) {
+                fputcsv($masterCSVFile, $dataValue, ",", "\"", ""); // Write the row to the master file
             }
             fclose($handle); // Close individual CSV file
         }

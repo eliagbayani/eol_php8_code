@@ -219,9 +219,11 @@ class DwCA_Utility
                     "118237_ENV", "MoftheAES_ENV", "30355_ENV", "27822_ENV", "30354_ENV", "119035_ENV", "118946_ENV", "118936_ENV", "118950_ENV", 
                     "120602_ENV", "119187_ENV", "118978_ENV", "118941_ENV", "119520_ENV", "119188_ENV",
                     "15423_ENV", "91155_ENV")) || @$this->params['resource'] == 'all_BHL') && $row_type == "http://rs.tdwg.org/dwc/terms/occurrence") {
+                    // echo "\nGoes here 100\n";
                     self::process_fields($harvester->process_row_type($row_type), 'occurrence_specific');
                 }
                 elseif($annotateYes && $row_type == "http://rs.tdwg.org/dwc/terms/occurrence") {
+                    // echo "\nGoes here 200\n";
                     self::process_fields($harvester->process_row_type($row_type), 'occurrence_specific');
                 }
                 else { //original, the rest goes here
@@ -231,12 +233,14 @@ class DwCA_Utility
                         self::carry_over($meta, 'document'); //was never run but should work just need to get the value for $meta from local $info.
                     }
                     */
-                                        
-                    if(in_array(@$this->params['resource'], array('add_canonical_Katja', 'match_taxa_2DH', 'use_EOLid_as_taxonID', 'revise_keyword_map', 'remove_MoF_Occurrence'))) {
+                    // echo "\nGoes here 300\n";                                        
+                    if(in_array(@$this->params['resource'], array('update_taxa', 'add_canonical_Katja', 'match_taxa_2DH', 'use_EOLid_as_taxonID', 'revise_keyword_map', 'remove_MoF_Occurrence'))) {
+                        // echo "\nGoes here 3-100\n";
                         $meta = $tables[$row_type][0];
                         self::carry_over($meta, $this->extensions[$row_type]); //was never run but should work just need to get the value for $meta from local $info.
                     }
                     else { //orig | the rest goes here
+                        // echo "\nGoes here 3-200 - [".$this->extensions[$row_type]."]\n";
                         self::process_fields($harvester->process_row_type($row_type), $this->extensions[$row_type]);
                     }
                 }

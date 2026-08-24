@@ -23,15 +23,13 @@ $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
 // $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence'); //debug only
 
 $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
-Functions::finalize_dwca_resource($resource_id, true, false, $timestart); //3rd param true means delete folder
+Functions::finalize_dwca_resource($resource_id, true, true, $timestart); //3rd param true means delete folder
 
 /* copied template
+Functions::finalize_dwca_resource($resource_id, true, false, $timestart); //3rd param true means delete folder
 $ret = run_utility($resource_id); //check for orphan records in MoF
-*/
 recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH.$resource_id."/"); //we can now delete folder after run_utility() - DWCADiagnoseAPI
-/* copied template
-function run_utility($resource_id)
-{
+function run_utility($resource_id) {
     require_library('connectors/DWCADiagnoseAPI');
     $func = new DWCADiagnoseAPI();
     $undefined_parents = $func->check_if_all_parents_have_entries($resource_id, true, false, false, 'parentMeasurementID', 'measurement_or_fact_specific.tab');

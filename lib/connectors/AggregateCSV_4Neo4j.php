@@ -24,9 +24,9 @@ class AggregateCSV_4Neo4j
         self::initialize();
         if($val = @$this->param['folder_2_append']) $folders = array($this->path['main']."/$val");
         else                                        $folders = Functions::get_folders($this->path['main'], "TraitBank_1_0");
-        echo "\nMain folders to process: "; print_r($folders); //exit("\nstopx\n");
+        echo "\nMain folders to process: [".count($folders)."] "; print_r($folders); //exit("\nstopx\n");
         $processed_folders = self::get_processed_folders();
-        if($processed_folders) { echo "\nProcessed folders already: "; print_r($processed_folders); }
+        if($processed_folders) { echo "\nProcessed folders already: [".count($processed_folders)."] "; print_r($processed_folders); }
         foreach($folders as $folder) {
             $folder_name = pathinfo($folder, PATHINFO_FILENAME);
             if(isset($processed_folders[$folder_name])) { echo "\nDataset already processed: [".$folder_name."]\n"; continue; }

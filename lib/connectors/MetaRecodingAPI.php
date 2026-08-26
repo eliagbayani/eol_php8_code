@@ -53,7 +53,7 @@ class MetaRecodingAPI
         if(in_array($this->resource_id, array('770_meta_recoded', 'natdb_meta_recoded', 'copepods_meta_recoded',
                                               '42_meta_recoded', 'cotr_meta_recoded_1', '727_meta_recoded',
                                               '707_meta_recoded', 'test3_meta_recoded', '26_meta_recoded',
-                                              'try_dbase_2024_meta_recoded'))) self::task_67($tables);
+                                              'try_dbase_2024_meta_recoded', 'AnAge_meta_recoded'))) self::task_67($tables);
         /* http://rs.tdwg.org/dwc/terms/lifeStage - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
            http://rs.tdwg.org/dwc/terms/sex       - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
         DONE2: if lifeStage or sex is a child row in MoF. Implemented in WoRMS (26).
@@ -643,9 +643,9 @@ class MetaRecodingAPI
             elseif($what == 'write_task_67_1' || $what == 'write_task_67_2') {
                 if($val = @$this->oID_lifeStage[$occurrenceID]) {
                     if($val2 = @$rec['http://rs.tdwg.org/dwc/terms/lifeStage']) echo "\nmay laman [$val2] [$val]\n"; //stats only
-                                                                $rec['http://rs.tdwg.org/dwc/terms/lifeStage'] = $val;  //task_6
+                    $rec['http://rs.tdwg.org/dwc/terms/lifeStage'] = $val;                                  //task_6 - always take $val; not $val2
                 }
-                if($val = @$this->oID_sex[$occurrenceID])       $rec['http://rs.tdwg.org/dwc/terms/sex'] = $val;        //task_7
+                if($val = @$this->oID_sex[$occurrenceID]) $rec['http://rs.tdwg.org/dwc/terms/sex'] = $val;  //task_7
                 self::write_occurrence($rec);
             }
             //===========================================================================================================================================================

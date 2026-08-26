@@ -13,7 +13,7 @@ php update_resources/connectors/resource_utility.php _ '{"resource_id": "WoRMS2E
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "globi_assoc_2025_05_17",   "task": "add_canonical_in_taxa"}'
 
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "26_ENV_final", "task": "change_measurementIDs"}'
-php update_resources/connectors/resource_utility.php _ '{"resource_id": "eBirdClementsV69", "task": "add_measurementIDs"}'
+php update_resources/connectors/resource_utility.php _ '{"resource_id": "eBirdClementsV69_fromZenodo", "task": "add_measurementIDs"}'
 
 
  -------------------------- START of metadata_recoding  --------------------------
@@ -268,8 +268,13 @@ elseif($task == 'change_measurementIDs') {
         else                            $dwca_file = DOC_ROOT . "/applications/content_server/resources/26_ENV_3.tar.gz"; //formerly 26_ENV.tar.gz
     }
 }
-elseif($task == 'add_measurementIDs') { //1st client is: eBirdClementsV69.tar.gz
+elseif($task == 'add_measurementIDs') { //1st client is: eBirdClementsV69_fromZenodo.tar.gz
     $dwca_file = DOC_ROOT . "/applications/content_server/resources/".$resource_id.".tar.gz";
+    // /* ---------- customize here ----------
+    if($resource_id == 'eBirdClementsV69_fromZenodo') $resource_id = "eBirdClementsV69";
+    else exit("\nERROR: [$task] resource_id not yet initialized. Will terminate.\n");
+    // ----------------------------------------*/
+
 }
 elseif($task == 'remove_MoF_Occurrence') {
     if($resource_id == '24_pre_ENV') {
@@ -527,7 +532,7 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
             */
         }
     }
-    elseif($task == 'add_measurementIDs') { //1st client is: eBirdClementsV69.tar.gz
+    elseif($task == 'add_measurementIDs') { //1st client is: eBirdClementsV69_fromZenodo.tar.gz
         $preferred_rowtypes = array();
         $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/measurementorfact');
         /* These below will be processed in Add_measurementIDs.php which will be called from DwCA_Utility.php

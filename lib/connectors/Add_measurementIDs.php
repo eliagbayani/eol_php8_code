@@ -1,7 +1,8 @@
 <?php
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from resource_utility.php 
-1st client is WoRMS: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=66426&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66426
+1st client is: eBirdClementsV69.tar.gz
+Copied template from Change_measurementIDs.php
 */
 class Add_measurementIDs
 {
@@ -32,8 +33,7 @@ class Add_measurementIDs
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
-            $rec= array_map('trim', $rec);
-            // print_r($rec); exit;
+            $rec= array_map('trim', $rec); //print_r($rec); exit;
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/occurrenceID] => struthio_camelus_es
                 [http://eol.org/schema/measurementOfTaxon] => true
@@ -42,7 +42,6 @@ class Add_measurementIDs
                 [http://purl.org/dc/terms/contributor] => The Cornell Lab of Ornithology: Clements Checklist
                 [http://eol.org/schema/reference/referenceID] => f7919906c81c53ef18448c5446697153
             )*/
-
             if($what == 'generate_measurementID') {
                 $o = new \eol_schema\MeasurementOrFact_specific();
                 $uris = array_keys($rec);

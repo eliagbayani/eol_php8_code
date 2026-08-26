@@ -220,7 +220,7 @@ class AggregateCSV_4Neo4j
             mkdir($combined_dir."/nodes");
             mkdir($combined_dir."/edges");
         }
-        else { //sometimes I deliberately delete combined_CSVs
+        else { //sometimes I deliberately delete combined_CSVs folder
             $combined_dir = $this->path['combined_dir'];
             if(!is_dir($combined_dir)) {
                 mkdir($combined_dir);

@@ -610,7 +610,7 @@ class GenerateCSV_4EOLNeo4j
                     )                
         */
         if($val = $rec['vernacularName']) {
-            $unique_id = $val."_".$rec['taxonID']."_".$rec['language'];
+            $unique_id = $val."_".$rec['taxonID']."_".$rec['language']."_".$this->resource_id;
             $unique_id = str_replace(" ", "_", $unique_id);
             if(!isset($this->unique_vernaculars[$unique_id])) {
                 $this->unique_vernaculars[$unique_id] = '';

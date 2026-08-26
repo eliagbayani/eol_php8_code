@@ -13,6 +13,8 @@ php update_resources/connectors/resource_utility.php _ '{"resource_id": "WoRMS2E
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "globi_assoc_2025_05_17",   "task": "add_canonical_in_taxa"}'
 
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "26_ENV_final", "task": "change_measurementIDs"}'
+php update_resources/connectors/resource_utility.php _ '{"resource_id": "eBirdClementsV69", "task": "add_measurementIDs"}'
+
 
  -------------------------- START of metadata_recoding  --------------------------
 task_123
@@ -265,6 +267,9 @@ elseif($task == 'change_measurementIDs') {
         if(Functions::is_production())  exit("\nNot yet run.\n");//not yet run in editors.eol.org
         else                            $dwca_file = DOC_ROOT . "/applications/content_server/resources/26_ENV_3.tar.gz"; //formerly 26_ENV.tar.gz
     }
+}
+elseif($task == 'add_measurementIDs') { //1st client is: eBirdClementsV69.tar.gz
+    $dwca_file = DOC_ROOT . "/applications/content_server/resources/".$resource_id.".tar.gz";
 }
 elseif($task == 'remove_MoF_Occurrence') {
     if($resource_id == '24_pre_ENV') {
@@ -521,6 +526,13 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
             http://rs.tdwg.org/dwc/terms/measurementorfact
             */
         }
+    }
+    elseif($task == 'add_measurementIDs') { //1st client is: eBirdClementsV69.tar.gz
+        $preferred_rowtypes = array();
+        $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/measurementorfact');
+        /* These below will be processed in Add_measurementIDs.php which will be called from DwCA_Utility.php
+        http://rs.tdwg.org/dwc/terms/measurementorfact
+        */
     }
     elseif($task == 'remove_MoF_Occurrence') {
         if(in_array($resource_id, array('24_pre_ENV'))) {

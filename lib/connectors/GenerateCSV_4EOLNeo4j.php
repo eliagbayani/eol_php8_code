@@ -610,14 +610,18 @@ class GenerateCSV_4EOLNeo4j
                     )                
         */
         if($val = $rec['vernacularName']) {
-            $unique_id = $val."_".$rec['taxonID']."_".$rec['language']."_".$this->resource_id;
+            $unique_id = $val."_".$rec['taxonID']."_".$rec['language'];
             $unique_id = str_replace(" ", "_", $unique_id);
+
+            // echo("\n[$unique_id]\n");
+
             if(!isset($this->unique_vernaculars[$unique_id])) {
                 $this->unique_vernaculars[$unique_id] = '';
-                $fields = array('md5_vernacularName_taxonID_language', 'vernacularName', 'language', 'isPreferredName', 'supplier');
+                $fields = array('md5_vernacularName_taxonID_language_supplier', 'vernacularName', 'language', 'isPreferredName', 'supplier');
                 $rec['supplier'] = $this->param['eol_resource_id'];
                 $csv = self::format_csv_entry($rec, $fields);
                 $csv .= 'Vernacular'; //Labels are preferred to be singular nouns
+                // echo("\n[$csv]");
                 fwrite($this->WRITE, $csv."\n");
             }
             else $this->debug['duplicate vernaculars'][$unique_id] = '';
@@ -728,12 +732,62 @@ class GenerateCSV_4EOLNeo4j
         
         $fields = array_keys($s);
         array_unshift($fields, "eol_pk"); //put 'eol_pk' to beginning of an array
-        $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s));
+        // $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s)); //old ways
+        $s['eol_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //new 
 
         $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
+
+        /* good debug
+        if($s['eol_pk'] == 'R74_d41d8cd98f00b204e9800998ecf8427e') { echo "\n[$csv]"; print_r($s); }
+        */
+
         fwrite($this->WRITEx, $csv."\n");
     }
+
+    private function json_encode_them_md5($arr)
+    {
+        if(isset($arr['citation'])) $arr['citation'] = self::fix_mojibake($arr['citation']); //citation is almost always the root of bad chars.
+
+        $clean = self::sanitize_for_json($arr);
+        $json = json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($json === false) echo("\nERROR: json_encode failed: " . json_last_error_msg());
+        /* $json = json_encode($row,
+            JSON_UNESCAPED_UNICODE          // keep accented chars literal instead of \u00e1 escapes
+        |   JSON_UNESCAPED_SLASHES          // don't turn your URLs into "http:\/\/purl.obolibrary..."
+        |   JSON_INVALID_UTF8_SUBSTITUTE    // (PHP 7.2+) replace bad bytes with U+FFFD instead of failing outright
+        ); */
+        return md5($json);
+
+    }
+    static function fix_mojibake(string $str): string {
+        // Already clean? leave it alone.
+        if (mb_check_encoding($str, 'UTF-8') && $str === @iconv('UTF-8', 'UTF-8//IGNORE', $str)) {
+            // still could be double-encoded even if "valid" UTF-8 — try the reverse anyway
+        }
+        // Reinterpret the UTF-8 bytes as Latin-1, then read that byte stream as UTF-8.
+        // This is the standard fix for "Ã©" style double-encoding.
+        $repaired = @mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
+        if ($repaired !== false && $repaired !== '' && mb_check_encoding($repaired, 'UTF-8')) {
+            return $repaired;
+        }
+        return $str; // couldn't safely repair — leave as-is rather than corrupt it further
+    }
+    static function sanitize_for_json($value) {
+        if (is_array($value)) {
+            return array_map([self::class, 'sanitize_for_json'], $value);
+        }
+        if (!is_string($value)) {
+            return $value;
+        }
+        if (!mb_check_encoding($value, 'UTF-8')) {
+            // truly invalid bytes (not just double-encoded) — coerce, substituting bad sequences
+            $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        }
+        return self::fix_mojibake($value);
+    }
+
+
     private function value_for($rec, $field)
     {
         if($measurementValue = @$rec['measurementValue']) {

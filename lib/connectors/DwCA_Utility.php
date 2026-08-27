@@ -469,9 +469,14 @@ class DwCA_Utility
             $func = new Change_measurementIDs($this->resource_id, $this->archive_builder);
             $func->start($info);
         }
-        if($this->resource_id == 'eBirdClementsV69') {
+        if(in_array($this->resource_id, array("eBirdClementsV69"))) {
             require_library('connectors/Add_measurementIDs');
             $func = new Add_measurementIDs($this->resource_id, $this->archive_builder);
+            $func->start($info);
+        }
+        if(in_array($this->resource_id, array("FAOFisheryStat"))) {
+            require_library('connectors/MakeUnique_measurementIDs');
+            $func = new MakeUnique_measurementIDs($this->resource_id, $this->archive_builder);
             $func->start($info);
         }
 

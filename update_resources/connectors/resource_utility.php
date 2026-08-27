@@ -14,7 +14,7 @@ php update_resources/connectors/resource_utility.php _ '{"resource_id": "globi_a
 
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "26_ENV_final", "task": "change_measurementIDs"}'
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "eBirdClementsV69_fromZenodo", "task": "add_measurementIDs"}'
-
+php update_resources/connectors/resource_utility.php _ '{"resource_id": "FAOFisheryStat_fromZenodo", "task": "makeunique_measurementIDs"}'
 
  -------------------------- START of metadata_recoding  --------------------------
 task_123
@@ -277,8 +277,16 @@ elseif($task == 'add_measurementIDs') { //1st client is: eBirdClementsV69_fromZe
     if($resource_id == 'eBirdClementsV69_fromZenodo') $resource_id = "eBirdClementsV69";
     else exit("\nERROR: [$task] resource_id not yet initialized. Will terminate.\n");
     // ----------------------------------------*/
-
 }
+elseif($task == 'makeunique_measurementIDs') { //1st client is: FAOFisheryStat_fromZenodo.tar.gz
+    $dwca_file = DOC_ROOT . "/applications/content_server/resources/".$resource_id.".tar.gz";
+    // /* ---------- customize here ----------
+    if($resource_id == 'FAOFisheryStat_fromZenodo') $resource_id = "FAOFisheryStat";
+    else exit("\nERROR: [$task] resource_id not yet initialized. Will terminate.\n");
+    // ----------------------------------------*/
+}
+
+
 elseif($task == 'remove_MoF_Occurrence') {
     if($resource_id == '24_pre_ENV') {
         // $dwca_file = CONTENT_RESOURCE_LOCAL_PATH.'/24_legacy_2024_11_15_EoL.tar.gz'; //obsolete
@@ -544,6 +552,14 @@ function process_resource_url($dwca_file, $resource_id, $task, $timestart)
         http://rs.tdwg.org/dwc/terms/measurementorfact
         */
     }
+    elseif($task == 'makeunique_measurementIDs') { //1st client is: FAOFisheryStat_fromZenodo.tar.gz
+        $preferred_rowtypes = array();
+        $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/measurementorfact');
+        /* These below will be processed in MakeUnique_measurementIDs.php which will be called from DwCA_Utility.php
+        http://rs.tdwg.org/dwc/terms/measurementorfact
+        */
+    }
+
     elseif($task == 'remove_MoF_Occurrence') {
         if(in_array($resource_id, array('24_pre_ENV'))) {
             $preferred_rowtypes = array();

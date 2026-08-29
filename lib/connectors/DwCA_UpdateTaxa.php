@@ -30,7 +30,7 @@ class DwCA_UpdateTaxa
         else exit("\nERROR: Taxon extension does not exitst.\n");
         
         $addgenus_clients = array('MoftheAES_resources_taxaFixed', 'NorthAmericanFlora_All_2025_taxaFixed', 'SIcontrib2Botany_taxaFixed', 'saproxylicnov25_taxaFixed', 
-        'BHL_taxaFixed'); 
+        'BHL_taxaFixed', 'RotiferTypedHab_x_taxaFixed', 'TreeCarbonEstimates_x_taxaFixed'); 
         if(in_array($this->resource_id, $addgenus_clients)) {
             self::process_extension($meta, 'add_genus_ancestry');
         }

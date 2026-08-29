@@ -821,7 +821,7 @@ class GenerateCSV_4EOLNeo4j
                         [taxonID] => 2
                     )                
             */
-        $fields = array('taxonID', 'md5_vernacularName_taxonID_language');
+        $fields = array('taxonID', 'md5_vernacularName_taxonID_language_supplier');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
         // fwrite($this->WRITE, $csv."\n");

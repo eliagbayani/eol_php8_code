@@ -54,6 +54,9 @@ class GenerateCSV_4EOLNeo4j
         $tables = $ret['tables'];
         $extensions = array_keys($tables); print_r($extensions);
 
+        // Step -1: generate a Term node
+        self::prepareUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - admin role
+
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
         self::prepareTermNode_csv(); //using EOL Terms file
@@ -407,8 +410,19 @@ class GenerateCSV_4EOLNeo4j
         }
         else return false;
     }
+    private function prepareUserNode_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/nodes/User.csv', 'w');
+        fwrite($WRITE, "name,username,email,token,role,:LABEL"."\n");
+        $fields = array('name', 'username', 'email', 'token', 'role');
+        $rec = array('name' => 'Eli Agbayani', 'username' => 'eagbayani', 'email' => 'eagbayani173@gmail.com', 'token' => '', 'role' => 'admin');
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'User'; //Labels are preferred to be singular nouns
+        fwrite($WRITE, $csv."\n");
+        fclose($WRITE);
+    }
     private function prepareTermNode_csv()
-    {   return;
+    {   return; //moved to: prepare_Parent_Term_and_Synonym_Of_Edges_csv()
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
         $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
@@ -617,7 +631,7 @@ class GenerateCSV_4EOLNeo4j
 
             if(!isset($this->unique_vernaculars[$unique_id])) {
                 $this->unique_vernaculars[$unique_id] = '';
-                $fields = array('md5_vernacularName_taxonID_language_supplier', 'vernacularName', 'language', 'isPreferredName', 'supplier');
+                $fields = array('md5_vernacularName_taxonID_language_supplier', 'vernacularName', 'language', 'isPreferredName', 'supplier'); //node
                 $rec['supplier'] = $this->param['eol_resource_id'];
                 $csv = self::format_csv_entry($rec, $fields);
                 $csv .= 'Vernacular'; //Labels are preferred to be singular nouns
@@ -821,7 +835,8 @@ class GenerateCSV_4EOLNeo4j
                         [taxonID] => 2
                     )                
             */
-        $fields = array('taxonID', 'md5_vernacularName_taxonID_language_supplier');
+        $fields = array('taxonID', 'md5_vernacularName_taxonID_language_supplier'); //edge
+        $rec['supplier'] = $this->param['eol_resource_id']; //important since we added '_supplier' for the md5 field.
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
         // fwrite($this->WRITE, $csv."\n");

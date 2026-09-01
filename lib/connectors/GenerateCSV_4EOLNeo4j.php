@@ -413,9 +413,9 @@ class GenerateCSV_4EOLNeo4j
     private function prepareUserNode_csv()
     {
         $WRITE = Functions::file_open($this->path.'/nodes/User.csv', 'w');
-        fwrite($WRITE, "name,username,email,token,role,:LABEL"."\n");
-        $fields = array('name', 'username', 'email', 'token', 'role');
-        $rec = array('name' => 'Eli Agbayani', 'username' => 'eagbayani', 'email' => 'eagbayani173@gmail.com', 'token' => '', 'role' => 'admin');
+        fwrite($WRITE, "username:ID(User-ID),name,email,token,role,:LABEL"."\n");
+        $fields = array('username', 'name', 'email', 'token', 'role');
+        $rec = array('username' => 'eagbayani', 'name' => 'Eli Agbayani', 'email' => 'eagbayani173@gmail.com', 'token' => '', 'role' => 'admin');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'User'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n");

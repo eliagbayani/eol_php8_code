@@ -248,6 +248,7 @@ class GenerateCSV_4EOLNeo4j
             if($what == 'generate-PageNode-csv') { //step 1b
                 if(self::is_valid_taxonID($rec['taxonID'])) {
                     if(!@$rec['canonicalName']) $this->debug['No canonicalName'][$rec['taxonID']."-".$rec['scientificName']] = '';
+                    print_r($rec); exit("\ncheck muna...\n");
                     self::generate_PageNode_row($rec);
                 }
             }
@@ -609,13 +610,13 @@ class GenerateCSV_4EOLNeo4j
     }
     private function generate_PageNode_row($rec)
     {   /*  nodes/Page.csv
-            page_id:ID(Page-ID),canonical,rank,:LABEL
+            page_id:ID(Page-ID),canonical,rank,status,:LABEL
             gadus_m,Gadus morhua,species,page
             chanos_c,Chanos chanos,species,page
             gadus,Gadus,genus,page
             chanos,Chanos,genus,page
         */
-        $fields = array('taxonID', 'canonicalName', 'taxonRank');
+        $fields = array('taxonID', 'canonicalName', 'taxonRank', 'taxonomicStatus');
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'Page'; //Labels are preferred to be singular nouns
         fwrite($this->WRITE, $csv."\n");
@@ -1084,7 +1085,7 @@ class GenerateCSV_4EOLNeo4j
         // Page Node
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
         // fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
-        fwrite($WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,:LABEL"."\n"); //data type int worked OK
+        fwrite($WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //data type int worked OK
         $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
         $ret = $func->do_things_from_DH($param);
         fclose($WRITE);

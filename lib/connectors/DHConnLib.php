@@ -823,7 +823,7 @@ class DHConnLib
             $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
             if($task == 'generate_PageNode_csv') {
                 /*  nodes/Page.csv
-                    page_id:ID(Page-ID),canonical,rank,:LABEL
+                    page_id:ID(Page-ID),canonical,rank,status,:LABEL
                     01,Gadus morhua,species,page
                     02,Chanos chanos,species,page
                     100,Gadus,genus,page
@@ -834,7 +834,7 @@ class DHConnLib
                         if(is_numeric($eolID)) {
                             if(!isset($unique_ids[$eolID])) {
                                 $unique_ids[$eolID] = '';
-                                $fieldz = array('eolID', 'canonicalName', 'taxonRank');
+                                $fieldz = array('eolID', 'canonicalName', 'taxonRank', 'taxonomicStatus');
                                 $csv = $func->format_csv_entry($rec, $fieldz);
                                 $csv .= 'Page'; //Labels are preferred to be singular nouns
                                 fwrite($fhandle, $csv."\n");                

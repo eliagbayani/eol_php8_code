@@ -423,8 +423,15 @@ class GenerateCSV_4EOLNeo4j
         $WRITE = Functions::file_open($this->path.'/nodes/AppUser.csv', 'w');
         fwrite($WRITE, "id:ID(AppUser-ID),email,password,role,tokenVersion:long,createdAt:datetime,updatedAt:datetime,:LABEL"."\n");
         $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'createdAt', 'updatedAt');
-        $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'user@example.com', 'password' => '$2b$12$CoEVmnXREsM.6cxcHKZW4ubGwVmITvoZCul4S2HdBmaQBxuUMb2Se', 
-                     'role' => 'user', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
+
+        // $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'user@example.com', 'password' => '$2b$12$CoEVmnXREsM.6cxcHKZW4ubGwVmITvoZCul4S2HdBmaQBxuUMb2Se', 
+        //              'role' => 'user', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
+
+        $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'admin@example.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
+                     'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
+
+
+
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AppUser'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n");

@@ -33,7 +33,7 @@ class GenerateCSV_4EOLNeo4j
     private function initialize()
     {
         // Reads resources.csv from EOL's RDBMS.
-        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*1))) {
+        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*30))) {
             if($READ = Functions::file_open($this->local_csv, 'r')) {
                 $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);
                 $ret = self::do_things_in_a_csv($param);
@@ -54,8 +54,11 @@ class GenerateCSV_4EOLNeo4j
         $tables = $ret['tables'];
         $extensions = array_keys($tables); print_r($extensions);
 
+        // Step -2: generate the VernacularPageID node
+        self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
+
         // Step -1: generate a Term node
-        self::prepareUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - admin role
+        self::prepareUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
 
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
@@ -429,8 +432,6 @@ class GenerateCSV_4EOLNeo4j
 
         $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'admin@example.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
                      'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
-
-
 
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AppUser'; //Labels are preferred to be singular nouns
@@ -1980,6 +1981,60 @@ class GenerateCSV_4EOLNeo4j
         015afbb5e4398e462b257aa2b50cd48e	b57cedf8a4df37545cd3fcb528a47eb2	true		http://purl.obolibrary.org/obo/CMO_0000013	1	http://purl.obolibrary.org/obo/UO_0000015	http://semanticscience.org/resource/SIO_001114					http://www.marinespecies.org/aphia.php?p=taxdetails&id=103235		
         25ef920b4f642c4accad4cae3f08ea7e			015afbb5e4398e462b257aa2b50cd48e	http://rs.tdwg.org/dwc/terms/locality	http://www.geonames.org/6255148									
         */
+    }
+    private function prepareVernacularPageIDNode_csv()
+    {
+        $remote = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/english_preferred_vernaculars_by_page.csv';
+        if($csv_file = Functions::save_remote_file_to_local($remote, array("cache" => 1, 'expire_seconds' => 60*60*24*30))) { $i = 0;
+            $WRITE = Functions::file_open($this->path.'/nodes/VernacularPageID.csv', 'w');
+            fwrite($WRITE, "page_id:long,vernacularName"."\n");
+            $file = Functions::file_open($csv_file, "r");
+            while(!feof($file)) {
+                $row = fgetcsv($file);
+                if(!$row) break;
+                $i++; if(($i % 50000) == 0) echo "\n $i ";
+                if($i == 1) {
+                    $fields = $row;
+                    $fields = str_replace(":long", "", $fields); //new --- dito nag-tapos...
+                    $fields = array_map('trim', $fields);
+                    $count = count($fields);
+                }
+                else { //main records
+                    $values = $row;
+                    if($count != count($values)) { //row validation - correct no. of columns
+                        print_r($values); print_r($rec);
+                        echo("\nERROR: Wrong CSV format for this row.\n[$csv_file]\nrow = [$i]\n"); //exit("\n-exit muna-\n");
+                        continue;
+                    }
+                    $k = 0;
+                    $rec = array();
+                    foreach($fields as $field) {
+                        $rec[$field] = $values[$k];
+                        $k++;
+                    }
+                    $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
+                    /*Array(
+                        [EOLid] => 328090
+                        [vernacularName] => Brown Palm Civet
+                    )*/
+                    $fields = array('EOLid', 'vernacularName');
+                    $csv = self::format_csv_entry($rec, $fields);
+                    // no :LABEL column here (label is passed on the neo4j-admin command line
+                    // via --nodes=VernacularPageID=<file> instead), so unlike the node writers
+                    // that append one, we must trim the trailing comma format_csv_entry() always
+                    // adds for that next field - otherwise every row gets a phantom 3rd empty
+                    // column that doesn't match the 2-column header and the import fails with
+                    // "Extra column not present in header".
+                    /* this gives an error in import_dataset.sh
+                    $csv = rtrim($csv, ','); */
+                    $csv = substr(trim($csv), 0, -1); //Important for VernacularPageID.csv - remove last char "," a comma.
+                    fwrite($WRITE, $csv."\n");
+                }
+            }
+            fclose($WRITE);
+        }
+        else exit("\nFile cannot be accessed: [$remote]\n");      
+        unlink($csv_file);
     }
     /*
     =========================================================================== Globi

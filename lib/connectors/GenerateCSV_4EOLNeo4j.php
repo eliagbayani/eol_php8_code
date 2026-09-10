@@ -423,7 +423,7 @@ class GenerateCSV_4EOLNeo4j
         $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'createdAt', 'updatedAt', 'emailVerified', 'previousRefreshTokenId', 'refreshTokenId');
         $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'admin@example.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
                      'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z',
-                     'emailVerified' => TRUE, 'previousRefreshTokenId' => 'a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9', 'refreshTokenId' => '95df40ed-644d-4b71-a31e-81a80be37714');
+                     'emailVerified' => 'true', 'previousRefreshTokenId' => 'a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9', 'refreshTokenId' => '95df40ed-644d-4b71-a31e-81a80be37714');
         /*
         <id>: 4:9118c5aa-a0ec-4547-b9b6-24e63ad1646e:18727202
         id: "82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd"
@@ -436,6 +436,12 @@ class GenerateCSV_4EOLNeo4j
         emailVerified: TRUE
         previousRefreshTokenId: "a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9"
         refreshTokenId: "95df40ed-644d-4b71-a31e-81a80be37714"
+
+n
+"(:AppUser {createdAt: 2026-09-02T00:00:00Z, emailVerified: FALSE, password: $2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO, role: admin, refreshTokenId: cf08155c-13e4-43ed-8cdf-a984e09a4e15, tokenVersion: 1, id: 82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd, email: admin@example.com, updatedAt: 2026-09-10T03:28:31.503000000Z})"
+"(:AppUser {createdAt: 2026-09-10T03:27:05.664000000Z, emailVerified: TRUE, password: $2b$12$X.r86wS7n3LX3uzJgoXeVutNwq6M2h0OSsmRGghZouiKUMv6jkZ9q, role: user, refreshTokenId: 5a8f21c1-aa99-4028-9834-439cbc70538e, tokenVersion: 0, id: 63a2d2e8-8570-4a3d-94a0-64a37d19b7cb, email: eagbayani173@gmail.com, updatedAt: 2026-09-10T03:27:46.539000000Z})"
+
+        
         */
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AppUser'; //Labels are preferred to be singular nouns
@@ -446,7 +452,7 @@ class GenerateCSV_4EOLNeo4j
         $WRITE = Functions::file_open($this->path.'/nodes/AppSettings.csv', 'w');
         fwrite($WRITE, "hibpEnabled:boolean,id,:LABEL"."\n");
         $fields = array('hibpEnabled', 'id');
-        $rec = array('hibpEnabled' => TRUE, 'id' => 'singleton');
+        $rec = array('hibpEnabled' => 'true', 'id' => 'singleton');
         /* "(:AppSettings {hibpEnabled: TRUE, id: singleton})" */
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AppSettings'; //Labels are preferred to be singular nouns

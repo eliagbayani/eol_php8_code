@@ -463,8 +463,16 @@ n
         $WRITE = Functions::file_open($this->path.'/nodes/AuditEvent.csv', 'w');
         fwrite($WRITE, "actorEmail,actorId,createdAt:datetime,id,ip,targetEmail,targetId,type,:LABEL"."\n");
         $fields = array('actorEmail', 'actorId', 'createdAt', 'id', 'ip', 'targetEmail', 'targetId', 'type');
-        $rec = array('actorEmail' => '', 'actorId' => '', 'createdAt' => '', 'id' => '', 'ip' => '', 'targetEmail' => '', 'targetId' => '', 'type' => '');
-        /**/
+        $rec = array('actorEmail' => '', 'actorId' => '', 'createdAt' => '2026-09-01T10:15:30Z', 'id' => '3f2b9b1e-1a2b-4c3d-9e4f-5a6b7c8d9e0f', 'ip' => '203.0.113.10', 'targetEmail' => 'unknown@example.com', 'targetId' => '', 'type' => 'FAILED_LOGIN');
+        /*
+<id>: 4:9118c5aa-a0ec-4547-b9b6-24e63ad1646e:2828434
+createdAt: 2026-09-10T03:39:51.838000000Z
+id: "415e606c-7d17-4527-b642-62492efe0fe2"
+ip: "192.168.65.1"
+targetEmail: "admin@example.com"
+targetId: "82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd"
+type: "REFRESH_REJECTED_REVOKED"
+        */
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AuditEvent'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n"); fclose($WRITE);

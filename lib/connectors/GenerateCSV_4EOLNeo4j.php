@@ -57,8 +57,10 @@ class GenerateCSV_4EOLNeo4j
         // Step -2: generate the VernacularPageID node
         self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
 
-        // Step -1: generate a Term node
-        self::prepareUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
+        // Step -1: generate supplementary nodes: AppUser, AppSettings, AuditEvent
+        self::prepareAppUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
+        self::prepareAppSettingsNode_csv();
+        self::prepareAuditEventNode_csv();
 
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
@@ -414,29 +416,52 @@ class GenerateCSV_4EOLNeo4j
         }
         else return false;
     }
-    private function prepareUserNode_csv()
-    {   /* replaced by AppUser
-        $WRITE = Functions::file_open($this->path.'/nodes/User.csv', 'w');
-        fwrite($WRITE, "username:ID(User-ID),name,email,token,role,:LABEL"."\n");
-        $fields = array('username', 'name', 'email', 'token', 'role');
-        $rec = array('username' => 'eagbayani', 'name' => 'Eli Agbayani', 'email' => 'eagbayani173@gmail.com', 'token' => '', 'role' => 'admin');
-        $csv = self::format_csv_entry($rec, $fields);
-        $csv .= 'User'; //Labels are preferred to be singular nouns
-        */
+    private function prepareAppUserNode_csv()
+    {   
         $WRITE = Functions::file_open($this->path.'/nodes/AppUser.csv', 'w');
-        fwrite($WRITE, "id:ID(AppUser-ID),email,password,role,tokenVersion:long,createdAt:datetime,updatedAt:datetime,:LABEL"."\n");
-        $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'createdAt', 'updatedAt');
-
-        // $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'user@example.com', 'password' => '$2b$12$CoEVmnXREsM.6cxcHKZW4ubGwVmITvoZCul4S2HdBmaQBxuUMb2Se', 
-        //              'role' => 'user', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
-
+        fwrite($WRITE, "id:ID(AppUser-ID),email,password,role,tokenVersion:long,createdAt:datetime,updatedAt:datetime,emailVerified:boolean,previousRefreshTokenId,refreshTokenId,:LABEL"."\n");
+        $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'createdAt', 'updatedAt', 'emailVerified', 'previousRefreshTokenId', 'refreshTokenId');
         $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'admin@example.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
-                     'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
-
+                     'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z',
+                     'emailVerified' => TRUE, 'previousRefreshTokenId' => 'a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9', 'refreshTokenId' => '95df40ed-644d-4b71-a31e-81a80be37714');
+        /*
+        <id>: 4:9118c5aa-a0ec-4547-b9b6-24e63ad1646e:18727202
+        id: "82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd"
+        email: "admin@example.com"
+        password: "$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO"
+        role: "admin"
+        tokenVersion: 0
+        createdAt: "2026-09-02T00:00:00Z"
+        updatedAt: 2026-09-09T16:08:50.938000000Z
+        emailVerified: TRUE
+        previousRefreshTokenId: "a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9"
+        refreshTokenId: "95df40ed-644d-4b71-a31e-81a80be37714"
+        */
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AppUser'; //Labels are preferred to be singular nouns
-        fwrite($WRITE, $csv."\n");
-        fclose($WRITE);
+        fwrite($WRITE, $csv."\n"); fclose($WRITE);
+    }
+    private function prepareAppSettingsNode_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/nodes/AppSettings.csv', 'w');
+        fwrite($WRITE, "hibpEnabled:boolean,id,:LABEL"."\n");
+        $fields = array('hibpEnabled', 'id');
+        $rec = array('hibpEnabled' => TRUE, 'id' => 'singleton');
+        /* "(:AppSettings {hibpEnabled: TRUE, id: singleton})" */
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'AppSettings'; //Labels are preferred to be singular nouns
+        fwrite($WRITE, $csv."\n"); fclose($WRITE);
+    }
+    private function prepareAuditEventNode_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/nodes/AuditEvent.csv', 'w');
+        fwrite($WRITE, "actorEmail,actorId,createdAt:datetime,id,ip,targetEmail,targetId,type,:LABEL"."\n");
+        $fields = array('actorEmail', 'actorId', 'createdAt', 'id', 'ip', 'targetEmail', 'targetId', 'type');
+        $rec = array('actorEmail' => '', 'actorId' => '', 'createdAt' => '', 'id' => '', 'ip' => '', 'targetEmail' => '', 'targetId' => '', 'type' => '');
+        /**/
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'AuditEvent'; //Labels are preferred to be singular nouns
+        fwrite($WRITE, $csv."\n"); fclose($WRITE);
     }
     private function prepareTermNode_csv()
     {   return; //moved to: prepare_Parent_Term_and_Synonym_Of_Edges_csv()

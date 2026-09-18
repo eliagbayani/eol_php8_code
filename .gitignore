@@ -244,3 +244,4 @@ applications/content_server/zenodo_resources/zenodo_eol_by_size 2026 08 19.csv
 
 applications/content_server/neo4j_stats/*.tsv
 
+schema.cypher copy

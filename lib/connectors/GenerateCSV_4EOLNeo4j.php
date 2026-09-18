@@ -419,30 +419,24 @@ class GenerateCSV_4EOLNeo4j
     private function prepareAppUserNode_csv()
     {   
         $WRITE = Functions::file_open($this->path.'/nodes/AppUser.csv', 'w');
-        fwrite($WRITE, "id:ID(AppUser-ID),email,password,role,tokenVersion:long,createdAt:datetime,updatedAt:datetime,emailVerified:boolean,previousRefreshTokenId,refreshTokenId,:LABEL"."\n");
-        $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'createdAt', 'updatedAt', 'emailVerified', 'previousRefreshTokenId', 'refreshTokenId');
-        $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'admin@example.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
-                     'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z',
-                     'emailVerified' => 'true', 'previousRefreshTokenId' => 'a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9', 'refreshTokenId' => '95df40ed-644d-4b71-a31e-81a80be37714');
+        // fwrite($WRITE, "id:ID(AppUser-ID),email,password,role,tokenVersion:long,createdAt:datetime,updatedAt:datetime,emailVerified:boolean,previousRefreshTokenId,refreshTokenId,:LABEL"."\n");
+        // $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'createdAt', 'updatedAt', 'emailVerified', 'previousRefreshTokenId', 'refreshTokenId');
+        // $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'admin@example.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
+        //              'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z',
+        //              'emailVerified' => 'true', 'previousRefreshTokenId' => 'a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9', 'refreshTokenId' => '95df40ed-644d-4b71-a31e-81a80be37714');
+
+        fwrite($WRITE, "id:ID,email,password,role,tokenVersion:long,refreshTokenId,previousRefreshTokenId,emailVerified:boolean,name,apiTokenHash,hasApiToken:boolean,apiTokenCreatedAt:datetime,apiTokenLastUsedAt:datetime,apiTokenRequestCount:long,sandboxEnabled:boolean,createdAt:datetime,updatedAt:datetime,:LABEL"."\n");
+        $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'refreshTokenId', 'previousRefreshTokenId', 'emailVerified', 'name', 'apiTokenHash', 'hasApiToken', 'apiTokenCreatedAt', 'apiTokenLastUsedAt', 'apiTokenRequestCount', 'sandboxEnabled', 'createdAt', 'updatedAt');
+        $rec = array('id' => '65094457-fe3d-4fd1-9dc3-0c3ce5014a73', 'email' => 'eagbayani173@gmail.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
+                     'role' => 'admin', 'tokenVersion' => 0, 'refreshTokenId' => '2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', 'previousRefreshTokenId' => '9f8e7d6c-5b4a-4392-8171-605f4e3d2c1b', 
+                     'emailVerified' => 'true', 'name' => 'Test Admin One', 'apiTokenHash' => 'e72a73477bdf8d3cd2c7662341c9bc48077f49731e3b78a463eec8cc8fd6ecf0', 
+                     'hasApiToken' => 'true', 'apiTokenCreatedAt' => '2026-09-02T00:00:00Z', 'apiTokenLastUsedAt' => '2026-09-03T00:00:00Z', 
+                     'apiTokenRequestCount' => 5, 'sandboxEnabled' => 'true', 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
         /*
-        <id>: 4:9118c5aa-a0ec-4547-b9b6-24e63ad1646e:18727202
-        id: "82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd"
-        email: "admin@example.com"
-        password: "$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO"
-        role: "admin"
-        tokenVersion: 0
-        createdAt: "2026-09-02T00:00:00Z"
-        updatedAt: 2026-09-09T16:08:50.938000000Z
-        emailVerified: TRUE
-        previousRefreshTokenId: "a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9"
-        refreshTokenId: "95df40ed-644d-4b71-a31e-81a80be37714"
-
-n
-"(:AppUser {createdAt: 2026-09-02T00:00:00Z, emailVerified: FALSE, password: $2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO, role: admin, refreshTokenId: cf08155c-13e4-43ed-8cdf-a984e09a4e15, tokenVersion: 1, id: 82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd, email: admin@example.com, updatedAt: 2026-09-10T03:28:31.503000000Z})"
-"(:AppUser {createdAt: 2026-09-10T03:27:05.664000000Z, emailVerified: TRUE, password: $2b$12$X.r86wS7n3LX3uzJgoXeVutNwq6M2h0OSsmRGghZouiKUMv6jkZ9q, role: user, refreshTokenId: 5a8f21c1-aa99-4028-9834-439cbc70538e, tokenVersion: 0, id: 63a2d2e8-8570-4a3d-94a0-64a37d19b7cb, email: eagbayani173@gmail.com, updatedAt: 2026-09-10T03:27:46.539000000Z})"
-
-        
+        id:ID,email,password,role,tokenVersion:long,refreshTokenId,previousRefreshTokenId,emailVerified:boolean,name,apiTokenHash,hasApiToken:boolean,apiTokenCreatedAt:datetime,apiTokenLastUsedAt:datetime,apiTokenRequestCount:long,sandboxEnabled:boolean,createdAt:datetime,updatedAt:datetime,:LABEL
+        82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd,testuser1@example.com,$2b$12$CoEVmnXREsM.6cxcHKZW4ubGwVmITvoZCul4S2HdBmaQBxuUMb2Se,user,0,,,true,Test User One,,false,,,0,true,2026-09-02T00:00:00Z,2026-09-02T00:00:00Z,AppUser        
         */
+
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AppUser'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n"); fclose($WRITE);
@@ -450,10 +444,16 @@ n
     private function prepareAppSettingsNode_csv()
     {
         $WRITE = Functions::file_open($this->path.'/nodes/AppSettings.csv', 'w');
-        fwrite($WRITE, "hibpEnabled:boolean,id,:LABEL"."\n");
-        $fields = array('hibpEnabled', 'id');
-        $rec = array('hibpEnabled' => 'true', 'id' => 'singleton');
-        /* "(:AppSettings {hibpEnabled: TRUE, id: singleton})" */
+        // fwrite($WRITE, "hibpEnabled:boolean,id,:LABEL"."\n");
+        fwrite($WRITE, "id:ID,hibpEnabled:boolean,queryApiEnabled:boolean,queryRowLimitCap:long,queryTimeoutMs:long,queryRateLimitMax:long,queryRateLimitWindowMs:long,queryCacheTtlMs:long,queryCacheNeverExpires:boolean,:LABEL"."\n");
+
+        // $fields = array('hibpEnabled', 'id');
+        $fields = array('id', 'hibpEnabled', 'queryApiEnabled', 'queryRowLimitCap', 'queryTimeoutMs', 'queryRateLimitMax', 'queryRateLimitWindowMs', 'queryCacheTtlMs', 'queryCacheNeverExpires');
+
+        // $rec = array('hibpEnabled' => 'true', 'id' => 'singleton');
+        $rec = array('id' => 'singleton', 'hibpEnabled' => 'true', 'queryApiEnabled' => 'true', 'queryRowLimitCap' => 1000, 'queryTimeoutMs' => 10000, 'queryRateLimitMax' => 60, 
+                     'queryRateLimitWindowMs' => 900000, 'queryCacheTtlMs' => 600000, 'queryCacheNeverExpires' => 'false');
+
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AppSettings'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n"); fclose($WRITE);
@@ -461,18 +461,17 @@ n
     private function prepareAuditEventNode_csv()
     {
         $WRITE = Functions::file_open($this->path.'/nodes/AuditEvent.csv', 'w');
-        fwrite($WRITE, "actorEmail,actorId,createdAt:datetime,id,ip,targetEmail,targetId,type,:LABEL"."\n");
-        $fields = array('actorEmail', 'actorId', 'createdAt', 'id', 'ip', 'targetEmail', 'targetId', 'type');
-        $rec = array('actorEmail' => '', 'actorId' => '', 'createdAt' => '2026-09-01T10:15:30Z', 'id' => '3f2b9b1e-1a2b-4c3d-9e4f-5a6b7c8d9e0f', 'ip' => '203.0.113.10', 'targetEmail' => 'unknown@example.com', 'targetId' => '', 'type' => 'FAILED_LOGIN');
-        /*
-<id>: 4:9118c5aa-a0ec-4547-b9b6-24e63ad1646e:2828434
-createdAt: 2026-09-10T03:39:51.838000000Z
-id: "415e606c-7d17-4527-b642-62492efe0fe2"
-ip: "192.168.65.1"
-targetEmail: "admin@example.com"
-targetId: "82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd"
-type: "REFRESH_REJECTED_REVOKED"
-        */
+
+        // fwrite($WRITE, "actorEmail,actorId,createdAt:datetime,id,ip,targetEmail,targetId,type,:LABEL"."\n");
+        // $fields = array('actorEmail', 'actorId', 'createdAt', 'id', 'ip', 'targetEmail', 'targetId', 'type');
+        // $rec = array('actorEmail' => '', 'actorId' => '', 'createdAt' => '2026-09-01T10:15:30Z', 'id' => '3f2b9b1e-1a2b-4c3d-9e4f-5a6b7c8d9e0f', 'ip' => '203.0.113.10', 'targetEmail' => 'unknown@example.com', 'targetId' => '', 'type' => 'FAILED_LOGIN');
+
+        fwrite($WRITE, "id:ID,type,actorId,actorEmail,targetId,targetEmail,ip,detail,createdAt:datetime,:LABEL"."\n");
+        $fields = array('id', 'type', 'actorId', 'actorEmail', 'targetId', 'targetEmail', 'ip', 'detail', 'createdAt');
+        $rec = array('id' => 'b2d5e9f3-3c4d-4e5f-9a6b-7c8d9e0f1a2b', 'type' => 'ROLE_CHANGE', 'actorId' => '7b0e3a3c-1111-4a2b-9c3d-4e5f6a7b8c9d', 'actorEmail' => 'admin@eol.org', 
+                     'targetId' => 'c2d5e9f3-2222-4b3c-8d4e-5f6a7b8c9d0e', 'targetEmail' => 'cha@gmail.com', 
+                     'ip' => '192.168.1.50', 'detail' => 'user -> admin', 'createdAt' => '2026-09-04T09:05:41Z');
+
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'AuditEvent'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n"); fclose($WRITE);

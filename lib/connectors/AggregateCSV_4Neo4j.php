@@ -93,7 +93,7 @@ class AggregateCSV_4Neo4j
     }
     private function is_file_tobe_excluded_YN($haystack)
     {
-        $needles = $this->files_with_single_write; //array('Resource.csv', 'Page.csv', 'Term.csv');
+        $needles = $this->files_with_single_write;
         foreach($needles as $needle) {
             // Case-sensitive check
             // echo "\nneedle: [$needle] | haystack: [$haystack]\n";

@@ -425,13 +425,13 @@ class GenerateCSV_4EOLNeo4j
         //              'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z',
         //              'emailVerified' => 'true', 'previousRefreshTokenId' => 'a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9', 'refreshTokenId' => '95df40ed-644d-4b71-a31e-81a80be37714');
 
-        fwrite($WRITE, "id:ID,email,password,role,tokenVersion:long,refreshTokenId,previousRefreshTokenId,emailVerified:boolean,name,apiTokenHash,hasApiToken:boolean,apiTokenCreatedAt:datetime,apiTokenLastUsedAt:datetime,apiTokenRequestCount:long,sandboxEnabled:boolean,createdAt:datetime,updatedAt:datetime,:LABEL"."\n");
-        $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'refreshTokenId', 'previousRefreshTokenId', 'emailVerified', 'name', 'apiTokenHash', 'hasApiToken', 'apiTokenCreatedAt', 'apiTokenLastUsedAt', 'apiTokenRequestCount', 'sandboxEnabled', 'createdAt', 'updatedAt');
+        fwrite($WRITE, "id:ID,email,password,role,tokenVersion:long,refreshTokenId,previousRefreshTokenId,emailVerified:boolean,name,apiTokenHash,hasApiToken:boolean,apiTokenCreatedAt:datetime,apiTokenLastUsedAt:datetime,apiTokenRequestCount:long,sandboxEnabled:boolean,createdAt:datetime,updatedAt:datetime,queriesMade:long,:LABEL"."\n");
+        $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'refreshTokenId', 'previousRefreshTokenId', 'emailVerified', 'name', 'apiTokenHash', 'hasApiToken', 'apiTokenCreatedAt', 'apiTokenLastUsedAt', 'apiTokenRequestCount', 'sandboxEnabled', 'createdAt', 'updatedAt', 'queriesMade');
         $rec = array('id' => '65094457-fe3d-4fd1-9dc3-0c3ce5014a73', 'email' => 'eagbayani173@gmail.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
                      'role' => 'admin', 'tokenVersion' => 0, 'refreshTokenId' => '2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', 'previousRefreshTokenId' => '9f8e7d6c-5b4a-4392-8171-605f4e3d2c1b', 
-                     'emailVerified' => 'true', 'name' => 'Test Admin One', 'apiTokenHash' => 'e72a73477bdf8d3cd2c7662341c9bc48077f49731e3b78a463eec8cc8fd6ecf0', 
+                     'emailVerified' => 'true', 'name' => 'Eli E. Agbayani', 'apiTokenHash' => 'e72a73477bdf8d3cd2c7662341c9bc48077f49731e3b78a463eec8cc8fd6ecf0', 
                      'hasApiToken' => 'true', 'apiTokenCreatedAt' => '2026-09-02T00:00:00Z', 'apiTokenLastUsedAt' => '2026-09-03T00:00:00Z', 
-                     'apiTokenRequestCount' => 5, 'sandboxEnabled' => 'true', 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z');
+                     'apiTokenRequestCount' => 5, 'sandboxEnabled' => 'true', 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z', 'queriesMade' => 0);
         /*
         id:ID,email,password,role,tokenVersion:long,refreshTokenId,previousRefreshTokenId,emailVerified:boolean,name,apiTokenHash,hasApiToken:boolean,apiTokenCreatedAt:datetime,apiTokenLastUsedAt:datetime,apiTokenRequestCount:long,sandboxEnabled:boolean,createdAt:datetime,updatedAt:datetime,:LABEL
         82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd,testuser1@example.com,$2b$12$CoEVmnXREsM.6cxcHKZW4ubGwVmITvoZCul4S2HdBmaQBxuUMb2Se,user,0,,,true,Test User One,,false,,,0,true,2026-09-02T00:00:00Z,2026-09-02T00:00:00Z,AppUser        

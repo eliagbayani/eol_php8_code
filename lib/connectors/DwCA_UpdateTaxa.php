@@ -40,7 +40,7 @@ class DwCA_UpdateTaxa
             self::process_extension($meta, 'get_ancestry_from_obis_api');
         }
 
-        elseif($this->resource_id == 'PlantFormsHabiDistrib_taxaFixed') {
+        elseif(in_array($this->resource_id, array('PlantFormsHabiDistrib_taxaFixed', 'EVA_taxaFixed'))) {
             self::process_extension($meta, 'make_taxonID_unique');
         }
 

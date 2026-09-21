@@ -1218,7 +1218,7 @@ class DwCA_Utility
                 // */
 
                 /* Need to have unique occurrenceIDs. It is confined to a pre-defined list of resources bec. it is memory intensive and most resources have already unique occurrenceIDs.*/
-                if(in_array($this->resource_id, array("PlantFormsHabiDistrib_taxaFixed"))) {
+                if(in_array($this->resource_id, array("PlantFormsHabiDistrib_taxaFixed", "EVA_taxaFixed"))) {
                     if($class == "occurrence") {
                         $occurrence_id = $o->occurrenceID;
                         if(isset($this->occurrence_ids[$occurrence_id])) {

@@ -65,13 +65,13 @@ CREATE FULLTEXT INDEX pageSearchFulltext IF NOT EXISTS FOR (n:Page|VernacularPag
 // special DROP-first handling — it can just be created.
 CREATE INDEX vernacular_page_id_idx IF NOT EXISTS FOR (v:VernacularPageID) ON (v.page_id);
 
-// Backs auditStore.ts's listAuditEvents (`MATCH (e:AuditEvent) RETURN e ORDER
-// BY e.createdAt DESC LIMIT $limit`, the Admin Utilities Audit Log tab's
-// query). Without this it's a full label scan + sort on every load, growing
-// worse as events accumulate — this app logs a lot of them: every login
-// attempt, every query execution/rejection/rate-limit, every cache clear,
-// every role change. A plain range index, same as vernacular_page_id_idx
-// above — no wait-for-online polling needed.
+// Backs auditStore.ts's listAuditEventsPage (the Admin Utilities Audit Log
+// tab's paginated query) and logAuditEvent's own retention-trim query (SKIP
+// 1000 DELETE, keeping the label capped at 1000 rows). Without this it's a
+// full label scan + sort on every call — this app logs a lot of events:
+// every login attempt, every query execution/rejection/rate-limit, every
+// cache clear, every role change. A plain range index, same as
+// vernacular_page_id_idx above — no wait-for-online polling needed.
 CREATE INDEX auditevent_created_at_idx IF NOT EXISTS FOR (e:AuditEvent) ON (e.createdAt);
 
 // Backs restoreAuditEvents' existence-check query (see
@@ -90,20 +90,7 @@ CREATE CONSTRAINT auditevent_id_unique IF NOT EXISTS FOR (e:AuditEvent) REQUIRE 
 // worth re-evaluating once the dataset reaches its ~82.6M-node target
 // (project-scope.md), since traversal fan-out will grow with it.
 
-// [1] VernacularPageID.page_id currently only has a plain range index
-// (vernacular_page_id_idx above) backing exact-match lookups. If each Page
-// is guaranteed exactly one VernacularPageID node (1:1), upgrading this to a
-// uniqueness constraint would both document that guarantee and back the same
-// lookups at least as well. Verify cardinality first:
-// MATCH (v:VernacularPageID)
-// WITH v.page_id AS pid, count(*) AS c
-// WHERE c > 1
-// RETURN count(*) AS duplicates
-// If that returns 0:
-// CREATE CONSTRAINT vernacular_page_id_unique IF NOT EXISTS FOR (v:VernacularPageID) REQUIRE v.page_id IS UNIQUE;
-// - it has duplicates and it will remain that way
-
-// [2] Resource.name has no index — sorted on in taxonStore.ts's
+// [1] Resource.name has no index — sorted on in taxonStore.ts's
 // getProviderOptions (`ORDER BY name`) and as the "Provider" sort field on
 // the Traits table. Currently always reached by traversing from one Page's
 // Traits first (small, already-narrowed fan-out), so likely not a bottleneck
@@ -112,7 +99,7 @@ CREATE CONSTRAINT auditevent_id_unique IF NOT EXISTS FOR (e:AuditEvent) REQUIRE 
 // per-page provider fan-out large enough to matter.
 CREATE INDEX resource_name_idx IF NOT EXISTS FOR (r:Resource) ON (r.name);
 
-// [3] Term is only indexed on `name`. Several queries filter on `type` and
+// [2] Term is only indexed on `name`. Several queries filter on `type` and
 // `name` together (predation-predicate matching in trophicWebStore.ts,
 // attribute/value Term resolution in taxonStore.ts's getTraitRecords). A
 // composite index could help once these stop being Page-traversal-scoped

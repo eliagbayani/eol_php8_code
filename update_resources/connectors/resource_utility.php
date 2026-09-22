@@ -47,6 +47,10 @@ php update_resources/connectors/resource_utility.php _ '{"resource_id": "try_dba
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "AnAge_meta_recoded", "task": "metadata_recoding"}'
 -> case where lifeStage is a col in MoF => move to a col in occurrence.
 
+php update_resources/connectors/resource_utility.php _ '{"resource_id": "Smith_et_al_2011_meta_recoded", "task": "metadata_recoding"}'
+-> case where lifeStage is a col in MoF => move to a col in occurrence.
+
+
 ----------start Coral traits
 php update_resources/connectors/resource_utility.php _ '{"resource_id": "cotr_meta_recoded_1", "task": "metadata_recoding"}'
 -> fixes lifeStage
@@ -355,9 +359,8 @@ elseif($task == 'metadata_recoding') {
         else                            $dwca_file = DOC_ROOT . "/applications/content_server/resources/try_dbase_2024.tar.gz";
     }
 
-    elseif($resource_id == 'AnAge_meta_recoded') {
-        $dwca_file = CONTENT_RESOURCE_LOCAL_PATH."/AnAge.tar.gz";
-    }
+    elseif($resource_id == 'AnAge_meta_recoded')              { $dwca_file = CONTENT_RESOURCE_LOCAL_PATH."/AnAge.tar.gz"; }
+    elseif($resource_id == 'Smith_et_al_2011_meta_recoded')   { $dwca_file = CONTENT_RESOURCE_LOCAL_PATH."/Smith_et_al_2011.tar.gz"; }
 
     elseif($resource_id == 'cotr_meta_recoded_1') {
         if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/cotr.tar.gz";

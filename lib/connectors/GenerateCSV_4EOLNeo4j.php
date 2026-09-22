@@ -29,9 +29,13 @@ class GenerateCSV_4EOLNeo4j
         $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
         ========== */
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv';
+        $this->is_first_resourceYN = ($this->resource_id == 'AmphibiaWeb_TraitBank_1_0') ? true: false;
     }
     private function initialize()
     {
+        if($this->is_first_resourceYN) echo "\nIt is the first resource.\n";
+        else                           echo "\nNot the first resource\n";
+
         // Reads resources.csv from EOL's RDBMS.
         if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*30))) {
             if($READ = Functions::file_open($this->local_csv, 'r')) {

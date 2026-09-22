@@ -37,7 +37,9 @@ class DwCA_Utility
                                   "http://rs.gbif.org/terms/1.0/description"        => "document",
                                   "http://rs.gbif.org/terms/1.0/multimedia"         => "document",
                                   "http://eol.org/schema/reference/reference"       => "reference",
-                                  "http://eol.org/schema/association"               => "association"
+                                  "http://eol.org/schema/association"               => "association",
+                                  // encountered 22Sep2026 from: https://zenodo.org/records/13316357 (Smith et al, 2011)
+                                  "http://rs.tdwg.org/dwc/terms/event"              => "event"
                                   );
 
                                   /*

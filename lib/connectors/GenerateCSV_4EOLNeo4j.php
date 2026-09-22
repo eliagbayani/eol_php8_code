@@ -33,8 +33,8 @@ class GenerateCSV_4EOLNeo4j
     }
     private function initialize()
     {
-        if($this->is_first_resourceYN) echo "\nIt is the first resource.\n";
-        else                           echo "\nNot the first resource\n";
+        if($this->is_first_resourceYN) echo "\nIt is the first resource.";
+        else                           echo "\nNot the first resource";
 
         // Reads resources.csv from EOL's RDBMS.
         if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*30))) {
@@ -58,20 +58,22 @@ class GenerateCSV_4EOLNeo4j
         $tables = $ret['tables'];
         $extensions = array_keys($tables); print_r($extensions);
 
-        // Step -2: generate the VernacularPageID node
-        self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
+        if($this->is_first_resourceYN) {
+            // Step -2: generate the VernacularPageID node
+            self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
 
-        // Step -1: generate supplementary nodes: AppUser, AppSettings, AuditEvent
-        self::prepareAppUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
-        self::prepareAppSettingsNode_csv();
-        self::prepareAuditEventNode_csv();
+            // Step -1: generate supplementary nodes: AppUser, AppSettings, AuditEvent
+            self::prepareAppUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
+            self::prepareAppSettingsNode_csv();
+            self::prepareAuditEventNode_csv();
+        }
 
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
-        self::prepareTermNode_csv(); //using EOL Terms file
+        // self::prepareTermNode_csv(); //OBSOLETE
 
-        // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF
-        self::prepare_Parent_Term_and_Synonym_Of_Edges_csv(); //using EOL Terms file
+        // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
+        if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
 
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
@@ -83,7 +85,7 @@ class GenerateCSV_4EOLNeo4j
         */
         unset($meta);
 
-        self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
+        if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
 
         // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -93,7 +95,7 @@ class GenerateCSV_4EOLNeo4j
         unset($vernacular_meta);
         
         // Step 3: generate Resource node
-        self::prepare_ResourceNode_csv();                        // step 3a: 
+        if(if($this->is_first_resourceYN)) self::prepare_ResourceNode_csv();                        // step 3a: 
         // */
 
         // Step 4: generate Trait node
@@ -481,7 +483,7 @@ class GenerateCSV_4EOLNeo4j
         fwrite($WRITE, $csv."\n"); fclose($WRITE);
     }
     private function prepareTermNode_csv()
-    {   return; //moved to: prepare_Parent_Term_and_Synonym_Of_Edges_csv()
+    {   return; //moved to: prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
         $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
@@ -531,7 +533,7 @@ class GenerateCSV_4EOLNeo4j
     //     }
     //     return $str;
     // }
-    private function prepare_Parent_Term_and_Synonym_Of_Edges_csv()
+    private function prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
     {
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
@@ -1827,16 +1829,16 @@ class GenerateCSV_4EOLNeo4j
         }
         fclose($this->WRITE);
     }
+    /* OBSOLETE
     private function prepare_ParentEdge_csv($meta)
-    {   /*  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
-            gadus_m,gadus,parent
-            chanos_c,chanos,parent
-        */
+    {   //  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+        //  gadus_m,gadus,parent
+        //  chanos_c,chanos,parent
         $this->WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
         fwrite($this->WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
         self::process_table($meta, 'generate-ParentEdge-csv');
         fclose($this->WRITE);
-    }
+    } */
     private function prepare_VernacularEdge_csv($meta)
     {   /*  personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
             page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE

@@ -10,6 +10,15 @@ These ff. workspaces work together:
 - GenerateCSV_4EOLNeo4j.code-workspace
 
 contributor_uri	compiler_uri	determined_by_uri
+---------------------------------------------------- below are prompts used:
+update our sh/import_append_data.sh, that is if these nodes are not available: 'Resource.csv', 'Page.csv', 'Term.csv', 'AppUser.csv', 'VernacularPageID.csv', 'AuditEvent.csv', 'AppSettings.csv'
+then ignore and move to the next node.
+Also if these edges are not available: 'PARENT.csv', 'PARENT_TERM.csv', 'SYNONYM_OF.csv'
+then ignore and move to the next edge.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+general question: eventually the graph Neo4j database and this codebase will be deployed to production in a Kubernetes cluster. 
+Will I be able to run these sh files: import_dataset.sh, import_append_dataset.sh and the others in a K8s cluster ?
+----------------------------------------------------
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -95,7 +104,7 @@ class GenerateCSV_4EOLNeo4j
         unset($vernacular_meta);
         
         // Step 3: generate Resource node
-        if(if($this->is_first_resourceYN)) self::prepare_ResourceNode_csv();                        // step 3a: 
+        if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
         // */
 
         // Step 4: generate Trait node

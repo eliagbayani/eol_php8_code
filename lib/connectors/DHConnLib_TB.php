@@ -407,11 +407,8 @@ class DHConnLib_TB
     }
     private function proceed_save_or_not($rec, $found, $FILE)
     {
-        // $EOLid = $rec['EOLid']; //old DH version
-        if ($EOLid = @$rec['eolID']) {
-        } //latest DH version: 
-        elseif ($EOLid = @$rec['taxonID']) {
-        } //for any taxon extension
+        if ($EOLid = @$rec['eolID']) {}         //latest DH version: 
+        elseif ($EOLid = @$rec['taxonID']) {}   //for any taxon extension
         else exit("\nTaxon extension errorl.\n");
 
         // if(in_array($rec['taxonRank'], $this->all_ranks_['all'])) { //this block was copied above; from $purpose == 'list of taxa'

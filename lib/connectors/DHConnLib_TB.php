@@ -100,7 +100,7 @@ class DHConnLib_TB
             if($value > 1) echo "\n[$key][$value]";
         }
         */
-        print_r(@$this->debug['status']); print_r(@$this->debug['status2']); echo(" - taxonomicStatus info\n"); //stats only
+        print_r(@$this->debug['status']); echo(" - taxonomicStatus info\n"); //stats only
 
         // print_r($this->DHCanonical_info['Edwardsiella']);
         // print_r($this->DHCanonical_info['Morganella']);
@@ -110,7 +110,7 @@ class DHConnLib_TB
         echo "\nxxx1:".count($this->DH)."";
         echo "\nyyy1:".count($this->DH_synonyms)."";
         echo "\nzzz1:".count($this->DH_acceptedNames)."\n";
-        exit("\nstopx 173\n");
+        // exit("\nstopx 173\n");
 
         // foreach($this->DHCanonical_info as $name => $reks) { SYNONYMS DON'T HAVE EOLid AND higherClassification
         //     foreach($reks as $taxonID => $rek) {
@@ -270,7 +270,7 @@ class DHConnLib_TB
             ) */
 
             // /* DHConnLib for TB does not have eolID anymore
-            $rec['eolID']) = $rec['taxonID'];
+            $rec['eolID'] = $rec['taxonID'];
             // */
 
             if ($EOLid = @$rec['eolID']) {} //latest DH version: 
@@ -300,7 +300,6 @@ class DHConnLib_TB
                 @$this->debug['taxonRank'][$taxonRank]++;   //stats only
 
                 @$this->debug['status'][$taxonomicStatus]++;
-                @$this->debug['status2'][substr($taxonID,0,4)][$taxonomicStatus]++;
                 if ($canonicalName = $rec['canonicalName']) {
                     // if($taxonomicStatus == 'accepted') {
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
@@ -322,9 +321,9 @@ class DHConnLib_TB
                 if($acceptedNameUsageID) {
                     $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
                 }
-                if(substr($taxonID,0,3) == 'SYN') {
-                    $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
-                }
+                
+                // if(substr($taxonID,0,3) == 'SYN') $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;   //old DH
+                if($rec['taxonomicStatus'] == 'not accepted') $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;      //new DH for TB
                 // ========== */
             }
 

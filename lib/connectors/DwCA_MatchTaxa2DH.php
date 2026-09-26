@@ -3,7 +3,8 @@ namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from match_taxa_2DH.php] 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
-- DHConnLib_8.code-workspace
+- DHConnLib_8.code-workspace - old
+- DHConnLib_8v2.code-workspace -- new
 - GNParserAPI_8.code-workspace
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
@@ -102,6 +103,25 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         echo "\nyyy2:".count($this->DH->DH_synonyms)."";                            // -> from DH: $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
         echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");       // -> from DH: $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
         // */
+        /* Last count of old DH
+        Array(
+            [accepted] => 2518007
+            [not accepted] => 1784715
+        )
+        Array(
+            [EOL-] => Array(
+                    [accepted] => 2518007
+                )
+            [SYN-] => Array(
+                    [not accepted] => 1784715
+                )
+        )
+        - taxonomicStatus info
+        aaa1:4148705
+        xxx1:4302722
+        yyy1:1784715
+        zzz1:670350 */
+        exit("\nstop muna\n");
 
         /* This is a good synonyms test
         // Array(

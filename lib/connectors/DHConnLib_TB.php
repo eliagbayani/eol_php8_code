@@ -255,12 +255,6 @@ class DHConnLib_TB
                 [EOLidAnnotations] => 
                 [Landmark] => 
             )*/
-
-            /* DHConnLib for TB does not have eolID anymore
-            if ($EOLid = @$rec['eolID']) {} //latest DH version: 
-            elseif ($EOLid = @$rec['taxonID']) {} //for any taxon extension
-            else exit("\nTaxon extension error 2026.\n");
-            */
             /* new DH for TB
             Array(
                 [taxonID] => 7920
@@ -274,6 +268,14 @@ class DHConnLib_TB
                 [source] => https://www.catalogueoflife.org/data/taxon/CRLT8
                 [higherClassification] => 
             ) */
+
+            // /* DHConnLib for TB does not have eolID anymore
+            $rec['eolID']) = $rec['taxonID'];
+            // */
+
+            if ($EOLid = @$rec['eolID']) {} //latest DH version: 
+            elseif ($EOLid = @$rec['taxonID']) {} //for any taxon extension
+            else exit("\nTaxon extension error 2026.\n");
 
             if ($purpose == 'taxa_info_4name_matching') { //print_r($rec); exit("\nstopy\n");
                 /*Array(

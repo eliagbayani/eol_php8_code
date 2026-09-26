@@ -103,39 +103,46 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         echo "\nyyy2:".count($this->DH->DH_synonyms)."";                            // -> from DH: $this->DH_synonyms[$taxonID] = $acceptedNameUsageID;
         echo "\nzzz2:".count($this->DH->DH_acceptedNames)."\n"; //exit("\n");       // -> from DH: $this->DH_acceptedNames[$acceptedNameUsageID][$taxonID] = '';
         // */
-        /* Last count of old DH
+        /* --------------------------------- Last count of old DH
         Array(
             [accepted] => 2518007
             [not accepted] => 1784715
-        )
-        Array(
-            [EOL-] => Array(
-                    [accepted] => 2518007
-                )
-            [SYN-] => Array(
-                    [not accepted] => 1784715
-                )
         )
         - taxonomicStatus info
         aaa1:4148705
         xxx1:4302722
         yyy1:1784715
-        zzz1:670350 */
-        exit("\nstop muna\n");
+        zzz1:670350
+        --------------------------------- new count of new DH for TB
+        Array
+        (
+            [accepted] => 2715918
+            [not accepted] => 2690996
+        )
+        - taxonomicStatus info
+        aaa1:5076531
+        xxx1:5406914
+        yyy1:2690996
+        zzz1:1020866 */
+        // exit("\nstop muna\n");
 
-        /* This is a good synonyms test
-        // Array(
-        //     [0] => Array(
-        //             [r] => genus
-        //             [e] => 
-        //             [h] => 
-        //             [c] => Rotula
-        //             [t] => SYN-100000458295
-        //             [s] => n
-        //         )
+        /* This is a good synonyms test: 80245298	52517073		Aa brevis Schltr.	Aa brevis	Schltr.	species	not accepted	https://www.catalogueoflife.org/data/taxon/7Q8L8
+        // This is the synonym ID: [80245298]
+        // This is the acceptedNameUsageID: [52517073]
+        // This is the accepted record: Array(
+        //     [c] => Myrosmodes brevis
+        //     [r] => species
         // )
-        echo "\nThis is the synonym ID: [SYN-100000458295]";
-        $acceptedNameUsageID = $this->DH->DH_synonyms['SYN-100000458295'];
+        // This is a more complete record: Array(
+        //     [r] => species
+        //     [e] => 52517073
+        //     [h] => Eukaryota|Plantae|Pteridobiotina|Tracheophyta|Liliopsida|Asparagales|Orchidaceae|Myrosmodes
+        //     [c] => Myrosmodes brevis
+        //     [t] => 52517073
+        //     [s] => a
+        // )        
+        echo "\nThis is the synonym ID: [80245298]";
+        $acceptedNameUsageID = $this->DH->DH_synonyms['80245298'];
         echo "\nThis is the acceptedNameUsageID: [$acceptedNameUsageID]";
         $accepted_rec = $this->DH->DH[$acceptedNameUsageID];
         echo "\nThis is the accepted record: "; print_r($accepted_rec);
@@ -144,15 +151,24 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         exit("\n-stop test-\n");
         */
 
-
         /* print_r($this->DH->DHCanonical_info['Aa brevis']);
-        Array(
+        Array( --------------------------------------- old DH
             [SYN-000000780034] => Array(
                     [r] => species
                     [e] => 
                     [h] => 
                     [c] => Aa brevis
                     [t] => SYN-000000780034
+                    [s] => n
+                )
+        )       
+        Array( --------------------------------------- new DH for TB
+            [80245298] => Array(
+                    [r] => species
+                    [e] => 80245298
+                    [h] => 
+                    [c] => Aa brevis
+                    [t] => 80245298
                     [s] => n
                 )
         ) */

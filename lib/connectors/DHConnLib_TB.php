@@ -13,7 +13,7 @@ These ff. workspaces work together:
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class DHConnLib_v2
+class DHConnLib_TB
 {
     function __construct($folder = false, $path_to_taxa_file = false) //implement: path_to_taxa_file
     {   //$folder is false if global functions here are called elsewhere.
@@ -110,6 +110,7 @@ class DHConnLib_v2
         echo "\nxxx1:".count($this->DH)."";
         echo "\nyyy1:".count($this->DH_synonyms)."";
         echo "\nzzz1:".count($this->DH_acceptedNames)."\n";
+        exit("\nstopx 173\n");
 
         // foreach($this->DHCanonical_info as $name => $reks) { SYNONYMS DON'T HAVE EOLid AND higherClassification
         //     foreach($reks as $taxonID => $rek) {
@@ -233,9 +234,10 @@ class DHConnLib_v2
                     $k++;
                 }
             }
+            $rec = Functions::shorten_record($rec); //important for TB use
             $rec = array_map('trim', $rec);
             // print_r($rec); exit("\nstopx\n");
-            /*Array(
+            /*Array( old DH
                 [taxonID] => EOL-000000285725
                 [source] => COL:9aaa4a27dfd2a6bedfb6f58f737de541
                 [furtherInformationURL] => http://www.catalogueoflife.org/col/details/species/id/9aaa4a27dfd2a6bedfb6f58f737de541
@@ -245,19 +247,35 @@ class DHConnLib_v2
                 [higherClassification] => Life|Cellular|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superasterids|Asterids|Gentianales|Apocynaceae|Mandevilla
                 [taxonRank] => species
                 [taxonomicStatus] => accepted
+                [canonicalName] => Mandevilla foliosa
+                ----- These 5 gone in DH for TB -----
                 [taxonRemarks] => 
                 [datasetID] => COL-141
-                [canonicalName] => Mandevilla foliosa
                 [EOLid] => 6847986
                 [EOLidAnnotations] => 
                 [Landmark] => 
             )*/
-            // $EOLid = $rec['EOLid']; //old DH version
+
+            /* DHConnLib for TB does not have eolID anymore
             if ($EOLid = @$rec['eolID']) {} //latest DH version: 
             elseif ($EOLid = @$rec['taxonID']) {} //for any taxon extension
-            else exit("\nTaxon extension error.\n");
+            else exit("\nTaxon extension error 2026.\n");
+            */
+            /* new DH for TB
+            Array(
+                [taxonID] => 7920
+                [acceptedNameUsageID] => 
+                [parentNameUsageID] => 
+                [scientificName] => Archaea Woese et al., 2024
+                [canonicalName] => Archaea
+                [scientificNameAuthorship] => Woese et al., 2024
+                [taxonRank] => domain
+                [taxonomicStatus] => accepted
+                [source] => https://www.catalogueoflife.org/data/taxon/CRLT8
+                [higherClassification] => 
+            ) */
 
-            if ($purpose == 'taxa_info_4name_matching') {
+            if ($purpose == 'taxa_info_4name_matching') { //print_r($rec); exit("\nstopy\n");
                 /*Array(
                     [taxonID] => EOL-000000000001
                     [acceptedNameUsageID] => 

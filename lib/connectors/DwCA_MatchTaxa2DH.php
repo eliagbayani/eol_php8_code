@@ -95,8 +95,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     {
         self::initialize();
         // /* step 1: read info from DH
-        require_library('connectors/DHConnLib');
-        $this->DH = new DHConnLib(1);
+        require_library('connectors/DHConnLib_TB');
+        $this->DH = new DHConnLib_TB(1);
         $this->DH->build_up_taxa_info(); //generates 4 info lookups
         echo "\naaa2:".count($this->DH->DHCanonical_info)."";
         echo "\nxxx2:".count($this->DH->DH)."";                                     // -> from DH: $this->DH[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here

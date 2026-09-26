@@ -1,23 +1,11 @@
 <?php
 namespace php_active_record;
-/* connector: [DHconn.php]
-As of: DH version 2.2.6 -> https://zenodo.org/records/15399237
-Array(
-    [accepted] => 2518007
-    [not accepted] => 1784715
-)
-Array(
-    [EOL-] => Array(
-            [accepted] => 2518007
-        )
-    [SYN-] => Array(
-            [not accepted] => 1784715
-        )
-)
+/* This is now using the latest: TraitBank Reference Hierarchy Version 0.9 (https://doi.org/10.5281/zenodo.22776209)
+
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
-- DHConnLib_8.code-workspace
-- DHConnLib_8v2.code-workspace
+- DHConnLib_8.code-workspace -- old
+- DHConnLib_8v2.code-workspace -- new
 - GNParserAPI_8.code-workspace
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
@@ -25,9 +13,8 @@ These ff. workspaces work together:
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class DHConnLib
+class DHConnLib_v2
 {
-    exit("\nERROR: Will not be used for TraitBank anymore!\n");
     function __construct($folder = false, $path_to_taxa_file = false) //implement: path_to_taxa_file
     {   //$folder is false if global functions here are called elsewhere.
         if($this->resource_id = $folder) {
@@ -38,35 +25,27 @@ class DHConnLib
         $this->debug = array();
         $cache_path = CACHE_PATH . 'active_DH_cache/';
         if(!is_dir($cache_path)) mkdir($cache_path);
-        if (Functions::is_production()) { //not yet run in production...
-            exit("\nERROR: Not yet setup in production!\n");
-            $this->download_options = array(
-                'cache_path'         => $cache_path, //'/extra/active_DH_cache/',
-                'download_wait_time' => 250000,
-                'timeout' => 600,
-                'download_attempts' => 1,
-                'delay_in_minutes' => 0,
-                'expire_seconds' => false
-            );
-            $this->main_path = "/extra/other_files/DWH/TRAM-809/DH_v1_1/";
-        } else {
-            $this->download_options = array(
-                'cache_path'         => $cache_path, //'/Volumes/Crucial_4TB/active_DH_cache/',
-                'download_wait_time' => 250000,
-                'timeout' => 600,
-                'download_attempts' => 1,
-                'delay_in_minutes' => 0,
-                'expire_seconds' => false
-            );
-            $this->main_path = "/Volumes/Crucial_4TB/d_w_h/EOL Dynamic Hierarchy Active Version/dh226/taxon.tsv"; //latest from Katja 17Jul2025
-            $this->main_path = CONTENT_RESOURCE_LOCAL_PATH . "/dh226/taxon.tsv"; //exactly same file as above; for K8s
-        }
+
+        $this->download_options = array(
+            'cache_path'         => $cache_path,
+            'download_wait_time' => 250000,
+            'timeout' => 600,
+            'download_attempts' => 1,
+            'delay_in_minutes' => 0,
+            'expire_seconds' => false
+        );
+        /* obsolete DH
+        $this->main_path = "/Volumes/Crucial_4TB/d_w_h/EOL Dynamic Hierarchy Active Version/dh226/taxon.tsv"; //latest from Katja 17Jul2025
+        $this->main_path = CONTENT_RESOURCE_LOCAL_PATH . "/dh226/taxon.tsv"; //exactly same file as above; for K8s */
+        $this->main_path = CONTENT_RESOURCE_LOCAL_PATH . "/from_Zenodo/TraitBank_Reference_Hierarchy/tbHierarchyV091.tsv";
+
         if ($val = $path_to_taxa_file) $this->main_path = $val;
         echo "\npath_to_taxa_file: [$this->main_path]\n";
 
         if (!is_dir($this->download_options['cache_path'])) mkdir($this->download_options['cache_path']);
         $this->download_options['expire_seconds'] = 60 * 60 * 24 * 7; //1 week cache
 
+        // /* Not for TraitBank process
         $this->listOf_taxa['order']  = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_order_4maps.txt';
         $this->listOf_taxa['family'] = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_family_4maps.txt';
         $this->listOf_taxa['genus']  = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_genus_4maps.txt';
@@ -75,6 +54,7 @@ class DHConnLib
         $this->listOf_taxa['all_chordata']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_chordata_4maps.txt'; //new 23Mar2025
         $this->listOf_taxa['all_arthropoda']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_arthropoda_4maps.txt'; //new 23Mar2025
         $this->listOf_taxa['all_passeriformes']    = CONTENT_RESOURCE_LOCAL_PATH . '/listOf_all_passeriformes_4maps.txt'; //new 23Mar2025
+        // */
 
         $this->all_ranks_['order'] = array('infraorder', 'hyporder', 'superorder', 'order', 'suborder');
         $this->all_ranks_['family'] = array('superfamily', 'family', 'subfamily', 'tribe');
@@ -87,7 +67,6 @@ class DHConnLib
         $this->all_ranks_['all_passeriformes'] = $this->all_ranks_['all'];
 
         $this->listOf_taxa['html']  = CONTENT_RESOURCE_LOCAL_PATH . '/listOfTaxa.html';
-
 
         /*Array(
         Hi Jen, looking at the actual values for taxon rank in DH.

@@ -513,7 +513,16 @@ class DwCA_MatchTaxa2DH_Functions
 
             $rek = $pair[1];
             // /* ---------- for the synonym Step 5
-            if(substr($rek['t'],0,4) == "SYN-") $rek = self::fill_in_accepted_data_for_this_syn($rek);
+            /*Array( this is sample for $rek
+                [r] => order
+                [e] => 5676
+                [h] => Eukaryota|Fungi|Basidiomycota|Agaricomycetes
+                [c] => Agaricales
+                [t] => 5676
+                [s] => a
+            )*/            
+            // if(substr($rek['t'],0,4) == "SYN-") $rek = self::fill_in_accepted_data_for_this_syn($rek);   //old DH
+            if($rek['s'] == "n") $rek = self::fill_in_accepted_data_for_this_syn($rek);                     //new DH for TB
             /*Array( from GloBI
                 [r] => genus
                 [e] => 

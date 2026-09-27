@@ -522,7 +522,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         if($hc) $hCs[] = $hc;
         if($hc_from_ancestry) $hCs[] = $hc_from_ancestry;
 
+        // print_r($rec); print_r($hCs); echo " -> hCs to check\n";
         foreach($hCs as $hc) {
+            // /* for latest TB, here is where I append the canonicalName to the end of the needle higherClassification to search:
+            $hc .= $rec['canonicalName']."|";
+            // */
             if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc, 'E1')) { //2nd param is guide
                 // print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
                 /*Array(

@@ -8,6 +8,7 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+- GenerateTB_FilesAPI.code-workspace
 
 If EOLid exists.
 This lib. will now use EOLid for: taxon->taxonID
@@ -132,6 +133,7 @@ class DwCA_UseEOLidInTaxa
                 */
             }
             if($what == 'write_taxon') {
+                $this->source_taxonID = $taxonID;
                 if($new_taxonID = $this->taxonID_EOLid[$taxonID]) { //there is EOLid for this taxon
                     if(isset($this->unique_taxonID[$new_taxonID])) {
                         @$this->debug['Duplicate taxonIDs'][$new_taxonID] .= '_'.$taxonID;
@@ -155,6 +157,7 @@ class DwCA_UseEOLidInTaxa
                     if($new_taxonID = @$this->taxonID_EOLid[$parentNameUsageID]) $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = $new_taxonID;
                     else $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = ''; //since there is no EOLid for this parentID, we set it to blank.
                 }
+                $rec = self::format_taxonRemarks($rec);
                 self::write_2archive($rec, 'taxon'); continue;                
             }
             if ($what == 'write_occurrence') {
@@ -205,6 +208,15 @@ class DwCA_UseEOLidInTaxa
             }
             // if($i >= 100) break; //dev only
         }
+    }
+    private function format_taxonRemarks($rec)
+    {
+        $taxonRemarks = @$rec['http://rs.tdwg.org/dwc/terms/taxonRemarks'];
+        $add = "source_taxonID: [$this->source_taxonID]";
+        if($taxonRemarks) $add = " || " . $add;
+        $taxonRemarks .= "$add";
+        $rec['http://rs.tdwg.org/dwc/terms/taxonRemarks'] = $taxonRemarks;
+        return $rec;
     }
     private function assign_DH_rank_and_canonical_to_resource_taxon($rec, $new_taxonID)
     {

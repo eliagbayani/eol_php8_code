@@ -1,7 +1,7 @@
 <?php
 namespace php_active_record;
 /* Generates the TraitBank input files.  Also, this analyzes the MoF extension
-php update_resources/connectors/generate_TB_files.php _ '{"resource_id": "fishbase_final"}' //fishbase_final.tar.gz
+php generate_TB_files.php _ '{"resource_id": "TreatmentBank_TraitBank_1_0"}' #existing TreatmentBank_TraitBank_1_0.tar.gz
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -9,7 +9,7 @@ ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // */
-ini_set('memory_limit','10096M');
+// ini_set('memory_limit','10096M');
 $timestart = time_elapsed();
 
 // print_r($argv);
@@ -31,7 +31,7 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $preferred_rowtypes = array();
     $excluded_rowtypes = array();
 
-    $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
+    // $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
     // these 3 will be processed in GenerateTB_FilesAPI.php. The rest will be saved in DwCA_Utility.php.
 
     /* This will be processed in GenerateTB_FilesAPI.php which will be called from DwCA_Utility.php */

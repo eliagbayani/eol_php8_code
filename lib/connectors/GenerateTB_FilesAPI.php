@@ -19,6 +19,7 @@ class GenerateTB_FilesAPI
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
     {
+        /* copied template
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI($this->resource_id, $this->archive_builder);
         $arr = $func->use_yaml_parse_and_oldOrig(); //print_r($arr);
@@ -33,42 +34,8 @@ class GenerateTB_FilesAPI
                 if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($r['uri'])] = ''; //list of URI associations
             }
         }
+        */
         // print_r($this->eol_term_values); print_r($this->eol_term_measurements); print_r($this->eol_term_associations) exit;
-        /*
-        [2239] => Array(
-                [attribution] => International Chronostratigraphic Chart: http://www.stratigraphy.org/index.php/ics-chart-timescale
-                [definition] => 
-                [is_hidden_from_select] => 
-                [is_hidden_from_overview] => 
-                [is_hidden_from_glossary] => 
-                [is_text_only] => 
-                [name] => gzhelian age
-                [type] => value
-                [uri] => http://resource.geosciml.org/classifier/ics/ischart/Gzhelian
-                [parent_uris] => Array(
-                        [0] => http://resource.geosciml.org/classifier/ics/ischart/Pennsylvanian
-                    )
-                [synonym_of_uri] => 
-                [units_term_uri] => 
-                [alias] => 
-            )
-        [2240] => Array(
-                [attribution] => 
-                [definition] => x has habitat y if: x is an organism, y is a habitat, and y can sustain and allow the growth of a population of x
-                [is_hidden_from_select] => 
-                [is_hidden_from_overview] => 
-                [is_hidden_from_glossary] => 
-                [is_text_only] => 
-                [name] => habitat
-                [type] => measurement
-                [uri] => http://purl.obolibrary.org/obo/RO_0002303
-                [parent_uris] => Array(
-                    )
-                [synonym_of_uri] => 
-                [units_term_uri] => 
-                [alias] => habitat
-            )
-        */        
     }
     function start($info)
     {   
@@ -76,12 +43,6 @@ class GenerateTB_FilesAPI
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions); //exit;
-
-        // --------------------- get undefined mTypes and mValues
-        /* not needed anymore...
-        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_MoF');
-        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_Assoc');
-        */
 
         // --------------------- write extensions
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');

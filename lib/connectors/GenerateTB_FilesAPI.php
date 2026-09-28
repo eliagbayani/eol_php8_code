@@ -4,7 +4,7 @@ namespace php_active_record;
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class AnalyzeMoF_API
+class GenerateTB_FilesAPI
 {
     function __construct($archive_builder, $resource_id, $archive_path)
     {

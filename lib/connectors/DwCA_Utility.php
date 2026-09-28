@@ -641,6 +641,12 @@ class DwCA_Utility
             $func->start($info);
         }
 
+        if(@$this->params['resource'] == "generate_TB_files") {
+            require_library('connectors/GenerateTB_FilesAPI');
+            $func = new GenerateTB_FilesAPI($this->archive_builder, $this->resource_id, $this->archive_path);
+            $func->start($info);
+        }
+
         if(@$this->params['resource'] == "revise_keyword_map") {
             require_library('connectors/DwCA_ReviseKeywordMap');
             $func = new DwCA_ReviseKeywordMap($this->archive_builder, $this->resource_id, $this->archive_path);

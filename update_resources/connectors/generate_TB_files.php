@@ -1,7 +1,7 @@
 <?php
 namespace php_active_record;
-/* This analyzes the MoF extension
-php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "fishbase_final"}' //fishbase_final.tar.gz
+/* Generates the TraitBank input files.  Also, this analyzes the MoF extension
+php update_resources/connectors/generate_TB_files.php _ '{"resource_id": "fishbase_final"}' //fishbase_final.tar.gz
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -26,15 +26,15 @@ process_resource_url($dwca_file, $resource_id, $timestart);
 function process_resource_url($dwca_file, $resource_id, $timestart)
 {
     require_library('connectors/DwCA_Utility');
-    $params['resource'] = "analyze_MoF";
+    $params['resource'] = "generate_TB_files";
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
     $preferred_rowtypes = array();
     $excluded_rowtypes = array();
 
     $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
-    // these 3 will be processed in AnalyzeMoF_API.php. The rest will be saved in DwCA_Utility.php.
+    // these 3 will be processed in GenerateTB_FilesAPI.php. The rest will be saved in DwCA_Utility.php.
 
-    /* This will be processed in AnalyzeMoF_API.php which will be called from DwCA_Utility.php */
+    /* This will be processed in GenerateTB_FilesAPI.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
 

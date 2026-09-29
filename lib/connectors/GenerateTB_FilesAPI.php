@@ -73,7 +73,7 @@ class GenerateTB_FilesAPI
             if($what == 'buildup_occurrence') self::buildup_occurrence($rec);
             if($what == 'buildup_mof') self::buildup_mof($rec);
             if($what == 'data_chain_linkup') self::data_chain_linkup($rec);
-            
+
             //========================================================================================================= 
             if($what == 'write') {
                 $uris = array_keys($rec);            
@@ -94,6 +94,42 @@ class GenerateTB_FilesAPI
             // if($i >= 100) break; //dev only
         }
     }
+    private function data_chain_linkup($rec)
+    {   /*Array(
+            [taxonID] => 47138010
+            [scientificName] => Plumeria rubra L
+            [higherClassification] => Plumeria|
+            [genus] => Plumeria
+            [taxonRank] => species
+            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Plumeria\|.*?] ] || source_taxonID: [d6b158fbfeaa7914ce528b3c4df341a7]
+            [canonicalName] => Plumeria rubra
+            [EOLid] => 47138010
+        )*/
+        $taxonID = $rec['taxonID'];
+        $taxon_info = self::retrieve_data($taxonID, 'taxon');
+
+        // /* occurrences
+        $occur_info = array();
+        if($occurrenceIDs = $this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
+            foreach($occurrenceIDs as $occurrenceID) {
+                $occur_json = self::retrieve_data($occurrenceID, 'occurrence');
+                $occur_info[] = json_decode($occur_json, true);
+            }
+        }
+        // */
+        // /* mof
+        $mof_info = array();
+        if($occurrenceIDs = $this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
+            foreach($occurrenceIDs as $occurrenceID) {
+                $mof_json = self::retrieve_data($occurrenceID, 'mof');
+                $mof_info[] = json_decode($mof_json, true);
+            }
+        }
+        // */
+
+        $chain[$taxonID] = array('taxon' => $taxon_info, 'occurrences' => $occur_info, 'mof' => $mof_info);
+        print_r($chain); exit("\nsample chain\n");
+    }    
     private function buildup_taxon($rec)
     {   /*Array(
             [taxonID] => 47138010
@@ -107,7 +143,7 @@ class GenerateTB_FilesAPI
         )*/
         $taxonID = $rec['taxonID'];
         $arr = array();
-        $arr[$taxonID] = $rec;
+        $arr = $rec;
         self::save2json($taxonID, $arr, 'taxon');
     }
     private function buildup_occurrence($rec)
@@ -116,9 +152,11 @@ class GenerateTB_FilesAPI
             [taxonID] => 47138010
         )*/
         $taxonID = $rec['taxonID'];
-        $arr = array();
-        $arr[$taxonID] = $rec;
-        self::save2json($taxonID, $arr, 'occurrence');        
+        $occurrenceID = $rec['occurrenceID'];
+        $arr_occur = array();
+        $arr_occur = json_encode($rec);
+        self::save2json($occurrenceID, $arr_occur, 'occurrence');
+        $this->info_taxonID_occurrenceIDs[$taxonID][] = $occurrenceID;
     }
     private function buildup_mof($rec)
     {   /*Array(
@@ -133,7 +171,7 @@ class GenerateTB_FilesAPI
         )*/
         $occurrenceID = $rec['occurrenceID'];
         $arr = array();
-        $arr[$occurrenceID] = $rec;
+        $arr = json_encode($rec);
         self::save2json($occurrenceID, $arr, 'mof');        
     }
     private function save2json($id, $arr, $extension)
@@ -143,5 +181,12 @@ class GenerateTB_FilesAPI
         if(!($f = Functions::file_open($destination, "w"))) exit("\nERROR: cannot write to [$destination]\n");
         fwrite($f, $json);
         fclose($f);
+    }
+    private function retrieve_data($id, $extension)
+    {
+        $source = $this->TB_folder . "/$this->resource_id/$extension/$id.json"; 
+        $json = file_get_contents($source);
+        $arr = json_decode($json, true);
+        return $arr;
     }
 }

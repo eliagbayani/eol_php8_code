@@ -35,13 +35,16 @@ class GenerateTB_FilesAPI
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions); //exit;
 
-        // --------------------- write extensions
-        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_taxon');          exit("\nstop muna taxon\n");        
-        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_occurrence');
-        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_mof');
+        // step 1: builup json files for all extensions
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_taxon');          //exit("\nstop muna taxon\n");        
+        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_occurrence');     //exit("\nstop muna occurrence\n");
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_mof');            //exit("\nstop muna mof\n");
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_association');
+        // step 2: do the data chain linkup
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup'); 
+
         // $this->archive_builder->finalize(TRUE); //copied template
-        // */
+
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->TB_folder);
         unset($this->debug);
     }
@@ -66,12 +69,11 @@ class GenerateTB_FilesAPI
             // print_r($rec); exit;
             /**/
             //========================================================================================================= 
-            if($what == 'buildup_taxon') {
-                self::buildup_taxon($rec);
-            }
-            //========================================================================================================= 
-            if($what == 'yyy') {
-            }
+            if($what == 'buildup_taxon') self::buildup_taxon($rec);
+            if($what == 'buildup_occurrence') self::buildup_occurrence($rec);
+            if($what == 'buildup_mof') self::buildup_mof($rec);
+            if($what == 'data_chain_linkup') self::data_chain_linkup($rec);
+            
             //========================================================================================================= 
             if($what == 'write') {
                 $uris = array_keys($rec);            
@@ -107,6 +109,32 @@ class GenerateTB_FilesAPI
         $arr = array();
         $arr[$taxonID] = $rec;
         self::save2json($taxonID, $arr, 'taxon');
+    }
+    private function buildup_occurrence($rec)
+    {   /*Array(
+            [occurrenceID] => 0602fb1aabecdfa65eb898018a7fef2e_10088_6943_ENV
+            [taxonID] => 47138010
+        )*/
+        $taxonID = $rec['taxonID'];
+        $arr = array();
+        $arr[$taxonID] = $rec;
+        self::save2json($taxonID, $arr, 'occurrence');        
+    }
+    private function buildup_mof($rec)
+    {   /*Array(
+            [measurementID] => 36ddcab4209404ea8e04ab43387d04b8_10088_6943_ENV
+            [occurrenceID] => 0602fb1aabecdfa65eb898018a7fef2e_10088_6943_ENV
+            [measurementOfTaxon] => true
+            [measurementType] => http://eol.org/schema/terms/Present
+            [measurementValue] => http://www.geonames.org/7729901
+            [measurementRemarks] => source text: "but erroneously reported from _Polynesia_ has narrow 0.5–1.5 cm"
+            [source] => http://dx.doi.org/10.5479/si.0081024X.17
+            [bibliographicCitation] => Grant, Martin Lawrence, Fosberg, F. Raymond, and Smith, Howard M. 1974. "Partial Flora of the Society Islands: Ericaceae to Apocynaceae." Smithsonian Contributions to Botany. 1-85. https://doi.org/10.5479/si.0081024X.17
+        )*/
+        $occurrenceID = $rec['occurrenceID'];
+        $arr = array();
+        $arr[$occurrenceID] = $rec;
+        self::save2json($occurrenceID, $arr, 'mof');        
     }
     private function save2json($id, $arr, $extension)
     {

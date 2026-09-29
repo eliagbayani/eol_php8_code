@@ -8,6 +8,8 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4EOLNeo4j.code-workspace
+- GenerateTB_FilesAPI.code-workspace
+
 
 contributor_uri	compiler_uri	determined_by_uri
 ---------------------------------------------------- below are prompts used:

@@ -60,9 +60,24 @@ class GenerateTB_Files_Functions
             $save['source'] = @$m['source'];
             $save['referenceID'] = @$m['referenceID'];
             print_r($save);
-            exit("\n--stop--\n");
+            self::write_to_text($save, 'Traits');
+            // exit("\n--stop--\n");
         }
-
+    }
+    private function write_to_text($rec, $kind)
+    {
+        $file = $this->TB_folder . "/$this->resource_id/input_files/$kind.tsv"; 
+        if(!file_exists($file)) {
+            $f = Functions::file_open($file, "w");
+            $headers = array_keys($rec);
+            fwrite($f, implode("\t", $headers)."\n");
+            fwrite($f, implode("\t", $rec)."\n");
+        }
+        else {
+            $f = Functions::file_open($file, "a");
+            fwrite($f, implode("\t", $rec)."\n");
+        }
+        fclose($f);
     }
     function get_source_taxonID($taxonRemarks)
     {   //Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Asclepias\|.*?] ] || source_taxonID: [bb345e46c7900f99efefd82ecf42a8fd]

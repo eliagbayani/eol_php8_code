@@ -26,7 +26,9 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             mkdir($dir);           echo "\n make: [$dir]\n";
         }
         $extensions = array('taxon', 'mof', 'occurrence', 'association');
-        foreach($extensions as $extension) mkdir("$dir/$extension");
+        mkdir("$dir/temp/");
+        foreach($extensions as $extension) mkdir("$dir/temp/$extension");
+        mkdir("$dir/input_files/");
     }
     function start($info)
     {   
@@ -190,14 +192,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     private function save2json($id, $arr, $extension)
     {
         $json = json_encode($arr);
-        $destination = $this->TB_folder . "/$this->resource_id/$extension/$id.json"; 
+        $destination = $this->TB_folder . "/$this->resource_id/temp/$extension/$id.json"; 
         if(!($f = Functions::file_open($destination, "w"))) exit("\nERROR: cannot write to [$destination]\n");
         fwrite($f, $json);
         fclose($f);
     }
     private function retrieve_data($id, $extension)
     {
-        $source = $this->TB_folder . "/$this->resource_id/$extension/$id.json"; 
+        $source = $this->TB_folder . "/$this->resource_id/temp/$extension/$id.json"; 
         $json = file_get_contents($source);
         $arr = json_decode($json, true);
         return $arr;

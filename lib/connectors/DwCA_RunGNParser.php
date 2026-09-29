@@ -58,13 +58,13 @@ class DwCA_RunGNParser
         $meta = $tables[$tbl][0];
 
         // /* ---------- Initialize so ancestry look-up is possible
-        require_library('connectors/DHConnLib');
-        $this->func = new DHConnLib(1, $meta->file_uri);
+        require_library('connectors/DHConnLib_TB');
+        $this->func = new DHConnLib_TB(1, $meta->file_uri);
         $this->func->initialize_get_ancestry_func();
         echo "\nmeta file uri: [$meta->file_uri]\n";
         // for testing... worked OK
-        // $eol_id = 'urn:lsid:marinespecies.org:taxname:420831'; //seems from WoRMS
-        // $eol_id = '264'; //Adiscanthus fusciflorus Ducke -> from Brazilian Flora
+        // $eol_id = '420831'; //Ensitellops protextus -> from WoRMS - works OK
+        // $eol_id = '264'; //Adiscanthus fusciflorus Ducke -> from Brazilian Flora - works OK
         // if($ancestry = $this->func->get_ancestry_of_taxID($eol_id)) {
         //     print_r($ancestry); //worked OK
         //     foreach($ancestry as $id) print_r(@$this->func->taxID_info[$id]);

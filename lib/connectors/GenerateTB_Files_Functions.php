@@ -48,6 +48,8 @@ class GenerateTB_Files_Functions
             $save['taxonID'] = $source_taxonID;
             $save['taxonKey'] = $taxonKey;
             $save['scientificName'] = $taxon_info['scientificName'];
+            // tb:infer if true, paint the branch: taxa descending from the tbTaxonMapping should inherit this trait
+            // tb:exclude stop branchpainting: descendant taxa should not inherit this trait            
             $save['measurementType'] = $m['measurementType'];
             $save['measurementValue'] = $m['measurementValue'];
             $save['measurementRemarks'] = $m['measurementRemarks'];

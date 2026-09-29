@@ -8,9 +8,43 @@ class GenerateTB_Files_Functions
     public $compatibleAncestors_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv";
 
     function __construct() {}
-    function write_Traits_input_file($taxon_main, $source_taxonID)
+    function write_Taxon_input_file($taxon_info)
+    {   // print_r($taxon_info); exit("\nelix 1\n");
+        /*Array(
+            [taxonID] => 47138010
+            [scientificName] => Plumeria rubra L
+            [higherClassification] => Plumeria|
+            [genus] => Plumeria
+            [taxonRank] => species
+            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Plumeria\|.*?] ] || source_taxonID: [d6b158fbfeaa7914ce528b3c4df341a7]
+            [canonicalName] => Plumeria rubra
+            [EOLid] => 47138010
+            [source_taxonID] => d6b158fbfeaa7914ce528b3c4df341a7
+        )*/
+        $save = array();
+        $save['taxonID'] = $taxon_info['source_taxonID'];
+        $save['taxonKey'] = $taxon_info['taxonID'];
+        $save['taxonMap'] = 'auto'; //or 'man' or manually
+        $save['canonicalName'] = $taxon_info['canonicalName'];
+        $save['scientificName'] = $taxon_info['scientificName'];
+        $save['parentNameUsageID'] = @$taxon_info['parentNameUsageID'];
+        $save['higherClassification'] = $taxon_info['higherClassification'];
+        $save['kingdom'] = @$taxon_info['kingdom'];
+        $save['phylum'] = @$taxon_info['phylum'];
+        $save['class'] = @$taxon_info['class'];
+        $save['order'] = @$taxon_info['order'];
+        $save['family'] = @$taxon_info['family'];
+        $save['genus'] = @$taxon_info['genus'];
+        $save['species'] = @$taxon_info['species'];
+        $save['taxonRemarks'] = @$taxon_info['taxonRemarks'];
+        $save['source'] = @$taxon_info['source'];        
+        // print_r($save);
+        self::write_to_text($save, 'Taxon');
+        // exit("\n--stop--\n");
+    }
+    function write_Traits_input_file($taxon_main)
     {
-        print_r($taxon_main); //exit("\n[$source_taxonID]\nsample chain x\n");
+        // print_r($taxon_main); //exit("\n[]\nsample chain x\n");
 
         $taxon_info = $taxon_main['taxon'];
         $occur_info = $taxon_main['occurrences']; // print_r($occur_info);
@@ -45,7 +79,7 @@ class GenerateTB_Files_Functions
             $save = array();
             $save['measurementID'] = $m['measurementID'];
             $save['occurrenceID'] = $occurrenceID; //optional
-            $save['taxonID'] = $source_taxonID;
+            $save['taxonID'] = $taxon_info['source_taxonID'];
             $save['taxonKey'] = $taxonKey;
             $save['scientificName'] = $taxon_info['scientificName'];
             // tb:infer if true, paint the branch: taxa descending from the tbTaxonMapping should inherit this trait
@@ -59,7 +93,7 @@ class GenerateTB_Files_Functions
             $save['statisticalMethod'] = @$m['statisticalMethod'];
             $save['source'] = @$m['source'];
             $save['referenceID'] = @$m['referenceID'];
-            print_r($save);
+            // print_r($save);
             self::write_to_text($save, 'Traits');
             // exit("\n--stop--\n");
         }

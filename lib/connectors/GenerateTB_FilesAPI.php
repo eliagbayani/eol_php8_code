@@ -4,7 +4,7 @@ namespace php_active_record;
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class GenerateTB_FilesAPI
+class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
 {
     function __construct($archive_builder, $resource_id, $archive_path)
     {
@@ -72,7 +72,10 @@ class GenerateTB_FilesAPI
             if($what == 'buildup_taxon') self::buildup_taxon($rec);
             if($what == 'buildup_occurrence') self::buildup_occurrence($rec);
             if($what == 'buildup_mof') self::buildup_mof($rec);
-            if($what == 'data_chain_linkup') self::data_chain_linkup($rec);
+            if($what == 'data_chain_linkup') {
+                $taxon_compiled = self::data_chain_linkup($rec);
+                self::write_input_files($taxon_compiled, $rec['taxonID']);
+            }
 
             //========================================================================================================= 
             if($what == 'write') {
@@ -113,7 +116,7 @@ class GenerateTB_FilesAPI
         if($occurrenceIDs = $this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
             foreach($occurrenceIDs as $occurrenceID) {
                 $occur_json = self::retrieve_data($occurrenceID, 'occurrence');
-                $occur_info[] = json_decode($occur_json, true);
+                $occur_info[$occurrenceID] = json_decode($occur_json, true);
             }
         }
         // */
@@ -127,9 +130,19 @@ class GenerateTB_FilesAPI
         }
         // */
 
-        $chain[$taxonID] = array('taxon' => $taxon_info, 'occurrences' => $occur_info, 'mof' => $mof_info);
-        print_r($chain); exit("\nsample chain\n");
-    }    
+        if(count($mof_info) != count($occur_info)) {
+            exit("\nERROR: investigate diff totals for mof and occurrence.\n");
+        }
+
+        $final[$taxonID] = array('taxon' => $taxon_info, 'occurrences' => $occur_info, 'mof' => $mof_info);
+        return $final;
+    }
+    private function write_input_files($taxon_compiled, $taxonID)
+    {
+        $arr = $taxon_compiled[$taxonID];
+        $source_taxonID = self::get_source_taxonID($arr['taxon']['taxonRemarks']); // print_r($arr); exit("\n[$source_taxonID]\nsample chain\n");
+        self::write_Traits_input_file($arr, $source_taxonID);
+    }
     private function buildup_taxon($rec)
     {   /*Array(
             [taxonID] => 47138010

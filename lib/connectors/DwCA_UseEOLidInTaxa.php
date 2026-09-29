@@ -73,6 +73,7 @@ class DwCA_UseEOLidInTaxa
         }
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_debug_folder); //works OK
     }
+    /* working but may not be needed anymore
     private function get_DH_info_4EOLids()
     {
         require_library('connectors/DHConnLib');
@@ -81,7 +82,7 @@ class DwCA_UseEOLidInTaxa
         unset($func);
         // print_r($this->DH_subset_info); exit("\nstop muna 1\n");
         echo "\nDH_subset_info: ".count($this->DH_subset_info)."\n";
-    }
+    } */
     private function process_table($meta, $what, $class = false) //3rd param $class is optional
     { 
         echo "\nprocess_table: [$what] [$meta->file_uri]...\n";

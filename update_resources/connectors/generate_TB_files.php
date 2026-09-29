@@ -19,7 +19,6 @@ $resource_id = $param['resource_id'];
 
 $tmp_id = $param['resource_id']; //e.g. "fishbase_final"
 $dwca_file = DOC_ROOT . "/applications/content_server/resources/".$tmp_id.".tar.gz";
-$resource_id .= "_analyzed"; //the DwCA with MoF extension analyzed
 
 process_resource_url($dwca_file, $resource_id, $timestart);
 

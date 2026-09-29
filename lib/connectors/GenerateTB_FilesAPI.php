@@ -19,21 +19,28 @@ class GenerateTB_FilesAPI
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
     {
+        $dir = $this->TB_folder . "/$this->resource_id"; 
+        if(!is_dir($dir)) mkdir($dir);
+        else {
+            recursive_rmdir($dir); echo "\n remove: [$dir]\n";
+            mkdir($dir);           echo "\n make: [$dir]\n";
+        }
+        $extensions = array('taxon', 'mof', 'occurrence', 'association');
+        foreach($extensions as $extension) mkdir("$dir/$extension");
     }
     function start($info)
     {   
-        self::initial();
+        self::initial(); //exit("\ncheck initial...\n");
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions); //exit;
 
         // --------------------- write extensions
-        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
-        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
-        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'occurrence');
-
-        // $this->archive_builder->finalize(TRUE);
-
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_taxon');          exit("\nstop muna taxon\n");        
+        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_occurrence');
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_mof');
+        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_association');
+        // $this->archive_builder->finalize(TRUE); //copied template
         // */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->TB_folder);
         unset($this->debug);
@@ -56,10 +63,11 @@ class GenerateTB_FilesAPI
             } 
             $rec = Functions::shorten_record($rec);
             $rec = array_map('trim', $rec);
-            print_r($rec); exit;
+            // print_r($rec); exit;
             /**/
             //========================================================================================================= 
-            if($what == 'xxx') {
+            if($what == 'buildup_taxon') {
+                self::buildup_taxon($rec);
             }
             //========================================================================================================= 
             if($what == 'yyy') {
@@ -83,5 +91,29 @@ class GenerateTB_FilesAPI
             //========================================================================================================= 
             // if($i >= 100) break; //dev only
         }
+    }
+    private function buildup_taxon($rec)
+    {   /*Array(
+            [taxonID] => 47138010
+            [scientificName] => Plumeria rubra L
+            [higherClassification] => Plumeria|
+            [genus] => Plumeria
+            [taxonRank] => species
+            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Plumeria\|.*?] ] || source_taxonID: [d6b158fbfeaa7914ce528b3c4df341a7]
+            [canonicalName] => Plumeria rubra
+            [EOLid] => 47138010
+        )*/
+        $taxonID = $rec['taxonID'];
+        $arr = array();
+        $arr[$taxonID] = $rec;
+        self::save2json($taxonID, $arr, 'taxon');
+    }
+    private function save2json($id, $arr, $extension)
+    {
+        $json = json_encode($arr);
+        $destination = $this->TB_folder . "/$this->resource_id/$extension/$id.json"; 
+        if(!($f = Functions::file_open($destination, "w"))) exit("\nERROR: cannot write to [$destination]\n");
+        fwrite($f, $json);
+        fclose($f);
     }
 }

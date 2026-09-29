@@ -1,6 +1,6 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from analyze_MoF.php] 
+/* connector: [called from DwCA_Utility.php, which is called from generate_TB_files.php] 
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -13,29 +13,12 @@ class GenerateTB_FilesAPI
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->debug = array();
-        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_analyzed'; if(!is_dir($temp)) mkdir($temp);
-        $this->neo4j_analyzed_folder = $temp;
+        $temp = CONTENT_RESOURCE_LOCAL_PATH . 'TB_files'; if(!is_dir($temp)) mkdir($temp);
+        $this->TB_folder = $temp;
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
     {
-        /* copied template
-        require_library('connectors/EOLterms_ymlAPI');
-        $func = new EOLterms_ymlAPI($this->resource_id, $this->archive_builder);
-        $arr = $func->use_yaml_parse_and_oldOrig(); //print_r($arr);
-        foreach($arr['terms'] as $r) {
-            if($r['type'] == 'value') {
-                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_values[trim($r['uri'])] = '';       //list of URI values
-            }
-            elseif($r['type'] == 'measurement') {
-                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_measurements[trim($r['uri'])] = ''; //list of URI measurements
-            }
-            elseif($r['type'] == 'association') {
-                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($r['uri'])] = ''; //list of URI associations
-            }
-        }
-        */
-        // print_r($this->eol_term_values); print_r($this->eol_term_measurements); print_r($this->eol_term_associations) exit;
     }
     function start($info)
     {   
@@ -52,11 +35,11 @@ class GenerateTB_FilesAPI
         // $this->archive_builder->finalize(TRUE);
 
         // */
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_analyzed_folder);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->TB_folder);
         unset($this->debug);
     }
     private function process_table($meta, $what, $class = false)
-    {   echo "\nprocess_table analyze: [$what] [$meta->file_uri]...\n"; $i = 0;
+    {   echo "\nprocess_table TB: [$what] [$meta->file_uri]...\n"; $i = 0;
         foreach (new FileIterator($meta->file_uri) as $line => $row) {
             $i++;
             if (($i % 20000) == 0) echo "\n" . number_format($i) . " - ";
@@ -73,57 +56,13 @@ class GenerateTB_FilesAPI
             } 
             $rec = Functions::shorten_record($rec);
             $rec = array_map('trim', $rec);
-            // print_r($rec); exit;
-            /* copied template
-            $rec = self::not_recongized_fields($rec); //remove not recognized fields
-            */
-            /*Array(
-                [measurementID] => 40e92024f3639e4c9f800dbbc1accd00_42
-                [occurrenceID] => be19b9235e7e85b6940de0a31f58bc16_42
-                [measurementOfTaxon] => true
-                [measurementType] => http://purl.org/obo/owlATOL_0001659
-                [measurementValue] => 60.0
-                [measurementUnit] => http://purl.obolibrary.org/obo/UO_0000015
-                [statisticalMethod] => 
-                [measurementMethod] => Standard length; the length of a fish, measured from the tip of the snout to the tip of the hypural bone, or of the fleshy part of the caudal peduncle (i.e., excluding the caudal fin).
-                [measurementRemarks] => 
-                [source] => http://www.fishbase.org/summary/SpeciesSummary.php?id=2
-                [bibliographicCitation] => Froese, R. and D. Pauly. Editors. 2026.FishBase. World Wide Web electronic publication. www.fishbase.org, ( 02/2026 )
-                [contributor] => https://www.fishbase.de/collaborators/CollaboratorSummary.php?id=2
-                [referenceID] => 1c6aa37fd9a66304a0f3232fdb521710
-            )*/
+            print_r($rec); exit;
+            /**/
             //========================================================================================================= 
-            if($what == 'analyze_MoF') {
-                $mOfTaxon = strtolower($rec['measurementOfTaxon']);
-                $mValue = $rec['measurementValue'];
-                $mType = $rec['measurementType'];
-                if(substr($mValue, 0, 4) == 'http') {
-                    if(!isset($this->eol_term_values[$mValue])) $this->debug['Undefined mValue'][$mValue] = '';
-                }
-                if($mOfTaxon == 'true') {
-                    if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';
-                }
-                if($val = @$rec['measurementDeterminedBy']) {
-                    if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
-                }
+            if($what == 'xxx') {
             }
             //========================================================================================================= 
-            if($what == 'analyze_Assoc') {
-                /*Array(
-                    [associationType] => http://purl.obolibrary.org/obo/RO_0002556
-                    [measurementDeterminedBy] => 
-                    [measurementMethod] => 
-                    [measurementRemarks] => 
-                    [bibliographicCitation] => 
-                    [contributor] => 
-                )*/
-                $aType = $rec['associationType'];
-                if(substr($aType, 0, 4) == 'http') {
-                    if(!isset($this->eol_term_associations[$aType])) $this->debug['Undefined mType'][$aType] = '';
-                }
-                if($val = @$rec['measurementDeterminedBy']) {
-                    if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
-                }
+            if($what == 'yyy') {
             }
             //========================================================================================================= 
             if($what == 'write') {
@@ -139,53 +78,9 @@ class GenerateTB_FilesAPI
                     if(@$parts[1]) $field = $parts[1];
                     $o->$field = $rec[$uri];
                 }
-
-                if($class == "measurementorfact") {
-                    $mOfTaxon = strtolower($rec['measurementOfTaxon']);
-                    $mValue = $rec['measurementValue'];
-                    $mType = $rec['measurementType'];
-                    if(substr($mValue, 0, 4) == 'http') {
-                        if(!isset($this->eol_term_values[$mValue])) { $this->debug['Undefined mValue'][$mValue] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
-                    }
-                    if($mOfTaxon == 'true') {
-                        if(!isset($this->eol_term_measurements[$mType])) { $this->debug['Undefined mType'][$mType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
-                    }
-                    if($val = @$rec['measurementDeterminedBy']) {
-                        if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
-                    }
-                }
-
-                if($class == "association") {
-                    /*Array(
-                        [associationType] => http://purl.obolibrary.org/obo/RO_0002556
-                        [measurementDeterminedBy] => 
-                        [measurementMethod] => 
-                        [measurementRemarks] => 
-                        [bibliographicCitation] => 
-                        [contributor] => 
-                    )*/
-                    $aType = $rec['associationType'];
-                    if(substr($aType, 0, 4) == 'http') {
-                        if(!isset($this->eol_term_associations[$aType])) { $this->debug['Undefined aType'][$aType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
-                    }
-                    if($val = @$rec['measurementDeterminedBy']) {
-                        if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
-                    }
-                }
-
-                /*
-User Warning: Undefined property `basisOfRecord` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
-User Warning: Undefined property `physiologicalState` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
-User Warning: Undefined property `bodyPart` on eol_schema                
-                */
-                if($class == "occurrence") {
-                    if(isset($this->del_oID[$rec['occurrenceID']])) continue;
-                }
-
                 $this->archive_builder->write_object_to_file($o);
             }
             //========================================================================================================= 
-
             // if($i >= 100) break; //dev only
         }
     }

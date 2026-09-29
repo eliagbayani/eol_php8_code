@@ -22,14 +22,16 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+- GenerateTB_FilesAPI.code-workspace
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DHConnLib
 {
-    exit("\nERROR: Will not be used for TraitBank anymore!\n");
     function __construct($folder = false, $path_to_taxa_file = false) //implement: path_to_taxa_file
-    {   //$folder is false if global functions here are called elsewhere.
+    {   
+        exit("\nERROR: Will not be used for TraitBank anymore!\n");
+        //$folder is false if global functions here are called elsewhere.
         if($this->resource_id = $folder) {
             $this->path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
             $this->archive_builder = new \eol_schema\ContentArchiveBuilder(array('directory_path' => $this->path_to_archive_directory));

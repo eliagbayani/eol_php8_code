@@ -201,6 +201,9 @@ class DwCA_Utility
             // if(@$this->params['resource'] == "add_canonical_Katja") break;    //all extensions will be processed elsewhere.
             // if(@$this->params['resource'] == "match_taxa_2DH") break;         //all extensions will be processed elsewhere.
 
+            if(@$this->params['resource'] == "generate_TB_files") break;         //all extensions will be processed elsewhere. //this is part of main operation
+
+
             if(in_array($this->resource_id, array("368_removed_aves", "wiki_en_report"))) break; //all extensions will be processed elsewhere.
             elseif(in_array($this->resource_id, array("BF", "gbif_classification", "gbif_classification_without_ancestry", "gbif_classification_final", 
                                                       "708", "Brazilian_Flora_with_canonical"))) break; //all extensions will be processed elsewhere.
@@ -642,6 +645,7 @@ class DwCA_Utility
         }
 
         if(@$this->params['resource'] == "generate_TB_files") {
+            require_library('connectors/GenerateTB_Files_Functions');
             require_library('connectors/GenerateTB_FilesAPI');
             $func = new GenerateTB_FilesAPI($this->archive_builder, $this->resource_id, $this->archive_path);
             $func->start($info);

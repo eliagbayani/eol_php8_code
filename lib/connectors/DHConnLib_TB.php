@@ -305,6 +305,7 @@ class DHConnLib_TB
                 @$this->debug['status'][$taxonomicStatus]++;
                 if ($canonicalName = $rec['canonicalName']) {
                     // if($taxonomicStatus == 'accepted') {
+                        $rec['eolID'] = $taxonID; //new
                         $this->DHCanonical_info[$canonicalName][$taxonID] = array('r' => $rec['taxonRank'], 'e' => $rec['eolID'], 'h' => $rec['higherClassification']
                             , 'c' => $rec['canonicalName'] //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155
                             , 't' => $rec['taxonID']       //canonicalName will be used for Katja's #2 - #4 & #5 here: https://github.com/EOL/ContentImport/issues/33#issue-3234665155

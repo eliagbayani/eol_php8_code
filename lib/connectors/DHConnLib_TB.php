@@ -269,13 +269,16 @@ class DHConnLib_TB
                 [higherClassification] => 
             ) */
 
-            // /* DHConnLib for TB does not have eolID anymore
-            $rec['eolID'] = $rec['taxonID'];
-            // */
-
+            /* old 
             if ($EOLid = @$rec['eolID']) {} //latest DH version: 
             elseif ($EOLid = @$rec['taxonID']) {} //for any taxon extension
-            else exit("\nTaxon extension error 2026.\n");
+            else exit("\nERROR: Taxon extension error 2026.\n");
+            */
+            // /* new: DHConnLib for TB does not have eolID anymore
+            if ($EOLid = $rec['taxonID']) {} //latest DH version: 
+            else exit("\nERROR: Taxon extension error 2026.\n");
+            // */
+
 
             if ($purpose == 'taxa_info_4name_matching') { //print_r($rec); exit("\nstopy\n");
                 /*Array(
@@ -381,6 +384,7 @@ class DHConnLib_TB
 
 
             elseif ($purpose == 'list of taxa in html') {
+                $rec['eolID'] = $rec['taxonID']; //new
                 if($eol_id = @$rec['eolID']) {
                     if($rec['taxonomicStatus'] == 'accepted') { $found++;
                         $url = "https://www.eol.org/pages/$eol_id";
@@ -408,6 +412,7 @@ class DHConnLib_TB
     }
     private function proceed_save_or_not($rec, $found, $FILE)
     {
+        $rec['eolID'] = $rec['taxonID']; //new
         if ($EOLid = @$rec['eolID']) {}         //latest DH version: 
         elseif ($EOLid = @$rec['taxonID']) {}   //for any taxon extension
         else exit("\nTaxon extension errorl.\n");
@@ -765,6 +770,7 @@ class DHConnLib_TB
                 [higherClassification] => 
             )*/
             if($task == 'get_DH_info_forEOLids') {
+                $rec['eolID'] = $rec['taxonID']; //new
                 if($eolID = $rec['eolID']) { //DH rec has eolID
                     if(isset($EOLids[$eolID])) $ret[$eolID] = array('r' => $rec['taxonRank'], 'c' => $rec['canonicalName']);
                 }
@@ -818,6 +824,8 @@ class DHConnLib_TB
                 }
             }
             $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
+            $rec['eolID'] = $rec['taxonID']; //new
+
             if($task == 'generate_PageNode_csv') {
                 /*  nodes/Page.csv
                     page_id:ID(Page-ID),canonical,rank,status,:LABEL
@@ -827,6 +835,7 @@ class DHConnLib_TB
                     101,Chanos,genus,page
                 */
                 if($rec['taxonomicStatus'] == 'accepted') {
+                    $rec['eolID'] = $rec['taxonID']; //new
                     if($eolID = $rec['eolID']) { //e.g. 2913056
                         if(is_numeric($eolID)) {
                             if(!isset($unique_ids[$eolID])) {
@@ -841,6 +850,7 @@ class DHConnLib_TB
                 }
             }
             elseif($task == 'build_taxonID_EOLid_info') {
+                $rec['eolID'] = $rec['taxonID']; //new
                 if($eolID = $rec['eolID']) {
                     if(is_numeric($eolID)) {
                         $taxonID = $rec['taxonID'];

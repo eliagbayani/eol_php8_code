@@ -141,11 +141,12 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     }
     private function write_input_files($taxon_compiled, $taxonID)
     {
-        $arr = $taxon_compiled[$taxonID]; // print_r($arr); exit("\nelix 4\n");
+        $arr = $taxon_compiled[$taxonID]; //print_r($arr); exit("\nelix 4\n");
         $source_taxonID = self::get_source_taxonID($arr['taxon']['taxonRemarks']); // print_r($arr); exit("\n[$source_taxonID]\nsample chain\n");
         $arr['taxon']['source_taxonID'] = $source_taxonID;
         self::write_Traits_input_file($arr);
         self::write_Taxon_input_file($arr['taxon']);
+        self::write_Occurrence_input_file($arr['occurrences']);
     }
     private function buildup_taxon($rec)
     {   /*Array(

@@ -17,7 +17,7 @@ $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
 
-$tmp_id = $param['resource_id']; //e.g. "fishbase_final"
+$tmp_id = $param['resource_id'];
 $dwca_file = DOC_ROOT . "/applications/content_server/resources/".$tmp_id.".tar.gz";
 
 process_resource_url($dwca_file, $resource_id, $timestart);
@@ -29,15 +29,7 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
     $preferred_rowtypes = array();
     $excluded_rowtypes = array();
-
-    // $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
-    // these 3 will be processed in GenerateTB_FilesAPI.php. The rest will be saved in DwCA_Utility.php.
-
     /* This will be processed in GenerateTB_FilesAPI.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
-    Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
-
-    // recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working');
-    // unlink(CONTENT_RESOURCE_LOCAL_PATH . '/'.$resource_id.'_working.tar.gz');
 }
 ?>

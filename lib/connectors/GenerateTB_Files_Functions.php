@@ -42,6 +42,38 @@ class GenerateTB_Files_Functions
         self::write_to_text($save, 'Taxon');
         // exit("\n--stop--\n");
     }
+    function write_Occurrence_input_file($occur_info)
+    {   //print_r($occur_info); exit("\nelix 1\n");
+        /*Array(
+            [0602fb1aabecdfa65eb898018a7fef2e_10088_6943_ENV] => Array(
+                    [occurrenceID] => 0602fb1aabecdfa65eb898018a7fef2e_10088_6943_ENV
+                    [taxonID] => 47138010
+                )
+            [49a463f78f2f1d31877d4bdb1b4e72a1_10088_6943_ENV] => Array(
+                    [occurrenceID] => 49a463f78f2f1d31877d4bdb1b4e72a1_10088_6943_ENV
+                    [taxonID] => 47138010
+                )
+        */
+        foreach($occur_info as $occurrenceID => $rek) {
+
+            $save = array();
+            $save['occurrenceID'] = $rek['occurrenceID'];
+            $save['institutionCode']    = @$rek['institutionCode'];
+            $save['collectionCode']     = @$rek['collectionCode'];
+            $save['catalogNumber']      = @$rek['catalogNumber'];
+            $save['establishmentMeans'] = @$rek['establishmentMeans'];
+            $save['occurrenceRemarks']  = @$rek['occurrenceRemarks'];
+            $save['samplingProtocol']   = @$rek['samplingProtocol'];
+            $save['individualCount']    = @$rek['individualCount'];
+            $save['locality']           = @$rek['locality'];
+            $save['decimalLatitude']    = @$rek['decimalLatitude'];
+            $save['decimalLongitude']   = @$rek['decimalLongitude'];
+            // and more: https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/master/ontology/occurrence_extension_specific.xml
+            // print_r($save);
+            self::write_to_text($save, 'Occurrences');
+            // exit("\n--stop--\n");
+        }
+    }
     function write_Traits_input_file($taxon_main)
     {
         // print_r($taxon_main); //exit("\n[]\nsample chain x\n");

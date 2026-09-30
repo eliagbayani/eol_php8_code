@@ -58,10 +58,14 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     }
     function assemble_data($concept_id) 
     {
-        $arr = $this->get_zenodo_info_using_conceptID($this->param['concept_id']);
+        // Step 1: get latest Zenodo record info (cached) using the concept ID
+        if(!($arr = $this->get_zenodo_info_using_conceptID($this->param['concept_id']))) exit("\nERROR: Cannot get Zenodo info.\n");
         print_r($arr);
-        $zip_file = $this->download_zenodo_zip_file($arr['archive_url']);
-        $this->unzip_zenodo_zip_file($zip_file);
+        // Step 2: download the record's zip archive to TB_files/[record_id].zip
+        if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url']))) exit("\nERROR: Cannot download Zenodo zip file.\n");
+        // Step 3: extract to TB_files/[record_id]/input_files/
+        if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+        echo "\nInput files folder: $this->input_dir\n";
 
         exit("\n-stop muna-\n");
         

@@ -15,6 +15,17 @@ class ZenodoTraitBankAPI
         $this->download_options['expire_seconds'] = 60*60*24*30; //for eol content partners
         $this->api['domain'] = 'https://zenodo.org';
     }
+    function do_zenodo_stuff($concept_id)
+    {
+        // Step 1: get latest Zenodo record info (cached) using the concept ID
+        if(!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) exit("\nERROR: Cannot get Zenodo info.\n");
+        print_r($arr);
+        // Step 2: download the record's zip archive to TB_files/[record_id].zip
+        if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url']))) exit("\nERROR: Cannot download Zenodo zip file.\n");
+        // Step 3: extract to TB_files/[record_id]/input_files/
+        if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+        echo "\nInput files folder: $this->input_dir\n";
+    }
     function get_zenodo_info_using_conceptID($conceptId, $expire_seconds = null)
     {   // $expire_seconds: null = use download_options, int = cache lifetime in seconds (0 = always re-fetch), false = cache never expires
         // fallbacks: child classes (e.g. GenerateCSV_NewModel) may not call this class' constructor
@@ -131,18 +142,36 @@ class ZenodoTraitBankAPI
             return false;
         }
 
-        $zip = new \ZipArchive();
-        if (($res = $zip->open($zip_file)) !== true) {
-            echo "Cannot open zip file [$zip_file], ZipArchive error code: $res\n";
-            return false;
+        if (class_exists('ZipArchive')) {
+            $zip = new \ZipArchive();
+            if (($res = $zip->open($zip_file)) !== true) {
+                echo "Cannot open zip file [$zip_file], ZipArchive error code: $res\n";
+                return false;
+            }
+            $ok = $zip->extractTo($dest_dir);
+            $count = $zip->numFiles;
+            $zip->close();
         }
-        $ok = $zip->extractTo($dest_dir);
-        $count = $zip->numFiles;
-        $zip->close();
+        else { // PHP zip extension not installed (e.g. our Docker container), use the unzip command instead
+            exec("unzip -o -q " . escapeshellarg($zip_file) . " -d " . escapeshellarg($dest_dir) . " 2>&1", $output, $exit_code);
+            $ok = ($exit_code === 0);
+            if (!$ok) echo implode("\n", $output) . "\n";
+            $count = iterator_count(new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dest_dir, \FilesystemIterator::SKIP_DOTS)));
+        }
 
         if (!$ok) {
             echo "Failed to extract [$zip_file] to [$dest_dir]\n";
             return false;
+        }
+
+        // make extracted files readable by everyone (zip may store them as rw-------)
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dest_dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST);
+        foreach ($items as $item) {
+            if ($item->isLink()) continue;
+            chmod($item->getPathname(), $item->isDir() ? 0755 : 0644);
         }
         echo "Extracted $count file(s) to [$record_id/input_files/]\n";
         return $dest_dir;

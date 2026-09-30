@@ -112,5 +112,45 @@ class ZenodoTraitBankAPI
         echo "Downloaded zip file [$filename]\n";
         return $dest;
     }
+    function unzip_zenodo_zip_file($zip_file)
+    {   // e.g. TB_files/23067563.zip -> TB_files/23067563/input_files/
+        if (!is_file((string) $zip_file)) {
+            echo "Zip file not found [$zip_file]\n";
+            return false;
+        }
+        $record_id = pathinfo($zip_file, PATHINFO_FILENAME);
+        $dest_dir  = dirname($zip_file) . "/$record_id/input_files/";
+
+        // always start fresh: delete the destination folder and its contents, then extract
+        if (is_dir($dest_dir)) {
+            $items = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dest_dir, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST);
+            foreach ($items as $item) {
+                $item->isDir() && !$item->isLink() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+            }
+            rmdir($dest_dir);
+        }
+        if (!mkdir($dest_dir, 0775, true)) {
+            echo "Cannot create folder [$dest_dir]\n";
+            return false;
+        }
+
+        $zip = new \ZipArchive();
+        if (($res = $zip->open($zip_file)) !== true) {
+            echo "Cannot open zip file [$zip_file], ZipArchive error code: $res\n";
+            return false;
+        }
+        $ok = $zip->extractTo($dest_dir);
+        $count = $zip->numFiles;
+        $zip->close();
+
+        if (!$ok) {
+            echo "Failed to extract [$zip_file] to [$dest_dir]\n";
+            return false;
+        }
+        echo "Extracted $count file(s) to [$record_id/input_files/]\n";
+        return $dest_dir;
+    }
 }
 ?>

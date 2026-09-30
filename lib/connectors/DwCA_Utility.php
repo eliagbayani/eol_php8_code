@@ -1296,7 +1296,7 @@ class DwCA_Utility
                 else     $higherClassification = self::get_higherClassification_ancestry($rec);
                 $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
                 // print_r($records[$i]); exit("\nelix 1\n");
-            }
+            } //end foreach()
         }
         elseif($source_of_hc == 'gen_hC_using_ancestry') {
             $i = -1; $total = count($records);
@@ -1307,7 +1307,7 @@ class DwCA_Utility
                     if(@$rec['pID']) $higherClassification = self::get_higherClassification($rec);
                 }
                 $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
-            }
+            } //end foreach()
         }
         return $records;
     }
@@ -1349,6 +1349,7 @@ class DwCA_Utility
         $arr = array_reverse($arr);
         $str = trim(implode("|", $arr));
         if($str) $str .= "|";
+        // $str = self::add_kingdom_2hC_from_ancestry_if_needed($records); //I planned it but not pursued as suggested by Katja: https://github.com/EOL/ContentImport/issues/51#issuecomment-5917397368
         return $str;
     }
     private function can_compute_higherClassification($records)

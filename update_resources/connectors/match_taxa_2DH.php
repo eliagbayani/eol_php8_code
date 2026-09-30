@@ -25,7 +25,7 @@ ini_set('error_reporting', E_ALL);
 ini_set('display_errors', true);
 $GLOBALS['ENV_DEBUG'] = true; //set to true during development
 // */
-ini_set('memory_limit','12096M'); //8096M orig | TreatmentBank needs 10096M 12096M | GBIF data coverage needs 11096M
+ini_set('memory_limit','13096M'); //8096M orig | TreatmentBank needs 10096M 12096M | GBIF data coverage needs 11096M | GloBI needs 13096M
 $timestart = time_elapsed();
 
 /* file() converts rows into an array

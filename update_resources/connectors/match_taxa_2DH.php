@@ -54,6 +54,7 @@ exit("\n -globi_assoc- \n");
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
+echo "\nRunning resource_id: [$resource_id]\n";
 // $AncestryIndexVer = $param['AncestryIndexVer'];
 $AncestryIndexVer = 'new';
 

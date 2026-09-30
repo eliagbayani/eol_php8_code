@@ -36,6 +36,9 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         // self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv';
         // $this->is_first_resourceYN = ($this->resource_id == 'AmphibiaWeb_TraitBank_1_0') ? true: false;
+
+        $dir = $GLOBALS['MAIN_CACHE_PATH'] . '/zenodo/';
+        if(!is_dir($dir)) mkdir($dir);
     }
     private function initialize()
     {
@@ -57,7 +60,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     {
         $arr = $this->get_zenodo_info_using_conceptID($this->param['concept_id']);
         print_r($arr);
-        $this->download_zenodo_zip_file($arr['archive_url']);
+        $zip_file = $this->download_zenodo_zip_file($arr['archive_url']);
+        $this->unzip_zenodo_zip_file($zip_file);
 
         exit("\n-stop muna-\n");
         self::initialize();

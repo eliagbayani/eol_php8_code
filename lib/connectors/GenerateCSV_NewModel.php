@@ -37,7 +37,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv';
         // $this->is_first_resourceYN = ($this->resource_id == 'AmphibiaWeb_TraitBank_1_0') ? true: false;
 
-        $dir = $GLOBALS['MAIN_CACHE_PATH'] . '/zenodo/';
+        $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
     }
     private function initialize()

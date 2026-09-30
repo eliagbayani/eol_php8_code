@@ -57,6 +57,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     {
         $arr = $this->get_zenodo_info_using_conceptID($this->param['concept_id']);
         print_r($arr);
+        $this->download_zenodo_zip_file($arr['archive_url']);
 
         exit("\n-stop muna-\n");
         self::initialize();

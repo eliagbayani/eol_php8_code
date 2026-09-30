@@ -64,8 +64,53 @@ class ZenodoTraitBankAPI
             'zip_files'   => $zipFiles);
     }
     function download_zenodo_zip_file($archive_url)
-    {
-        
+    {   // e.g. https://zenodo.org/api/records/23067563/files-archive -> TB_files/23067563.zip
+        if (!preg_match('#/records/(\d+)/files-archive#', (string) $archive_url, $m)) {
+            echo "Invalid Zenodo archive URL [$archive_url]\n";
+            return false;
+        }
+        $filename = "{$m[1]}.zip";
+        $dir      = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $dest     = $dir . $filename;
+
+        if (is_file($dest) && filesize($dest) > 0) {
+            echo "Zip file already exists [$filename]\n";
+            return $dest;
+        }
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            echo "Cannot create folder [$dir]\n";
+            return false;
+        }
+
+        // download to a .part file first, so an interrupted download is never mistaken for an existing zip
+        $part = $dest . ".part";
+        if (!($fp = fopen($part, "w"))) {
+            echo "Cannot write to [$part]\n";
+            return false;
+        }
+        $ch = curl_init($archive_url);
+        curl_setopt_array($ch, [
+            CURLOPT_FILE           => $fp,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_FAILONERROR    => true,
+            CURLOPT_USERAGENT      => "EOL-Zenodo-connector/1.0", // Zenodo returns HTTP 403 when User-Agent is empty
+            CURLOPT_CONNECTTIMEOUT => 60,
+            CURLOPT_TIMEOUT        => 0, // no limit, archives can be large
+        ]);
+        $ok     = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error  = curl_error($ch);
+        curl_close($ch);
+        fclose($fp);
+
+        if (!$ok || $status !== 200) {
+            if (is_file($part)) unlink($part);
+            echo "Download failed (HTTP $status) [$archive_url]: $error\n";
+            return false;
+        }
+        rename($part, $dest);
+        echo "Downloaded zip file [$filename]\n";
+        return $dest;
     }
 }
 ?>

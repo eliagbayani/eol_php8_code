@@ -1,0 +1,2115 @@
+<?php
+namespace php_active_record;
+/* Library that reads an EOL DwCA and generates CSV files for Neo4j Admin Import utility 
+These ff. workspaces work together:
+- generate_higherClassification_8.code-workspace
+- DHConnLib_8.code-workspace
+- GNParserAPI_8.code-workspace
+- DwCA_MatchTaxa2DH.code-workspace
+- UseEOLidInTaxon.code-workspace
+- GenerateCSV_4EOLNeo4j.code-workspace (replaced)
+- GenerateCSV_NewModel-workspace (new)
+- GenerateTB_FilesAPI.code-workspace
+
+contributor_uri	compiler_uri	determined_by_uri
+---------------------------------------------------- below are prompts used:
+update our sh/import_append_data.sh, that is if these nodes are not available: 'Resource.csv', 'Page.csv', 'Term.csv', 'AppUser.csv', 'VernacularPageID.csv', 'AuditEvent.csv', 'AppSettings.csv'
+then ignore and move to the next node.
+Also if these edges are not available: 'PARENT.csv', 'PARENT_TERM.csv', 'SYNONYM_OF.csv'
+then ignore and move to the next edge.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+general question: eventually the graph Neo4j database and this codebase will be deployed to production in a Kubernetes cluster. 
+Will I be able to run these sh files: import_dataset.sh, import_append_dataset.sh and the others in a K8s cluster ?
+----------------------------------------------------
+*/
+use \AllowDynamicProperties; //for PHP 8.2
+#[AllowDynamicProperties] //for PHP 8.2
+class GenerateCSV_NewModel extends ZenodoTraitBankAPI
+{
+    function __construct($param) {
+        // $this->resource_id = $param['resource_id'];
+        $this->param = $param;
+        $this->download_options = array('resource_id' => 'neo4j', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
+        $this->debug = array();
+        // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
+        $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
+        // self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
+        $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv';
+        // $this->is_first_resourceYN = ($this->resource_id == 'AmphibiaWeb_TraitBank_1_0') ? true: false;
+    }
+    private function initialize()
+    {
+        if($this->is_first_resourceYN) echo "\nIt is the first resource.";
+        else                           echo "\nNot the first resource";
+
+        // Reads resources.csv from EOL's RDBMS.
+        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*30))) {
+            if($READ = Functions::file_open($this->local_csv, 'r')) {
+                $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);
+                $ret = self::do_things_in_a_csv($param);
+                fclose($READ);
+            }
+        }
+        else exit("\nERROR: Will terminate, EOL resources file cannot be accessed.\n");
+        if(is_file($this->local_csv)) unlink($this->local_csv);
+    }
+    function assemble_data($concept_id) 
+    {
+        $this->get_zenodo_info_using_conceptID($this->param['concept_id']);
+
+        exit("\n-stop muna-\n");
+        self::initialize();
+        // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
+        $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources
+
+        $ret = self::prep_dwca($resource_id, $dwca_file);
+        $temp_dir = $ret['temp_dir'];
+        $tables = $ret['tables'];
+        $extensions = array_keys($tables); print_r($extensions);
+
+        if($this->is_first_resourceYN) {
+            // Step -2: generate the VernacularPageID node
+            self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
+
+            // Step -1: generate supplementary nodes: AppUser, AppSettings, AuditEvent
+            self::prepareAppUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
+            self::prepareAppSettingsNode_csv();
+            self::prepareAuditEventNode_csv();
+        }
+
+        // /* ========== start Jan 27, 2026 ==========
+        // Step 0: generate a Term node
+        // self::prepareTermNode_csv(); //OBSOLETE
+
+        // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
+        if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
+
+        // Step 1: generate Page node; PARENT edge
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+
+        /* is now replaced by: prepare_PageNode_csv_from_DH()
+        self::prepare_PageNode_csv_from_resource($meta); //OBSOLETE      // step 1b: 
+        self::prepare_ParentEdge_csv($meta);             //OBSOLETE
+        */
+        unset($meta);
+
+        if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
+
+        // /*
+        // Step 2: generate Vernacular node; VERNACULAR edge
+        $vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
+        self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
+        self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
+        unset($vernacular_meta);
+        
+        // Step 3: generate Resource node
+        if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
+        // */
+
+        // Step 4: generate Trait node
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
+        self::process_table($meta, 'generate_occur_info');
+
+        // /* for Trait node
+        $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'build_info_MoF_children');
+        $this->writtenHeaderAlreadyYN['Trait node'] = false;
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta, true); //2nd param is writeHeaderYN
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta, false); //2nd param is writeHeaderYN
+        fclose($this->WRITEx);        
+        unset($meta);
+        unset($this->occur_info);
+        // */
+
+        // /*
+        // Step 8: generate Metadata node
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'get_reference_ids');
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::process_table($meta, 'get_reference_ids');
+        if($meta = @$tables['http://eol.org/schema/reference/reference'][0])      self::process_table($meta, 'build_reference_info');
+        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_MetadataNode_csv($meta);
+        if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_MetadataNode_csv($meta);
+        unset($meta);
+        // */
+
+        // Step 5: generate Page TRAIT Relationship
+        self::prepare_TRAIT_Edge_csv();
+        self::prepare_INFERRED_TRAIT_Edge_csv();
+        
+        // Step 6: PREDICATE relationship between Trait and Term nodes
+        self::prepare_PREDICATE_Edge_csv();
+
+        // Step 6.0: PREDICATE relationship between Metadata and Term nodes
+        self::prepare_PREDICATE_META_TERM_Edge_csv();
+
+        // Step 6.1: OBJECT_TERM relationship between Trait and Term nodes
+        self::prepare_OBJECT_TERM_Edge_csv();
+
+        // Step 6.2: NORMAL_UNITS_TERM relationship between Trait and Term nodes
+        self::prepare_NORMAL_UNITS_TERM_Edge_csv();
+
+        // Step 6.3: UNITS_TERM relationship between Trait and Term nodes
+        self::prepare_UNITS_TERM_Edge_csv();
+
+        // Step 6.4: OBJECT_PAGE relationship between Trait and Page nodes
+        self::prepare_OBJECT_PAGE_Edge_csv();
+
+        // Step 6.5: DETERMINED_BY relationship between Trait and Term nodes
+        self::prepare_DETERMINED_BY_Edge_csv();
+
+        // Step 6.6: CONTRIBUTOR relationship between Trait and Term nodes
+        self::prepare_CONTRIBUTOR_Edge_csv();
+
+        // Step 6.7: METADATA relationship between Trait and Metadata nodes
+        self::prepare_METADATA_Edge_csv();
+
+        // Step 6.8: LIFESTAGE_TERM relationship between Trait and Term nodes
+        self::prepare_LIFESTAGE_TERM_Edge_csv();
+
+        // Step 6.8: SEX_TERM relationship between Trait and Term nodes
+        self::prepare_SEX_TERM_Edge_csv();
+
+        // Step 6.9: STATISTICAL_METHOD_TERM relationship between Trait and Term nodes
+        self::prepare_STATISTICAL_METHOD_TERM_Edge_csv();
+
+        // Step 7: SUPPLIER relationship between Trait and Resource nodes
+        self::prepare_SUPPLIER_Edge_csv();
+        // Step 7.1: SUPPLIER relationship between Vernacular and Resource nodes (TO-DO TODO TO DO)
+
+        //    ========== end Jan 27, 2026 ========== */
+
+        /* copied template
+        if(in_array('http://eol.org/schema/association', $extensions) || 
+           in_array('http://rs.tdwg.org/dwc/terms/measurementorfact', $extensions)) {
+            self::process_tsv($this->files['predicates'], 'gen_allowed_uri_predicates'); //print_r($this->allowed_uri_predicates); exit;
+        }
+        
+        if(in_array('http://eol.org/schema/association', $extensions)) {
+            self::prepare_predicates_csv_association($tables);
+        }
+        if(in_array('http://rs.tdwg.org/dwc/terms/measurementorfact', $extensions)) {
+            self::prepare_measurements_csv($tables);
+            self::prepare_predicates_csv_measurement($tables);
+        }*/
+
+        self::do_stats();
+        Functions::start_print_debug($this->debug, $this->param['eol_resource_id'].'_CSV', $this->path); //old 2nd param = Gen_Neo4j_CSV
+        recursive_rmdir($temp_dir);
+        debug("\n temporary directory removed: " . $temp_dir);
+    }
+    private function do_stats()
+    {
+        // $files = array('Term.csv', 'Page.csv', 'Vernacular.csv', 'Resource.csv', 'Trait.csv', 'Metadata.csv');
+        // foreach($files as $file) {
+        //     $file_path = $this->path . '/nodes/' . $file;
+        //     if(is_file($file)) $this->debug['Totals'][$file] = shell_exec('wc -l '.$file_path);
+        // }
+
+        $subfolders = array('/nodes/', '/edges/');
+        foreach($subfolders as $subfolder) {
+            $path = $this->path . $subfolder; //echo "\n[$path]\n";
+            $files = glob($path.'*.{csv,txt}', GLOB_BRACE); //print_r($files);
+            foreach ($files as $file_path) {
+                $out = shell_exec('wc -l '.$file_path);
+                $arr = explode(" ", $out);
+                $this->debug['Totals'][$subfolder][pathinfo($file_path, PATHINFO_BASENAME)] = $arr[0] - 1; //minus 1 to exclude the header row
+            }
+        }
+        print_r($this->debug['Totals']);
+    }
+    private function process_table($meta, $what)
+    {
+        echo "\nprocess_table: [$what] [$meta->file_uri]...\n"; $i = 0;
+        foreach(new FileIterator($meta->file_uri) as $line => $row) { $i++;
+            if(($i % 500000) == 0) echo "\n".number_format($i)." - ";
+            if($meta->ignore_header_lines && $i == 1) continue;
+            if(!$row) continue;
+            // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
+            $tmp = explode("\t", $row);
+            $rec = array(); $k = 0;
+            foreach($meta->fields as $field) {
+                $field['term'] = self::small_field($field['term']);
+                if(!$field['term']) continue;
+                $rec[$field['term']] = $tmp[$k];
+                $k++;
+            }
+            // print_r($rec); //exit;
+            /*
+            nodes/Page.csv
+            page_id:ID(Page-ID),canonical,rank,:LABEL
+            gadus_m,Gadus morhua,species,page
+            chanos_c,Chanos chanos,species,page
+            gadus,Gadus,genus,page
+            chanos,Chanos,genus,page
+
+            node/trait.csv
+            eol_pk:ID(Trait-ID),resource_pk:string,citation:string,source
+            */
+            if($what == 'generate_taxon_info') { //step 1a
+                /*Array(
+                    [taxonID] => 44475
+                    [source] => https://www.wikidata.org/wiki/Q25243
+                    [parentNameUsageID] => Q4085525
+                    [scientificName] => Betula
+                    [higherClassification] => Biota|Eukaryota|Plantae|Viridiplantae|Streptophyta|Embryophytes|Tracheophytes|Spermatophytes|Magnoliophyta|Magnoliopsida|Hamamelididae|Juglandanae|Corylales|Betulaceae|Betuloideae|
+                    [taxonRank] => genus
+                    [scientificNameAuthorship] => Carl Linnaeus, 1753
+                    [vernacularName] => birches
+                    [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
+                    [canonicalName] => Betula
+                    [EOLid] => 44475
+                )*/
+                if($rec['taxonID'] == $rec['EOLid']) {
+                    if(is_numeric($rec['taxonID'])) {
+                        $this->taxon_info[$rec['taxonID']] = array('sN' => $rec['scientificName']);
+                    }
+                }
+            }
+            if($what == 'generate-PageNode-csv') { //step 1b
+                if(self::is_valid_taxonID($rec['taxonID'])) {
+                    if(!@$rec['canonicalName']) $this->debug['No canonicalName'][$rec['taxonID']."-".$rec['scientificName']] = '';
+                    print_r($rec); exit("\ncheck muna...\n");
+                    self::generate_PageNode_row($rec);
+                }
+            }
+            if($what == 'generate-VernacularNode-csv') { //step 2a
+                if(self::is_valid_taxonID($rec['taxonID'])) {
+                    $rec['vernacularName'] = self::safe_utf8($rec['vernacularName']);
+                    self::generate_VernacularNode_row($rec);
+                }
+            }
+            if($what == 'generate-ParentEdge-csv') { //step 1c
+                $taxonID = $rec['taxonID'];
+                if(self::is_valid_taxonID($taxonID)) {
+                    if($parentNameUsageID = @$rec['parentNameUsageID']) { //Note: not all resources have parentNameUsageID
+                        if(self::is_valid_taxonID($parentNameUsageID)) self::generate_ParentEdge_row($rec);
+                    }
+                }
+            }
+            if($what == 'generate-VernacularEdge-csv') { //step 2b
+                $taxonID = $rec['taxonID'];
+                if(self::is_valid_taxonID($taxonID)) {
+                    $rec['vernacularName'] = self::safe_utf8($rec['vernacularName']);
+                    self::generate_VernacularEdge_row($rec);                
+                }
+            }
+
+            if($what == 'generate_occur_info') { //this is occurence.tab
+                /*  Array(  can be: occurrenceID	taxonID	sex
+                        [occurrenceID] => e36713aea279079ed39099826601f8f6
+                        [taxonID] => 1054700 )  */
+                $taxonID = $rec['taxonID'];
+                if(self::is_valid_taxonID($taxonID)) {
+                    $scientificName = $this->taxon_info[$taxonID]['sN'];
+                    $this->occur_info[$rec['occurrenceID']] = array('tI' => $taxonID, 'sN' => $scientificName, 'sx' => @$rec['sex'], 'lS' => @$rec['lifeStage']);
+                }
+            }
+            if($what == 'build_info_MoF_children') { //this is MoF record
+                /*
+                d9419d8666398b1463970124bb3c84cb				                        28d82a0068bf7121dce71fe84702c418	http://rs.tdwg.org/dwc/terms/locality	http://www.geonames.org/6255148
+                measurementID				        occurrenceID	measurementOfTaxon	parentMeasurementID			        measurementType				            measurementValue
+                */
+                if(!$rec['occurrenceID'] && !$rec['measurementOfTaxon'] && $rec['parentMeasurementID']) {
+                    $pMID = $rec['parentMeasurementID'];
+                    $type = pathinfo($rec['measurementType'], PATHINFO_FILENAME);
+                    $this->info_parent_mType[$pMID][$type] = $rec['measurementValue'];
+                    // print_r($this->info_parent_mType); exit("\neli x\n");
+                    /*Array(
+                        [28d82a0068bf7121dce71fe84702c418] => Array(
+                                [locality] => http://www.geonames.org/6255148
+                            )
+                    )*/
+                }
+            }
+            if($what == 'generate-TraitNode-csv') { //this is MoF record
+                $occurrenceID = $rec['occurrenceID'];
+                if($taxon = @$this->occur_info[$occurrenceID]) { //exit("\ngoes here 10\n");
+                    /*Array( $taxon
+                        [tI] => 46501030
+                        [sN] => Aahithis Schallreuter, 1988
+                        [sx] => e.g. http://eol.org/schema/terms/maleAndFemale
+                        [lS]
+                    )*/
+                    $taxonID = $taxon['tI'];
+                    $scientificName = $taxon['sN'];
+                    $sex = $taxon['sx'];
+                    $lifeStage = $taxon['lS'];
+                    if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
+                        // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
+                        if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
+                            $rec['page_id'] = $taxonID;
+                            $rec['scientific_name'] = $scientificName;
+                            $rec['sex'] = $sex;
+                            $rec['lifestage'] = $lifeStage;
+                            // /* ========== start if Association
+                            if(@$rec['associationID']) { 
+                                $targetOccurrenceID = $rec['targetOccurrenceID'];
+                                if($target_taxon = @$this->occur_info[$targetOccurrenceID]) {
+                                    $rec['object_page_id'] = $target_taxon['tI'];
+                                    $rec['target_scientific_name'] = $target_taxon['sN'];
+                                }
+                                else {
+                                    $this->debug['target taxon is not valid'][$targetOccurrenceID] = '';
+                                    continue;
+                                }
+                            }
+                            // ========== */
+                            // exit("\nGoes here 100\n");
+                            self::generate_TraitNode_row($rec);                
+                        }
+                        else {
+                            $this->debug['source taxon is not valid'][$taxonID] = '';
+                            continue;
+                        }
+                    }
+                }
+                // if($i >= 500) break; //debug only
+            } //end of -> if($what == 'generate-TraitNode-csv')
+
+            if($what == 'get_reference_ids') {
+                // add @ bec the Associations doesn't have referenceID. But I can check if DwCA can provide it.
+                if($val = @$rec['referenceID']) { //e.g. "WoRMS:sourceid:389854|c_4f32591232b4ade18be079dba527d520" or "WoRMS:sourceid:389854"
+
+                    $tmp_arr = self::get_individual_reference_ids($val);
+                    $arr = array_map('trim', $tmp_arr); //print_r($arr);
+
+                    foreach($arr as $refID) $this->reference_ids[$refID] = '';
+                }
+            }
+            if($what == 'build_reference_info') { //this is reference.tab
+                /*Array(
+                    [identifier] => c_4f32591232b4ade18be079dba527d520
+                    [publicationType] => 
+                    [full_reference] => Observation photo published by db_admin
+                    [primaryTitle] => 
+                    [title] => 
+                    [pages] => 
+                    [pageStart] => 
+                    [pageEnd] => 
+                    [volume] => 
+                    [edition] => 
+                    [publisher] => 
+                    [authorList] => 
+                    [editorList] => 
+                    [created] => 
+                    [language] => 
+                    [uri] => 
+                    [doi] => 
+                    [schema#localityName] => 
+                )*/
+                $ref_id = $rec['identifier'];
+                if(isset($this->reference_ids[$ref_id])) {
+                    $this->reference_ids[$ref_id] = array('literal' => self::format_literal($rec));
+                }
+            }
+            /* copied template
+            elseif($what == 'generate-measurements-csv') {
+                if($rec['measurementOfTaxon'] == 'true' && !@$rec['parentMeasurementID']) {
+                    self::generate_measurements_csv($rec);
+                }
+            }
+            elseif($what == 'generate-predicates-csv')              self::generate_predicates_csv($rec);
+            elseif($what == 'generate-predicates-measurements-csv') self::generate_predicates_measurements_csv($rec);
+            elseif($what == 'build_association_info') self::build_association_info($rec);
+            */
+        }
+    }
+    private function format_literal($rec)
+    {
+        $uri_part = false;
+        if($uri = @$rec['uri']) { //put @ in @$rec when processing Brazilian Flora
+            if(filter_var($uri, FILTER_VALIDATE_URL)) $uri_part = "<a href='$uri'>link</a>";
+        }
+        $literal = false;
+        if($val = $rec['full_reference']) $literal = $val;
+        elseif($val = $rec['primaryTitle']) $literal = $val;
+        elseif($val = $rec['title']) $literal = $val;
+        elseif($val = $rec['identifier']) $literal = $val;        
+        if($literal) {
+            if($uri_part) $literal .= " $uri_part";
+            return $literal;
+        }
+        else return false;
+    }
+    private function prepareAppUserNode_csv()
+    {   
+        $WRITE = Functions::file_open($this->path.'/nodes/AppUser.csv', 'w');
+        // fwrite($WRITE, "id:ID(AppUser-ID),email,password,role,tokenVersion:long,createdAt:datetime,updatedAt:datetime,emailVerified:boolean,previousRefreshTokenId,refreshTokenId,:LABEL"."\n");
+        // $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'createdAt', 'updatedAt', 'emailVerified', 'previousRefreshTokenId', 'refreshTokenId');
+        // $rec = array('id' => '82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd', 'email' => 'admin@example.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
+        //              'role' => 'admin', 'tokenVersion' => 0, 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z',
+        //              'emailVerified' => 'true', 'previousRefreshTokenId' => 'a20b2bc2-4ac0-41ad-b4ae-d64ad609d0a9', 'refreshTokenId' => '95df40ed-644d-4b71-a31e-81a80be37714');
+
+        fwrite($WRITE, "id:ID,email,password,role,tokenVersion:long,refreshTokenId,previousRefreshTokenId,emailVerified:boolean,name,apiTokenHash,hasApiToken:boolean,apiTokenCreatedAt:datetime,apiTokenLastUsedAt:datetime,apiTokenRequestCount:long,sandboxEnabled:boolean,createdAt:datetime,updatedAt:datetime,queriesMade:long,:LABEL"."\n");
+        $fields = array('id', 'email', 'password', 'role', 'tokenVersion', 'refreshTokenId', 'previousRefreshTokenId', 'emailVerified', 'name', 'apiTokenHash', 'hasApiToken', 'apiTokenCreatedAt', 'apiTokenLastUsedAt', 'apiTokenRequestCount', 'sandboxEnabled', 'createdAt', 'updatedAt', 'queriesMade');
+        $rec = array('id' => '65094457-fe3d-4fd1-9dc3-0c3ce5014a73', 'email' => 'eagbayani173@gmail.com', 'password' => '$2b$12$rCPAbaQEjBkk35WGa9NbvO0UKNtpwXHPyDTVxPxhcxJ5yk403OhuO', 
+                     'role' => 'admin', 'tokenVersion' => 0, 'refreshTokenId' => '2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e', 'previousRefreshTokenId' => '9f8e7d6c-5b4a-4392-8171-605f4e3d2c1b', 
+                     'emailVerified' => 'true', 'name' => 'Eli E. Agbayani', 'apiTokenHash' => 'e72a73477bdf8d3cd2c7662341c9bc48077f49731e3b78a463eec8cc8fd6ecf0', 
+                     'hasApiToken' => 'true', 'apiTokenCreatedAt' => '2026-09-02T00:00:00Z', 'apiTokenLastUsedAt' => '2026-09-03T00:00:00Z', 
+                     'apiTokenRequestCount' => 5, 'sandboxEnabled' => 'true', 'createdAt' => '2026-09-02T00:00:00Z', 'updatedAt' => '2026-09-02T00:00:00Z', 'queriesMade' => 0);
+        /*
+        id:ID,email,password,role,tokenVersion:long,refreshTokenId,previousRefreshTokenId,emailVerified:boolean,name,apiTokenHash,hasApiToken:boolean,apiTokenCreatedAt:datetime,apiTokenLastUsedAt:datetime,apiTokenRequestCount:long,sandboxEnabled:boolean,createdAt:datetime,updatedAt:datetime,:LABEL
+        82d5a64a-e93a-4f7a-ac51-1a6ff2ff5ffd,testuser1@example.com,$2b$12$CoEVmnXREsM.6cxcHKZW4ubGwVmITvoZCul4S2HdBmaQBxuUMb2Se,user,0,,,true,Test User One,,false,,,0,true,2026-09-02T00:00:00Z,2026-09-02T00:00:00Z,AppUser        
+        */
+
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'AppUser'; //Labels are preferred to be singular nouns
+        fwrite($WRITE, $csv."\n"); fclose($WRITE);
+    }
+    private function prepareAppSettingsNode_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/nodes/AppSettings.csv', 'w');
+        // fwrite($WRITE, "hibpEnabled:boolean,id,:LABEL"."\n");
+        fwrite($WRITE, "id:ID,hibpEnabled:boolean,queryApiEnabled:boolean,queryRowLimitCap:long,queryTimeoutMs:long,queryRateLimitMax:long,queryRateLimitWindowMs:long,queryCacheTtlMs:long,queryCacheNeverExpires:boolean,:LABEL"."\n");
+
+        // $fields = array('hibpEnabled', 'id');
+        $fields = array('id', 'hibpEnabled', 'queryApiEnabled', 'queryRowLimitCap', 'queryTimeoutMs', 'queryRateLimitMax', 'queryRateLimitWindowMs', 'queryCacheTtlMs', 'queryCacheNeverExpires');
+
+        // $rec = array('hibpEnabled' => 'true', 'id' => 'singleton');
+        $rec = array('id' => 'singleton', 'hibpEnabled' => 'true', 'queryApiEnabled' => 'true', 'queryRowLimitCap' => 1000, 'queryTimeoutMs' => 10000, 'queryRateLimitMax' => 60, 
+                     'queryRateLimitWindowMs' => 900000, 'queryCacheTtlMs' => 600000, 'queryCacheNeverExpires' => 'false');
+
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'AppSettings'; //Labels are preferred to be singular nouns
+        fwrite($WRITE, $csv."\n"); fclose($WRITE);
+    }
+    private function prepareAuditEventNode_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/nodes/AuditEvent.csv', 'w');
+
+        // fwrite($WRITE, "actorEmail,actorId,createdAt:datetime,id,ip,targetEmail,targetId,type,:LABEL"."\n");
+        // $fields = array('actorEmail', 'actorId', 'createdAt', 'id', 'ip', 'targetEmail', 'targetId', 'type');
+        // $rec = array('actorEmail' => '', 'actorId' => '', 'createdAt' => '2026-09-01T10:15:30Z', 'id' => '3f2b9b1e-1a2b-4c3d-9e4f-5a6b7c8d9e0f', 'ip' => '203.0.113.10', 'targetEmail' => 'unknown@example.com', 'targetId' => '', 'type' => 'FAILED_LOGIN');
+
+        fwrite($WRITE, "id:ID,type,actorId,actorEmail,targetId,targetEmail,ip,detail,createdAt:datetime,:LABEL"."\n");
+        $fields = array('id', 'type', 'actorId', 'actorEmail', 'targetId', 'targetEmail', 'ip', 'detail', 'createdAt');
+        $rec = array('id' => 'b2d5e9f3-3c4d-4e5f-9a6b-7c8d9e0f1a2b', 'type' => 'ROLE_CHANGE', 'actorId' => '7b0e3a3c-1111-4a2b-9c3d-4e5f6a7b8c9d', 'actorEmail' => 'admin@eol.org', 
+                     'targetId' => 'c2d5e9f3-2222-4b3c-8d4e-5f6a7b8c9d0e', 'targetEmail' => 'cha@gmail.com', 
+                     'ip' => '192.168.1.50', 'detail' => 'user -> admin', 'createdAt' => '2026-09-04T09:05:41Z');
+
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'AuditEvent'; //Labels are preferred to be singular nouns
+        fwrite($WRITE, $csv."\n"); fclose($WRITE);
+    }
+    private function prepareTermNode_csv()
+    {   return; //moved to: prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI(false, false);
+        $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
+        /*[1413] => Array(
+            [uri] => http://eol.org/schema/terms/determinateGrowth
+            [name] => determinate growth
+            [type] => value
+            [definition] => determinate growth stops once a genetically pre-determined structure has completely formed
+            [comment] => 
+            [attribution] => https://en.wikipedia.org/wiki/Indeterminate_growth
+            [section_ids] => 
+            [is_hidden_from_overview] => false
+            [is_hidden_from_glossary] => false
+            [position] => 
+            [trait_row_count] => 
+            [distinct_page_count] => 
+            [exclusive_to_clade] => 
+            [incompatible_with_clade] => 
+            [parent_term] => 
+            [synonym_of] => 
+            [object_for_predicate] => 
+        )*/
+        unset($func);
+        // ===== start to create the csv
+        /*  nodes/Term.csv
+            uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
+        $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
+        fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,comment,attribution,section_ids,is_hidden_from_overview,is_hidden_from_glossary,position,trait_row_count,distinct_page_count,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,object_for_predicate,:LABEL"."\n");
+        foreach($terms as $rec) {
+            $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
+            $csv = self::format_csv_entry($rec, $fields);
+            $csv .= 'Term'; //Labels are preferred to be singular nouns
+            fwrite($WRITE, $csv."\n");
+        }
+        fclose($WRITE);        
+    }
+    // private function remove_quote_delimiters($str)
+    // {
+    //     if($str) {
+    //         // $str = "'123456'"; // $str = '"123456"';
+    //         $str = trim($str); // echo("\norig: [$str]\n");
+    //         $first = substr($str,0,1);
+    //         $last = substr($str, -1); // echo("\n[$first] [$last]\n");
+    //         if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
+    //         if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
+    //         // exit("\nfinal: [$str]\n");
+    //     }
+    //     return $str;
+    // }
+    private function prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
+    {
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI(false, false);
+        $eol_terms = $func->use_yaml_parse_and_oldOrig();
+        echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
+
+        // /*
+        // ===== Term node
+        $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
+        fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,comment,attribution,section_ids,is_hidden_from_overview,is_hidden_from_glossary,position,trait_row_count,distinct_page_count,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,object_for_predicate,:LABEL"."\n");
+        foreach($eol_terms['terms'] as $rec) { 
+            // print_r($rec); exit("\n100\n");
+            // $rec = array_map('trim', $rec);
+            $rek = array();
+            $rek['uri'] = $rec['uri'];
+            $rek['name'] = Functions::remove_quote_delimiters($rec['name']);   //%/month
+            $rek['type'] = $rec['type'];   //"measurement", "association", "value", and "metadata"
+            $rek['definition'] = Functions::remove_quote_delimiters(@$rec['definition']);   //
+            $rek['comment'] = ''; //EOL curator note
+            $rek['attribution'] = Functions::remove_quote_delimiters(@$rec['attribution']);
+            $rek['section_ids'] = ''; //from webpage
+            $rek['is_hidden_from_overview'] = @$rec['is_hidden_from_overview'];   //
+            $rek['is_hidden_from_glossary'] = @$rec['is_hidden_from_glossary'];   //
+            $rek['position'] = ''; //from webpage
+            $rek['trait_row_count'] = ''; //a periodically calculated (offline) count
+            $rek['distinct_page_count'] = ''; //a periodically calculated (offline) count
+            $rek['exclusive_to_clade'] = ''; //
+            $rek['incompatible_with_clade'] = ''; //
+            $rek['parent_term'] = ''; //
+            $rek['synonym_of'] = ''; //
+            $rek['object_for_predicate'] = ''; //a periodically calculated (offline) count
+            // $rek = array_map('trim', $rek);
+
+            $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
+            $csv = self::format_csv_entry($rek, $fields);
+            $csv .= 'Term'; //Labels are preferred to be singular nouns
+            fwrite($WRITE, $csv."\n");
+        }
+        // */
+        /*Array(
+            [attribution] => 
+            [definition] => The one of an ocean below the 10degC thermocline down to a temperature of 4degC.
+            [is_hidden_from_select] => 
+            [is_hidden_from_overview] => 
+            [is_hidden_from_glossary] => 
+            [is_text_only] => 
+            [name] => bathypelagic zone
+            [type] => value
+            [uri] => http://purl.obolibrary.org/obo/ENVO_00000211
+            [parent_uris] => Array(
+                    [0] => http://purl.obolibrary.org/obo/ENVO_01000023
+                )
+            [synonym_of_uri] => 
+            [units_term_uri] => 
+            [alias] => 
+        )*/
+        // ===== PARENT_TERM
+        $WRITE = Functions::file_open($this->path.'/edges/PARENT_TERM.csv', 'w');
+        fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
+        $fields = array('child', 'parent');
+        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
+            $s = array();
+            // self::value_is_uri_YN
+            if($s['child'] = @$rec['uri']) {
+                $URIs[$s['child']] = '';
+                if($parents = @$rec['parent_uris']) {
+                    if(is_array($parents)) {
+                        foreach($parents as $parent) {                             
+                            if($s['parent'] = $parent) {
+                                $csv = self::format_csv_entry($s, $fields);
+                                $csv .= 'PARENT_TERM';
+                                fwrite($WRITE, $csv."\n");
+                            }
+                        }
+                    }
+                    else {
+                        if($s['parent'] = $parents) {
+                            $csv = self::format_csv_entry($s, $fields);
+                            $csv .= 'PARENT_TERM';
+                            fwrite($WRITE, $csv."\n");
+                        }
+                    }
+                }
+            }
+        }
+        fclose($WRITE);
+        // print_r($URIs); exit("\nelix\n");
+        // ===== SYNONYM_OF
+        $WRITE = Functions::file_open($this->path.'/edges/SYNONYM_OF.csv', 'w');
+        fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
+        $fields = array('child', 'parent');
+        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
+            $s = array();
+            // self::value_is_uri_YN
+            if($s['child'] = @$rec['uri']) {
+                if($synonyms = @$rec['synonym_of_uri']) {
+                    if(is_array($synonyms)) {
+                        foreach($synonyms as $synonym) {                             
+                            if($s['parent'] = $synonym) {
+                                if(isset($URIs[$s['parent']])) {
+                                    $csv = self::format_csv_entry($s, $fields);
+                                    $csv .= 'SYNONYM_OF';
+                                    fwrite($WRITE, $csv."\n");
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if($s['parent'] = $synonyms) {
+                            if(isset($URIs[$s['parent']])) {
+                                $csv = self::format_csv_entry($s, $fields);
+                                $csv .= 'SYNONYM_OF';
+                                fwrite($WRITE, $csv."\n");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        fclose($WRITE);
+    }
+    private function is_valid_taxonID($taxon_id)
+    {
+        if(isset($this->taxon_info[$taxon_id])) return true;
+        else return false;
+    }
+    private function generate_PageNode_row($rec)
+    {   /*  nodes/Page.csv
+            page_id:ID(Page-ID),canonical,rank,status,:LABEL
+            gadus_m,Gadus morhua,species,page
+            chanos_c,Chanos chanos,species,page
+            gadus,Gadus,genus,page
+            chanos,Chanos,genus,page
+        */
+        $fields = array('taxonID', 'canonicalName', 'taxonRank', 'taxonomicStatus');
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'Page'; //Labels are preferred to be singular nouns
+        fwrite($this->WRITE, $csv."\n");
+    }
+    private function generate_VernacularNode_row($rec)
+    {   /*  nodes/Vernacular.csv
+            vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,supplier,:LABEL
+            WoRMS    Array(
+                        [vernacularName] => dieren
+                        [source] => 
+                        [language] => DUT
+                        [isPreferredName] => 0
+                        [taxonID] => 2
+                    )                
+        */
+        if($val = $rec['vernacularName']) {
+            $unique_id = $val."_".$rec['taxonID']."_".$rec['language'];
+            $unique_id = str_replace(" ", "_", $unique_id);
+
+            // echo("\n[$unique_id]\n");
+
+            if(!isset($this->unique_vernaculars[$unique_id])) {
+                $this->unique_vernaculars[$unique_id] = '';
+                $fields = array('md5_vernacularName_taxonID_language_supplier', 'vernacularName', 'language', 'isPreferredName', 'supplier'); //node
+                $rec['supplier'] = $this->param['eol_resource_id'];
+                $csv = self::format_csv_entry($rec, $fields);
+                $csv .= 'Vernacular'; //Labels are preferred to be singular nouns
+                // echo("\n[$csv]");
+                fwrite($this->WRITE, $csv."\n");
+            }
+            else $this->debug['duplicate vernaculars'][$unique_id] = '';
+        }
+    }
+    private function generate_TraitNode_row($rec)
+    {   /* WoRMS
+        nodes/Trait.csv
+        eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL                    
+        Array( WoRMS
+            [measurementID] => 6727294cfe63431fc4bd57e07223e119
+            [occurrenceID] => da1da3ead698fd03083cd18c4c8942e9
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://www.marinespecies.org/traits/SupportingStructuresEnclosures
+            [measurementValue] => http://purl.obolibrary.org/obo/UBERON_0006611
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:155944, Podocopa Müller, 1894
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=769244
+            [contributor] => 
+            [referenceID] => 
+            [page_id] => 46501030
+            [scientific_name] => Aahithis Schallreuter, 1988
+        )
+        Array( GloBI
+            [associationID] => 4cb8806ffd419983bc7080a1a50b02b4
+            [occurrenceID] => 9a9e31fb999985e6631623c65385b984
+            [associationType] => http://purl.obolibrary.org/obo/RO_0002556
+            [targetOccurrenceID] => 6e5210acd02426f7ade33cbb6e8e9d46
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => 
+            [measurementRemarks] => 
+            [source] => Sarah E Miller. 12/20/2016. Species associations manually extracted from Mhaisen, F.T., Ali, A.H. and Khamees, N.R., Checklists of Protozoans and Myxozoans of Freshwater and Marine Fishes of Basrah Province, Iraq.
+            [bibliographicCitation] => 
+            [contributor] => 
+            [referenceID] => 211bebbd914337ab8ce89e18880cd8bf
+            [page_id] => 2915297
+            [scientific_name] => Trichodina domerguei
+            [sex] => 
+            [lifestage] => 
+        )*/
+        // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	
+        // measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	
+        // contributor_uri	compiler_uri	determined_by_uri
+        // print_r($rec);
+        $s = array();
+        $s['page_id'] = $rec['page_id'];
+        $s['scientific_name'] = $rec['scientific_name'];
+        
+        if($val = @$rec['measurementID']) $s['resource_pk'] = $val;
+        elseif($val = @$rec['associationID']) $s['resource_pk'] = $val;
+
+        if($val = @$rec['measurementType']) $s['predicate'] = $val;
+        elseif($val = @$rec['associationType']) $s['predicate'] = $val;
+
+        $s['sex'] = $rec['sex'];
+        $s['lifestage'] = $rec['lifestage'];
+        $s['statistical_method'] = @$rec['statisticalMethod'];
+        $this->debug['statisticalMethod values'][@$rec['statisticalMethod']] = '';
+
+        // /* for Associations
+        $s['object_page_id'] = @$rec['object_page_id'];
+        $s['target_scientific_name'] = @$rec['target_scientific_name'];
+        // */
+        $s['value_uri'] = self::value_for($rec, 'value_uri');
+        $s['literal'] = self::value_for($rec, 'literal');
+        $s['measurement'] = self::value_for($rec, 'measurement');
+        $s['units'] = @$rec['measurementUnit'];
+
+        if(!self::value_is_uri_YN(@$rec['measurementValue'])) $s['normal_measurement'] = @$rec['measurementValue'];
+        else                                                  $s['normal_measurement'] = '';
+        if(self::value_is_uri_YN(@$rec['measurementUnit'])) $s['normal_units_uri'] = @$rec['measurementUnit'];
+        else                                                $s['normal_units_uri'] = '';
+
+        $s['sample_size'] = '';
+        $s['citation'] = @$rec['bibliographicCitation'];
+        $s['source'] = @$rec['source']; //e.g. http://www.marinespecies.org/aphia.php?p=taxdetails&id=1034038
+
+        if($val = @$rec['measurementRemarks']) {
+            // /* New: to fix TreatmentBank: when converting MoF to Trait.csv
+            // e.g. source text: "_upper \ monta_ ne evergreen forest \"
+            $mRemarks = str_replace('\\', '', $val);
+            // */
+        }
+        else $mRemarks = '';
+        $s['remarks'] = $mRemarks;
+
+        $s['method'] = @$rec['measurementMethod']; //seems not a URI value. From https://dwc.tdwg.org/list/#dwc_measurementMethod
+
+        $s['contributor_uri'] = @$rec['contributor']; //e.g. https://www.marinespecies.org/imis.php?module=person&persid=9544
+        $s['compiler_uri'] = '';
+        $s['determined_by_uri'] = @$rec['measurementDeterminedBy'];
+
+        // /* stats only
+        if($val = $s['contributor_uri']) $this->debug['stats']['contributor_uri'][$val] = '';
+        if($val = $s['determined_by_uri']) $this->debug['stats']['determined_by_uri'][$val] = '';
+        if($val = $s['compiler_uri']) $this->debug['stats']['compiler_uri'][$val] = '';
+        // */
+
+        // /* for Metadata
+        $s['metadata'] = self::build_metadata_json($rec);
+        // */
+        
+        $fields = array_keys($s);
+        array_unshift($fields, "eol_pk"); //put 'eol_pk' to beginning of an array
+        // $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s)); //old ways
+        $s['eol_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //new 
+
+        $csv = self::format_csv_entry($s, $fields);
+        $csv .= 'Trait'; //Labels are preferred to be singular nouns
+
+        /* good debug
+        if($s['eol_pk'] == 'R74_d41d8cd98f00b204e9800998ecf8427e') { echo "\n[$csv]"; print_r($s); }
+        */
+
+        fwrite($this->WRITEx, $csv."\n");
+    }
+
+    private function json_encode_them_md5($arr)
+    {
+        if(isset($arr['citation'])) $arr['citation'] = self::fix_mojibake($arr['citation']); //citation is almost always the root of bad chars.
+
+        $clean = self::sanitize_for_json($arr);
+        $json = json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($json === false) echo("\nERROR: json_encode failed: " . json_last_error_msg());
+        /* $json = json_encode($row,
+            JSON_UNESCAPED_UNICODE          // keep accented chars literal instead of \u00e1 escapes
+        |   JSON_UNESCAPED_SLASHES          // don't turn your URLs into "http:\/\/purl.obolibrary..."
+        |   JSON_INVALID_UTF8_SUBSTITUTE    // (PHP 7.2+) replace bad bytes with U+FFFD instead of failing outright
+        ); */
+        return md5($json);
+
+    }
+    static function fix_mojibake(string $str): string {
+        // Already clean? leave it alone.
+        if (mb_check_encoding($str, 'UTF-8') && $str === @iconv('UTF-8', 'UTF-8//IGNORE', $str)) {
+            // still could be double-encoded even if "valid" UTF-8 — try the reverse anyway
+        }
+        // Reinterpret the UTF-8 bytes as Latin-1, then read that byte stream as UTF-8.
+        // This is the standard fix for "Ã©" style double-encoding.
+        $repaired = @mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
+        if ($repaired !== false && $repaired !== '' && mb_check_encoding($repaired, 'UTF-8')) {
+            return $repaired;
+        }
+        return $str; // couldn't safely repair — leave as-is rather than corrupt it further
+    }
+    static function sanitize_for_json($value) {
+        if (is_array($value)) {
+            return array_map([self::class, 'sanitize_for_json'], $value);
+        }
+        if (!is_string($value)) {
+            return $value;
+        }
+        if (!mb_check_encoding($value, 'UTF-8')) {
+            // truly invalid bytes (not just double-encoded) — coerce, substituting bad sequences
+            $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        }
+        return self::fix_mojibake($value);
+    }
+
+
+    private function value_for($rec, $field)
+    {
+        if($measurementValue = @$rec['measurementValue']) {
+            if($field == 'value_uri') {
+                if(self::value_is_uri_YN($measurementValue)) return $measurementValue;
+            }
+            if($field == 'literal') { //can be measurementValue that is URI = http://eol.org/schema/terms/extinct OR uncontrolled vocab = 'extinct' But not numeric e.g. 100
+                if(!is_numeric($measurementValue)) return $measurementValue;
+            }
+            if($field == 'measurement') { //numeric values
+                if(is_numeric($measurementValue)) return $measurementValue;
+            }
+        }
+    }
+    private function generate_ParentEdge_row($rec)
+    {   /*  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+            gadus_m,gadus,parent
+            chanos_c,chanos,parent */
+        $fields = array('taxonID', 'parentNameUsageID');
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'PARENT'; //Type are preferred to be singular nouns
+        fwrite($this->WRITE, $csv."\n");
+    }
+    private function generate_VernacularEdge_row($rec)
+    {   /*  page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+            WoRMS    Array(
+                        [vernacularName] => dieren
+                        [source] => 
+                        [language] => DUT
+                        [isPreferredName] => 0
+                        [taxonID] => 2
+                    )                
+            */
+        $fields = array('taxonID', 'md5_vernacularName_taxonID_language_supplier'); //edge
+        $rec['supplier'] = $this->param['eol_resource_id']; //important since we added '_supplier' for the md5 field.
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
+        // fwrite($this->WRITE, $csv."\n");
+        
+        // /* new: Aug15,2026 - prevent duplicate rows - for some reason WoRMS had duplicates
+        $md5 = md5($csv);
+        if(!isset($this->unique_VERNACULARS_edge[$md5])) {
+            fwrite($this->WRITE, $csv."\n");
+            $this->unique_VERNACULARS_edge[$md5] = '';
+        }
+        // */
+    }
+    private function generate_measurements_csv($rec)
+    {   /*Array(
+            [measurementID] => 118e29317da0c8eae6c6e44e84959862
+            [occurrenceID] => e36713aea279079ed39099826601f8f6
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://rs.tdwg.org/dwc/terms/habitat
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000024
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:101, Gastropoda Cuvier, 1795
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=1054700
+            [contributor] => 
+            [referenceID] => 
+        )*/
+        $fields = array('measurementID', 'measurementValue', 'measurementUnit', 'statisticalMethod', 'source', 'referenceID');
+        $csv = self::format_csv_entry($rec, $fields);
+        $csv .= 'Measurement';
+        fwrite($this->WRITE, $csv."\n");
+    }
+    private function generate_predicates_csv($rec)
+    {   // print_r($rec); exit("\ngoes here...\n");
+        /*Array(
+            [associationID] => 4cb8806ffd419983bc7080a1a50b02b4
+            [occurrenceID] => 9a9e31fb999985e6631623c65385b984
+            [associationType] => http://purl.obolibrary.org/obo/RO_0002556
+            [targetOccurrenceID] => 6e5210acd02426f7ade33cbb6e8e9d46
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => 
+            [measurementRemarks] => 
+            [source] => Sarah E Miller. 12/20/2016. Species associations manually extracted from Mhaisen, F.T., Ali, A.H. and Khamees, N.R., Checklists of Protozoans and Myxozoans of Freshwater and Marine Fishes of Basrah Province, Iraq.
+            [bibliographicCitation] => 
+            [contributor] => 
+            [referenceID] => 211bebbd914337ab8ce89e18880cd8bf
+        )*/
+        if($ret = @$this->allowed_uri_predicates[$rec['associationType']]) {
+            $predicate = strtoupper($ret['Label']);
+            $predicate = str_replace(" ", "_", $predicate);
+        }
+        else return; //exit("\nPredicate not found. [".$rec['associationType']."]\n");
+
+        $taxonID_1 = ''; $taxonID_2 = '';
+        
+        if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
+            if($ret = @$this->taxon[$taxonID_1]) $name1 = $ret['cN'];
+            else {
+                print_r($rec); exit("\nassociations: 1st oID not found\n");
+            }
+        }
+        if($taxonID_2 = $this->occurrence[$rec['targetOccurrenceID']]) {
+            if($ret = @$this->taxon[$taxonID_2]) $name2 = $ret['cN'];
+            else {
+                print_r($rec); exit("\nassociations: 2nd oID not found\n");
+            }
+        }
+
+        if($taxonID_1 && $taxonID_2) {
+            $arr = array($taxonID_1, $rec['associationType'], $taxonID_2, $predicate);
+            $csv = self::format_csv_entry_array($arr);
+            fwrite($this->WRITE, $csv."\n");
+        }
+    }
+    private function generate_predicates_measurements_csv($rec)
+    {   /*Array(
+            [measurementID] => 118e29317da0c8eae6c6e44e84959862
+            [occurrenceID] => e36713aea279079ed39099826601f8f6
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://rs.tdwg.org/dwc/terms/habitat
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000024
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:101, Gastropoda Cuvier, 1795
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=1054700
+            [contributor] => 
+            [referenceID] => 
+        )*/
+        if($ret = @$this->allowed_uri_predicates[$rec['measurementType']]) {
+            $predicate = strtoupper($ret['Label']);
+            $predicate = str_replace(" ", "_", $predicate);
+        }
+        else return; //exit("\nPredicate not found. [".$rec['measurementType']."]\n");
+
+        $taxonID_1 = '';
+        if($taxonID_1 = $this->occurrence[$rec['occurrenceID']]) {
+            if($ret = @$this->taxon[$taxonID_1]) $name1 = $ret['cN'];
+            else {
+                // print_r($rec); exit("\nmeasurements: 1st oID not found\n");
+                @$this->debug['measurements: taxonID not found in taxa'] .= " [".$rec['occurrenceID']."-$taxonID_1]";
+            }
+        }
+        if($taxonID_1) {
+            $arr = array($taxonID_1, $rec['measurementType'], $rec['measurementID'] ,$predicate);
+            $csv = self::format_csv_entry_array($arr);
+            fwrite($this->WRITE, $csv."\n");
+        }
+    }
+    /* Obsolete: no longer used.
+    private function build_association_info($rec)
+    {
+        $associationType = $rec['http://eol.org/schema/associationType'];
+    }
+    function buildup_predicates()
+    {
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI();
+        //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
+        $this->uris = $func->get_terms_yml('neo4j');         
+        $local_tsv = Functions::save_remote_file_to_local($this->urls['raw predicates'], $this->download_options);
+        self::process_tsv($local_tsv, 'buildup_predicates');
+        unlink($local_tsv);
+        unset($this->uris);
+    }
+    function buildup_predicates_all()
+    {
+        require_library('connectors/EOLterms_ymlAPI');
+        $func = new EOLterms_ymlAPI();
+        //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
+        $terms = $func->get_terms_yml('neo4j_v2');
+        $WRITE = Functions::file_open($this->files['predicates'], 'w');
+        fwrite($WRITE, implode("\t", array('Label', 'URI', 'type'))."\n");
+        foreach($terms as $uri => $rek) {
+            // Array(
+            //     [name] => abundance
+            //     [type] => measurement
+            // )
+            $rec = array();
+            $rec[] = $rek['name'];
+            $rec[] = $uri;
+            $rec[] = $rek['type'];
+            fwrite($WRITE, implode("\t", $rec)."\n");
+        }
+        fclose($WRITE);
+    }
+    private function process_tsv($local_tsv, $task)
+    {
+        if($task == 'buildup_predicates') {
+            $this->WRITE = Functions::file_open($this->files['predicates'], 'w');
+        }
+        $i = 0;
+        foreach(new FileIterator($local_tsv) as $line => $row) { $i++;
+            $row = Functions::conv_to_utf8($row); 
+            if($i == 1) $fields = explode("\t", $row);
+            else {
+                if(!$row) continue;
+                $tmp = explode("\t", $row);
+                $rec = array(); $k = 0;
+                foreach($fields as $field) {
+                    $rec[$field] = $tmp[$k];
+                    $k++;
+                }
+                $rec = array_map('trim', $rec); // print_r($rec); exit;
+                // ==================================================================================================
+                if($task == 'buildup_predicates') {
+                    // Array( [EOL_predicate_id] => 12748
+                    //         [Label] => Body symmetry )
+                    $label = $rec['Label'];
+                    $rec['URI'] = $this->uris[$label]['uri'];
+                    $rec['type'] = $this->uris[$label]['type'];
+                    if($i == 2) {
+                        $headers = array_keys($rec);
+                        fwrite($this->WRITE, implode("\t", $headers)."\n");
+                    }
+                    fwrite($this->WRITE, implode("\t", $rec)."\n");
+                }
+                // ==================================================================================================
+                if($task == 'gen_allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
+                    // Array(
+                    //     [EOL_predicate_id] => 12748
+                    //     [Label] => Body symmetry
+                    //     [URI] => http://eol.org/schema/terms/body_symmetry
+                    // )
+                    // if($rec['Label'] != 'eat') continue; //dev only
+                    $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => @$rec['EOL_predicate_id'], 'Label' => $rec['Label']);
+                }
+                // ==================================================================================================
+            }
+        }
+        if($task == 'buildup_predicates') {
+            fclose($this->WRITE);
+        }
+    }
+    */
+    /*
+    private function prepare_PageNode_csv_from_resource($meta)
+    {   
+        // Array(
+        //     [taxonID] => 44475
+        //     [source] => https://www.wikidata.org/wiki/Q25243
+        //     [parentNameUsageID] => Q4085525
+        //     [scientificName] => Betula
+        //     [higherClassification] => Biota|Eukaryota|Plantae|Viridiplantae|Streptophyta|Embryophytes|Tracheophytes|Spermatophytes|Magnoliophyta|Magnoliopsida|Hamamelididae|Juglandanae|Corylales|Betulaceae|Betuloideae|
+        //     [taxonRank] => genus
+        //     [scientificNameAuthorship] => Carl Linnaeus, 1753
+        //     [vernacularName] => birches
+        //     [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
+        //     [canonicalName] => Betula
+        //     [EOLid] => 44475
+        // )
+        // nodes/Page.csv
+        // page_id:ID(Page-ID),canonical,rank,:LABEL
+        // gadus_m,Gadus morhua,species,page
+        // chanos_c,Chanos chanos,species,page
+        // gadus,Gadus,genus,page
+        // chanos,Chanos,genus,page
+        
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
+        // fwrite($this->WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
+        fwrite($this->WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,:LABEL"."\n");
+        self::process_table($meta, 'generate-PageNode-csv');
+        fclose($this->WRITE);
+    } */
+    private function prepare_PageNode_csv_from_DH()
+    {
+        require_library('connectors/DHConnLib');
+        $func = new DHConnLib();
+
+        // Page Node
+        $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
+        // fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
+        fwrite($WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //data type int worked OK
+        $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
+        $ret = $func->do_things_from_DH($param);
+        fclose($WRITE);
+
+        // start Parent Edge
+        $WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
+        fwrite($WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_ParentEdge_csv', 'fhandle' => $WRITE);
+        $ret = $func->prepare_ParentEdge($param);
+        fclose($WRITE);
+
+        unset($func);
+    }
+    private function prepare_TRAIT_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/TRAIT.csv', 'w');
+        fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_TRAIT_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_INFERRED_TRAIT_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/INFERRED_TRAIT.csv', 'w');
+        fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_INFERRED_TRAIT_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_PREDICATE_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/PREDICATE.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_PREDICATE_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_PREDICATE_META_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/PREDICATE_META_TERM.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Metadata-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_PREDICATE_META_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_OBJECT_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/OBJECT_TERM.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_OBJECT_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_NORMAL_UNITS_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/NORMAL_UNITS_TERM.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_NORMAL_UNITS_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_UNITS_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/UNITS_TERM.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_UNITS_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_OBJECT_PAGE_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/OBJECT_PAGE.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_OBJECT_PAGE_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_DETERMINED_BY_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/DETERMINED_BY.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_DETERMINED_BY_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_CONTRIBUTOR_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/CONTRIBUTOR.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_CONTRIBUTOR_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_LIFESTAGE_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/LIFESTAGE_TERM.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_LIFESTAGE_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_SEX_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/SEX_TERM.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_SEX_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_STATISTICAL_METHOD_TERM_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/STATISTICAL_METHOD_TERM.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),uri:END_ID(Term-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_STATISTICAL_METHOD_TERM_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_METADATA_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/METADATA.csv', 'w');        
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),eol_pk:END_ID(Metadata-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_METADATA_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    private function prepare_MetadataNode_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/nodes/Metadata.csv', 'w');        
+        fwrite($WRITE, "eol_pk:ID(Metadata-ID),trait_eol_pk,predicate,literal,measurement,value_uri,units,sex,lifestage,statistical_method,source,is_external,:LABEL"."\n");
+        $param = array('task' => 'generate_Metadata_Node_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+    
+    private function prepare_SUPPLIER_Edge_csv()
+    {
+        $WRITE = Functions::file_open($this->path.'/edges/SUPPLIER.csv', 'w');
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE"."\n");
+        $param = array('task' => 'generate_SUPPLIER_Edge_csv', 'fhandle' => $WRITE);
+        $ret = self::do_things_in_a_csv($param);
+        fclose($WRITE);
+    }
+
+    private function do_things_in_a_csv($param)
+    {
+        $task = $param['task']; echo "\ntask: [$task]\n";
+        $fhandle = $param['fhandle'];
+        // ---------- start customize part ----------
+        if($param['task'] == 'generate_TRAIT_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_INFERRED_TRAIT_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_PREDICATE_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        
+        elseif($param['task'] == 'generate_PREDICATE_META_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Metadata.csv'; //source
+        }
+
+        elseif($param['task'] == 'generate_OBJECT_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_NORMAL_UNITS_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_UNITS_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_OBJECT_PAGE_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_DETERMINED_BY_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_CONTRIBUTOR_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        
+        elseif($param['task'] == 'generate_LIFESTAGE_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_SEX_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        elseif($param['task'] == 'generate_STATISTICAL_METHOD_TERM_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+
+        elseif($param['task'] == 'generate_METADATA_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Metadata.csv'; //source
+        }
+        elseif($param['task'] == 'generate_Metadata_Node_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+
+        elseif($param['task'] == 'generate_SUPPLIER_Edge_csv') {
+            $csv_file = $this->path.'/nodes/Trait.csv'; //source
+        }
+        if($param['task'] == 'read_eol_resources_csv') {
+            $csv_file = $this->local_csv; //source
+        }
+        // ---------- end customize part ----------
+        if(in_array($this->param['eol_resource_id'], array('R20', 'R533', 'R512', 'R562'))) $mod = 100000;
+        else                                                                                $mod = 50000;
+        $i = 0;
+        $file = Functions::file_open($csv_file, "r");
+        while(!feof($file)) {
+            $row = fgetcsv($file);
+            if(!$row) break;
+            // $row = self::clean_html($row); print_r($row);
+            $i++; if(($i % $mod) == 0) echo "\n $i ";
+            if($i == 1) {
+                $fields = $row;
+                $fields = str_replace(":long", "", $fields); //new --- dito nag-tapos...
+                $fields = array_map('trim', $fields);
+                // $fields = self::fill_up_blank_fieldnames($fields);
+                $count = count($fields);
+                // print_r($fields);
+            }
+            else { //main records
+                $values = $row;
+                if($count != count($values)) { //row validation - correct no. of columns
+                    print_r($values); print_r($rec);
+                    echo("\nERROR: Wrong CSV format for this row.\n[$csv_file]\nrow = [$i]\n"); //exit("\n-exit muna-\n");
+                    // $this->debug['wrong csv'][$class]['identifier'][$rec['identifier']] = '';
+                    continue;
+                }
+                $k = 0;
+                $rec = array();
+                foreach($fields as $field) {
+                    $rec[$field] = $values[$k];
+                    $k++;
+                }
+                $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
+                /*Array(
+                    [eol_pk:ID(Trait-ID)] => worms_38a1316e08d5c41d90ac3f4220a9ee77
+                    [page_id] => 46501030
+                    [scientific_name] => Aahithis Schallreuter, 1988
+                    [resource_pk] => 6727294cfe63431fc4bd57e07223e119
+                    [predicate] => http://www.marinespecies.org/traits/SupportingStructuresEnclosures
+                    [sex] => 
+                    [lifestage] => 
+                    [statistical_method] => 
+                    [object_page_id] => 
+                    [target_scientific_name] => 
+                    [value_uri] => http://purl.obolibrary.org/obo/UBERON_0006611
+                    [literal] => http://purl.obolibrary.org/obo/UBERON_0006611
+                    [measurement] => 
+                    [units] => 
+                    [normal_measurement] => 
+                    [normal_units_uri] => 
+                    [sample_size] => 
+                    [citation] => 
+                    [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=769244
+                    [remarks] => 
+                    [method] => inherited from urn:lsid:marinespecies.org:taxname:155944, Podocopa Müller, 1894
+                    [contributor_uri] => 
+                    [compiler_uri] => 
+                    [determined_by_uri] => 
+                    [:LABEL] => Trait
+                )*/
+
+                if($task == 'generate_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                    if($val = @$rec['remarks']) {
+                        if(!self::trait_is_inferred_YN($val)) {
+                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $csv = self::format_csv_entry($rec, $fieldz);
+                            $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                            fwrite($fhandle, $csv."\n");
+                        }
+                    }
+                    // /* New
+                    else {
+                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $csv = self::format_csv_entry($rec, $fieldz);
+                            $csv .= 'TRAIT'; //relationships are designed to be in upper-case
+                            fwrite($fhandle, $csv."\n");
+                    }
+                    // */
+                }
+                elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                    if($val = @$rec['remarks']) {
+                        if(self::trait_is_inferred_YN($val)) {
+                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $csv = self::format_csv_entry($rec, $fieldz);
+                            $csv .= 'INFERRED_TRAIT'; //relationships are designed to be in upper-case
+                            fwrite($fhandle, $csv."\n");
+                        }
+                    }
+                }
+                
+                if($task == 'generate_PREDICATE_Edge_csv') { //predicate:START_ID(Trait),uri:ID(Term-ID),:TYPE
+                    /*Array( from Trait.csv
+                        [eol_pk:ID(Trait-ID)] => worms_38a1316e08d5c41d90ac3f4220a9ee77
+                        [page_id] => 46501030
+                        [scientific_name] => Aahithis Schallreuter, 1988
+                        [resource_pk] => 6727294cfe63431fc4bd57e07223e119
+                        [predicate] => http://www.marinespecies.org/traits/SupportingStructuresEnclosures
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [object_page_id] => 
+                        [target_scientific_name] => 
+                        [value_uri] => http://purl.obolibrary.org/obo/UBERON_0006611
+                        [literal] => http://purl.obolibrary.org/obo/UBERON_0006611
+                        [measurement] => 
+                        [units] => 
+                        [normal_measurement] => 
+                        [normal_units_uri] => 
+                        [sample_size] => 
+                        [citation] => 
+                        [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=769244
+                        [remarks] => 
+                        [method] => inherited from urn:lsid:marinespecies.org:taxname:155944, Podocopa Müller, 1894
+                        [contributor_uri] => 
+                        [compiler_uri] => 
+                        [determined_by_uri] => 
+                        [:LABEL] => Trait
+                    )*/
+                    // print_r($rec); exit("\nstop 4\n");
+                    if($val = @$rec['predicate']) {
+                        if(!self::URI_in_EOL_terms_YN($val)) continue; //not found in EOL Terms file
+                        $fieldz = array('eol_pk:ID(Trait-ID)', 'predicate');
+                        $csv = self::format_csv_entry($rec, $fieldz);
+                        $csv .= 'PREDICATE'; //relationships are designed to be in upper-case
+                        fwrite($fhandle, $csv."\n");
+                    }
+                }
+                if($task == 'generate_PREDICATE_META_TERM_Edge_csv') { //source is Metadata node
+                    /*Array(
+                        [eol_pk:ID(Metadata-ID)] => MetaTrait-542f9bc8179ef74617cb6499d5eeba2a
+                        [trait_eol_pk] => worms_617c0a0c561f1fee553d61817a49b7e6
+                        [predicate] => http://rs.tdwg.org/dwc/terms/measurementDeterminedDate
+                        [literal] => 2017-10-08T13:23:31+01:00
+                        [measurement] => 
+                        [value_uri] => 
+                        [units] => 
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [source] => 
+                        [is_external] => 
+                        [:LABEL] => Metadata
+                    )*/
+                    if(!self::URI_in_EOL_terms_YN($rec['predicate'])) continue;
+                    $fieldz = array('eol_pk:ID(Metadata-ID)', 'predicate');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'PREDICATE_META_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_OBJECT_TERM_Edge_csv') {
+                    // if($rec['value_uri'] == "null") continue; //cannot be blank //didn't work
+                    if(!@$rec['value_uri']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['value_uri'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['value_uri'])) continue; //not found in EOL Terms file
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'value_uri');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'OBJECT_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_NORMAL_UNITS_TERM_Edge_csv') {
+                    if(!@$rec['normal_measurement']) continue; //cannot be blank                                        
+                    if(!@$rec['normal_units_uri']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['normal_units_uri'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['normal_units_uri'])) continue; //not found in EOL Terms file
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'normal_units_uri');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'NORMAL_UNITS_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_UNITS_TERM_Edge_csv') {
+                    if(!@$rec['measurement']) continue; //cannot be blank                                        
+                    if(!@$rec['units']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['units'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['units'])) continue; //not found in EOL Terms file
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'units');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'UNITS_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_OBJECT_PAGE_Edge_csv') {
+                    // print_r($rec); exit("\nstop 100\n");
+                    if(!@$rec['object_page_id']) continue; //cannot be blank                                        
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'object_page_id');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'OBJECT_PAGE'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_DETERMINED_BY_Edge_csv') {
+                    if(!@$rec['determined_by_uri']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['determined_by_uri'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['determined_by_uri'])) continue; //not found in EOL Terms file
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'determined_by_uri');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'DETERMINED_BY'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_CONTRIBUTOR_Edge_csv') {
+                    if(!@$rec['contributor_uri']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['contributor_uri'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['contributor_uri'])) continue; //not found in EOL Terms file
+
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'contributor_uri');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'CONTRIBUTOR'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_LIFESTAGE_TERM_Edge_csv') {
+                    if(!@$rec['lifestage']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['lifestage'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['lifestage'])) continue; //not found in EOL Terms file
+
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'lifestage');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'LIFESTAGE_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_SEX_TERM_Edge_csv') {
+                    if(!@$rec['sex']) continue; //cannot be blank                    
+                    if(!self::value_is_uri_YN($rec['sex'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['sex'])) continue; //not found in EOL Terms file
+
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'sex');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'SEX_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_STATISTICAL_METHOD_TERM_Edge_csv') {
+                    if(!@$rec['statistical_method']) continue; //cannot be blank
+                    if(!self::value_is_uri_YN($rec['statistical_method'])) continue; //should always be a valid URI
+                    if(!self::URI_in_EOL_terms_YN($rec['statistical_method'])) continue; //not found in EOL Terms file
+
+                    $fieldz = array('eol_pk:ID(Trait-ID)', 'statistical_method');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'STATISTICAL_METHOD_TERM'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_METADATA_Edge_csv') { //this is Metadata node
+                    /*Array(
+                        [eol_pk:ID(Metadata-ID)] => MetaTrait-542f9bc8179ef74617cb6499d5eeba2a
+                        [trait_eol_pk] => worms_617c0a0c561f1fee553d61817a49b7e6
+                        [predicate] => http://rs.tdwg.org/dwc/terms/measurementDeterminedDate
+                        [literal] => 2017-10-08T13:23:31+01:00
+                        [measurement] => 
+                        [value_uri] => 
+                        [units] => 
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [source] => 
+                        [is_external] => 
+                        [:LABEL] => Metadata
+                    )*/
+                    if(!$rec['trait_eol_pk']) continue; //cannot be blank
+                    $fieldz = array('trait_eol_pk', 'eol_pk:ID(Metadata-ID)');
+                    $csv = self::format_csv_entry($rec, $fieldz);
+                    $csv .= 'METADATA'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'generate_Metadata_Node_csv') { //this is Trait node
+                    /*Array(
+                        [eol_pk:ID(Trait-ID)] => worms_617c0a0c561f1fee553d61817a49b7e6
+                        [page_id] => 10209872
+                        [scientific_name] => Canthariella pyramidata (Jörgensen, 1924) Kofoid & Campbell, 1929
+                        [resource_pk] => 2b02d89bbb529df02e3af094b82fd531
+                        [predicate] => http://eol.org/schema/terms/NativeRange
+                        [sex] => 
+                        [lifestage] => 
+                        [statistical_method] => 
+                        [object_page_id] => 
+                        [target_scientific_name] => 
+                        [value_uri] => http://www.marineregions.org/mrgid/1905
+                        [literal] => http://www.marineregions.org/mrgid/1905
+                        [measurement] => 
+                        [units] => 
+                        [normal_measurement] => 
+                        [normal_units_uri] => 
+                        [sample_size] => 
+                        [citation] => 
+                        [source] => https://www.marinespecies.org/aphia.php?p=distribution&id=1000124
+                        [remarks] => 
+                        [method] => 
+                        [contributor_uri] => 
+                        [compiler_uri] => 
+                        [determined_by_uri] => https://www.marinespecies.org/imis.php?module=person&persid=6554
+                        [metadata] => {"mDD":"2017-10-08T13:23:31+01:00","rI":"WoRMS:sourceid:150276"}
+                        [:LABEL] => Trait
+                    )*/
+                    $rec_json = json_encode($rec);
+                    if($json = @$rec['metadata']) { //print_r($rec); exit("\nthis is a Trait node\n");
+                        // Metadata node fields
+                        // eol_pk	trait_eol_pk	predicate	literal	measurement	value_uri	units	sex	lifestage	statistical_method	source	is_external
+                        // 				
+
+                        $metadata = json_decode($json, true); //print_r($metadata); exit("\n101\n");
+                        /*Array(
+                            [mDD] => 2017-10-08T13:23:31+01:00          => measurementDeterminedDate
+                            [rI] => WoRMS:sourceid:150276               => referenceID
+                            [l] => http://www.geonames.org/6255148      => locality
+                        )*/
+                        if($locality_uri = @$metadata['l']) {
+                            $p = array();
+                            $p['eol_pk'] = 'Trait-' . md5($rec_json.'meta-l'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                            $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                            $p['predicate'] = 'http://rs.tdwg.org/dwc/terms/locality';
+                            $p['literal'] = $locality_uri;
+                            $p['measurement'] = '';
+                            $p['value_uri'] = '';
+                            $p['units'] = '';
+                            $p['sex'] = $rec['sex'];
+                            $p['lifestage'] = $rec['lifestage'];
+                            $p['statistical_method'] = '';
+                            $p['source'] = '';
+                            $p['is_external'] = false;
+                            $fieldz = array_keys($p);
+                            $csv = self::format_csv_entry($p, $fieldz);
+                            $csv .= 'Metadata'; //this is a Node
+                            fwrite($fhandle, $csv."\n");
+                        }
+                        if($measurementDeterminedDate = @$metadata['mDD']) {
+                            $p = array();
+                            $p['eol_pk'] = 'MetaTrait-' . md5($rec_json.'meta-mDD'); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+                            $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                            $p['predicate'] = 'http://rs.tdwg.org/dwc/terms/measurementDeterminedDate';
+                            $p['literal'] = $measurementDeterminedDate;
+                            $p['measurement'] = '';
+                            $p['value_uri'] = '';
+                            $p['units'] = '';
+                            $p['sex'] = $rec['sex'];
+                            $p['lifestage'] = $rec['lifestage'];
+                            $p['statistical_method'] = '';
+                            $p['source'] = '';
+                            $p['is_external'] = false;
+                            $fieldz = array_keys($p);
+                            $csv = self::format_csv_entry($p, $fieldz);
+                            $csv .= 'Metadata'; //this is a Node
+                            fwrite($fhandle, $csv."\n");
+                        }
+                        if($referenceIDs = @$metadata['rI']) { //sometimes value is: "075af965b66ad6f90f793a194433fd28; aa357cdaf661068f3769de2079889a7b"
+                            $tmp_arr = self::get_individual_reference_ids($referenceIDs);
+                            $referenceIDs = array_map('trim', $tmp_arr); //print_r($referenceIDs);
+                            foreach($referenceIDs as $referenceID) {
+                                if($val = @$this->reference_ids[$referenceID]) {}
+                                else continue;
+                                // echo "\nreferenceID: [$referenceID]\n"; print_r($val); //good debug
+                                if($literal = @$val['literal']) {
+                                    $p = array();
+                                    $id = 'Reference-' . md5($rec_json.'meta-rI'.$referenceID); //e.g. "Reference-160256808" "Trait-292595884" "MetaTrait-423552453"
+
+                                    if(isset($this->unique['refids'][$id])) continue;
+
+                                    $this->unique['refids'][$id] = '';
+                                    $p['eol_pk'] = $id;
+                                    $p['trait_eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                                    $p['predicate'] = 'http://eol.org/schema/reference/referenceID';
+                                    $p['literal'] = $literal;
+                                    $p['measurement'] = '';
+                                    $p['value_uri'] = '';
+                                    $p['units'] = '';
+                                    $p['sex'] = $rec['sex'];
+                                    $p['lifestage'] = $rec['lifestage'];
+                                    $p['statistical_method'] = '';
+                                    $p['source'] = '';
+                                    $p['is_external'] = false;
+                                    $fieldz = array_keys($p);
+                                    $csv = self::format_csv_entry($p, $fieldz);
+                                    $csv .= 'Metadata'; //this is a Node
+                                    fwrite($fhandle, $csv."\n");
+                                }
+                                else exit("\nERROR: *No literal for this referenceID ($referenceID)\n");
+                            } //end foreach()
+                        }
+                    }
+                    else continue;
+                }
+
+                if($task == 'generate_SUPPLIER_Edge_csv') { //eol_pk:START_ID(Trait-ID),resource_id:END_ID(Resource-ID),:TYPE
+                    // print_r($rec); exit("\ncheck 1\n");
+                    $fieldz = array('eol_pk', 'supplier');
+                    $rek = array();
+                    $rek['eol_pk'] = $rec['eol_pk:ID(Trait-ID)'];
+                    $rek['supplier'] = $this->param['eol_resource_id'];
+                    $csv = self::format_csv_entry($rek, $fieldz);
+                    $csv .= 'SUPPLIER'; //relationships are designed to be in upper-case
+                    fwrite($fhandle, $csv."\n");
+                }
+                if($task == 'read_eol_resources_csv') {
+                    /*Array(
+                        [id] => 1
+                        [partner_id] => 1
+                        [name] => EOL Dynamic Hierarchy April 2022
+                        [url] => 
+                        [description] => 
+                        [notes] => 
+                        [nodes_count] => 2404791
+                        [is_browsable] => true
+                        [has_duplicate_nodes] => false
+                        [node_source_url_template] => http://eol.org/$PK&but=not_really
+                        [last_published_at] => 2022-05-13 08:08:44 -0400
+                        [last_publish_seconds] => 
+                        [dataset_license_id] => 
+                        [dataset_rights_holder] => 
+                        [dataset_rights_statement] => 
+                        [created_at] => 2017-11-22 09:54:58 -0500
+                        [updated_at] => 2022-05-13 10:43:13 -0400
+                        [icon_file_name] => 
+                        [icon_content_type] => 
+                        [icon_file_size] => 
+                        [icon_updated_at] => 
+                        [abbr] => dhv2_1
+                        [repository_id] => 1
+                        [classification] => true
+                        [native] => true
+                    )
+                    $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
+                    $this->EOL_resources['Globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
+                    $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
+                    */
+                    $repo_id = 'R'.$rec['repository_id'];
+                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['name']);
+                }
+            } //end main records
+        } //end while()
+    }
+    private function get_individual_reference_ids($str) //sometimes value is: "075af965b66ad6f90f793a194433fd28; aa357cdaf661068f3769de2079889a7b"
+    {
+        $arr1 = explode("|", $str);
+        $arr2 = explode(";", $str);
+        $arr3 = array_merge($arr1, $arr2);
+        foreach($arr3 as $str2) {
+            if(stripos($str2, "|") !== false) continue; //string is found
+            if(stripos($str2, ";") !== false) continue; //string is found
+            $final[] = $str2;
+        }
+        $final = array_filter($final); //remove null arrays
+        $final = array_unique($final); //make unique
+        $final = array_values($final); //reindex key
+        return $final;
+    }
+    private function URI_in_EOL_terms_YN($predicate)
+    {
+        if(in_array($predicate, array('http://purl.obolibrary.org/obo/RO_0008509', 'http://purl.obolibrary.org/obo/RO_0002555', 'http://purl.obolibrary.org/obo/RO_0002236'))) return false;
+        return true;
+    }
+    private function trait_is_inferred_YN($remarks)
+    {
+        if(substr($remarks, 0, 12) == 'source text:') return true;
+        else return false;
+    }
+    private function prepare_VernacularNode_csv($meta)
+    {   /*  nodes/Vernacular.csv
+            vernacular_id:ID(Vernacular-ID),supplier,string,language_code,is_preferred_name,:LABEL   */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Vernacular.csv', 'w');
+        fwrite($this->WRITE, "vernacular_id:ID(Vernacular-ID),string,language_code,is_preferred_name,supplier,:LABEL"."\n");
+        if($meta) self::process_table($meta, 'generate-VernacularNode-csv');
+        fclose($this->WRITE);
+    }
+    private function prepare_TraitNode_csv($meta, $writeHeaderYN)
+    {   /*  nodes/Trait.csv
+            eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
+        */
+        if($writeHeaderYN) {
+            fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+            $this->writtenHeaderAlreadyYN['Trait node'] = true;
+        }
+        else {
+            if(!$this->writtenHeaderAlreadyYN['Trait node']) {
+                fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+                $this->writtenHeaderAlreadyYN['Trait node'] = true;
+            }
+        }
+        self::process_table($meta, 'generate-TraitNode-csv');
+    }
+    private function prepare_ResourceNode_csv()
+    {   /*  nodes/Resource.csv
+            resource_id:ID(Resource-ID),name,:LABEL   */
+        $this->WRITE = Functions::file_open($this->path.'/nodes/Resource.csv', 'w');
+        fwrite($this->WRITE, "resource_id:ID(Resource-ID),name,:LABEL"."\n");
+        // $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
+        // $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
+        foreach($this->EOL_resources as $eol_resource_id => $rec) {
+            $fields = array('eol_resource_id', 'resource_name');
+            $csv = self::format_csv_entry($rec, $fields);
+            $csv .= 'Resource'; //Labels are preferred to be singular nouns
+            fwrite($this->WRITE, $csv."\n");
+        }
+        fclose($this->WRITE);
+    }
+    /* OBSOLETE
+    private function prepare_ParentEdge_csv($meta)
+    {   //  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+        //  gadus_m,gadus,parent
+        //  chanos_c,chanos,parent
+        $this->WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
+        fwrite($this->WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        self::process_table($meta, 'generate-ParentEdge-csv');
+        fclose($this->WRITE);
+    } */
+    private function prepare_VernacularEdge_csv($meta)
+    {   /*  personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
+            page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+        */
+        $this->WRITE = Functions::file_open($this->path.'/edges/VERNACULAR.csv', 'w');
+        fwrite($this->WRITE, "page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
+        if($meta) self::process_table($meta, 'generate-VernacularEdge-csv');
+        fclose($this->WRITE);
+    }
+    private function prepare_measurements_csv($tables)
+    {
+        /*Array(
+            [measurementID] => 118e29317da0c8eae6c6e44e84959862
+            [occurrenceID] => e36713aea279079ed39099826601f8f6
+            [measurementOfTaxon] => true
+            [parentMeasurementID] => 
+            [measurementType] => http://rs.tdwg.org/dwc/terms/habitat
+            [measurementValue] => http://purl.obolibrary.org/obo/ENVO_01000024
+            [measurementUnit] => 
+            [statisticalMethod] => 
+            [measurementDeterminedDate] => 
+            [measurementDeterminedBy] => 
+            [measurementMethod] => inherited from urn:lsid:marinespecies.org:taxname:101, Gastropoda Cuvier, 1795
+            [measurementRemarks] => 
+            [source] => http://www.marinespecies.org/aphia.php?p=taxdetails&id=1054700
+            [contributor] => 
+            [referenceID] => 
+        )*/
+        $this->WRITE = Functions::file_open($this->path.'/measurements.csv', 'w');
+        fwrite($this->WRITE, "measurementID:ID(Measurement){label:Measurement},measurementValue,measurementUnit,statisticalMethod,source,referenceID,:LABEL"."\n");
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
+        self::process_table($meta, 'generate-measurements-csv');
+        fclose($this->WRITE);
+    }
+    private function prepare_predicates_csv_association($tables)
+    {
+        $this->WRITE = Functions::file_open($this->path.'/predicates.csv', 'w');
+        fwrite($this->WRITE, ":START_ID(Taxon),associationType,:END_ID(Taxon),:TYPE"."\n");
+        $meta = $tables['http://eol.org/schema/association'][0];
+        self::process_table($meta, 'generate-predicates-csv');
+        fclose($this->WRITE);
+    }
+    private function prepare_predicates_csv_measurement($tables)
+    {
+        $this->WRITE = Functions::file_open($this->path.'/predicates_measurements.csv', 'w');
+        fwrite($this->WRITE, ":START_ID(Taxon),measurementType,:END_ID(Measurement),:TYPE"."\n");
+        $meta = $tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
+        self::process_table($meta, 'generate-predicates-measurements-csv');
+        fclose($this->WRITE);
+    }
+    private function initialize_folders($resource_id)
+    {
+        $path = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_imports';
+        if(!is_dir($path)) mkdir($path);
+        // /* new: added a new subfolder '/sh/'
+        $sh_path = $path . "/sh";
+        if(!is_dir($sh_path)) mkdir($sh_path);
+        // */
+        self::move_bash_files($sh_path);
+        $path .= '/' . $resource_id . '_csv';
+        if(is_dir($path)) recursive_rmdir($path);
+        mkdir($path);
+        $this->path = $path;
+        $temp_dir = $path.'/nodes'; mkdir($temp_dir);
+        $temp_dir = $path.'/edges'; mkdir($temp_dir);
+    }
+    private function move_bash_files($path)
+    {   echo "\nMove bash files to respective CSV folders for import step...";
+        $pattern = '*.sh';
+        $pattern = '*.{sh,cypher}'; $flags = GLOB_BRACE;
+        $files = Functions::get_files(DOC_ROOT.'/applications/content_server/neo4j', $pattern, $flags); print_r($files);
+        /*Array(
+            [0] => /var/www/html/eol_php8_code//applications/content_server/neo4j/brazilianFlora.sh
+            [1] => /var/www/html/eol_php8_code//applications/content_server/neo4j/combined.sh
+            [2] => /var/www/html/eol_php8_code//applications/content_server/neo4j/globi.sh
+            [3] => /var/www/html/eol_php8_code//applications/content_server/neo4j/treatmentbank.sh
+            [4] => /var/www/html/eol_php8_code//applications/content_server/neo4j/wikipedia.sh
+            [5] => /var/www/html/eol_php8_code//applications/content_server/neo4j/worms.sh
+        )*/
+        foreach($files as $source) {
+            $file = pathinfo($source, PATHINFO_BASENAME); //e.g. "brazilianFlora.sh"
+            $destination = $path."/$file";
+            copy($source, $destination); //always overwrite destination
+        }
+    }
+    function format_csv_entry($rec, $fields)
+    {
+        $csv = ""; $i = -1;
+        foreach($fields as $field) { $i++;
+            if(substr($field,0,4) == 'md5_') { //e.g. md5_vernacularName_taxonID
+                $val = self::process_md5_fields($field, $rec);
+            }
+            else $val = @$rec[$field];
+            if($i > 0) $csv .= ','; // Add delimiter for all but the first field
+            $csv .= Functions::manuallyEscapeForCSV($val);
+        }
+        $csv .= ','; //add comma as last char
+        return $csv;
+    }
+    private function format_csv_entry_array($arr)
+    {
+        $csv = ""; $i = -1;
+        foreach($arr as $val) { $i++;
+            if($i > 0) $csv .= ','; // Add delimiter for all but the first field
+            $csv .= Functions::manuallyEscapeForCSV($val);
+        }
+        return $csv;
+    }
+    private function small_field($uri)
+    {
+        return pathinfo($uri, PATHINFO_FILENAME);
+    }
+    private function process_md5_fields($str, $rec) //e.g. "md5_vernacularName_taxonID"
+    {
+        $fields = explode("_", $str);
+        array_shift($fields);
+
+        $combined = "";
+        foreach($fields as $field) {
+            $val = @$rec[$field];
+            $combined .= Functions::manuallyEscapeForCSV($val) . '_'; 
+        }
+        $combined = substr($combined, 0, -1); //remove last char: "plants_42430800_" becomes "plants_42430800"
+        $combined = str_replace(" ", "_", $combined);
+        // exit("\ncombined: [$combined]\n");
+        // return $combined;
+        return md5($combined);
+    }
+    private function safe_utf8($text)
+    {
+        return $text;
+        // below messes up chars not working
+        // $encoding = mb_detect_encoding($text, "UTF-8, ISO-8859-1, Windows-1252", true);
+        // if ($encoding !== false) {
+        //     $utf8String = mb_convert_encoding($text, "UTF-8", $encoding);
+        //     return $utf8String;
+        // } else {
+        //     // Handle the case where encoding could not be reliably detected
+        //     exit("\nCould not detect encoding, unable to convert safely.\n");
+        // }
+    }
+    private function prep_dwca($resource_id, $dwca_file)
+    {
+        require_library('connectors/ResourceUtility');
+        $func = new ResourceUtility(false, $resource_id);
+        $ret = $func->prepare_archive_for_access($dwca_file, $this->download_options);
+        $temp_dir = $ret['temp_dir'];
+        $tables = $ret['tables'];
+        if(!($tables["http://rs.tdwg.org/dwc/terms/taxon"][0]->fields)) { // take note the index key is all lower case
+            debug("Invalid archive file. Program will terminate."); return false;
+        } else echo "\nValid DwCA [$resource_id].\n";
+        return $ret;
+    }
+    private function value_is_uri_YN($value)
+    {
+        if(!$value) return false;
+        if(substr($value, 0, 5) == 'http:') return true;
+        if(substr($value, 0, 6) == 'https:') return true;
+        return false;
+    }
+    private function build_metadata_json($rec) //this is MoF or Association
+    {
+        // http://rs.tdwg.org/dwc/terms/locality                        ==>> locality comes from a child MoF record
+        // http://eol.org/schema/reference/referenceID                  ==>> from MoF
+        // http://rs.tdwg.org/dwc/terms/measurementDeterminedDate       ==>> from MoF
+        
+        // /*
+        $locality = @$this->info_parent_mType[$rec['measurementID']]['locality'];
+        // Array(
+        //     [28d82a0068bf7121dce71fe84702c418] => Array(
+        //             [locality] => http://www.geonames.org/6255148
+        //         )
+        // )
+        // */
+
+        if(@$rec['measurementDeterminedDate'] || @$rec['referenceID'] || $locality) {
+            $arr = array('mDD' => @$rec['measurementDeterminedDate'], 'rI' => @$rec['referenceID'], 'l' => $locality);
+            return json_encode($arr);
+        }
+        else return false;
+
+        /* locality comes from a child MoF record
+        measurementID	occurrenceID	measurementOfTaxon	parentMeasurementID	measurementType	measurementValue	measurementUnit	statisticalMethod	measurementDeterminedDate	measurementDeterminedBy	measurementMethod	measurementRemarks	source	referenceID	contributor        
+        015afbb5e4398e462b257aa2b50cd48e	b57cedf8a4df37545cd3fcb528a47eb2	true		http://purl.obolibrary.org/obo/CMO_0000013	1	http://purl.obolibrary.org/obo/UO_0000015	http://semanticscience.org/resource/SIO_001114					http://www.marinespecies.org/aphia.php?p=taxdetails&id=103235		
+        25ef920b4f642c4accad4cae3f08ea7e			015afbb5e4398e462b257aa2b50cd48e	http://rs.tdwg.org/dwc/terms/locality	http://www.geonames.org/6255148									
+        */
+    }
+    private function prepareVernacularPageIDNode_csv()
+    {
+        $remote = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/english_preferred_vernaculars_by_page.csv';
+        if($csv_file = Functions::save_remote_file_to_local($remote, array("cache" => 1, 'expire_seconds' => 60*60*24*30))) { $i = 0;
+            $WRITE = Functions::file_open($this->path.'/nodes/VernacularPageID.csv', 'w');
+            fwrite($WRITE, "page_id:long,vernacularName"."\n");
+            $file = Functions::file_open($csv_file, "r");
+            while(!feof($file)) {
+                $row = fgetcsv($file);
+                if(!$row) break;
+                $i++; if(($i % 50000) == 0) echo "\n $i ";
+                if($i == 1) {
+                    $fields = $row;
+                    $fields = str_replace(":long", "", $fields); //new --- dito nag-tapos...
+                    $fields = array_map('trim', $fields);
+                    $count = count($fields);
+                }
+                else { //main records
+                    $values = $row;
+                    if($count != count($values)) { //row validation - correct no. of columns
+                        print_r($values); print_r($rec);
+                        echo("\nERROR: Wrong CSV format for this row.\n[$csv_file]\nrow = [$i]\n"); //exit("\n-exit muna-\n");
+                        continue;
+                    }
+                    $k = 0;
+                    $rec = array();
+                    foreach($fields as $field) {
+                        $rec[$field] = $values[$k];
+                        $k++;
+                    }
+                    $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
+                    /*Array(
+                        [EOLid] => 328090
+                        [vernacularName] => Brown Palm Civet
+                    )*/
+                    $fields = array('EOLid', 'vernacularName');
+                    $csv = self::format_csv_entry($rec, $fields);
+                    // no :LABEL column here (label is passed on the neo4j-admin command line
+                    // via --nodes=VernacularPageID=<file> instead), so unlike the node writers
+                    // that append one, we must trim the trailing comma format_csv_entry() always
+                    // adds for that next field - otherwise every row gets a phantom 3rd empty
+                    // column that doesn't match the 2-column header and the import fails with
+                    // "Extra column not present in header".
+                    /* this gives an error in import_dataset.sh
+                    $csv = rtrim($csv, ','); */
+                    $csv = substr(trim($csv), 0, -1); //Important for VernacularPageID.csv - remove last char "," a comma.
+                    fwrite($WRITE, $csv."\n");
+                }
+            }
+            fclose($WRITE);
+        }
+        else exit("\nFile cannot be accessed: [$remote]\n");      
+        unlink($csv_file);
+    }
+    /*
+    =========================================================================== Globi
+    cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE elidb;"
+    neo4j-admin database import full elidb --overwrite-destination \
+    --nodes=import/globi_assoc/taxa.csv \
+    --relationships=import/globi_assoc/predicates.csv \
+    --verbose --array-delimiter="U+007C"
+    cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE elidb;"
+    =========================================================================== WoRMS
+    cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE elidb;"
+    neo4j-admin database import full elidb --overwrite-destination \
+    --nodes=import/WoRMS/taxa.csv \
+    --nodes=import/WoRMS/measurements.csv \
+    --relationships=import/WoRMS/predicates_measurements.csv \
+    --verbose --array-delimiter="U+007C"
+    cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE elidb;"
+    =========================================================================== dump database
+    cypher-shell -u neo4j -p eli_neo4j -d system "STOP DATABASE elidb;"
+    neo4j-admin database dump --to-path=import/dumps/ elidb
+    cypher-shell -u neo4j -p eli_neo4j -d system "START DATABASE elidb;"
+    ===========================================================================
+    */
+}
+?>

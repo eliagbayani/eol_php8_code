@@ -11,8 +11,6 @@ class ZenodoTraitBankAPI
             'resource_id'        => 'zenodo',  //resource_id here is just a folder name in cache
             'expire_seconds'     => 60*60*24*1, //maybe 1 day to expire
             'download_wait_time' => 1000000, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 0.5);
-        // $this->download_options['expire_seconds'] = 0;
-        $this->download_options['expire_seconds'] = 60*60*24*30; //for eol content partners
         $this->api['domain'] = 'https://zenodo.org';
     }
     function do_zenodo_stuff($concept_id)
@@ -30,7 +28,7 @@ class ZenodoTraitBankAPI
     {   // $expire_seconds: null = use download_options, int = cache lifetime in seconds (0 = always re-fetch), false = cache never expires
         // fallbacks: child classes (e.g. GenerateCSV_NewModel) may not call this class' constructor
         $domain = $this->api['domain'] ?? 'https://zenodo.org';
-        if ($expire_seconds === null) $expire_seconds = $this->download_options['expire_seconds'] ?? 60*60*24*30;
+        if ($expire_seconds === null) $expire_seconds = $this->download_options['expire_seconds'] ?? 60*60*24*1;
 
         $options = array(
             'resource_id'       => 'zenodo', // cache goes to: DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/'

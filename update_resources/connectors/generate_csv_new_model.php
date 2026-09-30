@@ -1,9 +1,8 @@
 <?php
 namespace php_active_record;
 /* Main starting point for generating CSV files for loading into Neo4j
-php update_resources/connectors/generate_csv_4EOLneo4j.php _ '{"resource_id": "globi_assoc-with-hC_neo4j_2_OK"}' --- copied template
 
-start Jan 27, 2026:
+start Oct 1, 2026:
 php generate_csv_new_model.php _ '{"concept_id": "23067562"}'         -> Biochemistry and Natural Products
 
 php generate_csv_4EOLneo4j.php _ '{"resource_id": "GloBI_TraitBank_1_0",     "eol_resource_id": "R20"}'     -> 20 globi   

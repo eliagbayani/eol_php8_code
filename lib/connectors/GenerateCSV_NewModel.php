@@ -64,6 +64,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $this->unzip_zenodo_zip_file($zip_file);
 
         exit("\n-stop muna-\n");
+        
         self::initialize();
         // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
         $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources

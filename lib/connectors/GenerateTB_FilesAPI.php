@@ -75,8 +75,8 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             if($what == 'buildup_occurrence') self::buildup_occurrence($rec);
             if($what == 'buildup_mof') self::buildup_mof($rec);
             if($what == 'data_chain_linkup') {
-                $taxon_compiled = self::data_chain_linkup($rec);
-                self::write_input_files($taxon_compiled, $rec['taxonID']);
+                $this->taxon_compiled = self::data_chain_linkup($rec); //print_r($this->taxon_compiled);
+                self::write_input_files($this->taxon_compiled, $rec['taxonID']);
             }
 
             //========================================================================================================= 
@@ -126,14 +126,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $mof_info = array();
         if($occurrenceIDs = $this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
             foreach($occurrenceIDs as $occurrenceID) {
-                $mof_json = self::retrieve_data($occurrenceID, 'mof');
-                $mof_info[] = json_decode($mof_json, true);
+                if($mof_json = self::retrieve_data($occurrenceID, 'mof')) $mof_info[] = json_decode($mof_json, true);
             }
         }
         // */
 
         if(count($mof_info) != count($occur_info)) {
-            exit("\nERROR: investigate diff totals for mof and occurrence.\n");
+            $this->debug['diff totals mof and occur'][$rec['taxonID']][] = $occurrenceID;
+            // echo("\nIt happnes: diff totals for mof [".count($mof_info)."] and occurrence [".count($occur_info)."].\n");
         }
 
         $final[$taxonID] = array('taxon' => $taxon_info, 'occurrences' => $occur_info, 'mof' => $mof_info);
@@ -202,9 +202,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     }
     private function retrieve_data($id, $extension)
     {
-        $source = $this->TB_folder . "/$this->resource_id/temp/$extension/$id.json"; 
-        $json = file_get_contents($source);
-        $arr = json_decode($json, true);
-        return $arr;
+        $source = $this->TB_folder . "/$this->resource_id/temp/$extension/$id.json";
+        if(file_exists($source)) {
+            $json = file_get_contents($source);
+            $arr = json_decode($json, true);
+            return $arr;
+        }
+        else {
+            // echo "\nxxxxxxxxxx\n"; exit("\ninvestigate 2 [$id] [$extension]\n");
+        }
     }
 }

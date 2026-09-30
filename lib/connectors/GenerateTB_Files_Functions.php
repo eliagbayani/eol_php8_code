@@ -105,8 +105,14 @@ class GenerateTB_Files_Functions
                 [source] => http://dx.doi.org/10.5479/si.0081024X.17
                 [bibliographicCitation] => Grant, Martin Lawrence, Fosberg, F. Raymond, and Smith, Howard M. 1974. "Partial Flora of the Society Islands: Ericaceae to Apocynaceae." Smithsonian Contributions to Botany. 1-85. https://doi.org/10.5479/si.0081024X.17
             )*/
+            if(!@$m['measurementID']) continue;
             $occurrenceID = $m['occurrenceID'];
             $occur = $occur_info[$occurrenceID]; //print_r($occur); exit("\nelix 3\n");
+
+            // if(!$occurrenceID) { //debug only
+            //     print_r($taxon_main);
+            //     exit("\ninvestigate 1\n");
+            // }
 
             $save = array();
             $save['measurementID'] = $m['measurementID'];
@@ -114,8 +120,8 @@ class GenerateTB_Files_Functions
             $save['taxonID'] = $taxon_info['source_taxonID'];
             $save['taxonKey'] = $taxonKey;
             $save['scientificName'] = $taxon_info['scientificName'];
-            // tb:infer if true, paint the branch: taxa descending from the tbTaxonMapping should inherit this trait
-            // tb:exclude stop branchpainting: descendant taxa should not inherit this trait            
+            $save['infer'] = '';    // tb:infer if true, paint the branch: taxa descending from the tbTaxonMapping should inherit this trait
+            $save['exclude'] = '';  // tb:exclude stop branchpainting: descendant taxa should not inherit this trait            
             $save['measurementType'] = $m['measurementType'];
             $save['measurementValue'] = $m['measurementValue'];
             $save['measurementRemarks'] = $m['measurementRemarks'];

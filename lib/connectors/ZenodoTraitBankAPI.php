@@ -63,5 +63,9 @@ class ZenodoTraitBankAPI
             'archive_url' => $archiveUrl,
             'zip_files'   => $zipFiles);
     }
+    function download_zenodo_zip_file($archive_url)
+    {
+        
+    }
 }
 ?>

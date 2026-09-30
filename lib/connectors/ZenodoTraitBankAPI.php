@@ -15,6 +15,7 @@ class ZenodoTraitBankAPI
     }
     function do_zenodo_stuff($concept_id)
     {
+        print_r($this->param);
         // Step 1: get latest Zenodo record info (cached) using the concept ID
         if(!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) exit("\nERROR: Cannot get Zenodo info.\n");
         print_r($arr);
@@ -77,9 +78,13 @@ class ZenodoTraitBankAPI
         $dir      = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
         $dest     = $dir . $filename;
 
+        $redownload = !empty($this->param['redownload_zip_file_YN']); // missing param = 0
         if (is_file($dest) && filesize($dest) > 0) {
-            echo "Zip file already exists [$filename]\n";
-            return $dest;
+            if (!$redownload) {
+                echo "Zip file already exists [$filename]\n";
+                return $dest;
+            }
+            echo "Zip file already exists, re-downloading [$filename]\n";
         }
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
             echo "Cannot create folder [$dir]\n";

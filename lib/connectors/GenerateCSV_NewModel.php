@@ -55,7 +55,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     }
     function assemble_data($concept_id) 
     {
-        $this->get_zenodo_info_using_conceptID($this->param['concept_id']);
+        $arr = $this->get_zenodo_info_using_conceptID($this->param['concept_id']);
+        print_r($arr);
 
         exit("\n-stop muna-\n");
         self::initialize();

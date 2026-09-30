@@ -15,28 +15,23 @@ class ZenodoTraitBankAPI
         $this->download_options['expire_seconds'] = 60*60*24*30; //for eol content partners
         $this->api['domain'] = 'https://zenodo.org';
     }
-    function get_zenodo_info_using_conceptID($conceptId)
-    {
+    function get_zenodo_info_using_conceptID($conceptId, $expire_seconds = null)
+    {   // $expire_seconds: null = use download_options, int = cache lifetime in seconds (0 = always re-fetch), false = cache never expires
         // fallbacks: child classes (e.g. GenerateCSV_NewModel) may not call this class' constructor
-        $domain  = $this->api['domain'] ?? 'https://zenodo.org';
-        $timeout = $this->download_options['timeout'] ?? 60*3;
+        $domain = $this->api['domain'] ?? 'https://zenodo.org';
+        if ($expire_seconds === null) $expire_seconds = $this->download_options['expire_seconds'] ?? 60*60*24*30;
 
-        $ch = curl_init("{$domain}/api/records/{$conceptId}/versions/latest");
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_USERAGENT      => "EOL-Zenodo-connector/1.0", // Zenodo returns HTTP 403 when User-Agent is empty
-            CURLOPT_TIMEOUT        => $timeout,
-            CURLOPT_HTTPHEADER     => ["Accept: application/json"],
-            // CURLOPT_HTTPHEADER  => ["Accept: application/json", "Authorization: Bearer YOUR_TOKEN"], // restricted records
-        ]);
-        $body   = curl_exec($ch);
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error  = curl_error($ch);
-        curl_close($ch);
+        $options = array(
+            'resource_id'       => 'zenodo', // cache goes to: DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/'
+            'expire_seconds'    => $expire_seconds,
+            'timeout'           => $this->download_options['timeout'] ?? 60*3,
+            'download_attempts' => 1,
+            'user_agent'        => 'EOL-Zenodo-connector/1.0', // Zenodo returns HTTP 403 when User-Agent is empty
+            'validation_regex'  => '"conceptrecid"'); // only use cache if it is a real Zenodo record JSON
+        $body = Functions::lookup_with_cache("{$domain}/api/records/{$conceptId}/versions/latest", $options);
 
-        if ($body === false || $status !== 200) {
-            echo "Request failed (HTTP $status) for conceptID [$conceptId]: $error\n";
+        if (!$body) {
+            echo "Request failed for conceptID [$conceptId]\n";
             return false;
         }
 

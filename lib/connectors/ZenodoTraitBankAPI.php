@@ -308,5 +308,49 @@ class ZenodoTraitBankAPI
         $words = preg_split('/\s+/u', trim($str), -1, PREG_SPLIT_NO_EMPTY);
         return implode('_', array_map(fn($w) => mb_substr($w, 0, 4), $words));
     }
+    function get_records_from_input_file($folder_name, $filename = null)
+    {   // e.g. ('22776578_Term', 'terms_0.9.tsv') -> $output[0] = array('attribution' => ..., 'definition' => ..., 'name' => ..., ...)
+        // $filename: optional, if null and input_files/ has exactly one .tsv file, that file is used
+        $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/$folder_name/input_files/";
+        if (!is_dir($dir)) {
+            echo "Folder not found [$folder_name/input_files/]\n";
+            return false;
+        }
+        if ($filename === null) {
+            $tsv_files = array_map('basename', glob($dir . "*.tsv"));
+            if (count($tsv_files) !== 1) {
+                echo "Please specify a filename, found " . count($tsv_files) . " .tsv files in [$folder_name/input_files/]: " . implode(", ", $tsv_files) . "\n";
+                return false;
+            }
+            $filename = $tsv_files[0];
+        }
+        if (!($fh = @fopen($dir . $filename, "r"))) {
+            echo "Cannot open [$folder_name/input_files/$filename]\n";
+            return false;
+        }
+
+        $output = array(); $headers = null; $line_no = 0; $mismatch_reported = false;
+        while (($line = fgets($fh)) !== false) {
+            $line_no++;
+            $line = rtrim($line, "\r\n"); // files may have Windows (CRLF) line endings
+            if ($line === '') continue;
+            if ($headers === null) { // first line: headers
+                $line    = preg_replace('/^\xEF\xBB\xBF/', '', $line); // strip UTF-8 BOM
+                $headers = array_map('trim', explode("\t", $line));
+                continue;
+            }
+            $values = explode("\t", $line);
+            if (count($values) !== count($headers)) {
+                if (!$mismatch_reported) {
+                    echo "Warning: line $line_no of [$filename] has " . count($values) . " fields, expected " . count($headers) . " (padded/truncated; further mismatches not reported)\n";
+                    $mismatch_reported = true;
+                }
+                $values = array_slice(array_pad($values, count($headers), ''), 0, count($headers));
+            }
+            $output[] = array_combine($headers, $values);
+        }
+        fclose($fh);
+        return $output;
+    }
 }
 ?>

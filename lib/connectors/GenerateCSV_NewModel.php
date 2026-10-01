@@ -66,9 +66,9 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     function assemble_data($concept_id) 
     {
         $this->do_zenodo_stuff($concept_id);
-        if($this->param['task'] == 'download_only') { echo "\nTask is to download dataset ($concept_id) only. Done.\n"; return; }
+        if(@$this->param['task'] == 'download_only') { echo "\nTask is to download dataset ($concept_id) only. Done.\n"; return; }
         self::initialize();
-        exit("\n-stop muna 1-\n");
+        // exit("\n-stop muna 1-\n");
 
         /* OBSOLETE NOW
         $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources
@@ -94,7 +94,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
-        exit("\n-stop muna-\n");
+        exit("\n-stop muna 3-\n");
 
 
         // Step 1: generate Page node; PARENT edge
@@ -502,39 +502,57 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     }
     private function prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
     {
-        require_library('connectors/EOLterms_ymlAPI');
-        $func = new EOLterms_ymlAPI(false, false);
-        $eol_terms = $func->use_yaml_parse_and_oldOrig();
-        echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
-
+        $eol_terms = $this->get_records_from_input_file("22776578_Term");
+        /*Array(
+            [0] => Array(
+                    x[uri] => http://purl.obolibrary.org/obo/RO_0002180
+                    x[name] => has component
+                    x[type] => measurement
+                    x[definition] => can be directly disassembled into into multiple similar parts, including this
+                    x[attribution] => 
+                    [exclusive to clade] => 
+                    [incompatible with clade] => 
+                    [parent uris] => 
+                    [synonym of uri] =>                     
+                    [units term] => 
+                    [symmetrical assoc] => 
+                    [inverse of] => 
+        )*/
         // /*
         // ===== Term node
         $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
+        /* old schema
         fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,comment,attribution,section_ids,is_hidden_from_overview,is_hidden_from_glossary,position,trait_row_count,distinct_page_count,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,object_for_predicate,:LABEL"."\n");
-        foreach($eol_terms['terms'] as $rec) { 
-            // print_r($rec); exit("\n100\n");
+        */
+        fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,attribution,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,units_term,symmetrical_assoc,inverse_of,:LABEL"."\n");                                
+        foreach($eol_terms as $rec) { 
             // $rec = array_map('trim', $rec);
             $rek = array();
-            $rek['uri'] = $rec['uri'];
+            $rek['attribution'] = Functions::remove_quote_delimiters(@$rec['attribution']);
+            $rek['definition'] = Functions::remove_quote_delimiters(@$rec['definition']);   //
             $rek['name'] = Functions::remove_quote_delimiters($rec['name']);   //%/month
             $rek['type'] = $rec['type'];   //"measurement", "association", "value", and "metadata"
-            $rek['definition'] = Functions::remove_quote_delimiters(@$rec['definition']);   //
-            $rek['comment'] = ''; //EOL curator note
-            $rek['attribution'] = Functions::remove_quote_delimiters(@$rec['attribution']);
-            $rek['section_ids'] = ''; //from webpage
-            $rek['is_hidden_from_overview'] = @$rec['is_hidden_from_overview'];   //
-            $rek['is_hidden_from_glossary'] = @$rec['is_hidden_from_glossary'];   //
-            $rek['position'] = ''; //from webpage
-            $rek['trait_row_count'] = ''; //a periodically calculated (offline) count
-            $rek['distinct_page_count'] = ''; //a periodically calculated (offline) count
-            $rek['exclusive_to_clade'] = ''; //
-            $rek['incompatible_with_clade'] = ''; //
-            $rek['parent_term'] = ''; //
-            $rek['synonym_of'] = ''; //
-            $rek['object_for_predicate'] = ''; //a periodically calculated (offline) count
+            $rek['uri'] = $rec['uri'];
+            $rek['parent_term'] = explode("|", $rec['parent uris']); //
+            $rek['synonym_of'] = explode("|", $rec['synonym of uri']); //
+            $rek['units_term'] = $rec['units term']; //
+            $rek['symmetrical_assoc'] = $rec['symmetrical assoc']; //
+            $rek['inverse_of'] = $rec['inverse of']; //
+            $rek['incompatible_with_clade'] = $rec['incompatible with clade']; //
+            $rek['exclusive_to_clade'] = $rec['exclusive to clade']; //
+            /* From eol terms file
+            // $rek['object_for_predicate'] = ''; //a periodically calculated (offline) count
+            // $rek['comment'] = ''; //EOL curator note
+            // $rek['section_ids'] = ''; //from webpage
+            // $rek['is_hidden_from_overview'] = @$rec['is_hidden_from_overview'];   //
+            // $rek['is_hidden_from_glossary'] = @$rec['is_hidden_from_glossary'];   //
+            // $rek['position'] = ''; //from webpage
+            // $rek['trait_row_count'] = ''; //a periodically calculated (offline) count
+            // $rek['distinct_page_count'] = ''; //a periodically calculated (offline) count
             // $rek = array_map('trim', $rek);
-
-            $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
+            // $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
+            */
+            $fields = array('uri','name','type','definition','attribution','exclusive_to_clade','incompatible_with_clade','parent_term','synonym_of','units_term','symmetrical_assoc','inverse_of'); //specific order
             $csv = self::format_csv_entry($rek, $fields);
             $csv .= 'Term'; //Labels are preferred to be singular nouns
             fwrite($WRITE, $csv."\n");
@@ -561,15 +579,30 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $WRITE = Functions::file_open($this->path.'/edges/PARENT_TERM.csv', 'w');
         fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
         $fields = array('child', 'parent');
-        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
+        foreach($eol_terms as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
+            /*Array( $rec
+                [attribution] => BROT trait database. Traits: units and categories (Propagule), http://www.uv.es/jgpausas/brot.htm;
+                [definition] => The dispersal unit for sexual regeneration.
+                [name] => propagule
+                [type] => measurement
+                [uri] => http://eol.org/schema/terms/Propagule
+                [parent uris] => 
+                [synonym of uri] => 
+                [units term] => 
+                [symmetrical assoc] => 
+                [inverse of] => 
+                [incompatible with clade] => 
+                [exclusive to clade] => 
+            )*/
+
             $s = array();
             // self::value_is_uri_YN
-            if($s['child'] = @$rec['uri']) {
+            if($s['child'] = $rec['uri']) {
                 $URIs[$s['child']] = '';
-                if($parents = @$rec['parent_uris']) {
-                    if(is_array($parents)) {
+                if($parents = $rec['parent uris']) {
+                    if(is_array($parents)) { exit("\ngoes here 2\n");
                         foreach($parents as $parent) {                             
-                            if($s['parent'] = $parent) {
+                            if($s['parent'] = $parent) { print_r($s); exit("\ngoes here 1\n");
                                 $csv = self::format_csv_entry($s, $fields);
                                 $csv .= 'PARENT_TERM';
                                 fwrite($WRITE, $csv."\n");
@@ -592,11 +625,11 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $WRITE = Functions::file_open($this->path.'/edges/SYNONYM_OF.csv', 'w');
         fwrite($WRITE, "uri:START_ID(Term-ID),uri:END_ID(Term-ID),:TYPE"."\n");        
         $fields = array('child', 'parent');
-        foreach($eol_terms['terms'] as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
+        foreach($eol_terms as $rec) { //$rec = array_map('trim', $rec); - cannot use since a value is an array()
             $s = array();
             // self::value_is_uri_YN
             if($s['child'] = @$rec['uri']) {
-                if($synonyms = @$rec['synonym_of_uri']) {
+                if($synonyms = @$rec['synonym of uri']) {
                     if(is_array($synonyms)) {
                         foreach($synonyms as $synonym) {                             
                             if($s['parent'] = $synonym) {
@@ -1607,7 +1640,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     $csv .= 'SUPPLIER'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
-                if($task == 'read_eol_resources_csv') { //print_r($rec); exit("\nelix1\n");
+                if($task == 'read_eol_resources_csv') { //print_r($rec); //exit("\nelix1\n");
                     /*Array(
                         [concept_id] => 23073330
                         [record_id] => 23073331
@@ -1800,7 +1833,18 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             }
             else $val = @$rec[$field];
             if($i > 0) $csv .= ','; // Add delimiter for all but the first field
-            $csv .= Functions::manuallyEscapeForCSV($val);
+
+            /* very good debug
+            if(is_array($val)) {
+                print_r($rec); echo "\nxxxxxxxxx\n[$val][$field]\n"; print_r($val); exit("\ninvestigate 3\n");
+                $val = "$val";
+            }
+            */
+
+            if(is_array($val)) $val = implode("|", $val);
+
+            if(is_string($val)) $csv .= Functions::manuallyEscapeForCSV($val);
+            else $csv .= $val;
         }
         $csv .= ','; //add comma as last char
         return $csv;

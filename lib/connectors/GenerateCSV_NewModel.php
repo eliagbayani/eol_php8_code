@@ -82,8 +82,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         }
 
         // /* ========== start Jan 27, 2026 ==========
-        // Step 0: generate a Term node
-        // self::prepareTermNode_csv(); //OBSOLETE
 
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
@@ -92,10 +90,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
 
-        /* is now replaced by: prepare_PageNode_csv_from_DH()
-        self::prepare_PageNode_csv_from_resource($meta); //OBSOLETE      // step 1b: 
-        self::prepare_ParentEdge_csv($meta);             //OBSOLETE
-        */
         unset($meta);
 
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
@@ -495,57 +489,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $csv .= 'AuditEvent'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n"); fclose($WRITE);
     }
-    private function prepareTermNode_csv()
-    {   return; //moved to: prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
-        require_library('connectors/EOLterms_ymlAPI');
-        $func = new EOLterms_ymlAPI(false, false);
-        $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
-        /*[1413] => Array(
-            [uri] => http://eol.org/schema/terms/determinateGrowth
-            [name] => determinate growth
-            [type] => value
-            [definition] => determinate growth stops once a genetically pre-determined structure has completely formed
-            [comment] => 
-            [attribution] => https://en.wikipedia.org/wiki/Indeterminate_growth
-            [section_ids] => 
-            [is_hidden_from_overview] => false
-            [is_hidden_from_glossary] => false
-            [position] => 
-            [trait_row_count] => 
-            [distinct_page_count] => 
-            [exclusive_to_clade] => 
-            [incompatible_with_clade] => 
-            [parent_term] => 
-            [synonym_of] => 
-            [object_for_predicate] => 
-        )*/
-        unset($func);
-        // ===== start to create the csv
-        /*  nodes/Term.csv
-            uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
-        $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
-        fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,comment,attribution,section_ids,is_hidden_from_overview,is_hidden_from_glossary,position,trait_row_count,distinct_page_count,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,object_for_predicate,:LABEL"."\n");
-        foreach($terms as $rec) {
-            $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
-            $csv = self::format_csv_entry($rec, $fields);
-            $csv .= 'Term'; //Labels are preferred to be singular nouns
-            fwrite($WRITE, $csv."\n");
-        }
-        fclose($WRITE);        
-    }
-    // private function remove_quote_delimiters($str)
-    // {
-    //     if($str) {
-    //         // $str = "'123456'"; // $str = '"123456"';
-    //         $str = trim($str); // echo("\norig: [$str]\n");
-    //         $first = substr($str,0,1);
-    //         $last = substr($str, -1); // echo("\n[$first] [$last]\n");
-    //         if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
-    //         if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
-    //         // exit("\nfinal: [$str]\n");
-    //     }
-    //     return $str;
-    // }
     private function prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
     {
         require_library('connectors/EOLterms_ymlAPI');
@@ -913,7 +856,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $rec['supplier'] = $this->param['eol_resource_id']; //important since we added '_supplier' for the md5 field.
         $csv = self::format_csv_entry($rec, $fields);
         $csv .= 'VERNACULAR'; //Type are preferred to be singular nouns
-        // fwrite($this->WRITE, $csv."\n");
         
         // /* new: Aug15,2026 - prevent duplicate rows - for some reason WoRMS had duplicates
         $md5 = md5($csv);
@@ -1027,92 +969,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             fwrite($this->WRITE, $csv."\n");
         }
     }
-    /* Obsolete: no longer used.
-    private function build_association_info($rec)
-    {
-        $associationType = $rec['http://eol.org/schema/associationType'];
-    }
-    function buildup_predicates()
-    {
-        require_library('connectors/EOLterms_ymlAPI');
-        $func = new EOLterms_ymlAPI();
-        //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
-        $this->uris = $func->get_terms_yml('neo4j');         
-        $local_tsv = Functions::save_remote_file_to_local($this->urls['raw predicates'], $this->download_options);
-        self::process_tsv($local_tsv, 'buildup_predicates');
-        unlink($local_tsv);
-        unset($this->uris);
-    }
-    function buildup_predicates_all()
-    {
-        require_library('connectors/EOLterms_ymlAPI');
-        $func = new EOLterms_ymlAPI();
-        //REMINDER: labels can have the same value but different uri. Possible values: 'measurement', 'value', 'ALL', 'WoRMS value'
-        $terms = $func->get_terms_yml('neo4j_v2');
-        $WRITE = Functions::file_open($this->files['predicates'], 'w');
-        fwrite($WRITE, implode("\t", array('Label', 'URI', 'type'))."\n");
-        foreach($terms as $uri => $rek) {
-            // Array(
-            //     [name] => abundance
-            //     [type] => measurement
-            // )
-            $rec = array();
-            $rec[] = $rek['name'];
-            $rec[] = $uri;
-            $rec[] = $rek['type'];
-            fwrite($WRITE, implode("\t", $rec)."\n");
-        }
-        fclose($WRITE);
-    }
-    private function process_tsv($local_tsv, $task)
-    {
-        if($task == 'buildup_predicates') {
-            $this->WRITE = Functions::file_open($this->files['predicates'], 'w');
-        }
-        $i = 0;
-        foreach(new FileIterator($local_tsv) as $line => $row) { $i++;
-            $row = Functions::conv_to_utf8($row); 
-            if($i == 1) $fields = explode("\t", $row);
-            else {
-                if(!$row) continue;
-                $tmp = explode("\t", $row);
-                $rec = array(); $k = 0;
-                foreach($fields as $field) {
-                    $rec[$field] = $tmp[$k];
-                    $k++;
-                }
-                $rec = array_map('trim', $rec); // print_r($rec); exit;
-                // ==================================================================================================
-                if($task == 'buildup_predicates') {
-                    // Array( [EOL_predicate_id] => 12748
-                    //         [Label] => Body symmetry )
-                    $label = $rec['Label'];
-                    $rec['URI'] = $this->uris[$label]['uri'];
-                    $rec['type'] = $this->uris[$label]['type'];
-                    if($i == 2) {
-                        $headers = array_keys($rec);
-                        fwrite($this->WRITE, implode("\t", $headers)."\n");
-                    }
-                    fwrite($this->WRITE, implode("\t", $rec)."\n");
-                }
-                // ==================================================================================================
-                if($task == 'gen_allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
-                    // Array(
-                    //     [EOL_predicate_id] => 12748
-                    //     [Label] => Body symmetry
-                    //     [URI] => http://eol.org/schema/terms/body_symmetry
-                    // )
-                    // if($rec['Label'] != 'eat') continue; //dev only
-                    $this->allowed_uri_predicates[$rec['URI']] = array('predicate_id' => @$rec['EOL_predicate_id'], 'Label' => $rec['Label']);
-                }
-                // ==================================================================================================
-            }
-        }
-        if($task == 'buildup_predicates') {
-            fclose($this->WRITE);
-        }
-    }
-    */
     /*
     private function prepare_PageNode_csv_from_resource($meta)
     {   
@@ -1839,16 +1695,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         }
         fclose($this->WRITE);
     }
-    /* OBSOLETE
-    private function prepare_ParentEdge_csv($meta)
-    {   //  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
-        //  gadus_m,gadus,parent
-        //  chanos_c,chanos,parent
-        $this->WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
-        fwrite($this->WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
-        self::process_table($meta, 'generate-ParentEdge-csv');
-        fclose($this->WRITE);
-    } */
     private function prepare_VernacularEdge_csv($meta)
     {   /*  personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
             page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE

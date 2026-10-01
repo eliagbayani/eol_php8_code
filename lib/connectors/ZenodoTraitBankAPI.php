@@ -31,11 +31,13 @@ class ZenodoTraitBankAPI
         print_r($arr);
         // Step 2: download the latest version's zip archive to TB_files/[concept_id].zip
         if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url'], $concept_id))) exit("\nERROR: Cannot download Zenodo zip file.\n");
-        // Step 3: extract to TB_files/[concept_id]/input_files/ -- only after a fresh download,
-        //         or if input_files/ is missing or empty (e.g. it was deleted manually)
-        $input_dir = dirname($zip_file) . "/" . pathinfo($zip_file, PATHINFO_FILENAME) . "/input_files/";
+        // Step 3: extract to TB_files/[concept_id]_[abbreviated title]/input_files/ e.g. 23067562_Bioc_and_Natu_Prod/input_files/
+        //         -- only after a fresh download, or if input_files/ is missing or empty (e.g. it was deleted manually)
+        $abbrev      = $this->abbreviate_title($arr['title']);
+        $folder_name = $concept_id . ($abbrev !== '' ? "_$abbrev" : '');
+        $input_dir   = dirname($zip_file) . "/$folder_name/input_files/";
         if($this->zip_freshly_downloaded || !is_dir($input_dir) || count(scandir($input_dir)) <= 2) {
-            if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+            if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file, $folder_name))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
         }
         else {
             echo "No fresh download, will use existing extracted files.\n";
@@ -82,6 +84,7 @@ class ZenodoTraitBankAPI
 
         return array(
             'id'          => $rec['id'],
+            'title'       => $rec['metadata']['title'] ?? '',
             'version'     => $rec['metadata']['version'] ?? null,
             'archive_url' => $archiveUrl,
             'zip_files'   => $zipFiles);
@@ -149,14 +152,15 @@ class ZenodoTraitBankAPI
         echo "Downloaded zip file [$filename] (record $record_id)\n";
         return $dest;
     }
-    function unzip_zenodo_zip_file($zip_file)
-    {   // e.g. TB_files/23067562.zip -> TB_files/23067562/input_files/
+    function unzip_zenodo_zip_file($zip_file, $folder_name = null)
+    {   // e.g. TB_files/23067562.zip -> TB_files/23067562_Bioc_and_Natu_Prod/input_files/
+        // $folder_name: defaults to the zip's name without .zip, e.g. TB_files/23067562/input_files/
         if (!is_file((string) $zip_file)) {
             echo "Zip file not found [$zip_file]\n";
             return false;
         }
-        $record_id = pathinfo($zip_file, PATHINFO_FILENAME);
-        $dest_dir  = dirname($zip_file) . "/$record_id/input_files/";
+        $folder_name = $folder_name ?? pathinfo($zip_file, PATHINFO_FILENAME);
+        $dest_dir    = dirname($zip_file) . "/$folder_name/input_files/";
 
         // always start fresh: delete the destination folder and its contents, then extract
         if (is_dir($dest_dir)) {
@@ -204,7 +208,7 @@ class ZenodoTraitBankAPI
             if ($item->isLink()) continue;
             chmod($item->getPathname(), $item->isDir() ? 0755 : 0644);
         }
-        echo "Extracted $count file(s) to [$record_id/input_files/]\n";
+        echo "Extracted $count file(s) to [$folder_name/input_files/]\n";
         return $dest_dir;
     }
     function generate_Zenodo_TraitBank_datasets_inCSV()
@@ -298,6 +302,9 @@ class ZenodoTraitBankAPI
         // accents removed, letter kept: "Écologie Végétale" -> "Ecol_Vege"
         if (class_exists('Transliterator')) $str = \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC')->transliterate($str);
         else                                $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str); // PHP intl extension not installed (e.g. our Docker container)
+        // characters that break folder paths act as word separators, so they become "_": "Plants/Fungi" -> "Plan_Fung"
+        $str = preg_replace('#[/\\\\:*?"<>|\x00-\x1F]#u', ' ', $str);
+        $str = preg_replace('/^\.+/', '', trim($str)); // no leading dots: avoids hidden folders and "." / ".."
         $words = preg_split('/\s+/u', trim($str), -1, PREG_SPLIT_NO_EMPTY);
         return implode('_', array_map(fn($w) => mb_substr($w, 0, 4), $words));
     }

@@ -4,6 +4,7 @@ namespace php_active_record;
 
 start Oct 1, 2026:
 php generate_csv_new_model.php _ '{"concept_id": "23067562" , "redownload_zip_file_YN": 1}'         -> Biochemistry and Natural Products
+php generate_csv_new_model.php _ '{"task": "generate_Zenodo_TraitBank_datasets_inTSV"}'
 
 php generate_csv_4EOLneo4j.php _ '{"resource_id": "GloBI_TraitBank_1_0",     "eol_resource_id": "R20"}'     -> 20 globi   
 php generate_csv_4EOLneo4j.php _ '{"resource_id": "Wikipedia_TraitBank_1_0", "eol_resource_id": "R512"}'    -> 512 wikipedia
@@ -35,6 +36,13 @@ $concept_id = $param['concept_id'];
 
 require_library('connectors/ZenodoTraitBankAPI');
 require_library('connectors/GenerateCSV_NewModel');
+
+if(@$param['task'] == 'generate_Zenodo_TraitBank_datasets_inTSV') {
+    $func = new ZenodoTraitBankAPI();
+    $func->generate_Zenodo_TraitBank_datasets_inTSV();    
+    exit("\nGenerated TraitBank datasets in TSV file.\n");
+}
+
 $func = new GenerateCSV_NewModel($param);
 $func->assemble_data($concept_id);
 ?>

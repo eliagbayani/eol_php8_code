@@ -1,10 +1,20 @@
 <?php
 namespace php_active_record;
-/**/
+/*
+https://zenodo.org/api/records/23067563
+*/
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class ZenodoTraitBankAPI
 {
+    // Permanent column headers of TB_files/TraitBank_datasets.tsv. Only change deliberately: rows are written in this order.
+    const TRAITBANK_DATASETS_TSV_HEADERS = array(
+        'concept_id', 'record_id', 'title', 'version', 'publication_date', 'created', 'updated',
+        'doi', 'concept_doi', 'resource_type', 'access_right', 'license', 'creators',
+        'related_identifiers', 'file_count', 'file_names', 'total_size_bytes',
+        'record_url', 'concept_url', 'archive_url',
+        'views', 'unique_views', 'downloads', 'unique_downloads', 'description');
+
     function __construct($folder = null, $query = null)
     {
         $this->download_options = array(
@@ -188,6 +198,91 @@ class ZenodoTraitBankAPI
         }
         echo "Extracted $count file(s) to [$record_id/input_files/]\n";
         return $dest_dir;
+    }
+    function generate_Zenodo_TraitBank_datasets_inTSV()
+    {   // saves all datasets (latest versions) of the Zenodo 'traitbank' community to TB_files/TraitBank_datasets.tsv
+        $domain  = $this->api['domain'] ?? 'https://zenodo.org';
+        $url     = "{$domain}/api/communities/traitbank/records?q=&sort=newest&size=25&page=1"; // 25 = max page size without an access token
+        $options = array('user_agent' => 'EOL-Zenodo-connector/1.0', // Zenodo returns HTTP 403 when User-Agent is empty
+                         'timeout' => 60*3, 'download_attempts' => 2, 'download_wait_time' => 1000000);
+
+        // Step 1: fetch all pages, following links.next
+        $hits = array();
+        while ($url) {
+            $data = json_decode((string) Functions::get_remote_file($url, $options), true);
+            if (!isset($data['hits']['hits'])) {
+                echo "ERROR: Cannot get TraitBank community records [$url]\n";
+                return false; // existing TSV is left untouched
+            }
+            $hits = array_merge($hits, $data['hits']['hits']);
+            $url  = $data['links']['next'] ?? null;
+        }
+
+        // Step 2: one row per dataset, keyed by the permanent headers
+        $rows = array();
+        foreach ($hits as $h) {
+            $m = $h['metadata'] ?? array();
+            $creators = array();
+            foreach ($m['creators'] ?? array() as $c) {
+                $creators[] = $c['name'] . (!empty($c['affiliation']) ? " ({$c['affiliation']})" : '');
+            }
+            $related = array();
+            foreach ($m['related_identifiers'] ?? array() as $r) {
+                $related[] = ($r['relation'] ?? '') . ':' . ($r['scheme'] ?? '') . ':' . ($r['identifier'] ?? '');
+            }
+            $files = $h['files'] ?? array();
+            $rows[] = array(
+                'concept_id'          => $h['conceptrecid'] ?? '',
+                'record_id'           => $h['id'] ?? '',
+                'title'               => $m['title'] ?? '',
+                'version'             => $m['version'] ?? '',
+                'publication_date'    => $m['publication_date'] ?? '',
+                'created'             => $h['created'] ?? '',
+                'updated'             => $h['updated'] ?? '',
+                'doi'                 => $h['doi'] ?? '',
+                'concept_doi'         => $h['conceptdoi'] ?? '',
+                'resource_type'       => $m['resource_type']['type'] ?? '',
+                'access_right'        => $m['access_right'] ?? '',
+                'license'             => $m['license']['id'] ?? '',
+                'creators'            => implode('; ', $creators),
+                'related_identifiers' => implode('; ', $related),
+                'file_count'          => count($files),
+                'file_names'          => implode('; ', array_column($files, 'key')),
+                'total_size_bytes'    => array_sum(array_column($files, 'size')),
+                'record_url'          => $h['links']['self_html'] ?? '',
+                'concept_url'         => $h['links']['parent_html'] ?? '',
+                'archive_url'         => $h['links']['archive'] ?? '',
+                'views'               => $h['stats']['views'] ?? '',
+                'unique_views'        => $h['stats']['unique_views'] ?? '',
+                'downloads'           => $h['stats']['downloads'] ?? '',
+                'unique_downloads'    => $h['stats']['unique_downloads'] ?? '',
+                'description'         => html_entity_decode(strip_tags($m['description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        }
+
+        // Step 3: write to a .tmp file, then replace the real TSV
+        $dir  = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $file = $dir . "TraitBank_datasets.tsv";
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            echo "Cannot create folder [$dir]\n";
+            return false;
+        }
+        if (!($fh = fopen($file . ".tmp", "w"))) {
+            echo "Cannot write to [$file.tmp]\n";
+            return false;
+        }
+        fwrite($fh, implode("\t", self::TRAITBANK_DATASETS_TSV_HEADERS) . "\n");
+        foreach ($rows as $row) {
+            $values = array();
+            foreach (self::TRAITBANK_DATASETS_TSV_HEADERS as $col) { // column order always follows the headers
+                $values[] = trim(preg_replace('/\s+/u', ' ', (string) ($row[$col] ?? ''))); // no tabs/newlines inside a field
+            }
+            fwrite($fh, implode("\t", $values) . "\n");
+        }
+        fclose($fh);
+        rename($file . ".tmp", $file);
+        chmod($file, 0644);
+        echo "Saved " . count($rows) . " datasets to [TraitBank_datasets.tsv]\n";
+        return $file;
     }
 }
 ?>

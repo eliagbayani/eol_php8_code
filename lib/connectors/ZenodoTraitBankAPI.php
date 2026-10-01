@@ -21,8 +21,16 @@ class ZenodoTraitBankAPI
         print_r($arr);
         // Step 2: download the record's zip archive to TB_files/[record_id].zip
         if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url']))) exit("\nERROR: Cannot download Zenodo zip file.\n");
-        // Step 3: extract to TB_files/[record_id]/input_files/
-        if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+        // Step 3: extract to TB_files/[record_id]/input_files/ -- only after a fresh download,
+        //         or if input_files/ is missing or empty (e.g. it was deleted manually)
+        $input_dir = dirname($zip_file) . "/" . pathinfo($zip_file, PATHINFO_FILENAME) . "/input_files/";
+        if($this->zip_freshly_downloaded || !is_dir($input_dir) || count(scandir($input_dir)) <= 2) {
+            if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+        }
+        else {
+            echo "No fresh download, will use existing extracted files.\n";
+            $this->input_dir = $input_dir;
+        }
         echo "\nInput files folder: $this->input_dir\n";
     }
     function get_zenodo_info_using_conceptID($conceptId, $expire_seconds = null)
@@ -78,6 +86,7 @@ class ZenodoTraitBankAPI
         $dir      = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
         $dest     = $dir . $filename;
 
+        $this->zip_freshly_downloaded = false; // set to true only after a successful download below
         $redownload = !empty($this->param['redownload_zip_file_YN']); // missing param = 0
         if (is_file($dest) && filesize($dest) > 0) {
             if (!$redownload) {
@@ -118,6 +127,7 @@ class ZenodoTraitBankAPI
             return false;
         }
         rename($part, $dest);
+        $this->zip_freshly_downloaded = true;
         echo "Downloaded zip file [$filename]\n";
         return $dest;
     }

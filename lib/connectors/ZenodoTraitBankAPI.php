@@ -25,7 +25,7 @@ class ZenodoTraitBankAPI
     }
     function do_zenodo_stuff($concept_id)
     {
-        print_r($this->param);
+        print_r($this->param); //exit("\nelix 3\n");
         // Step 1: get latest Zenodo record info (cached) using the concept ID
         if(!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) exit("\nERROR: Cannot get Zenodo info.\n");
         print_r($arr);

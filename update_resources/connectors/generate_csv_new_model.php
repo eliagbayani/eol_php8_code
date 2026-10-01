@@ -43,6 +43,7 @@ if(@$param['task'] == 'generate_Zenodo_TraitBank_datasets_inCSV') {
     exit("\nGenerated TraitBank datasets in TSV file.\n");
 }
 
+$param['eol_resource_id'] = $param['concept_id'];
 $func = new GenerateCSV_NewModel($param);
 $func->assemble_data($concept_id);
 ?>

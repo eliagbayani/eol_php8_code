@@ -28,7 +28,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 {
     function __construct($param) {
         $this->resource_id = $param['concept_id'];
-        $this->param['eol_resource_id'] = $param['concept_id'];
 
         $this->param = $param;
         $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
@@ -1741,10 +1740,36 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     $csv .= 'SUPPLIER'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
-                if($task == 'read_eol_resources_csv') { print_r($rec); exit("\nelix1\n");
-                    /*Array()
-                    */
-                    $repo_id = 'R'.$rec['repository_id'];
+                if($task == 'read_eol_resources_csv') { //print_r($rec); exit("\nelix1\n");
+                    /*Array(
+                        [concept_id] => 23073330
+                        [record_id] => 23073331
+                        [title] => Botany Literature
+                        [version] => 
+                        [publication_date] => 2026-10-01
+                        [created] => 2026-10-01T02:00:55.391107+00:00
+                        [updated] => 2026-10-01T02:00:55.575885+00:00
+                        [doi] => 10.5281/zenodo.23073331
+                        [concept_doi] => 10.5281/zenodo.23073330
+                        [resource_type] => dataset
+                        [access_right] => open
+                        [license] => 
+                        [creators] => Hammock, Jennifer
+                        [related_identifiers] => 
+                        [file_count] => 2
+                        [file_names] => traits.tsv; taxon.txt
+                        [total_size_bytes] => 56224594
+                        [record_url] => https://zenodo.org/records/23073331
+                        [concept_url] => https://zenodo.org/records/23073330
+                        [archive_url] => https://zenodo.org/api/records/23073331/files-archive
+                        [views] => 42
+                        [unique_views] => 37
+                        [downloads] => 0
+                        [unique_downloads] => 0
+                        [description] => Literature sources: http://doi.org/10.13140/RG.2.2.26444.72322https://doi.org/10.1073/pnas.1706756114https://doi.org/10.1038/srep29549https://doi.org/10.15560/10.5.1071https://static1.kew.org/data/grassbase/index.htmlhttps://posa.sanbi.org/http://dx.doi.org/10.15560/5.2.173https://doi.org/10.15560/11.4.1718ISBN:99916-68-06-3http://www.jstor.org/stable/23493222https://doi.org/10.1111/boj.12010
+                    )*/
+                    // $repo_id = 'R'.$rec['repository_id']; //old
+                    $repo_id = 'R'.$rec['concept_id']; //new
                     $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['name']);
                 }
             } //end main records

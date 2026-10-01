@@ -293,5 +293,13 @@ class ZenodoTraitBankAPI
         echo "Saved " . count($rows) . " datasets to [TraitBank_datasets.csv]\n";
         return $file;
     }
+    function abbreviate_title($str)
+    {   // e.g. "Biochemistry and Natural Products" -> "Bioc_and_Natu_Prod" (first 4 chars of every word, joined by "_")
+        // accents removed, letter kept: "Écologie Végétale" -> "Ecol_Vege"
+        if (class_exists('Transliterator')) $str = \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC')->transliterate($str);
+        else                                $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str); // PHP intl extension not installed (e.g. our Docker container)
+        $words = preg_split('/\s+/u', trim($str), -1, PREG_SPLIT_NO_EMPTY);
+        return implode('_', array_map(fn($w) => mb_substr($w, 0, 4), $words));
+    }
 }
 ?>

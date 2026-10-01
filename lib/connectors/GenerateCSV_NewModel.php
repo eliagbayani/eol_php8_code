@@ -27,15 +27,18 @@ use \AllowDynamicProperties; //for PHP 8.2
 class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 {
     function __construct($param) {
-        // $this->resource_id = $param['resource_id'];
+        $this->resource_id = $param['concept_id'];
+        $this->param['eol_resource_id'] = $param['concept_id'];
+
         $this->param = $param;
-        $this->download_options = array('resource_id' => 'neo4j', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
+        $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
         $this->debug = array();
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
-        // self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
-        $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv';
-        // $this->is_first_resourceYN = ($this->resource_id == 'AmphibiaWeb_TraitBank_1_0') ? true: false;
+        self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
+        $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //old
+        $this->files['EOL resources'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/TraitBank_datasets.csv'; //new
+        $this->is_first_resourceYN = ($this->resource_id == 'AmphibiaWeb_TraitBank_1_0') ? true: false;
 
         $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
@@ -46,7 +49,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         else                           echo "\nNot the first resource";
 
         // Reads resources.csv from EOL's RDBMS.
-        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*30))) {
+        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*1))) {
             if($READ = Functions::file_open($this->local_csv, 'r')) {
                 $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);
                 $ret = self::do_things_in_a_csv($param);
@@ -59,12 +62,9 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
     function assemble_data($concept_id) 
     {
-        $this->do_zenodo_stuff($concept_id);
+        $this->do_zenodo_stuff($concept_id); // exit("\n-stop muna-\n");
 
-        exit("\n-stop muna-\n");
-
-        self::initialize();
-        // $dwca_file = 'https://editors.eol.org/eol_php_code/applications/content_server/resources/' . $resource_id . '.tar.gz';
+        self::initialize(); exit("\n-stop muna-\n");
         $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources
 
         $ret = self::prep_dwca($resource_id, $dwca_file);
@@ -1741,37 +1741,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     $csv .= 'SUPPLIER'; //relationships are designed to be in upper-case
                     fwrite($fhandle, $csv."\n");
                 }
-                if($task == 'read_eol_resources_csv') {
-                    /*Array(
-                        [id] => 1
-                        [partner_id] => 1
-                        [name] => EOL Dynamic Hierarchy April 2022
-                        [url] => 
-                        [description] => 
-                        [notes] => 
-                        [nodes_count] => 2404791
-                        [is_browsable] => true
-                        [has_duplicate_nodes] => false
-                        [node_source_url_template] => http://eol.org/$PK&but=not_really
-                        [last_published_at] => 2022-05-13 08:08:44 -0400
-                        [last_publish_seconds] => 
-                        [dataset_license_id] => 
-                        [dataset_rights_holder] => 
-                        [dataset_rights_statement] => 
-                        [created_at] => 2017-11-22 09:54:58 -0500
-                        [updated_at] => 2022-05-13 10:43:13 -0400
-                        [icon_file_name] => 
-                        [icon_content_type] => 
-                        [icon_file_size] => 
-                        [icon_updated_at] => 
-                        [abbr] => dhv2_1
-                        [repository_id] => 1
-                        [classification] => true
-                        [native] => true
-                    )
-                    $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
-                    $this->EOL_resources['Globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
-                    $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
+                if($task == 'read_eol_resources_csv') { print_r($rec); exit("\nelix1\n");
+                    /*Array()
                     */
                     $repo_id = 'R'.$rec['repository_id'];
                     $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['name']);

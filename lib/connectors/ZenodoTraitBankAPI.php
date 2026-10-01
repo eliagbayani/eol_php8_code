@@ -7,8 +7,8 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class ZenodoTraitBankAPI
 {
-    // Permanent column headers of TB_files/TraitBank_datasets.tsv. Only change deliberately: rows are written in this order.
-    const TRAITBANK_DATASETS_TSV_HEADERS = array(
+    // Permanent column headers of TB_files/TraitBank_datasets.csv. Only change deliberately: rows are written in this order.
+    const TRAITBANK_DATASETS_CSV_HEADERS = array(
         'concept_id', 'record_id', 'title', 'version', 'publication_date', 'created', 'updated',
         'doi', 'concept_doi', 'resource_type', 'access_right', 'license', 'creators',
         'related_identifiers', 'file_count', 'file_names', 'total_size_bytes',
@@ -29,9 +29,9 @@ class ZenodoTraitBankAPI
         // Step 1: get latest Zenodo record info (cached) using the concept ID
         if(!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) exit("\nERROR: Cannot get Zenodo info.\n");
         print_r($arr);
-        // Step 2: download the record's zip archive to TB_files/[record_id].zip
-        if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url']))) exit("\nERROR: Cannot download Zenodo zip file.\n");
-        // Step 3: extract to TB_files/[record_id]/input_files/ -- only after a fresh download,
+        // Step 2: download the latest version's zip archive to TB_files/[concept_id].zip
+        if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url'], $concept_id))) exit("\nERROR: Cannot download Zenodo zip file.\n");
+        // Step 3: extract to TB_files/[concept_id]/input_files/ -- only after a fresh download,
         //         or if input_files/ is missing or empty (e.g. it was deleted manually)
         $input_dir = dirname($zip_file) . "/" . pathinfo($zip_file, PATHINFO_FILENAME) . "/input_files/";
         if($this->zip_freshly_downloaded || !is_dir($input_dir) || count(scandir($input_dir)) <= 2) {
@@ -86,24 +86,31 @@ class ZenodoTraitBankAPI
             'archive_url' => $archiveUrl,
             'zip_files'   => $zipFiles);
     }
-    function download_zenodo_zip_file($archive_url)
-    {   // e.g. https://zenodo.org/api/records/23067563/files-archive -> TB_files/23067563.zip
+    function download_zenodo_zip_file($archive_url, $concept_id)
+    {   // e.g. https://zenodo.org/api/records/23067563/files-archive -> TB_files/23067562.zip (named by concept ID)
+        // TB_files/23067562.record_id stores the record ID (version) of the downloaded zip, to detect new versions
         if (!preg_match('#/records/(\d+)/files-archive#', (string) $archive_url, $m)) {
             echo "Invalid Zenodo archive URL [$archive_url]\n";
             return false;
         }
-        $filename = "{$m[1]}.zip";
-        $dir      = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
-        $dest     = $dir . $filename;
+        $record_id   = $m[1];
+        $filename    = "{$concept_id}.zip";
+        $dir         = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $dest        = $dir . $filename;
+        $record_file = $dir . "{$concept_id}.record_id";
 
         $this->zip_freshly_downloaded = false; // set to true only after a successful download below
         $redownload = !empty($this->param['redownload_zip_file_YN']); // missing param = 0
         if (is_file($dest) && filesize($dest) > 0) {
-            if (!$redownload) {
-                echo "Zip file already exists [$filename]\n";
+            $local_record_id = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
+            if ($local_record_id !== $record_id) {
+                echo "New version on Zenodo [record $record_id, local was " . ($local_record_id ?: 'unknown') . "], re-downloading [$filename]\n";
+            }
+            elseif (!$redownload) {
+                echo "Zip file already exists [$filename] (record $record_id)\n";
                 return $dest;
             }
-            echo "Zip file already exists, re-downloading [$filename]\n";
+            else echo "Zip file already exists, re-downloading [$filename]\n";
         }
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
             echo "Cannot create folder [$dir]\n";
@@ -137,12 +144,13 @@ class ZenodoTraitBankAPI
             return false;
         }
         rename($part, $dest);
+        file_put_contents($record_file, $record_id);
         $this->zip_freshly_downloaded = true;
-        echo "Downloaded zip file [$filename]\n";
+        echo "Downloaded zip file [$filename] (record $record_id)\n";
         return $dest;
     }
     function unzip_zenodo_zip_file($zip_file)
-    {   // e.g. TB_files/23067563.zip -> TB_files/23067563/input_files/
+    {   // e.g. TB_files/23067562.zip -> TB_files/23067562/input_files/
         if (!is_file((string) $zip_file)) {
             echo "Zip file not found [$zip_file]\n";
             return false;
@@ -199,8 +207,8 @@ class ZenodoTraitBankAPI
         echo "Extracted $count file(s) to [$record_id/input_files/]\n";
         return $dest_dir;
     }
-    function generate_Zenodo_TraitBank_datasets_inTSV()
-    {   // saves all datasets (latest versions) of the Zenodo 'traitbank' community to TB_files/TraitBank_datasets.tsv
+    function generate_Zenodo_TraitBank_datasets_inCSV()
+    {   // saves all datasets (latest versions) of the Zenodo 'traitbank' community to TB_files/TraitBank_datasets.csv
         $domain  = $this->api['domain'] ?? 'https://zenodo.org';
         $url     = "{$domain}/api/communities/traitbank/records?q=&sort=newest&size=25&page=1"; // 25 = max page size without an access token
         $options = array('user_agent' => 'EOL-Zenodo-connector/1.0', // Zenodo returns HTTP 403 when User-Agent is empty
@@ -212,7 +220,7 @@ class ZenodoTraitBankAPI
             $data = json_decode((string) Functions::get_remote_file($url, $options), true);
             if (!isset($data['hits']['hits'])) {
                 echo "ERROR: Cannot get TraitBank community records [$url]\n";
-                return false; // existing TSV is left untouched
+                return false; // existing CSV is left untouched
             }
             $hits = array_merge($hits, $data['hits']['hits']);
             $url  = $data['links']['next'] ?? null;
@@ -259,9 +267,9 @@ class ZenodoTraitBankAPI
                 'description'         => html_entity_decode(strip_tags($m['description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
         }
 
-        // Step 3: write to a .tmp file, then replace the real TSV
+        // Step 3: write to a .tmp file, then replace the real CSV
         $dir  = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
-        $file = $dir . "TraitBank_datasets.tsv";
+        $file = $dir . "TraitBank_datasets.csv";
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
             echo "Cannot create folder [$dir]\n";
             return false;
@@ -270,18 +278,19 @@ class ZenodoTraitBankAPI
             echo "Cannot write to [$file.tmp]\n";
             return false;
         }
-        fwrite($fh, implode("\t", self::TRAITBANK_DATASETS_TSV_HEADERS) . "\n");
+        // fputcsv quotes fields containing commas/quotes; escape '' = standard CSV (RFC 4180) double-quote escaping
+        fputcsv($fh, self::TRAITBANK_DATASETS_CSV_HEADERS, ',', '"', '');
         foreach ($rows as $row) {
             $values = array();
-            foreach (self::TRAITBANK_DATASETS_TSV_HEADERS as $col) { // column order always follows the headers
-                $values[] = trim(preg_replace('/\s+/u', ' ', (string) ($row[$col] ?? ''))); // no tabs/newlines inside a field
+            foreach (self::TRAITBANK_DATASETS_CSV_HEADERS as $col) { // column order always follows the headers
+                $values[] = trim(preg_replace('/\s+/u', ' ', (string) ($row[$col] ?? ''))); // no newlines inside a field: one dataset per line
             }
-            fwrite($fh, implode("\t", $values) . "\n");
+            fputcsv($fh, $values, ',', '"', '');
         }
         fclose($fh);
         rename($file . ".tmp", $file);
         chmod($file, 0644);
-        echo "Saved " . count($rows) . " datasets to [TraitBank_datasets.tsv]\n";
+        echo "Saved " . count($rows) . " datasets to [TraitBank_datasets.csv]\n";
         return $file;
     }
 }

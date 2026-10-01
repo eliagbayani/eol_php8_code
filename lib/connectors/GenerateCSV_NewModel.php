@@ -37,10 +37,14 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //old
         $this->files['EOL resources'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/TraitBank_datasets.csv'; //new
-        $this->is_first_resourceYN = ($this->resource_id == 'AmphibiaWeb_TraitBank_1_0') ? true: false;
+        $this->is_first_resourceYN = ($this->resource_id == '23067562') ? true: false;
 
         $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
+
+        $this->not_a_resource_dataset = array(22776578);
+        /*  22776578 - Terms file
+        */
     }
     private function initialize()
     {
@@ -61,19 +65,24 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
     function assemble_data($concept_id) 
     {
-        $this->do_zenodo_stuff($concept_id); // exit("\n-stop muna-\n");
+        $this->do_zenodo_stuff($concept_id);
+        if($this->param['task'] == 'download_only') { echo "\nTask is to download dataset ($concept_id) only. Done.\n"; return; }
+        self::initialize();
+        exit("\n-stop muna 1-\n");
 
-        self::initialize(); exit("\n-stop muna-\n");
+        /* OBSOLETE NOW
         $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".tar.gz"; //maybe the way to go for all resources
-
         $ret = self::prep_dwca($resource_id, $dwca_file);
         $temp_dir = $ret['temp_dir'];
         $tables = $ret['tables'];
         $extensions = array_keys($tables); print_r($extensions);
+        */
 
         if($this->is_first_resourceYN) {
             // Step -2: generate the VernacularPageID node
+            /* OBSOLETE FOR NOW
             self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
+            */
 
             // Step -1: generate supplementary nodes: AppUser, AppSettings, AuditEvent
             self::prepareAppUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
@@ -85,6 +94,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
+        exit("\n-stop muna-\n");
+
 
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
@@ -1626,7 +1637,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     )*/
                     // $repo_id = 'R'.$rec['repository_id']; //old
                     $repo_id = 'R'.$rec['concept_id']; //new
-                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['name']);
+                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['title']);
                 }
             } //end main records
         } //end while()

@@ -7,7 +7,7 @@ These ff. workspaces work together:
 - GNParserAPI_8.code-workspace
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
-- GenerateCSV_4EOLNeo4j.code-workspace (replaced)
+- GenerateCSV_4EOLNeo4j.code-workspace (replaced by below)
 - GenerateCSV_NewModel-workspace (new)
 - GenerateTB_FilesAPI.code-workspace
 

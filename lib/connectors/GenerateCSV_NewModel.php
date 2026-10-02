@@ -236,7 +236,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             $rec = array(); $k = 0;
             if($i == 1) { $fields = $tmp; continue; }
             foreach($fields as $field) {
-                $field = self::small_field($field);
+                $field = $this->small_field($field);
                 if(!$field) continue;
                 $rec[$field] = $tmp[$k];
                 $k++;
@@ -1868,12 +1868,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             $csv .= Functions::manuallyEscapeForCSV($val);
         }
         return $csv;
-    }
-    private function small_field($uri)
-    {
-        $uri = str_replace("TaxonID", "taxonID", $uri);
-        $uri = str_replace("tb:taxonKey", "taxonKey", $uri);
-        return pathinfo($uri, PATHINFO_FILENAME);
     }
     private function process_md5_fields($str, $rec) //e.g. "md5_vernacularName_taxonID"
     {

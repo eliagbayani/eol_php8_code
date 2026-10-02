@@ -234,16 +234,14 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             if(!$row) continue;
             $tmp = explode("\t", $row);
             $rec = array(); $k = 0;
-            if($i == 1) {
-                $fields = array_keys($tmp);
-            }
+            if($i == 1) { $fields = $tmp; continue; }
             foreach($fields as $field) {
                 $field = self::small_field($field);
                 if(!$field) continue;
                 $rec[$field] = $tmp[$k];
                 $k++;
             }
-            print_r($rec); exit;
+            // print_r($rec); exit;
             /*
             nodes/Page.csv
             page_id:ID(Page-ID),canonical,rank,:LABEL
@@ -256,7 +254,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             eol_pk:ID(Trait-ID),resource_pk:string,citation:string,source
             */
             if($what == 'generate_taxon_info') { //step 1a
-                /*Array(
+                /*Array( old schema
                     [taxonID] => 44475
                     [source] => https://www.wikidata.org/wiki/Q25243
                     [parentNameUsageID] => Q4085525
@@ -268,7 +266,19 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
                     [canonicalName] => Betula
                     [EOLid] => 44475
+                )
+                Array( new schema
+                    [taxonID] => Camellia sinensis
+                    [scientificName] => Camellia sinensis
+                    [taxonKey] => 
+                    [genus] => 
+                    [family] => 
+                    [class] => 
+                    [phylum] => 
+                    [kingdom] => 
+                    [higherClassification] => Archaeplastida
                 )*/
+                // print_r($rec); exit;
                 if($rec['taxonID'] == $rec['EOLid']) {
                     if(is_numeric($rec['taxonID'])) {
                         $this->taxon_info[$rec['taxonID']] = array('sN' => $rec['scientificName']);
@@ -1861,6 +1871,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     }
     private function small_field($uri)
     {
+        $uri = str_replace("TaxonID", "taxonID", $uri);
+        $uri = str_replace("tb:taxonKey", "taxonKey", $uri);
         return pathinfo($uri, PATHINFO_FILENAME);
     }
     private function process_md5_fields($str, $rec) //e.g. "md5_vernacularName_taxonID"

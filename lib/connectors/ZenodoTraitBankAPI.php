@@ -33,8 +33,7 @@ class ZenodoTraitBankAPI
         if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url'], $concept_id))) exit("\nERROR: Cannot download Zenodo zip file.\n");
         // Step 3: extract to TB_files/[concept_id]_[abbreviated title]/input_files/ e.g. 23067562_Bioc_and_Natu_Prod/input_files/
         //         -- only after a fresh download, or if input_files/ is missing or empty (e.g. it was deleted manually)
-        $abbrev      = $this->abbreviate_title($arr['title']);
-        $folder_name = $concept_id . ($abbrev !== '' ? "_$abbrev" : '');
+        $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);
         $input_dir   = dirname($zip_file) . "/$folder_name/input_files/";
         if($this->zip_freshly_downloaded || !is_dir($input_dir) || count(scandir($input_dir)) <= 2) {
             if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file, $folder_name))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
@@ -307,6 +306,30 @@ class ZenodoTraitBankAPI
         $str = preg_replace('/^\.+/', '', trim($str)); // no leading dots: avoids hidden folders and "." / ".."
         $words = preg_split('/\s+/u', trim($str), -1, PREG_SPLIT_NO_EMPTY);
         return implode('_', array_map(fn($w) => mb_substr($w, 0, 4), $words));
+    }
+    function get_dataset_folder_name($concept_id, $title)
+    {   // e.g. (23067562, "Biochemistry and Natural Products") -> "23067562_Bioc_and_Natu_Prod"
+        $abbrev = $this->abbreviate_title((string) $title);
+        return $concept_id . ($abbrev !== '' ? "_$abbrev" : '');
+    }
+    function get_generic_file_path($concept_id, $basename)
+    {   // e.g. (23067562, 'traits') -> [CONTENT_RESOURCE_LOCAL_PATH]/TB_files/23067562_Bioc_and_Natu_Prod/input_files/traits.tsv
+        // $basename: file name without extension, e.g. 'traits', 'taxon', 'occurrences' -- finds [basename].tsv or [basename].txt
+        //            (extension varies per dataset: taxon.tsv vs taxon.txt); if both exist, .tsv is used
+        //            a name with extension, e.g. 'occurrences.txt', is also accepted and matched exactly
+        // folder name uses the current title (cached lookup), the same way do_zenodo_stuff() names it when extracting
+        if (!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) return false;
+        $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);
+        $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/$folder_name/input_files/";
+
+        if (is_file($dir . $basename)) return $dir . $basename; // exact name given, e.g. 'occurrences.txt'
+        $found = array_values(array_filter(array("$basename.tsv", "$basename.txt"), fn($f) => is_file($dir . $f))); // .tsv first = preferred
+        if (!$found) {
+            echo "[$basename.tsv] or [$basename.txt] not found in [$folder_name/input_files/], run do_zenodo_stuff($concept_id) first\n";
+            return false;
+        }
+        if (count($found) > 1) echo "Both [$basename.tsv] and [$basename.txt] exist in [$folder_name/input_files/], using [$basename.tsv]\n";
+        return $dir . $found[0];
     }
     function get_records_from_input_file($folder_name, $filename = null)
     {   // e.g. ('22776578_Term', 'terms_0.9.tsv') -> $output[0] = array('attribution' => ..., 'definition' => ..., 'name' => ..., ...)

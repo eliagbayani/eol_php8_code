@@ -94,14 +94,14 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
-        exit("\n-stop muna 3-\n");
 
 
         // Step 1: generate Page node; PARENT edge
-        $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
-        self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+        // $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0]; OBSOLETE
+        if (!($taxon_file = $this->get_generic_file_path($concept_id, 'taxon'))) exit("\nERROR: No taxon.tsv\n");
+        self::process_table($taxon_file, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+        exit("\n-stop muna 3-\n");
 
-        unset($meta);
 
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
 
@@ -226,23 +226,24 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         }
         print_r($this->debug['Totals']);
     }
-    private function process_table($meta, $what)
+    private function process_table($label_tsv_file, $what)
     {
-        echo "\nprocess_table: [$what] [$meta->file_uri]...\n"; $i = 0;
-        foreach(new FileIterator($meta->file_uri) as $line => $row) { $i++;
+        echo "\nprocess_table: [$what] [$label_tsv_file]...\n"; $i = 0;
+        foreach(new FileIterator($label_tsv_file) as $line => $row) { $i++;
             if(($i % 500000) == 0) echo "\n".number_format($i)." - ";
-            if($meta->ignore_header_lines && $i == 1) continue;
             if(!$row) continue;
-            // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template
             $tmp = explode("\t", $row);
             $rec = array(); $k = 0;
-            foreach($meta->fields as $field) {
-                $field['term'] = self::small_field($field['term']);
-                if(!$field['term']) continue;
-                $rec[$field['term']] = $tmp[$k];
+            if($i == 1) {
+                $fields = array_keys($tmp);
+            }
+            foreach($fields as $field) {
+                $field = self::small_field($field);
+                if(!$field) continue;
+                $rec[$field] = $tmp[$k];
                 $k++;
             }
-            // print_r($rec); //exit;
+            print_r($rec); exit;
             /*
             nodes/Page.csv
             page_id:ID(Page-ID),canonical,rank,:LABEL

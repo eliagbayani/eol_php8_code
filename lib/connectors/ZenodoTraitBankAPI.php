@@ -375,5 +375,11 @@ class ZenodoTraitBankAPI
         fclose($fh);
         return $output;
     }
+    function small_field($uri)
+    {
+        $uri = str_replace("TaxonID", "taxonID", $uri);
+        $uri = str_replace("tb:taxonKey", "taxonKey", $uri);
+        return pathinfo($uri, PATHINFO_FILENAME);
+    }
 }
 ?>

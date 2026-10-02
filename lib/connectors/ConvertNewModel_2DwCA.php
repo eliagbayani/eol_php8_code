@@ -29,10 +29,10 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
     function __construct($archive_builder, $param) {
         $this->param = $param;
 
-        $this->resource_id = $param['concept_id'];
+        $this->resource_id = $param['resource_id'];
         $this->archive_builder = $archive_builder;
 
-        $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
+        $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->debug = array();
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
@@ -54,15 +54,23 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
     {
         $this->do_zenodo_stuff($concept_id);
         if(@$this->param['task'] == 'download_only') { echo "\nTask is to download dataset ($concept_id) only. Done.\n"; return; }
-        exit("\n-stop muna 1-\n");
         self::initialize();
 
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'taxon'))) exit("\nERROR: No taxon.tsv\n");
-        self::process_table($taxon_file, 'generate_taxon_info');
+        else self::process_table($taxon_file, 'compile_taxon_info_from_taxon_file'); //1st source
 
-        Functions::start_print_debug($this->debug, $this->param['eol_resource_id'].'_convert', $this->path);
-        recursive_rmdir($temp_dir);
-        debug("\n temporary directory removed: " . $temp_dir);
+        if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
+        else self::process_table($traits_file, 'compile_taxon_info_from_traits_file'); //2nd source
+
+        self::write_taxon_ext();        // exit("\n-stop muna 1-\n");
+
+        // self::process_table($taxon_file, 'generate_taxon_ext');
+
+        $this->archive_builder->finalize(true);
+
+        // Functions::start_print_debug($this->debug, $this->param['resource_id'].'_convert');
+        // recursive_rmdir($temp_dir);
+        // debug("\n temporary directory removed: " . $temp_dir);
     }
     private function process_table($label_tsv_file, $what)
     {
@@ -74,14 +82,13 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             $rec = array(); $k = 0;
             if($i == 1) { $fields = $tmp; continue; }
             foreach($fields as $field) {
-                $field = self::small_field($field);
+                $field = $this->small_field($field);
                 if(!$field) continue;
                 $rec[$field] = $tmp[$k];
                 $k++;
             }
-            // print_r($rec); exit;
-            if($what == 'generate_taxon_info') { //step 1a
-                /*Array( new schema
+            if($what == 'compile_taxon_info_from_taxon_file') { //print_r($rec); exit;
+                /*Array(
                     [taxonID] => Camellia sinensis
                     [scientificName] => Camellia sinensis
                     [taxonKey] => 
@@ -92,13 +99,43 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                     [kingdom] => 
                     [higherClassification] => Archaeplastida
                 )*/
-                // print_r($rec); exit;
-                if($rec['taxonID'] == $rec['EOLid']) {
-                    if(is_numeric($rec['taxonID'])) {
-                        $this->taxon_info[$rec['taxonID']] = array('sN' => $rec['scientificName']);
+                $taxonID = $rec['taxonID']; //md5(trim($rec['taxonID'].$rec['scientificName']));
+                $this->taxon[$taxonID] = $rec;
+            }
+            elseif($what == 'compile_taxon_info_from_traits_file') { //print_r($rec); exit;
+                /*Array( only fields that are tax concerned
+                    [taxonID] => Remipedia
+                    [scientificName] => Remipedia
+                    [taxonKey] => 
+                )*/
+                $fields_2combine = array('scientificName', 'taxonKey');
+                $taxonID = $rec['taxonID'];
+                if($t = @$this->taxon[$taxonID]) { //let us combine values
+                    foreach($fields_2combine as $field) {
+                        if($rec[$field]) {
+                            if($t[$field] != $rec[$field]) {
+                                $t[$field] = $rec[$field];
+                                $this->taxon[$taxonID] = $t;
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+    private function write_taxon_ext()
+    {
+        $t = new \eol_schema\Taxon();
+        foreach($this->taxon as $key => $rek) {
+
+            $fields = array_keys($rek);
+            foreach($fields as $field) {
+                if($field == 'taxonKey') $t->EOLid = $rek[$field];
+                else $t->$field = $rek[$field];
+            }
+            // $t->scientificName = $taxon->scientificName;
+            // $t->kingdom = @$taxon->kingdom;
+            $this->archive_builder->write_object_to_file($t);        
         }
     }
 }

@@ -27,7 +27,8 @@ function process_resource_url($param, $timestart)
     // $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
 
     $resource_id = $param['concept_id'];
-    $resource_id .= "_2dwca";
+    // $resource_id .= "_2dwca";
+    $param['resource_id'] = $resource_id;
     $path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $resource_id . '_working/';
     $archive_builder = new \eol_schema\ContentArchiveBuilder(array("directory_path" => $path_to_archive_directory));
 
@@ -36,6 +37,7 @@ function process_resource_url($param, $timestart)
     $func = new ConvertNewModel_2DwCA($archive_builder, $param);
     $func->convert_2DwCA($param['concept_id']);
 
+    echo "\nend: [$resource_id]\n";
     Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
 }
 ?>

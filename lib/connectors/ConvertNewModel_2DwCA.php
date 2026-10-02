@@ -26,15 +26,17 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
 {
-    function __construct($param) {
-        $this->resource_id = $param['concept_id'];
-
+    function __construct($archive_builder, $param) {
         $this->param = $param;
+
+        $this->resource_id = $param['concept_id'];
+        $this->archive_builder = $archive_builder;
+
         $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);
         $this->debug = array();
         // $this->urls['raw predicates'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/raw_predicates.tsv'; //obsolete
         $this->files['predicates'] = CONTENT_RESOURCE_LOCAL_PATH."reports/predicates.tsv";
-        self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
+        // self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n"); not needed here I suppose
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //old
         $this->files['EOL resources'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/TraitBank_datasets.csv'; //new
         $this->is_first_resourceYN = ($this->resource_id == '23067562') ? true: false;
@@ -47,22 +49,18 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         */
     }
     private function initialize()
-    {
-    }
-    function convert($concept_id) 
+    {}
+    function convert_2DwCA($concept_id) 
     {
         $this->do_zenodo_stuff($concept_id);
         if(@$this->param['task'] == 'download_only') { echo "\nTask is to download dataset ($concept_id) only. Done.\n"; return; }
+        exit("\n-stop muna 1-\n");
         self::initialize();
-        // exit("\n-stop muna 1-\n");
-
-
 
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'taxon'))) exit("\nERROR: No taxon.tsv\n");
-        self::process_table($taxon_file, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
-        exit("\n-stop muna 3-\n");
+        self::process_table($taxon_file, 'generate_taxon_info');
 
-        Functions::start_print_debug($this->debug, $this->param['eol_resource_id'].'_CSV', $this->path); //old 2nd param = Gen_Neo4j_CSV
+        Functions::start_print_debug($this->debug, $this->param['eol_resource_id'].'_convert', $this->path);
         recursive_rmdir($temp_dir);
         debug("\n temporary directory removed: " . $temp_dir);
     }

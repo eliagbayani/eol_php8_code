@@ -62,6 +62,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
         else self::process_table($traits_file, 'compile_taxon_info_from_traits_file'); //2nd source
 
+        // print_r($this->taxon); exit("\n-stop muna 1-\n");
         self::write_taxon_ext();        // exit("\n-stop muna 1-\n");
 
         // self::process_table($taxon_file, 'generate_taxon_ext');
@@ -125,17 +126,16 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
     }
     private function write_taxon_ext()
     {
-        $t = new \eol_schema\Taxon();
         foreach($this->taxon as $key => $rek) {
-
+            $t = new \eol_schema\Taxon();
             $fields = array_keys($rek);
             foreach($fields as $field) {
                 if($field == 'taxonKey') $t->EOLid = $rek[$field];
                 else $t->$field = $rek[$field];
             }
-            // $t->scientificName = $taxon->scientificName;
-            // $t->kingdom = @$taxon->kingdom;
-            $this->archive_builder->write_object_to_file($t);        
+            // $t->scientificName = '';
+            // $t->kingdom = '';
+            $this->archive_builder->write_object_to_file($t);
         }
     }
 }

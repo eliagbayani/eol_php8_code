@@ -48,13 +48,14 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         /*  22776578 - Terms file
         */
     }
-    private function initialize()
-    {}
+    private function initialize($concept_id)
+    {
+    }
     function convert_2DwCA($concept_id) 
     {
         $this->do_zenodo_stuff($concept_id);
         if(@$this->param['task'] == 'download_only') { echo "\nTask is to download dataset ($concept_id) only. Done.\n"; return; }
-        self::initialize();
+        self::initialize($concept_id);
         //step 1
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'taxon'))) exit("\nERROR: No taxon.tsv\n");
         else self::process_table($taxon_file, 'compile_taxon_info_from_taxon_file'); //1st source

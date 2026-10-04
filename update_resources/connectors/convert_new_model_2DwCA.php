@@ -27,17 +27,23 @@ function process_resource_url($param, $timestart)
     // $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
 
     $resource_id = $param['concept_id'];
-    // $resource_id .= "_2dwca";
-    $param['resource_id'] = $resource_id;
-    $path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $resource_id . '_working/';
-    $archive_builder = new \eol_schema\ContentArchiveBuilder(array("directory_path" => $path_to_archive_directory));
+    $concept_id = $param['concept_id'];
 
     require_library('connectors/ZenodoTraitBankAPI');
+    $func = new ZenodoTraitBankAPI();
+    $title = $func->get_zenodo_title_using_conceptID($concept_id);
+    $folder = $func->get_dataset_folder_name($concept_id, $title);
+
+    // $resource_id .= "_2dwca";
+    $param['resource_id'] = $resource_id;
+    $path_to_archive_directory = CONTENT_RESOURCE_LOCAL_PATH . '/' . $folder . '_working/';
+    $archive_builder = new \eol_schema\ContentArchiveBuilder(array("directory_path" => $path_to_archive_directory));
+
     require_library('connectors/ConvertNewModel_2DwCA');
     $func = new ConvertNewModel_2DwCA($archive_builder, $param);
     $func->convert_2DwCA($param['concept_id']);
 
     echo "\nend: [$resource_id]\n";
-    Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
+    Functions::finalize_dwca_resource($folder, false, true, $timestart);
 }
 ?>

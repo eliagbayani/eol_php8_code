@@ -88,6 +88,12 @@ class ZenodoTraitBankAPI
             'archive_url' => $archiveUrl,
             'zip_files'   => $zipFiles);
     }
+    function get_zenodo_title_using_conceptID($conceptId, $expire_seconds = null)
+    {   // returns the title of the latest version of the Zenodo record, or false on failure
+        // $expire_seconds: same as in get_zenodo_info_using_conceptID(); shares its cached API response
+        if (!($arr = $this->get_zenodo_info_using_conceptID($conceptId, $expire_seconds))) return false;
+        return $arr['title'];
+    }
     function download_zenodo_zip_file($archive_url, $concept_id)
     {   // e.g. https://zenodo.org/api/records/23067563/files-archive -> TB_files/23067562.zip (named by concept ID)
         // TB_files/23067562.record_id stores the record ID (version) of the downloaded zip, to detect new versions

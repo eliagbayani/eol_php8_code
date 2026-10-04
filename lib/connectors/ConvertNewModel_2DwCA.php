@@ -55,17 +55,18 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         $this->do_zenodo_stuff($concept_id);
         if(@$this->param['task'] == 'download_only') { echo "\nTask is to download dataset ($concept_id) only. Done.\n"; return; }
         self::initialize();
-
+        //step 1
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'taxon'))) exit("\nERROR: No taxon.tsv\n");
         else self::process_table($taxon_file, 'compile_taxon_info_from_taxon_file'); //1st source
-
+        //step 2
         if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
         else self::process_table($traits_file, 'compile_taxon_info_from_traits_file'); //2nd source
+        //step 3
+        self::write_taxon_ext(); //this will use the output of the 2 previous steps
+        //step 4
+        if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
+        else self::process_table($traits_file, 'build_mof_and_occurrences_array');
 
-        // print_r($this->taxon); exit("\n-stop muna 1-\n");
-        self::write_taxon_ext();        // exit("\n-stop muna 1-\n");
-
-        // self::process_table($taxon_file, 'generate_taxon_ext');
 
         $this->archive_builder->finalize(true);
 
@@ -122,7 +123,47 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                     }
                 }
             }
+            elseif($what == 'build_mof_and_occurrences_array') self::build_mof_and_occurrences_array($rec);
         }
+    }
+    private function build_mof_and_occurrences_array($rec)
+    {   /*Array(
+            [measurementID] => toxins1
+            [taxonID] => Remipedia
+            [scientificName] => Remipedia
+            [taxonKey] => 
+            [infer] => TRUE
+            [exclude] => 
+            [measurementType] => https://www.wikidata.org/entity/Q3386847
+            [measurementValue] => http://purl.obolibrary.org/obo/OMIT_0027854
+            [measurementUnit] => 
+            [measurementRemarks] => 
+            [source] => https://doi.org/10.1093/molbev/mst199
+            [referenceID] => 
+            and probably more...
+        )*/
+        $occurrence_id = md5(json_encode($rec));
+        $rec['occurrenceID'] = $occurrence_id;
+        //step 1: write occurrence
+        $o = new \eol_schema\Occurrence_specific();
+        $o->occurrenceID = $occurrence_id;
+        $o->taxonID = $rec['taxonID'];
+        if(!isset($this->occurrence_ids[$occurrence_id])) {
+            $this->archive_builder->write_object_to_file($o);
+            $this->occurrence_ids[$occurrence_id] = '';
+        }
+        //step 2: write mof
+        unset($rec['taxonID']);
+        unset($rec['scientificName']);
+        unset($rec['taxonKey']);
+        unset($rec['infer']);
+        unset($rec['exclude']);
+        // print_r($rec); exit("\nstop x 1\n");
+        $mof = new \eol_schema\MeasurementOrFact_specific();
+        $fields = array_keys($rec);
+        foreach($fields as $field) $mof->$field = $rec[$field];
+        if(!isset($mof->measurementID)) $mof->measurementID = Functions::generate_measurementID($mof, $this->resource_id);
+        $this->archive_builder->write_object_to_file($mof);
     }
     private function write_taxon_ext()
     {

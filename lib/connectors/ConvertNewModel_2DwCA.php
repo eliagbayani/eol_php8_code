@@ -172,7 +172,11 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             $t = new \eol_schema\Taxon();
             $fields = array_keys($rek);
             foreach($fields as $field) {
-                if($field == 'taxonKey') $t->EOLid = $rek[$field];
+                if($field == 'taxonKey') {
+                    if($val = $rek[$field]) {
+                        if(is_numeric($val)) $t->EOLid = $val;
+                    }
+                }
                 else $t->$field = $rek[$field];
             }
             // $t->scientificName = '';

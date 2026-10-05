@@ -59,12 +59,13 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         //step 1
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'taxon'))) exit("\nERROR: No taxon.tsv\n");
         else self::process_table($taxon_file, 'compile_taxon_info_from_taxon_file'); //1st source
-        //step 2
         if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
         else self::process_table($traits_file, 'compile_taxon_info_from_traits_file'); //2nd source
-        //step 3
+
+        //step 2
         self::write_taxon_ext(); //this will use the output of the 2 previous steps
-        //step 4
+
+        //step 3
         if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
         else self::process_table($traits_file, 'build_mof_and_occurrences_array');
 
@@ -110,13 +111,15 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                     [taxonID] => Remipedia
                     [scientificName] => Remipedia
                     [taxonKey] => 
-                )*/
-                $fields_2combine = array('scientificName', 'taxonKey');
+                    [infer] => TRUE
+                    [exclude] =>  
+                )*/ 
+                $fields_2combine = array('scientificName', 'taxonKey', 'infer', 'exclude');
                 $taxonID = $rec['taxonID'];
                 if($t = @$this->taxon[$taxonID]) { //let us combine values
                     foreach($fields_2combine as $field) {
                         if($rec[$field]) {
-                            if($t[$field] != $rec[$field]) {
+                            if(@$t[$field] != $rec[$field]) {
                                 $t[$field] = $rec[$field];
                                 $this->taxon[$taxonID] = $t;
                             }

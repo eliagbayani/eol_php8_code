@@ -131,7 +131,11 @@ class DarwinCoreExtensionBase
         $fields[] = array('name' => 'EOLid',            'namespace' => 'http://eol.org/schema',    'uri' => 'http://eol.org/schema/EOLid');
         $fields[] = array('name' => 'EOLidAnnotations', 'namespace' => 'http://eol.org/schema',    'uri' => 'http://eol.org/schema/EOLidAnnotations');
         $fields[] = array('name' => 'Landmark',         'namespace' => 'http://eol.org/schema',    'uri' => 'http://eol.org/schema/Landmark');
+
         $fields[] = array('name' => 'taxonMap',         'namespace' => 'http://eol.org/schema',    'uri' => 'http://eol.org/schema/taxonMap');
+        $fields[] = array('name' => 'infer',            'namespace' => 'http://eol.org/schema',    'uri' => 'http://eol.org/schema/infer');
+        $fields[] = array('name' => 'exclude',          'namespace' => 'http://eol.org/schema',    'uri' => 'http://eol.org/schema/exclude');
+
         foreach($fields as $f) {
             $property = array();
             $property['name']       = $f['name'];
@@ -210,7 +214,10 @@ class DarwinCoreExtensionBase
         $this->accepted_properties_by_name['EOLid'] = array('name' => 'EOLid', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/EOLid');
         $this->accepted_properties_by_name['EOLidAnnotations'] = array('name' => 'EOLidAnnotations', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/EOLidAnnotations');
         $this->accepted_properties_by_name['Landmark'] = array('name' => 'Landmark', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/Landmark');
+
         $this->accepted_properties_by_name['taxonMap'] = array('name' => 'taxonMap', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/taxonMap');
+        $this->accepted_properties_by_name['infer'] = array('name' => 'infer', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/infer');
+        $this->accepted_properties_by_name['exclude'] = array('name' => 'exclude', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/exclude');
         // */
 
         /* Not needed anymore, since a specific measurement_extension.xml is available for such resources

@@ -33,7 +33,7 @@ $p['expire_seconds'] = 60*60*12*1; //half day cache is ideal since Jenkins will 
 // /* worksheet: [mapped strings] : https://docs.google.com/spreadsheets/d/1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA/edit?gid=0#gid=0
 $p['google_sheet'] = $google_sheet;
 $p['spreadsheetID'] = '1sK-rGa1l1jQ7-ui5BXI3-44NVHS00E-ErsGyaGVficA';
-$p['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
+$p['expire_seconds'] = 0; //60*60*24*1; //1 day cache is ideal OK
 $p['range'] = 'mapped strings!A1:E1400'; //where "A" is the starting column, "E" is the ending column, and "1" is the starting row.
                                //-1288 as of 21Jul2026
 $p['fields'] = array('string', 'value', 'value uri', 'predicate', 'predicate uri');
@@ -43,7 +43,7 @@ $params['mapped_strings'] = $p;
 // /* worksheet: [new] : https://docs.google.com/spreadsheets/d/1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc/edit?gid=1648385244#gid=1648385244
 $p['google_sheet'] = $google_sheet;
 $p['spreadsheetID'] = '1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc';
-$p['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
+$p['expire_seconds'] = 0; //60*60*24*1; //1 day cache is ideal OK
 $p['range'] = 'new!A1:B5650'; //where "A" is the starting column, "B" is the ending column, and "1" is the starting row.
                     //-5593 as of 21Jul2026
 $p['fields'] = array('Index', 'higherClassification');
@@ -53,7 +53,7 @@ $params['AncestryIndex_new'] = $p;
 // /* worksheet: [compatibleAncestors] :
 $p['google_sheet'] = $google_sheet;
 $p['spreadsheetID'] = '1hImI6u9XXScSxKt7T6hYKoq1tAxj43znrusJA8XMNQc';
-$p['expire_seconds'] = 60*60*24*1; //1 day cache is ideal OK
+$p['expire_seconds'] = 0; //60*60*24*1; //1 day cache is ideal OK
 $p['range'] = 'compatibleAncestors!A1:B60'; //where "A" is the starting column, "B" is the ending column, and "1" is the starting row.
                                     //-55 as of 21Jul2026
 $p['fields'] = array('Index_1', 'Index_2');

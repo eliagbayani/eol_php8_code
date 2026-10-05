@@ -60,7 +60,7 @@ echo "\nRunning resource_id: [$resource_id]\n";
 
 if(!isset($param['resource_type'])) exit("\nERROR: resource_type not set.\n");
 
-$source_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1" -> source file
+$source_id = $resource_id; //e.g. "Brazilian_Flora-with-hC_neo4j_1" -> source file
 $dwca_file = DOC_ROOT . "/applications/content_server/resources/".$source_id.".tar.gz";
 $resource_id .= "_eolID"; //the DwCA with the new column eolID from DH -> target file
 $param['resource_id'] = $resource_id;

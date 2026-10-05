@@ -9,6 +9,7 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+- GenerateTB_FilesAPI.code-workspace
 
 10088_6943_ENV
 tar -czf 10088_6943_ENV.tar.gz 10088_6943_ENV/
@@ -24,10 +25,11 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 {
-    function __construct($archive_builder, $resource_id, $archive_path, $AncestryIndexVer = 'none')
+    function __construct($archive_builder, $resource_id, $archive_path, $params)
     {
+        $this->params = $params;
+        $this->AncestryIndexVer = 'new';
         $this->resource_id = $resource_id;
-        $this->AncestryIndexVer = $AncestryIndexVer; //exit("\nAncestryIndexVer: [".$AncestryIndexVer."]\n");
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
         // $this->paths['wikidata_hierarchy'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/master/wikidata/wikidataEOLidMappings.txt';
@@ -264,32 +266,66 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             if($what == 'match_canonical') { @$this->debug['total taxa']++;
                 if(!self::valid_taxonomicStatus($taxonomicStatus)) {self::write_2archive($rec); @$this->debug['excluded: invalid taxa']++; continue;} 
                 if(!$canonicalName)                                {self::write_2archive($rec); @$this->debug['excluded: no canonicalName']++; continue;} //trait taxon has no canonicalName
-                if(@$rec['EOLid']) {
-                    /* commented for: Body Length Data for North American Syrphidae & Tabanidae
-                                    : Fungi ecomorphological trait data
-                    self::write_2archive($rec);
-                    @$this->debug['excluded: already has EOLid']++; 
-                    continue;
-                    */
-                    // /* if above is commented, then this should be un-commented. Toggle with above.
-                    $rec['EOLid'] = '';
-                    // */
-                    /*
-                    To do: Check if EOLid exists, if not then set => $rec['EOLid'] = '';
-                    Until then, it is safer to set => $rec['EOLid'] = ''; ... than to accept the given EOLid from the DwCA which oftenly is not in sync with latest working DH.
-                    */
 
-                } //trait taxon already has EOLid
+                /*Array( $this->params
+                    [resource] => match_taxa_2DH
+                    [resource_type] => TB_dwca
+                )*/
+
+                /* old
+                $rec['EOLid'] = '';
+                */
+
+                if($this->params['resource_type'] == 'legacy_dwca') $rec['EOLid'] = '';
+                elseif($this->params['resource_type'] == 'TB_dwca') {
+                    $rec['taxonMap'] = @$rec['taxonMap'];
+                    if(@$rec['taxonMap'] == 'man') {
+                        if($val = trim(@$rec['EOLid'])) {
+                            if(is_numeric($val)) {
+                                $rec['taxonMap'] = 'man';
+                                self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;
+                            }
+                            else $rec['taxonMap'] = '';
+                        }
+                        else $rec['taxonMap'] = '';
+                    }
+                    if($val = trim(@$rec['EOLid'])) {
+                        if(is_numeric($val)) {
+                            $rec['taxonMap'] = 'man';
+                            self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;
+                        }
+                    }
+                    $rec['EOLid'] = '';
+                }
+                else exit("\nERROR: resource_type not set.\n");
+
 
                 // priorities:
                 // 1. if it can be tested with AncestryIndex then proceed to test and if it fails then stop there.
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...
 
                 if($reks = @$this->DH->DHCanonical_info[$canonicalName]) { @$this->debug['Has canonical match']++;
+                    $orig_reks = $reks; //for debug
                     if($this->debugNow) { echo "\n reks 1 => All "; print_r($reks); }
                     $reks = self::filter_reks_by_what($reks, 'accepted');
                     if($this->debugNow) { echo "\n reks 2 => Only accepted "; print_r($reks); }
-                    if(!$reks) {self::write_2archive($rec); @$this->debug['Has canonical match with DH but without eolID']++; continue;}
+
+                    $fromSynonyms = false;
+
+                    // /* NEW Eli's initiative only: many match canonicalNames only to synonyms, we handle it here: 28Sep2026 EEEEEEEE
+                    $synonymSaviorYN = false;
+                    if(!$reks) {
+                        if($reks = self::filter_reks_by_what($orig_reks, 'synonym')) {
+                            $synonymSaviorYN = true;
+                            $fromSynonyms = true;
+                        }
+                    }
+                    // EEEEEEEE */
+
+                    if(!$reks) { exit("\nERROR: It should not come here anymore...\n");
+                        // self::write_2archive($rec); @$this->debug['Has canonical match with DH but without eolID']++; continue;  //OBSOLETE
+                        self::write_2archive($rec); @$this->debug['Has canonical match with DH but to a synonym']++; continue;      //MOVING FORWARD
+                    }
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';
                     $ret = self::can_proceedYN_using_AncestryIndex($rec); //print_r($ret); exit("\nelix 1\n");
@@ -319,7 +355,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     // /* ----- NEW IMPLELENTATION ----- new detailed entire workflow
                     if($can_proceed_with_AIndex_check) {
                         if($ret = self::matching_routine_using_rank_v2($rec, $reks)) { //Step 3: Name matching - rank compatibility
-                            $fromSynonyms = false;
+                            
                             if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
                                 if($this->debugNow) {
                                     print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
@@ -336,9 +372,14 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 $rec = self::major_assignment($pair);
 
                                 // For reporting
-                                if($rec['EOLid']) {
-                                    if(isset($this->debug['With DH EOLid assignments (synonym)'][$taxonID])) {}
-                                    else $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
+                                if($rec['EOLid']) { $rec['taxonMap'] = 'auto';
+                                    if($synonymSaviorYN) {
+                                        $this->debug['With DH EOLid assignments (synonym)'][$taxonID] = $rec;                                        
+                                    }
+                                    else {
+                                        if(isset($this->debug['With DH EOLid assignments (synonym)'][$taxonID])) {}
+                                        else $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
+                                    }
                                 }
                                 else {
                                     echo "\nSo it goes here...\n";
@@ -524,11 +565,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 
         // print_r($rec); print_r($hCs); echo " -> hCs to check\n";
         foreach($hCs as $hc) {
-            // /* for latest TB, here is where I append the canonicalName to the end of the needle higherClassification to search:
-            $hc .= $rec['canonicalName']."|";
+            // /* for latest TB, here is where I append the canonicalName to the end of the needle higherClassification to search: change #1
+            $hc .= $rec['canonicalName']."|"; //e.g. "Basidiomycota|Agaricales|"
+            // exit("\n[$hc]\nstopx-1\n");
             // */
             if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc, 'E1')) { //2nd param is guide
-                // print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
                 /*Array(
                     [IndexGroup] => Angiosperms
                     [IndexHC] => Anacardiaceae|*
@@ -536,9 +577,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 )*/                
                 $remarkz  = "Trait: [ IndexGroup:[".$ret['IndexGroup']."] - IndexHC:[".$ret['IndexHC']."] ]";
                 $rec['taxonRemarks'] = $remarkz;
+                // print_r($rec); print_r($ret); exit("\ninvestigate muna\n"); //good debug
                 return $rec;
             }
         }
+        // print_r($rec); exit("\ncheck first...\n");
         // $rec['taxonRemarks'] = "Cannot be assigned an index group."; //not needed, will be overwritten
         return $rec;
     }
@@ -576,8 +619,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     }
     private function search_hc_string_from_AI($hc_str) //the regex implementation
     {   $hc_str = trim($hc_str);
-        if($this->AncestryIndexVer == 'old') exit("\nDoes not go here anymore.\n");
-        elseif($this->AncestryIndexVer == 'new') { //using regex index
+        if($this->AncestryIndexVer == 'new') { //using regex index
             // /* using the regex index:
             @$this->debug['call ancestry index']['new index']++;
             if($this->run_debug4_YN) $this->debug4[$this->AncestryIndexVer.' - index ATTEMPTS'][$hc_str] = '';
@@ -674,37 +716,56 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             /* debug only - force-assignment
             $index_values = array('Mollusca', 'Crustacea');
             */
+            /*Array(
+                [0] => Array(
+                        [IndexGroup] => Fungi
+                        [IndexHC] => .*?\|Fungi\|.*?
+                        [lastItem_in_IndexHC] => Fungi
+                    )
+                [1] => Array(
+                        [IndexGroup] => Protists
+                        [IndexHC] => .*?\|Myxomycota\|.*?
+                        [lastItem_in_IndexHC] => Myxomycota
+                    )
+            )*/
+            // print_r($final); print_r($index_values); //exit("\nstopx 3\n");
+
             $index_values_str = implode("; ", $index_values);                    
             if(self::are_the_IndexValues_compatible($index_values, $final)) { //2nd param $final is just for debug //print_r($final);
                 $this->debug['compatible_multimatches_v2'][$pipe_hc_str."\t".$index_values_str] = "report";
-                $pipe_hc_array = explode("|", $pipe_hc_str); //print_r($pipe_hc_array);
-                $i = -1;
-                foreach($final as $a) { $i++;
-                    $lastItem = $a['lastItem_in_IndexHC'];
-                    $pos = array_search($lastItem, $pipe_hc_array);
-                    $final[$i]['posOfLastItem'] = $pos;
-                }
-                if($ret = self::get_inner_array_with_greatest_posOfLastItem($final)) {
-                    /* good debug
-                    echo "\n --this is the inner array: "; print_r($ret);
-                    if($index_values == array('Fungi', 'Fungi')) exit("\n--stop and check results--\n");
-                    if($pipe_hc_str == '|Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|') {
-                        print_r($index_values); exit("\n--stop and check results--\n");
-                    }*/
-                    /*Array(
-                        [IndexGroup] => Odonata
-                        [IndexHC] => .*?\|Odonata\|.*?
-                        [lastItem_in_IndexHC] => Odonata
-                        [posOfLastItem] => 5
-                    )*/
-                    return $ret;
-                }
             }
             else { //not compatible index values
                     $this->debug['incompatible_multimatches_v2'][$pipe_hc_str."\t".$index_values_str] = "report";
                     // echo "\nincompatible_multimatches_v2: "; print_r($this->debug['incompatible_multimatches_v2']); exit("\nstop muna: Incompatible multimatches\n");
-                    return false;
+                    // return false; -- this should now be commented so it continues below
             }
+
+            // /* ------------------------ this block now still continues even if the multi match ancestrs are incompatible
+            $pipe_hc_array = explode("|", $pipe_hc_str); //print_r($pipe_hc_array);
+            $i = -1;
+            foreach($final as $a) { $i++;
+                $lastItem = $a['lastItem_in_IndexHC'];
+                $pos = array_search($lastItem, $pipe_hc_array);
+                $final[$i]['posOfLastItem'] = $pos;
+            }
+            if($ret = self::get_rightmost_match_rule($final)) {
+                /* good debug
+                echo "\n --this is the inner array: "; print_r($ret);
+                if($index_values == array('Fungi', 'Fungi')) exit("\n--stop and check results--\n");
+                if($pipe_hc_str == '|Life|Cellular Organisms|Eukaryota|Archaeplastida|Chloroplastida|Streptophyta|Embryophytes|Tracheophyta|Spermatophytes|Angiosperms|Eudicots|Superrosids|Rosids|Sapindales|Rutaceae|') {
+                    print_r($index_values); exit("\n--stop and check results--\n");
+                }*/
+                /*Array(
+                    [IndexGroup] => Odonata
+                    [IndexHC] => .*?\|Odonata\|.*?
+                    [lastItem_in_IndexHC] => Odonata
+                    [posOfLastItem] => 5
+                )*/
+                return $ret;
+            }
+            else exit("\nIncompatible multimatches and failed on rightmost-match-rule. Investigate if it goes here, or ask Katja.\n");
+            // ------------------------ */            
+
         }
         // exit("\nbeing developed...\n");
     }
@@ -840,7 +901,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     }
     private function write_2archive($rec)
     {
-        // print_r($rec);
         if($this->run_debug2_YN) {
             if($val = @$rec['EOLid']) {
                 $this->debug2['total EOLids'][$val] = '';
@@ -854,9 +914,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         foreach ($uris as $uri) {
             $field = self::get_field_from_uri($uri);
             $o->$field = $rec[$uri];
-            // echo "[$field] ";
         }
-        // exit("\nstop muna x\n");
         $this->archive_builder->write_object_to_file($o);
     }    
     private function retrieve_ancestry_index($file_2use)

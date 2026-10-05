@@ -14,7 +14,9 @@ class DwCA_MatchTaxa2DH_Functions
     function __construct() {}
     function get_compatibleAncestors()
     {
-        if($local = Functions::save_remote_file_to_local($this->compatibleAncestors_file, $this->download_options)) {
+        $options = $this->download_options;
+        $options['expire_seconds'] = 60*60; //60*60*24*1; //1 day
+        if($local = Functions::save_remote_file_to_local($this->compatibleAncestors_file, $options)) {
             $i = 0;
             foreach(new FileIterator($local) as $line_number => $line) {
                 $line = trim($line); $i++; 
@@ -32,7 +34,7 @@ class DwCA_MatchTaxa2DH_Functions
     }
     // function have_compatibleAncestors($indexGroup1, $indexGroup2) //not used anymore...
     function are_the_IndexValues_compatible($index_values, $final = array()) //2nd param $final is just for debug
-    {   
+    {   //return true;
         $index_values = array_unique($index_values); //make unique
         $index_values = array_values($index_values); //reindex key
         if(count($index_values) == 1) return true;
@@ -43,6 +45,12 @@ class DwCA_MatchTaxa2DH_Functions
                 [Animals; Annelida] => 
                 [Annelida; Animals] => */
             $needle = "$indexGroup1; $indexGroup2";
+
+            /* debug only
+            if(self::compatibleAncestorsYN($needle)) exit("\ncompatible ok\n");
+            return exit("\n-incompatible bad-\n");
+            */
+
             if(self::compatibleAncestorsYN($needle)) return true;
             return false;
             // if(isset($this->compatibleAncestors[$needle])) return true;
@@ -91,7 +99,7 @@ class DwCA_MatchTaxa2DH_Functions
         $lastItem = end($arr);
         return str_replace(array("|", ")", "?", "\\"), "", $lastItem);
     }
-    function get_inner_array_with_greatest_posOfLastItem($nestedArray)
+    function get_rightmost_match_rule($nestedArray)
     {   /* Given this nexted array:
         Array(
             [0] => Array(
@@ -130,7 +138,13 @@ class DwCA_MatchTaxa2DH_Functions
         $With_EOLid_but_not_matched = count(@$this->debug['With EOLid but not matched'] ?? array());
         $matches_made_without_ancestry_info = count(@$this->debug['Matches made without_OR_lacking ancestry info'] ?? array());
         $matched_thru_a_synonym = count(@$this->debug['With DH EOLid assignments (synonym)'] ?? array()); //'Matched thru a synonym'
-        $has_canonical_match_with_DH_without_eolID = @$this->debug['Has canonical match with DH but without eolID'];
+        
+        // $has_canonical_match_with_DH_without_eolID = @$this->debug['Has canonical match with DH but without eolID']; //obsolete
+        $has_canonical_match_with_DH_to_a_synonym = @$this->debug['Has canonical match with DH but to a synonym'];
+
+        $Failed_syn_assignment = @$this->debug['Failed syn assignment'];
+        $Total_syn_assignment = @$this->debug['Total syn assignment'];
+
 
         echo "\n\n----------STATS----------[".date('D Y-m-d h:i:s A')."]";
         echo "\nA. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
@@ -138,9 +152,14 @@ class DwCA_MatchTaxa2DH_Functions
         echo "\n -> B1. With DH EOLid assignments (accepted name): [" . number_format($With_eolID_assignments) . "]";
         echo "\n -> B2. With DH EOLid assignments (synonym): [" . number_format($matched_thru_a_synonym) . "]";
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
-        echo "\n -> B4. Has canonical match with DH but without eolID: [" . self::number_format_eli($has_canonical_match_with_DH_without_eolID) . "]";
+        
+        // echo "\n -> B4. Has canonical match with DH but without eolID: [" . self::number_format_eli($has_canonical_match_with_DH_without_eolID) . "]";
+        echo "\n -> B4. Has canonical match with DH but to a synonym: [" . self::number_format_eli($has_canonical_match_with_DH_to_a_synonym) . "]";
+
+        echo "\n -> --- Failed syn assignment: [" . self::number_format_eli($Failed_syn_assignment) . "]";
+        echo "\n -> --- Total syn assignment: [" . self::number_format_eli($Total_syn_assignment) . "]";
         echo "\n -> B5. Successful synonym match but accepted taxon does not have eolID: [" . number_format($Successful_syn_but_accepted_taxon_no_eolID) . "]";
-        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_without_eolID + $Successful_syn_but_accepted_taxon_no_eolID; // + $With_EOLid_but_not_matched;
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_to_a_synonym + $Successful_syn_but_accepted_taxon_no_eolID; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> Total = [".number_format($sum)."]";
         if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
@@ -176,7 +195,7 @@ class DwCA_MatchTaxa2DH_Functions
         echo "\nBreakdown:";
         echo "\n -> excluded: invalid taxa: "       . number_format(@$this->debug['excluded: invalid taxa'] ?? 0);
         echo "\n -> excluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
-        echo "\n -> excluded: already has EOLid: "  . self::number_format_eli(@$this->debug['excluded: already has EOLid']);
+        echo "\n -> excluded: already has EOLid: "  . self::number_format_eli(@$this->debug['excluded: already has EOLid']) . " - (taxonMap = 'man')";
         echo "\n -> A. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
         echo "\n -> B. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         $sum = @$this->debug['excluded: invalid taxa'] + @$this->debug['excluded: no canonicalName'] + @$this->debug['excluded: already has EOLid']
@@ -534,6 +553,13 @@ class DwCA_MatchTaxa2DH_Functions
                 [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
             )*/
             $rek_h = $rek['h'] ? $rek['h'] : @$rek['h2'];
+
+            // /* implement change #1
+            $rek_h .= "|" . $rek['c'] . "|"; //e.g. "Eukaryota|Fungi|Basidiomycota|Agaricomycetes|Agaricales|"
+            // exit("\n[$rek_h]\nstopx-2\n");
+            // */
+
+
             // $rek_h = 'Chromista|Radiozoa'; //force-assigned; during dev only
             if($this->debugNow) {
                 if(@$rek['h2']) echo "\nThere is h2, rek_h to use: [$rek_h]";
@@ -541,7 +567,7 @@ class DwCA_MatchTaxa2DH_Functions
             // ---------- */
 
             if($arr = $this->search_hc_string_from_AncestryIndex_regex($rek_h)) { // get AI for $rek['h']
-                if($fromSynonymsYN) echo "\n Success: search_hc_string_from_AncestryIndex_regex()";
+                // if($fromSynonymsYN) echo "\n Success: search_hc_string_from_AncestryIndex_regex()"; //good debug
                 /*Array(
                     [IndexGroup] => Fungi
                     [IndexHC] => .*?\|Basidiomycota\|.*?
@@ -616,6 +642,7 @@ class DwCA_MatchTaxa2DH_Functions
     private function fill_in_accepted_data_for_this_syn($rek)
     {   
         if($this->debugNow) { echo "\n --->Starting syn rek: "; print_r($rek); }
+        @$this->debug['Total syn assignment']++;
         /*Array(
             [r] => genus
             [e] => 
@@ -625,17 +652,18 @@ class DwCA_MatchTaxa2DH_Functions
             [s] => n
         )*/
         $syn_id = $rek['t'];
-        echo "\nThis is the synonym ID: [$syn_id]";
+        $localDebug = false;
+        if($localDebug) echo "\nThis is the synonym ID: [$syn_id]";
         if($acceptedNameUsageID = $this->DH->DH_synonyms[$syn_id]) {
-            echo "\nThis is the acceptedNameUsageID: [$acceptedNameUsageID]";
+            if($localDebug) echo "\nThis is the acceptedNameUsageID: [$acceptedNameUsageID]";
             if($accepted_rec = $this->DH->DH[$acceptedNameUsageID]) {
-                echo "\nThis is the accepted record: "; print_r($accepted_rec);
+                if($localDebug) { echo "\nThis is the accepted record: "; print_r($accepted_rec); }
                 /*Array(
                     [c] => Harmogenanina
                     [r] => genus
                 )*/
                 if($new_rek = $this->DH->DHCanonical_info[$accepted_rec['c']][$acceptedNameUsageID]) {
-                    echo "This is a more complete accepted record: "; print_r($new_rek);
+                    if($localDebug) { echo "This is a more complete accepted record: "; print_r($new_rek); }
                     /*Array(
                         [r] => genus
                         [e] => 48886174
@@ -644,10 +672,12 @@ class DwCA_MatchTaxa2DH_Functions
                         [t] => EOL-000000768620
                         [s] => a
                     )*/
-                    /* Now let us to the assignment */
+                    // /* Now let us do the assignment
                     $rek['c2'] = $new_rek['c']; //canonicalName
-                    $rek['e2'] = $new_rek['e']; //EOLid
+                    // $rek['e2'] = $new_rek['e'];  //EOLid                     //old - obsolete
+                    $rek['e2'] = $syn_id;           //taxonID of the synonym    //new 27Sep2026 change #2 from here: https://github.com/EOL/ContentImport/issues/51#issue-5587248651
                     $rek['h2'] = $new_rek['h']; //higherClassification
+                    // */
                 }
                 else exit("\nERROR: There should be new_rek\n");
             }
@@ -666,6 +696,7 @@ class DwCA_MatchTaxa2DH_Functions
             [e2] => 46988866
             [h2] => Life|Cellular Organisms|Eukaryota|Opisthokonta|Metazoa|Bilateria|Protostomia|Spiralia|Mollusca|Gastropoda|Heterobranchia|Euthyneura|Tectipleura|Eupulmonata|Stylommatophora|Achatinina|Achatinoidea|Achatinidae|Petriolinae
         )*/
+        if(@$rek['e2']) @$this->debug['Failed syn assignment']++;
         return $rek;
     }
     function name_matching_through_synonyms($rec) //Step 5: Name matching through synonyms
@@ -678,7 +709,7 @@ class DwCA_MatchTaxa2DH_Functions
 
         // 1. Check if any of the canonicals that remain unmatched after Step 4 can be matched to canonical name strings of DH synonyms (taxonomic status = "not accepted").
         if($synonym_reks = self::get_synonym_reks_from_DH_for_this_canonical($rec['canonicalName'])) {
-            echo " -- OK synonym_reks exist (syn run)\n";
+            // echo " -- OK synonym_reks exist (syn run)\n"; //good debug
             if($this->debugNow) { print_r($synonym_reks); }
             /*Array(
                 [0] => Array(
@@ -692,7 +723,7 @@ class DwCA_MatchTaxa2DH_Functions
             )*/
             // 2. For each matched pair, check for rank compatibility as above
             if($ret = self::matching_routine_using_rank_v2($rec, $synonym_reks)) { //Step 3: Name matching - rank compatibility
-                echo " -- OK rank compatible (syn run)\n";
+                // echo " -- OK rank compatible (syn run)\n"; //good debug
                 if($this->debugNow) { print_r($ret); }
                 /*Array(
                     [0] => Array(
@@ -733,9 +764,9 @@ class DwCA_MatchTaxa2DH_Functions
                 // 3. For each pair that passed the rank compatibility check, check for ancestry compatibility as above, using the ancestry string of the synonym's accepted name.
                 $fromSynonyms = true;
                 if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
-                    echo " -- OK ancestry compatible (syn run)\n";
+                    // echo " -- OK ancestry compatible (syn run)\n"; //good debug
                     if($this->debugNow) print_r($ret2);
-                    echo("\nSYNONYMS: Reached this point.\n");
+                    // echo("\nSYNONYMS: Reached this point.\n"); //good debug
                     /*Array(
                         [0] => Array(
                                 [0] => Array(
@@ -874,12 +905,26 @@ class DwCA_MatchTaxa2DH_Functions
             if($rek['s'] == $sought) {
                 if($tax_status == 'accepted') {
                     if($rek['e']) $final[] = $rek;  //Eli's initiative: exclude reks with blank eolID's
+                    else {
+                        echo "\n-=-=-=-=-=-=-\n"; print_r($reks); 
+                        exit("\nERROR: should not go here anymore. [$tax_status]\n");
+                    }
                 }
                 elseif($tax_status == 'synonym') {
                     $final[] = $rek;
                 }
             }
         }
+        // /* Just a check why at this point $final is null.
+        if(!$final) {
+            foreach($reks as $rek) {
+                if($rek['s'] == $sought) {
+                    echo "\n-=-=-=-=-=-=-\n"; print_r($reks);
+                    exit("\ninvestigate muna, why went here [$tax_status]\n");
+                }
+            }
+        }
+        // */
         return $final;
     }
     private function parse_AI_from_str($str) //e.g. $str "Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Rutaceae\|.*?] ]"

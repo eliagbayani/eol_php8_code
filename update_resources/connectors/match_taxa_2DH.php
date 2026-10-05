@@ -4,9 +4,11 @@ namespace php_active_record;
 https://github.com/EOL/ContentImport/issues/33
 
 clients: for neo4j trait resources
-php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "Brazilian_Flora"}'
-php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "globi_assoc"}'
-php update_resources/connectors/match_taxa_2DH.php _ '{"resource_id": "WoRMS2EoL"}'
+php match_taxa_2DH.php _ '{"resource_id": "Brazilian_Flora"                             ,"resource_type": "legacy_dwca"}'
+php match_taxa_2DH.php _ '{"resource_id": "globi_assoc"                                 ,"resource_type": "legacy_dwca"}'
+php match_taxa_2DH.php _ '{"resource_id": "WoRMS2EoL"                                   ,"resource_type": "legacy_dwca"}'
+php match_taxa_2DH.php _ '{"resource_id": "23067562_Bioc_and_Natu_Prod-with-hC_neo4j_1" ,"resource_type": "TB_dwca"}'
+
 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
@@ -55,24 +57,22 @@ $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
 echo "\nRunning resource_id: [$resource_id]\n";
-// $AncestryIndexVer = $param['AncestryIndexVer'];
-$AncestryIndexVer = 'new';
 
-$tmp_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1"
-// $tmp_id .= "_neo4j_1"; //OBSOLETE line, "_neo4j_1" is now included in the resource_id passed.
+if(!isset($param['resource_type'])) exit("\nERROR: resource_type not set.\n");
 
-$dwca_file = DOC_ROOT . "/applications/content_server/resources/".$tmp_id.".tar.gz"; //during dev only
+$source_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1" -> source file
+$dwca_file = DOC_ROOT . "/applications/content_server/resources/".$source_id.".tar.gz";
+$resource_id .= "_eolID"; //the DwCA with the new column eolID from DH -> target file
+$param['resource_id'] = $resource_id;
 
-// $resource_id .= "_neo4j_2"; //the DwCA with the new column eolID from DH --- OBSOLETE
-$resource_id .= "_eolID"; //the DwCA with the new column eolID from DH
+process_resource_url($dwca_file, $param, $timestart);
 
-process_resource_url($dwca_file, $resource_id, $AncestryIndexVer, $timestart);
-
-function process_resource_url($dwca_file, $resource_id, $AncestryIndexVer, $timestart)
+function process_resource_url($dwca_file, $param, $timestart)
 {
+    $resource_id = $param['resource_id'];
     require_library('connectors/DwCA_Utility');
     $params['resource'] = "match_taxa_2DH";
-    $params['AncestryIndexVer'] = $AncestryIndexVer;
+    $params['resource_type'] = $param['resource_type'];
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
     $preferred_rowtypes = array("http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 

@@ -346,6 +346,10 @@ class DwCA_Utility_cmd
             case "dN":  return "datasetName"; break;
             // PaleoBiology Database
             case "nAT":  return "nameAccordingTo"; break;
+            // TraitBank from Zenodo
+            case "inf":  return "infer"; break;
+            case "exc":  return "exclude"; break;
+
             default: return $field;
             // default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n"); //don't use this
         }

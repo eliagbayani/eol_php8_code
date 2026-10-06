@@ -115,7 +115,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
 
         // /* occurrences
         $occur_info = array();
-        if($occurrenceIDs = $this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
+        if($occurrenceIDs = @$this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
             foreach($occurrenceIDs as $occurrenceID) {
                 $occur_json = self::retrieve_data($occurrenceID, 'occurrence');
                 $occur_info[$occurrenceID] = json_decode($occur_json, true);
@@ -124,7 +124,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         // */
         // /* mof
         $mof_info = array();
-        if($occurrenceIDs = $this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
+        if($occurrenceIDs = @$this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
             foreach($occurrenceIDs as $occurrenceID) {
                 if($mof_json = self::retrieve_data($occurrenceID, 'mof')) $mof_info[] = json_decode($mof_json, true);
             }

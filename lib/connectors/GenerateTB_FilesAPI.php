@@ -149,15 +149,22 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         self::write_Occurrence_input_file($arr['occurrences']);
     }
     private function buildup_taxon($rec)
-    {   /*Array(
-            [taxonID] => 47138010
-            [scientificName] => Plumeria rubra L
-            [higherClassification] => Plumeria|
-            [genus] => Plumeria
-            [taxonRank] => species
-            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Plumeria\|.*?] ] || source_taxonID: [d6b158fbfeaa7914ce528b3c4df341a7]
-            [canonicalName] => Plumeria rubra
-            [EOLid] => 47138010
+    {   /*Array( 23067562_Bioc_and_Natu_Prod
+        [taxonID] => 484975
+        [scientificName] => Ilex paraguariensis
+        [higherClassification] => Archaeplastida|Aquifoliaceae|Ilex|
+        [kingdom] => Archaeplastida
+        [phylum] => 
+        [class] => 
+        [family] => Aquifoliaceae
+        [genus] => Ilex
+        [taxonRank] => species
+        [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Aquifoliaceae\|.*?] ] || source_taxonID: [Ilex paraguariensis]
+        [canonicalName] => Ilex paraguariensis
+        [EOLid] => 484975
+        [taxonMap] => auto
+        [infer] => 
+        [exclude] => 
         )*/
         $taxonID = $rec['taxonID'];
         $arr = array();
@@ -168,6 +175,9 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     {   /*Array(
             [occurrenceID] => 0602fb1aabecdfa65eb898018a7fef2e_10088_6943_ENV
             [taxonID] => 47138010
+        )Array( 23067562_Bioc_and_Natu_Prod
+            [occurrenceID] => bc20e2056e6f09966034c436d65c5589
+            [taxonID] => 1495
         )*/
         $taxonID = $rec['taxonID'];
         $occurrenceID = $rec['occurrenceID'];
@@ -186,7 +196,16 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             [measurementRemarks] => source text: "but erroneously reported from _Polynesia_ has narrow 0.5–1.5 cm"
             [source] => http://dx.doi.org/10.5479/si.0081024X.17
             [bibliographicCitation] => Grant, Martin Lawrence, Fosberg, F. Raymond, and Smith, Howard M. 1974. "Partial Flora of the Society Islands: Ericaceae to Apocynaceae." Smithsonian Contributions to Botany. 1-85. https://doi.org/10.5479/si.0081024X.17
-        )*/
+        )Array( 23067562_Bioc_and_Natu_Prod
+            [measurementID] => toxins1
+            [occurrenceID] => bc20e2056e6f09966034c436d65c5589
+            [measurementType] => https://www.wikidata.org/entity/Q3386847
+            [measurementValue] => http://purl.obolibrary.org/obo/OMIT_0027854
+            [measurementUnit] => 
+            [measurementRemarks] => 
+            [source] => https://doi.org/10.1093/molbev/mst199
+            [referenceID] => 
+        */
         $occurrenceID = $rec['occurrenceID'];
         $arr = array();
         $arr = json_encode($rec);
@@ -197,9 +216,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $json = json_encode($arr);
         $destination = $this->TB_folder . "/$this->resource_id/temp/$extension/"; 
         $path = self::generate_path_then_create($id, $destination);
-        $destination .= "$path/$id.json";
-        // exit("\n[$destination]\n");
-
+        $destination .= "$path/$id.json"; // exit("\n[$destination]\n");
         if(!($f = Functions::file_open($destination, "w"))) exit("\nERROR: cannot write to [$destination]\n");
         fwrite($f, $json);
         fclose($f);
@@ -208,9 +225,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     {
         $source = $this->TB_folder . "/$this->resource_id/temp/$extension/";
         $path = self::generate_path_then_create($id, $source);
-        $source .= "$path/$id.json";
-        exit("\n[$source]\n");
-
+        $source .= "$path/$id.json"; // exit("\n[$source]\n");
         if(file_exists($source)) {
             $json = file_get_contents($source);
             $arr = json_decode($json, true);

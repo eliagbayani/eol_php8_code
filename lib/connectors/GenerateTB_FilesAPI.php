@@ -195,14 +195,22 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     private function save2json($id, $arr, $extension)
     {
         $json = json_encode($arr);
-        $destination = $this->TB_folder . "/$this->resource_id/temp/$extension/$id.json"; 
+        $destination = $this->TB_folder . "/$this->resource_id/temp/$extension/"; 
+        $path = self::generate_path_then_create($id, $destination);
+        $destination .= "$path/$id.json";
+        // exit("\n[$destination]\n");
+
         if(!($f = Functions::file_open($destination, "w"))) exit("\nERROR: cannot write to [$destination]\n");
         fwrite($f, $json);
         fclose($f);
     }
     private function retrieve_data($id, $extension)
     {
-        $source = $this->TB_folder . "/$this->resource_id/temp/$extension/$id.json";
+        $source = $this->TB_folder . "/$this->resource_id/temp/$extension/";
+        $path = self::generate_path_then_create($id, $source);
+        $source .= "$path/$id.json";
+        exit("\n[$source]\n");
+
         if(file_exists($source)) {
             $json = file_get_contents($source);
             $arr = json_decode($json, true);
@@ -211,5 +219,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         else {
             // echo "\nxxxxxxxxxx\n"; exit("\ninvestigate 2 [$id] [$extension]\n");
         }
+    }
+    private function generate_path_then_create($id, $path)
+    {
+        $length = 2; //given 4 returns 04
+        $str = str_pad($id, $length, "0", STR_PAD_LEFT);
+        $subfolder = substr($str,0,2);
+        $dir = "$path/$subfolder";
+        if(!is_dir($dir)) mkdir($dir);
+        return "".$subfolder."";
     }
 }

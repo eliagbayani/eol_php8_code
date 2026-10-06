@@ -381,6 +381,40 @@ class ZenodoTraitBankAPI
         fclose($fh);
         return $output;
     }
+    function list_files_row_counts($concept_id)
+    {   // e.g. 23067562 -> lists files and row counts (excluding header line) in:
+        //   TB_files/23067562_Bioc_and_Natu_Prod/input_files/
+        //   TB_files/23067562_Bioc_and_Natu_Prod_TraitBank_1_0/input_files/   (only folders that exist)
+        // returns array('23067562_Bioc_and_Natu_Prod' => array('taxon.tsv' => 512, ...), ...) or false
+        if (!($title = $this->get_zenodo_title_using_conceptID($concept_id))) return false;
+        $base   = $concept_id . "_" . $this->abbreviate_title($title);
+        $tb_dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $output = array();
+        foreach (array($base, "{$base}_TraitBank_1_0") as $folder_name) {
+            $dir = $tb_dir . "$folder_name/input_files/";
+            if (!is_dir($dir)) {
+                echo "Folder not found, skipped [$folder_name/input_files/]\n";
+                continue;
+            }
+            echo "\n[$folder_name/input_files/]\n";
+            foreach (glob($dir . "*") as $file) { // glob skips hidden files e.g. .DS_Store
+                if (!is_file($file)) continue;
+                if (!($fh = @fopen($file, "r"))) {
+                    echo "Cannot open [$folder_name/input_files/" . basename($file) . "]\n";
+                    continue;
+                }
+                $rows = 0;
+                while (($line = fgets($fh)) !== false) {
+                    if (rtrim($line, "\r\n") !== '') $rows++; // blank lines not counted, same as get_records_from_input_file()
+                }
+                fclose($fh);
+                $rows = max(0, $rows - 1); // exclude header line
+                $output[$folder_name][basename($file)] = $rows;
+                echo "  " . str_pad(basename($file), 30) . number_format($rows) . "\n";
+            }
+        }
+        return $output;
+    }
     function small_field($uri)
     {
         $uri = str_replace("TaxonID", "taxonID", $uri);

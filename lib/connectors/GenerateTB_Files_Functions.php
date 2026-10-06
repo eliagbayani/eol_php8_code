@@ -157,5 +157,12 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
     {   //Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Asclepias\|.*?] ] || source_taxonID: [bb345e46c7900f99efefd82ecf42a8fd]
         if(preg_match("/source_taxonID\: \[(.*?)\]/ims", $taxonRemarks, $a)) return $a[1];
     }
+    function get_concept_id_from_resource_id($resource_id)
+    {   //resource_id e.g. "23067562_Bioc_and_Natu_Prod_TraitBank_1_0"
+        $arr = explode("_", $resource_id);
+        $concept_id = $arr[0];
+        if(is_numeric($concept_id)) return $concept_id;
+        return false;
+    }
 }
 ?>

@@ -45,6 +45,10 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         // step 2: do the data chain linkup
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup'); 
 
+        $concept_id = $this->get_concept_id_from_resource_id($this->resource_id);
+        $row_counts = $this->list_files_row_counts($concept_id);
+        print_r($row_counts);
+
         // $this->archive_builder->finalize(TRUE); //copied template
 
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->TB_folder);

@@ -3,7 +3,7 @@ namespace php_active_record;
 /* */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class GenerateTB_Files_Functions
+class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
 {
     public $compatibleAncestors_file = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/AncestryIndex_compatibleAncestors.tsv";
 
@@ -81,10 +81,8 @@ class GenerateTB_Files_Functions
     function write_Traits_input_file($taxon_main)
     {
         // print_r($taxon_main); //exit("\n[]\nsample chain x\n");
-
         $taxon_info = $taxon_main['taxon'];
         $occur_info = $taxon_main['occurrences']; // print_r($occur_info);
-
         /*Array(
             [taxonID] => 47138010
             [scientificName] => Plumeria rubra L

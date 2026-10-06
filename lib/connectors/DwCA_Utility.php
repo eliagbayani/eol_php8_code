@@ -646,6 +646,7 @@ class DwCA_Utility
         }
 
         if(@$this->params['resource'] == "generate_TB_files") {
+            require_library('connectors/ZenodoTraitBankAPI');
             require_library('connectors/GenerateTB_Files_Functions');
             require_library('connectors/GenerateTB_FilesAPI');
             $func = new GenerateTB_FilesAPI($this->archive_builder, $this->resource_id, $this->archive_path);

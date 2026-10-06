@@ -24,7 +24,11 @@ class GenerateTB_Files_Functions
         $save = array();
         $save['taxonID'] = $taxon_info['source_taxonID'];
         $save['taxonKey'] = $taxon_info['taxonID'];
-        $save['taxonMap'] = 'auto'; //or 'man' or manually
+        
+        $save['taxonMap'] = $taxon_info['taxonMap'];
+        $save['infer'] = $taxon_info['infer'];
+        $save['exclude'] = $taxon_info['exclude'];
+
         $save['canonicalName'] = $taxon_info['canonicalName'];
         $save['scientificName'] = $taxon_info['scientificName'];
         $save['parentNameUsageID'] = @$taxon_info['parentNameUsageID'];

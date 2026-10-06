@@ -98,12 +98,12 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
         // Step 1: generate Page node; PARENT edge
         // $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0]; OBSOLETE
-        if (!($taxon_file = $this->get_generic_file_path($concept_id, 'taxon'))) exit("\nERROR: No taxon.tsv\n");
+        if (!($taxon_file = $this->get_generic_file_path($concept_id, 'Taxon', true))) exit("\nERROR: No taxon.tsv\n"); //3rd param is processedYN; true means product on name-matching already.
         self::process_table($taxon_file, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
-        exit("\n-stop muna 3-\n");
 
 
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
+        exit("\n-stop muna 3-\n");
 
         // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -267,21 +267,29 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     [canonicalName] => Betula
                     [EOLid] => 44475
                 )
-                Array( new schema
-                    [taxonID] => Camellia sinensis
-                    [scientificName] => Camellia sinensis
-                    [taxonKey] => 
-                    [genus] => 
-                    [family] => 
-                    [class] => 
+                Array( new TB data model
+                    [taxonID] => Ilex paraguariensis
+                    [taxonKey] => 484975
+                    [taxonMap] => auto
+                    [infer] => 
+                    [exclude] => 
+                    [canonicalName] => Ilex paraguariensis
+                    [scientificName] => Ilex paraguariensis
+                    [parentNameUsageID] => 
+                    [higherClassification] => Archaeplastida|Aquifoliaceae|Ilex|
+                    [kingdom] => Archaeplastida
                     [phylum] => 
-                    [kingdom] => 
-                    [higherClassification] => Archaeplastida
+                    [class] => 
+                    [order] => 
+                    [family] => Aquifoliaceae
+                    [genus] => Ilex
+                    [species] => 
+                    [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Aquifoliaceae\|.*?] ] || source_taxonID: [Ilex paraguariensis]
+                    [source] => 
                 )*/
-                // print_r($rec); exit;
-                if($rec['taxonID'] == $rec['EOLid']) {
-                    if(is_numeric($rec['taxonID'])) {
-                        $this->taxon_info[$rec['taxonID']] = array('sN' => $rec['scientificName']);
+                if($val == $rec['taxonKey']) {
+                    if(is_numeric($val)) {
+                        $this->taxon_info[$val] = array('sN' => $rec['scientificName']);
                     }
                 }
             }
@@ -1057,14 +1065,40 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     {
         require_library('connectors/DHConnLib');
         $func = new DHConnLib();
-
-        // Page Node
+        /*Array( new TB data model
+            [taxonID] => Ilex paraguariensis
+            [taxonKey] => 484975
+            [taxonMap] => auto
+            [infer] => 
+            [exclude] => 
+            [canonicalName] => Ilex paraguariensis
+            [scientificName] => Ilex paraguariensis
+            [parentNameUsageID] => 
+            [higherClassification] => Archaeplastida|Aquifoliaceae|Ilex|
+            [kingdom] => Archaeplastida
+            [phylum] => 
+            [class] => 
+            [order] => 
+            [family] => Aquifoliaceae
+            [genus] => Ilex
+            [species] => 
+            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Aquifoliaceae\|.*?] ] || source_taxonID: [Ilex paraguariensis]
+            [source] => 
+        )*/
+        // Page Node -> Taxon Node
+        /* old schema
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
-        // fwrite($WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
         fwrite($WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //data type int worked OK
         $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
         $ret = $func->do_things_from_DH($param);
+        fclose($WRITE); */
+        // /* new TB data model
+        $WRITE = Functions::file_open($this->path.'/nodes/Taxon.csv', 'w');
+        fwrite($WRITE, "taxonID:ID(Taxon-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //data type int worked OK
+        $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
+        $ret = $func->do_things_from_DH($param);
         fclose($WRITE);
+        // */
 
         // start Parent Edge
         $WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');

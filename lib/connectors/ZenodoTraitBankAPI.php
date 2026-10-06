@@ -318,16 +318,16 @@ class ZenodoTraitBankAPI
         $abbrev = $this->abbreviate_title((string) $title);
         return $concept_id . ($abbrev !== '' ? "_$abbrev" : '');
     }
-    function get_generic_file_path($concept_id, $basename)
+    function get_generic_file_path($concept_id, $basename, $processedYN = false)
     {   // e.g. (23067562, 'traits') -> [CONTENT_RESOURCE_LOCAL_PATH]/TB_files/23067562_Bioc_and_Natu_Prod/input_files/traits.tsv
         // $basename: file name without extension, e.g. 'traits', 'taxon', 'occurrences' -- finds [basename].tsv or [basename].txt
         //            (extension varies per dataset: taxon.tsv vs taxon.txt); if both exist, .tsv is used
         //            a name with extension, e.g. 'occurrences.txt', is also accepted and matched exactly
         // folder name uses the current title (cached lookup), the same way do_zenodo_stuff() names it when extracting
         if (!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) return false;
-        $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);
+        $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);  //e.g. '23067562_Bioc_and_Natu_Prod'               -> raw files from Zenodo 
+        if($processedYN) $folder_name .= '_TraitBank_1_0';                          //e.g. '23067562_Bioc_and_Natu_Prod_TraitBank_1_0' -> prod of name-matching already
         $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/$folder_name/input_files/";
-
         if (is_file($dir . $basename)) return $dir . $basename; // exact name given, e.g. 'occurrences.txt'
         $found = array_values(array_filter(array("$basename.tsv", "$basename.txt"), fn($f) => is_file($dir . $f))); // .tsv first = preferred
         if (!$found) {

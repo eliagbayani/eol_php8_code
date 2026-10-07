@@ -797,7 +797,7 @@ class DHConnLib_TB
         }
         // ---------- end customize part ----------
         $txtfile = $this->main_path; //default value
-        echo "\nTask: $task...\n";
+        echo "\nTask: $task...[$txtfile]\n";
         $ret = array();
         $i = 0;
 
@@ -843,7 +843,7 @@ class DHConnLib_TB
                                 $unique_ids[$eolID] = '';
                                 $fieldz = array('eolID', 'canonicalName', 'taxonRank', 'taxonomicStatus');
                                 $csv = $func->format_csv_entry($rec, $fieldz);
-                                $csv .= 'Page'; //Labels are preferred to be singular nouns
+                                $csv .= 'Taxon'; //Labels are preferred to be singular nouns
                                 fwrite($fhandle, $csv."\n");                
                             }
                         }

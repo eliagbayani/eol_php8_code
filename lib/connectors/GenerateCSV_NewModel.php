@@ -287,7 +287,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Aquifoliaceae\|.*?] ] || source_taxonID: [Ilex paraguariensis]
                     [source] => 
                 )*/
-                if($val == $rec['taxonKey']) {
+                if($val = $rec['taxonKey']) {
                     if(is_numeric($val)) {
                         $this->taxon_info[$val] = array('sN' => $rec['scientificName']);
                     }
@@ -1064,7 +1064,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     private function prepare_PageNode_csv_from_DH()
     {
         require_library('connectors/DHConnLib');
-        $func = new DHConnLib();
+        $func = new DHConnLib_TB();
         /*Array( new TB data model
             [taxonID] => Ilex paraguariensis
             [taxonKey] => 484975

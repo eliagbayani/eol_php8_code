@@ -244,7 +244,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             // print_r($rec); exit;
             /*
             nodes/Page.csv
-            page_id:ID(Page-ID),canonical,rank,:LABEL
+            taxonID:ID(Page-ID),canonical,rank,:LABEL
             gadus_m,Gadus morhua,species,page
             chanos_c,Chanos chanos,species,page
             gadus,Gadus,genus,page
@@ -681,7 +681,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     }
     private function generate_PageNode_row($rec)
     {   /*  nodes/Page.csv
-            page_id:ID(Page-ID),canonical,rank,status,:LABEL
+            taxonID:ID(Page-ID),canonical,rank,status,:LABEL
             gadus_m,Gadus morhua,species,page
             chanos_c,Chanos chanos,species,page
             gadus,Gadus,genus,page
@@ -897,7 +897,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         }
     }
     private function generate_ParentEdge_row($rec)
-    {   /*  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
+    {   /*  taxonID:START_ID(Page-ID),taxonID:END_ID(Page-ID),:TYPE
             gadus_m,gadus,parent
             chanos_c,chanos,parent */
         $fields = array('taxonID', 'parentNameUsageID');
@@ -906,7 +906,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         fwrite($this->WRITE, $csv."\n");
     }
     private function generate_VernacularEdge_row($rec)
-    {   /*  page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+    {   /*  taxonID:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
             WoRMS    Array(
                         [vernacularName] => dieren
                         [source] => 
@@ -1049,15 +1049,15 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         //     [EOLid] => 44475
         // )
         // nodes/Page.csv
-        // page_id:ID(Page-ID),canonical,rank,:LABEL
+        // taxonID:ID(Page-ID),canonical,rank,:LABEL
         // gadus_m,Gadus morhua,species,page
         // chanos_c,Chanos chanos,species,page
         // gadus,Gadus,genus,page
         // chanos,Chanos,genus,page
         
         $this->WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
-        // fwrite($this->WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
-        fwrite($this->WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,:LABEL"."\n");
+        // fwrite($this->WRITE, "taxonID:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
+        fwrite($this->WRITE, "taxonID:ID(Page-ID){id-type:long},canonical,rank,:LABEL"."\n");
         self::process_table($meta, 'generate-PageNode-csv');
         fclose($this->WRITE);
     } */
@@ -1088,7 +1088,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         // Page Node -> Taxon Node
         /* old schema
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
-        fwrite($WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //data type int worked OK
+        fwrite($WRITE, "taxonID:ID(Page-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //data type int worked OK
         $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
         $ret = $func->do_things_from_DH($param);
         fclose($WRITE); */
@@ -1102,7 +1102,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
         // start Parent Edge
         $WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
-        fwrite($WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        fwrite($WRITE, "taxonID:START_ID(Page-ID),taxonID:END_ID(Page-ID),:TYPE"."\n");
         $param = array('task' => 'generate_ParentEdge_csv', 'fhandle' => $WRITE);
         $ret = $func->prepare_ParentEdge($param);
         fclose($WRITE);
@@ -1112,7 +1112,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     private function prepare_TRAIT_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/TRAIT.csv', 'w');
-        fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        fwrite($WRITE, "taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
         $param = array('task' => 'generate_TRAIT_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
@@ -1120,7 +1120,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     private function prepare_INFERRED_TRAIT_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/INFERRED_TRAIT.csv', 'w');
-        fwrite($WRITE, "page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        fwrite($WRITE, "taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
         $param = array('task' => 'generate_INFERRED_TRAIT_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
@@ -1168,7 +1168,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     private function prepare_OBJECT_PAGE_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/OBJECT_PAGE.csv', 'w');
-        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),taxonID:END_ID(Page-ID),:TYPE"."\n");
         $param = array('task' => 'generate_OBJECT_PAGE_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
@@ -1361,7 +1361,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     [:LABEL] => Trait
                 )*/
 
-                if($task == 'generate_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                if($task == 'generate_TRAIT_Edge_csv') { //taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
                     if($val = @$rec['remarks']) {
                         if(!self::trait_is_inferred_YN($val)) {
                             $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
@@ -1379,7 +1379,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     }
                     // */
                 }
-                elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //page_id:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
                     if($val = @$rec['remarks']) {
                         if(self::trait_is_inferred_YN($val)) {
                             $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
@@ -1758,12 +1758,12 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
             eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
         */
         if($writeHeaderYN) {
-            fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+            fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),taxonID:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
             $this->writtenHeaderAlreadyYN['Trait node'] = true;
         }
         else {
             if(!$this->writtenHeaderAlreadyYN['Trait node']) {
-                fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),page_id:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+                fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),taxonID:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
                 $this->writtenHeaderAlreadyYN['Trait node'] = true;
             }
         }
@@ -1786,10 +1786,10 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     }
     private function prepare_VernacularEdge_csv($meta)
     {   /*  personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
-            page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+            taxonID:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
         */
         $this->WRITE = Functions::file_open($this->path.'/edges/VERNACULAR.csv', 'w');
-        fwrite($this->WRITE, "page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
+        fwrite($this->WRITE, "taxonID:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
         if($meta) self::process_table($meta, 'generate-VernacularEdge-csv');
         fclose($this->WRITE);
     }
@@ -1983,7 +1983,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $remote = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/english_preferred_vernaculars_by_page.csv';
         if($csv_file = Functions::save_remote_file_to_local($remote, array("cache" => 1, 'expire_seconds' => 60*60*24*30))) { $i = 0;
             $WRITE = Functions::file_open($this->path.'/nodes/VernacularPageID.csv', 'w');
-            fwrite($WRITE, "page_id:long,vernacularName"."\n");
+            fwrite($WRITE, "taxonID:long,vernacularName"."\n");
             $file = Functions::file_open($csv_file, "r");
             while(!feof($file)) {
                 $row = fgetcsv($file);

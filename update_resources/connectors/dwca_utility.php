@@ -10,6 +10,8 @@ $ php dwca_utility.php jenkins '{"resource_id": "704", "task": "gen_hC_using_pID
 $ php dwca_utility.php _       '{"resource_id": "704", "task": "gen_hC_using_pID"}'      
 $ php dwca_utility.php _       '{"resource_id": "Brazilian_Flora_ancestry", "task": "gen_hC_using_ancestry"}'
 
+php dwca_utility.php _         '{"resource_id": "23067562_Bioc_and_Natu_Prod", "task": "gen_hC_using_ancestry", "resource_type": "TB_dwca"}'
+
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
 - DHConnLib_8.code-workspace
@@ -51,7 +53,7 @@ echo "\n[$resource_id] [$dwca_file] [".$task."]\n";
 // /* //main operation
 $func = new DwCA_Utility($resource_id, $dwca_file);
 if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) {
-    $ret = $func->convert_archive_by_adding_higherClassification($task);
+    $ret = $func->convert_archive_by_adding_higherClassification($params);
     if($ret) Functions::finalize_dwca_resource($resource_id, false, true);
 }
 else {

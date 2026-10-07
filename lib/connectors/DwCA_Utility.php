@@ -726,8 +726,10 @@ class DwCA_Utility
         // if($this->debug) print_r($this->debug); //to limit lines of output
     }
     
-    function convert_archive_by_adding_higherClassification($task) //called by dwca_utility.php
+    function convert_archive_by_adding_higherClassification($params) //called by dwca_utility.php
     {
+        $task = $params['task'];
+        $resource_type = @$params['resource_type'];
         $this->source_of_hc = $task; //exit("\ntask = [$task]\n"); //$task is either 'gen_hC_using_pID' or 'gen_hC_using_ancestry'
         require_library('connectors/RemoveHTMLTagsAPI');
         require_library('connectors/DwCA_Utility_cmd');
@@ -753,6 +755,30 @@ class DwCA_Utility
         $records = self::carry_over($meta, 'taxon', array('purpose' => 'return_shorten')); //purpose is either 'return' or 'write' or 'return_shorten' for shortened field names.
         echo "\nrecords total: ".count($records)."\n";
         // */
+
+        /*Array( -- by design these are shortened fields
+            [tID] => Camellia sinensis
+            [sN] => Camellia sinensis
+            [hC] => Archaeplastida
+            [aK] => 
+            [aP] => 
+            [aC] => 
+            [aF] => 
+            [aG] => 
+            [Ei] => 
+            [inf] => 
+            [exc] => 
+        )*/
+
+        // /* ---------- new 8Oct2026 - new TB data model
+        if($resource_type == 'TB_dwca') {
+            if(isset($records[0]['hC'])) {      //has higherClassification
+                recursive_rmdir($temp_dir); echo ("\n temporary directory removed: " . $temp_dir);
+                echo "\nNOTE: Dataset has higherClassification. Will not compute higherClassification anymore [$task].\n";
+                return false;
+            }
+        }
+        // ---------- */
 
         if(DwCA_Utility_cmd::can_compute_higherClassification($records[0], $task)) {
             echo "\n1 of 3*\n";

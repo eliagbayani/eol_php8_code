@@ -101,20 +101,22 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'Taxon', true))) exit("\nERROR: No taxon.tsv\n"); //3rd param is processedYN; true means product on name-matching already.
         self::process_table($taxon_file, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
 
-
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
-        exit("\n-stop muna 3-\n");
 
-        // /*
+        /* working but now removed for new tb data model
         // Step 2: generate Vernacular node; VERNACULAR edge
         $vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
         self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
         self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
         unset($vernacular_meta);
-        
+        */
+
+        // /*        
         // Step 3: generate Resource node
         if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
         // */
+        exit("\n-stop muna 4-\n");
+
 
         // Step 4: generate Trait node
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
@@ -1694,8 +1696,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                         [unique_downloads] => 0
                         [description] => Literature sources: http://doi.org/10.13140/RG.2.2.26444.72322https://doi.org/10.1073/pnas.1706756114https://doi.org/10.1038/srep29549https://doi.org/10.15560/10.5.1071https://static1.kew.org/data/grassbase/index.htmlhttps://posa.sanbi.org/http://dx.doi.org/10.15560/5.2.173https://doi.org/10.15560/11.4.1718ISBN:99916-68-06-3http://www.jstor.org/stable/23493222https://doi.org/10.1111/boj.12010
                     )*/
-                    // $repo_id = 'R'.$rec['repository_id']; //old
-                    $repo_id = 'R'.$rec['concept_id']; //new
+                    // $repo_id = 'R'.$rec['repository_id']; //old schema
+                    $repo_id = 'R'.$rec['concept_id']; //new tb data model
                     $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['title']);
                 }
             } //end main records
@@ -1754,7 +1756,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     {   /*  nodes/Resource.csv
             resource_id:ID(Resource-ID),name,:LABEL   */
         $this->WRITE = Functions::file_open($this->path.'/nodes/Resource.csv', 'w');
-        fwrite($this->WRITE, "resource_id:ID(Resource-ID),name,:LABEL"."\n");
+        // fwrite($this->WRITE, "resource_id:ID(Resource-ID),name,:LABEL"."\n");   //old schema
+        fwrite($this->WRITE, "resource_id:ID(Resource-ID),resource_name,associated_resource_links,:LABEL"."\n");   //new tb data model
         // $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         // $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
         foreach($this->EOL_resources as $eol_resource_id => $rec) {

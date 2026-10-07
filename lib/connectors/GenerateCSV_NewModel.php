@@ -365,7 +365,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
                         // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
                         if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
-                            $rec['page_id'] = $taxonID;
+                            $rec['taxonID'] = $taxonID;
                             $rec['scientific_name'] = $scientificName;
                             $rec['sex'] = $sex;
                             $rec['lifestage'] = $lifeStage;
@@ -689,7 +689,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         */
         $fields = array('taxonID', 'canonicalName', 'taxonRank', 'taxonomicStatus');
         $csv = self::format_csv_entry($rec, $fields);
-        $csv .= 'Page'; //Labels are preferred to be singular nouns
+        $csv .= 'Taxon'; //Labels are preferred to be singular nouns; this is formerly 'Page'
         fwrite($this->WRITE, $csv."\n");
     }
     private function generate_VernacularNode_row($rec)
@@ -767,7 +767,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         // contributor_uri	compiler_uri	determined_by_uri
         // print_r($rec);
         $s = array();
-        $s['page_id'] = $rec['page_id'];
+        $s['taxonID'] = $rec['taxonID'];
         $s['scientific_name'] = $rec['scientific_name'];
         
         if($val = @$rec['measurementID']) $s['resource_pk'] = $val;
@@ -1364,7 +1364,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                 if($task == 'generate_TRAIT_Edge_csv') { //taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
                     if($val = @$rec['remarks']) {
                         if(!self::trait_is_inferred_YN($val)) {
-                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $fieldz = array('taxonID', 'eol_pk:ID(Trait-ID)');
                             $csv = self::format_csv_entry($rec, $fieldz);
                             $csv .= 'TRAIT'; //relationships are designed to be in upper-case
                             fwrite($fhandle, $csv."\n");
@@ -1372,7 +1372,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     }
                     // /* New
                     else {
-                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $fieldz = array('taxonID', 'eol_pk:ID(Trait-ID)');
                             $csv = self::format_csv_entry($rec, $fieldz);
                             $csv .= 'TRAIT'; //relationships are designed to be in upper-case
                             fwrite($fhandle, $csv."\n");
@@ -1382,7 +1382,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                 elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
                     if($val = @$rec['remarks']) {
                         if(self::trait_is_inferred_YN($val)) {
-                            $fieldz = array('page_id', 'eol_pk:ID(Trait-ID)');
+                            $fieldz = array('taxonID', 'eol_pk:ID(Trait-ID)');
                             $csv = self::format_csv_entry($rec, $fieldz);
                             $csv .= 'INFERRED_TRAIT'; //relationships are designed to be in upper-case
                             fwrite($fhandle, $csv."\n");

@@ -102,9 +102,9 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'Taxon', true))) exit("\nERROR: No taxon.tsv\n"); //3rd param is processedYN; true means product on name-matching already.
         self::process_table($taxon_file, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
 
-        /* part of main operation
+        // /* part of main operation
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
-        */
+        // */
 
         /* working but now removed for new tb data model
         // Step 2: generate Vernacular node; VERNACULAR edge

@@ -1063,28 +1063,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     } */
     private function prepare_PageNode_csv_from_DH()
     {
-        require_library('connectors/DHConnLib');
+        require_library('connectors/DHConnLib_TB');
         $func = new DHConnLib_TB();
-        /*Array( new TB data model
-            [taxonID] => Ilex paraguariensis
-            [taxonKey] => 484975
-            [taxonMap] => auto
-            [infer] => 
-            [exclude] => 
-            [canonicalName] => Ilex paraguariensis
-            [scientificName] => Ilex paraguariensis
-            [parentNameUsageID] => 
-            [higherClassification] => Archaeplastida|Aquifoliaceae|Ilex|
-            [kingdom] => Archaeplastida
-            [phylum] => 
-            [class] => 
-            [order] => 
-            [family] => Aquifoliaceae
-            [genus] => Ilex
-            [species] => 
-            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Aquifoliaceae\|.*?] ] || source_taxonID: [Ilex paraguariensis]
-            [source] => 
-        )*/
         // Page Node -> Taxon Node
         /* old schema
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
@@ -1094,7 +1074,8 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         fclose($WRITE); */
         // /* new TB data model
         $WRITE = Functions::file_open($this->path.'/nodes/Taxon.csv', 'w');
-        fwrite($WRITE, "taxonID:ID(Taxon-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //data type int worked OK
+        // fwrite($WRITE, "taxonID:ID(Taxon-ID){id-type:long},canonical,rank,status,:LABEL"."\n"); //old schema
+        fwrite($WRITE, "taxonID:ID(Taxon-ID){id-type:long},scientificName,rank,status,:LABEL"."\n"); //new tb data model
         $param = array('task' => 'generate_PageNode_csv', 'fhandle' => $WRITE);
         $ret = $func->do_things_from_DH($param);
         fclose($WRITE);

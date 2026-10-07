@@ -820,13 +820,25 @@ class DHConnLib_TB
                 $k = 0;
                 $rec = array();
                 foreach ($fields as $fld) {
+                    $fld = $this->small_field($fld);
                     $rec[$fld] = @$row[$k];
                     $k++;
                 }
             }
             $rec = array_map('trim', $rec); //print_r($rec); exit("\nstopx\n");
+            /*Array( /resources//from_Zenodo/TraitBank_Reference_Hierarchy/tbHierarchyV091.tsv
+                [taxonID] => 7920
+                [acceptedNameUsageID] => 
+                [parentNameUsageID] => 
+                [scientificName] => Archaea Woese et al., 2024
+                [canonicalName] => Archaea
+                [scientificNameAuthorship] => Woese et al., 2024
+                [taxonRank] => domain
+                [taxonomicStatus] => accepted
+                [source] => https://www.catalogueoflife.org/data/taxon/CRLT8
+                [higherClassification] => 
+            )*/
             $rec['eolID'] = $rec['taxonID']; //new
-
             if($task == 'generate_PageNode_csv') {
                 /*  nodes/Page.csv
                     page_id:ID(Page-ID),canonical,rank,status,:LABEL
@@ -834,6 +846,9 @@ class DHConnLib_TB
                     02,Chanos chanos,species,page
                     100,Gadus,genus,page
                     101,Chanos,genus,page
+
+                    //new tb data model - Eli removed scientificNameID as it it questionable?
+                    fwrite($WRITE, "taxonID:ID(Taxon-ID){id-type:long},scientificName,rank,status,:LABEL"."\n"); //new tb data model
                 */
                 if($rec['taxonomicStatus'] == 'accepted') {
                     $rec['eolID'] = $rec['taxonID']; //new
@@ -841,7 +856,8 @@ class DHConnLib_TB
                         if(is_numeric($eolID)) {
                             if(!isset($unique_ids[$eolID])) {
                                 $unique_ids[$eolID] = '';
-                                $fieldz = array('eolID', 'canonicalName', 'taxonRank', 'taxonomicStatus');
+                                // $fieldz = array('eolID', 'canonicalName', 'taxonRank', 'taxonomicStatus'); //old
+                                $fieldz = array('taxonID', 'scientificName', 'taxonRank', 'taxonomicStatus'); //new tb data model
                                 $csv = $func->format_csv_entry($rec, $fieldz);
                                 $csv .= 'Taxon'; //Labels are preferred to be singular nouns
                                 fwrite($fhandle, $csv."\n");                
@@ -881,6 +897,12 @@ class DHConnLib_TB
                 }
             }
         }
+    }
+    private function small_field($uri)
+    {
+        // $uri = str_replace("TaxonID", "taxonID", $uri);          //copied template
+        // $uri = str_replace("tb:taxonKey", "taxonKey", $uri);     //copied template
+        return pathinfo($uri, PATHINFO_FILENAME);
     }
     /*========================================================================================Ends here. Below here is remnants from a copied template */
     /*

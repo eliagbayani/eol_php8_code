@@ -42,9 +42,10 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
 
-        $this->not_a_resource_dataset = array(22776578);
-        /*  22776578 - Terms file
-        */
+        $this->not_a_resource_dataset = array('R22776209', 'R22776577', 'R22776838');
+        /*  R22776209	TraitBank Reference Hierarchy Version 0.9   https://doi.org/10.5281/zenodo.22776209
+            R22776577	Terms                                       https://doi.org/10.5281/zenodo.22776577                          
+            R22776838	References                                  https://doi.org/10.5281/zenodo.22776838 */
     }
     private function initialize()
     {
@@ -101,7 +102,9 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         if (!($taxon_file = $this->get_generic_file_path($concept_id, 'Taxon', true))) exit("\nERROR: No taxon.tsv\n"); //3rd param is processedYN; true means product on name-matching already.
         self::process_table($taxon_file, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
 
+        /* part of main operation
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
+        */
 
         /* working but now removed for new tb data model
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -1698,7 +1701,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     )*/
                     // $repo_id = 'R'.$rec['repository_id']; //old schema
                     $repo_id = 'R'.$rec['concept_id']; //new tb data model
-                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['title']);
+                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['title'], 'associated_resource_links' => $rec['concept_url']);
                 }
             } //end main records
         } //end while()
@@ -1760,8 +1763,11 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         fwrite($this->WRITE, "resource_id:ID(Resource-ID),resource_name,associated_resource_links,:LABEL"."\n");   //new tb data model
         // $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         // $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
-        foreach($this->EOL_resources as $eol_resource_id => $rec) {
-            $fields = array('eol_resource_id', 'resource_name');
+        foreach($this->EOL_resources as $eol_resource_id => $rec) { //print_r($rec); exit("\ncha 1\n");
+
+            if(in_array($rec['eol_resource_id'], $this->not_a_resource_dataset)) continue;
+
+            $fields = array('eol_resource_id', 'resource_name', 'associated_resource_links');
             $csv = self::format_csv_entry($rec, $fields);
             $csv .= 'Resource'; //Labels are preferred to be singular nouns
             fwrite($this->WRITE, $csv."\n");

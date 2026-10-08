@@ -296,12 +296,13 @@ class DwCA_Utility_cmd
             // TreatmentBank_final
             case "references":  return "ref"; break;
             // WoRMS
-            case "datasetName":  return "dN"; break;
+            case "datasetName": return "dN"; break;
             // PaleoBiology Database
-            case "nameAccordingTo":  return "nAT"; break;
+            case "nameAccordingTo": return "nAT"; break;
             // TraitBank from Zenodo
-            case "infer":  return "inf"; break;
-            case "exclude":  return "exc"; break;
+            case "infer":       return "inf"; break;
+            case "exclude":     return "exc"; break;
+            case "superfamily": return "aSF"; break;
 
             default: exit("\nUndefined field [$field] to shorten. Must be initialized before proceeding!\n");
         }
@@ -349,6 +350,7 @@ class DwCA_Utility_cmd
             // TraitBank from Zenodo
             case "inf":  return "infer"; break;
             case "exc":  return "exclude"; break;
+            case "aSF":  return "superfamily"; break;
 
             default: return $field;
             // default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n"); //don't use this

@@ -9,25 +9,29 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
 
     function __construct() {}
     function write_Taxon_input_file($taxon_info)
-    {   // print_r($taxon_info); exit("\nelix 1\n");
+    {   //print_r($taxon_info); exit("\nelix 1\n");
         /*Array(
-            [taxonID] => 47138010
-            [scientificName] => Plumeria rubra L
-            [higherClassification] => Plumeria|
-            [genus] => Plumeria
+            [taxonID] => 1133516
+            [scientificName] => Acanthophoenix crinita
+            [higherClassification] => Arecales|Acanthophoenix|
+            [order] => Arecales
+            [family] => 
+            [genus] => Acanthophoenix
             [taxonRank] => species
-            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Plumeria\|.*?] ] || source_taxonID: [d6b158fbfeaa7914ce528b3c4df341a7]
-            [canonicalName] => Plumeria rubra
-            [EOLid] => 47138010
-            [source_taxonID] => d6b158fbfeaa7914ce528b3c4df341a7
+            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Arecales\|.*?] ] || source_taxonID: [Acanthophoenix crinita]
+            [canonicalName] => Acanthophoenix crinita
+            [EOLid] => 1133516
+            [taxonMap] => auto
+            [superfamily] => 
+            [source_taxonID] => Acanthophoenix crinita
         )*/
         $save = array();
         $save['taxonID'] = $taxon_info['source_taxonID'];
         $save['taxonKey'] = $taxon_info['taxonID'];
         
         $save['taxonMap'] = $taxon_info['taxonMap'];
-        $save['infer'] = $taxon_info['infer'];
-        $save['exclude'] = $taxon_info['exclude'];
+        $save['infer'] = @$taxon_info['infer'];
+        $save['exclude'] = @$taxon_info['exclude'];
 
         $save['canonicalName'] = $taxon_info['canonicalName'];
         $save['scientificName'] = $taxon_info['scientificName'];
@@ -40,7 +44,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $save['family'] = @$taxon_info['family'];
         $save['genus'] = @$taxon_info['genus'];
         $save['species'] = @$taxon_info['species'];
-        $save['taxonRemarks'] = @$taxon_info['taxonRemarks'];
+        $save['taxonRemarks'] = ''; //@$taxon_info['taxonRemarks']; works but per Katja should be blank
         $save['source'] = @$taxon_info['source'];        
         // print_r($save);
         self::write_to_text($save, 'Taxon');
@@ -118,7 +122,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
 
             $save = array();
             $save['measurementID'] = $m['measurementID'];
-            $save['occurrenceID'] = $occurrenceID; //optional
+            // $save['occurrenceID'] = $occurrenceID; //optional
             $save['taxonID'] = $taxon_info['source_taxonID'];
             $save['taxonKey'] = $taxonKey;
             $save['scientificName'] = $taxon_info['scientificName'];
@@ -130,6 +134,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $save['measurementUnit'] = @$m['measurementUnit'];
             $save['lifeStage'] = @$occur['lifeStage'];
             $save['sex'] = @$occur['sex'];
+            $save['bodyPart'] = @$occur['bodyPart'];
             $save['statisticalMethod'] = @$m['statisticalMethod'];
             $save['source'] = @$m['source'];
             $save['referenceID'] = @$m['referenceID'];
@@ -152,16 +157,33 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             fwrite($f, implode("\t", $rec)."\n");
         }
         fclose($f);
+        /* debug
+        if($kind == 'Taxon') { print_r($headers); print_r($rec); exit("\n[$file]\nelix 4\n"); }
+        */
     }
     function get_source_taxonID($taxonRemarks)
     {   //Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Asclepias\|.*?] ] || source_taxonID: [bb345e46c7900f99efefd82ecf42a8fd]
         if(preg_match("/source_taxonID\: \[(.*?)\]/ims", $taxonRemarks, $a)) return $a[1];
     }
     function get_concept_id_from_resource_id($resource_id)
-    {   //resource_id e.g. "23067562_Bioc_and_Natu_Prod_TraitBank_1_0"
+    {   //resource_id e.g. "23067562_Bioc_and_Natu_Prod_TraitBank"
         $arr = explode("_", $resource_id);
         $concept_id = $arr[0];
         if(is_numeric($concept_id)) return $concept_id;
+        return false;
+    }
+    function zip_TB_folder($resource_id)
+    {   //resource_id e.g. "22943003_Palm_TraitBank"
+        //zips [TB_files/22943003_Palm_TraitBank/] into [TB_files/22943003_Palm_TraitBank.zip], excluding its temp/ folder
+        $TB_folder = CONTENT_RESOURCE_LOCAL_PATH . 'TB_files';
+        $source = "$TB_folder/$resource_id";
+        $destination = "$TB_folder/$resource_id.zip";
+        if(!is_dir($source)) { echo "\nERROR: folder not found [$source]\n"; return false; }
+        if(file_exists($destination)) unlink($destination);
+        $cmd = "cd " . escapeshellarg($TB_folder) . " && zip -rq " . escapeshellarg("$resource_id.zip") . " " . escapeshellarg($resource_id) . " -x " . escapeshellarg("$resource_id/temp/*");
+        shell_exec($cmd);
+        if(file_exists($destination)) { echo "\nZip created: [$destination]\n"; return $destination; }
+        echo "\nERROR: zip not created [$destination]\n";
         return false;
     }
 }

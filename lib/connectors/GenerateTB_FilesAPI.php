@@ -52,6 +52,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         // $this->archive_builder->finalize(TRUE); //copied template
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->TB_folder);
         unset($this->debug);
+        $this->zip_TB_folder($this->resource_id); //e.g. TB_files/22943003_Palm_TraitBank.zip
     }
     private function process_table($meta, $what, $class = false)
     {   echo "\nprocess_table TB: [$what] [$meta->file_uri]...\n"; $i = 0;

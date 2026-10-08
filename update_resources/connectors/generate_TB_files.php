@@ -2,6 +2,7 @@
 namespace php_active_record;
 /* Generates the TraitBank input files.  Also, this analyzes the MoF extension
 php generate_TB_files.php _ '{"resource_id": "TreatmentBank_TraitBank_1_0"}' #existing TreatmentBank_TraitBank_1_0.tar.gz
+php generate_TB_files.php _ '{"resource_id": "22943003_Palm_TraitBank_1_0"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

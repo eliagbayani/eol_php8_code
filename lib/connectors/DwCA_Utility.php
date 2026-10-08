@@ -685,6 +685,7 @@ class DwCA_Utility
         // */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id."_DwCA_Util", $this->neo4j_debug_folder);
         else echo "\nNo debug info (DwCA_Utility.php).\n";
+        return true;
     }
     function convert_archive_files($lifedesks) //used by: connectors/lifedesk_eol_export.php
     {

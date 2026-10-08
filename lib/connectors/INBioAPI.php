@@ -105,12 +105,13 @@ class INBioAPI
     }
     function extract_archive_file($dwca_file, $check_file_or_folder_name, $download_options = array('timeout' => 172800, 'expire_seconds' => 0), $force_extension = false) //e.g. with force_extension is NMNHTypeRecordAPI_v2.php
     {
+        if(!file_exists($dwca_file)) { echo "\nERROR: File not found: [$dwca_file]\n"; return false; }
         // /* New May 12, 2021 - another option to detect $check_file_or_folder_name
         $tmp = pathinfo($dwca_file, PATHINFO_BASENAME);
         $tmpfolder = str_replace('.tar.gz', '', $tmp); //exit("\n[$tmpfolder]\n");
         // */
         
-        debug("Please wait, downloading resource document...");
+        debug("Please wait, downloading resource document...[$dwca_file]");
         $temp_dir = create_temp_dir() . "/";
         debug("temp_dir: ".$temp_dir);
         $path_parts = pathinfo($dwca_file);

@@ -81,7 +81,11 @@ class DwCA_Utility
         );
         */
 
-        if(!$paths) return false;
+        if(!$paths) {
+            echo "\nERROR: DwCA not found [$this->dwca_file]\n";
+            if(is_dir($this->path_to_archive_directory)) recursive_rmdir($this->path_to_archive_directory);
+            return false;
+        }
         
         $this->archive_path = $paths['archive_path'];
         $temp_dir = $paths['temp_dir'];
@@ -136,6 +140,8 @@ class DwCA_Utility
             if(Functions::is_production()) $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 0)); //expires now
             else                           $info = self::start(false, array("timeout" => 172800, 'expire_seconds' => 0)); //60*60*1 - 1 hour expire
         }
+
+        if(!$info) return false;
 
         $temp_dir = $info['temp_dir'];
         $harvester = $info['harvester'];

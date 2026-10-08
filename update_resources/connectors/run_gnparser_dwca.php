@@ -101,6 +101,6 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $excluded_rowtypes = array('http://rs.tdwg.org/dwc/terms/taxon');
 
     /* This will be processed in DwCA_RunGNParser.php.php which will be called from DwCA_Utility.php */
-    $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
-    Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
+    $ret = $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
+    if($ret) Functions::finalize_dwca_resource($resource_id, false, true, $timestart);
 }

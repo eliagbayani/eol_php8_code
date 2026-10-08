@@ -293,7 +293,6 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 }
                 else exit("\nERROR: resource_type not set.\n");
 
-
                 // priorities:
                 // 1. if it can be tested with AncestryIndex then proceed to test and if it fails then stop there.
                 // 2. if there is no hC and if there is hC but cannot be mapped to any of the IndexGroups, you can proceed matching...

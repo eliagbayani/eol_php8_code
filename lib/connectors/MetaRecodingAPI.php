@@ -53,9 +53,10 @@ class MetaRecodingAPI
         if(in_array($this->resource_id, array('770_meta_recoded', 'natdb_meta_recoded', 'copepods_meta_recoded',
                                               '42_meta_recoded', 'cotr_meta_recoded_1', '727_meta_recoded',
                                               '707_meta_recoded', 'test3_meta_recoded', '26_meta_recoded',
-                                              'try_dbase_2024_meta_recoded', 'AnAge_meta_recoded', 'Smith_et_al_2011_meta_recoded'))) self::task_67($tables);
+                                              'try_dbase_2024_meta_recoded', 'AnAge_meta_recoded', 'Smith_et_al_2011_meta_recoded', '22943003_Palm_meta_recoded'))) self::task_67($tables);
         /* http://rs.tdwg.org/dwc/terms/lifeStage - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
            http://rs.tdwg.org/dwc/terms/sex       - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
+
         DONE2: if lifeStage or sex is a child row in MoF. Implemented in WoRMS (26).
         */
         
@@ -172,6 +173,7 @@ class MetaRecodingAPI
             self::process_measurementorfact($tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0], 'write_task_67_1');
             unset($this->oID_lifeStage);   //task_6
             unset($this->oID_sex);         //task_7
+            unset($this->oID_bodyPart);
             // print_r($this->debug); //exit("\n---------------------\n");
             // */
         }
@@ -277,7 +279,7 @@ class MetaRecodingAPI
             )*/
             $measurementID = @$rec['http://rs.tdwg.org/dwc/terms/measurementID'];
             $occurrenceID = $rec['http://rs.tdwg.org/dwc/terms/occurrenceID'];
-            $measurementOfTaxon = $rec['http://eol.org/schema/measurementOfTaxon'];
+            $measurementOfTaxon = @$rec['http://eol.org/schema/measurementOfTaxon'];
             $measurementType = $rec['http://rs.tdwg.org/dwc/terms/measurementType'];
             $measurementValue = $rec['http://rs.tdwg.org/dwc/terms/measurementValue'];
             $parentMeasurementID = @$rec['http://eol.org/schema/parentMeasurementID'];
@@ -427,6 +429,7 @@ class MetaRecodingAPI
             if($what == 'task_67_info_1') { //lifeStage | sex
                 if($val = @$rec['http://rs.tdwg.org/dwc/terms/lifeStage']) $this->oID_lifeStage[$occurrenceID] = $val;   //task_6
                 if($val = @$rec['http://rs.tdwg.org/dwc/terms/sex'])       $this->oID_sex[$occurrenceID] = $val;         //task_7
+                if($val = @$rec['http://eol.org/schema/terms/bodyPart'])   $this->oID_bodyPart[$occurrenceID] = $val;
                 $this->debug['contents']['M lifeStage'][@$rec['http://rs.tdwg.org/dwc/terms/lifeStage']] = '';
             }
             // /*
@@ -480,6 +483,7 @@ class MetaRecodingAPI
             if($what == 'write_task_67_1') {
                 if(isset($rec['http://rs.tdwg.org/dwc/terms/lifeStage'])) unset($rec['http://rs.tdwg.org/dwc/terms/lifeStage']);    //task_6
                 if(isset($rec['http://rs.tdwg.org/dwc/terms/sex']))       unset($rec['http://rs.tdwg.org/dwc/terms/sex']);          //task_7
+                if(isset($rec['http://eol.org/schema/terms/bodyPart']))   unset($rec['http://eol.org/schema/terms/bodyPart']);
                 self::write_MoF_rec($rec);
             }
             //===========================================================================================================================================================
@@ -646,6 +650,7 @@ class MetaRecodingAPI
                     $rec['http://rs.tdwg.org/dwc/terms/lifeStage'] = $val;                                  //task_6 - always take $val; not $val2
                 }
                 if($val = @$this->oID_sex[$occurrenceID]) $rec['http://rs.tdwg.org/dwc/terms/sex'] = $val;  //task_7
+                if($val = @$this->oID_bodyPart[$occurrenceID]) $rec['http://eol.org/schema/terms/bodyPart'] = $val;
                 self::write_occurrence($rec);
             }
             //===========================================================================================================================================================

@@ -326,7 +326,7 @@ class ZenodoTraitBankAPI
         // folder name uses the current title (cached lookup), the same way do_zenodo_stuff() names it when extracting
         if (!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) return false;
         $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);  //e.g. '23067562_Bioc_and_Natu_Prod'               -> raw files from Zenodo 
-        if($processedYN) $folder_name .= '_TraitBank_1_0';                          //e.g. '23067562_Bioc_and_Natu_Prod_TraitBank_1_0' -> prod of name-matching already
+        if($processedYN) $folder_name .= '_TraitBank';                          //e.g. '23067562_Bioc_and_Natu_Prod_TraitBank' -> prod of name-matching already
         $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/$folder_name/input_files/";
         if (is_file($dir . $basename)) return $dir . $basename; // exact name given, e.g. 'occurrences.txt'
         $found = array_values(array_filter(array("$basename.tsv", "$basename.txt"), fn($f) => is_file($dir . $f))); // .tsv first = preferred
@@ -384,13 +384,13 @@ class ZenodoTraitBankAPI
     function list_files_row_counts($concept_id)
     {   // e.g. 23067562 -> lists files and row counts (excluding header line) in:
         //   TB_files/23067562_Bioc_and_Natu_Prod/input_files/
-        //   TB_files/23067562_Bioc_and_Natu_Prod_TraitBank_1_0/input_files/   (only folders that exist)
+        //   TB_files/23067562_Bioc_and_Natu_Prod_TraitBank/input_files/   (only folders that exist)
         // returns array('23067562_Bioc_and_Natu_Prod' => array('taxon.tsv' => 512, ...), ...) or false
         if (!($title = $this->get_zenodo_title_using_conceptID($concept_id))) return false;
         $base   = $concept_id . "_" . $this->abbreviate_title($title);
         $tb_dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
         $output = array();
-        foreach (array($base, "{$base}_TraitBank_1_0") as $folder_name) {
+        foreach (array($base, "{$base}_TraitBank") as $folder_name) {
             $dir = $tb_dir . "$folder_name/input_files/";
             if (!is_dir($dir)) {
                 echo "Folder not found, skipped [$folder_name/input_files/]\n";

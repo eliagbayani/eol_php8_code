@@ -394,6 +394,13 @@ elseif($task == 'metadata_recoding') {
         else                            $dwca_file = DOC_ROOT . "/applications/content_server/resources/26_meta_recoded_1.tar.gz";
     }
 
+    elseif($resource_id == '22943003_Palm_meta_recoded') { //task_67: bodyPart
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22943003_Palm.tar.gz";
+    }
+
+
+
+
     // /* Unrecognized_fields
     elseif($resource_id == 'Cicadellinae_meta_recoded') { //task_200: contributor, creator, publisher from Document to Agents
         $dwca_file = "https://opendata.eol.org/dataset/e4a7239b-7297-4a75-9fe9-1f5cff5e20d7/resource/7408693e-094a-4335-a0c9-b114d7dc64d3/download/archive.zip";
@@ -441,6 +448,8 @@ elseif($task == 'metadata_recoding') {
         $dwca_file = DOC_ROOT . "/applications/content_server/resources/local_circa.tar.gz";
         exit("\nObsolete anyway. Replaced by [https://opendata.eol.org/dataset/harvard-museum-of-comparative-zoology/resource/c70577a3-7ba7-472f-b3de-bf3043beebfd]\n");
     }
+
+
     // */
     
     else exit("\nERROR: [$task] resource_id not yet initialized. Will terminate.\n");

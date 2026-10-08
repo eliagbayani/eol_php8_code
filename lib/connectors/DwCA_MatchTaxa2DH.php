@@ -279,22 +279,16 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 if($this->params['resource_type'] == 'legacy_dwca') $rec['EOLid'] = '';
                 elseif($this->params['resource_type'] == 'TB_dwca') {
                     $rec['taxonMap'] = @$rec['taxonMap'];
-                    if(@$rec['taxonMap'] == 'man') {
+                    if($rec['taxonMap'] == 'man') {
                         if($val = trim(@$rec['EOLid'])) {
                             if(is_numeric($val)) {
-                                $rec['taxonMap'] = 'man';
-                                self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;
+                                self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue; //if taxonMap == 'man' and with valid EOLid (taxonKey)
                             }
-                            else $rec['taxonMap'] = '';
+                            else $rec['taxonMap'] = ''; //literal value, invalid EOLid
                         }
-                        else $rec['taxonMap'] = '';
+                        else $rec['taxonMap'] = ''; //blank value, invalid EOLid
                     }
-                    if($val = trim(@$rec['EOLid'])) {
-                        if(is_numeric($val)) {
-                            $rec['taxonMap'] = 'man';
-                            self::write_2archive($rec); @$this->debug['excluded: already has EOLid']++; continue;
-                        }
-                    }
+                    /* At this point, EOLid whether filled up or not will be computed; because taxonMap is not 'man' */
                     $rec['EOLid'] = '';
                 }
                 else exit("\nERROR: resource_type not set.\n");

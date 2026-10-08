@@ -13,9 +13,10 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_RunGNParser
 {
-    function __construct($archive_builder, $resource_id, $archive_path)
+    function __construct($archive_builder, $resource_id, $archive_path, $params = array())
     {
         $this->resource_id = $resource_id;
+        $this->params = $params; //print_r($params); exit("\nelix 0\n");
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
@@ -124,12 +125,25 @@ class DwCA_RunGNParser
                 $scientificName = $rec['http://rs.tdwg.org/dwc/terms/scientificName'];
                 $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
                 
-                // $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::lookup_canonical_name($scientificName, 'simple'); //working but too many calls
+                /* working but too many calls; not ideal
+                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::lookup_canonical_name($scientificName, 'simple');
+                */
                 
-                $val = '';
-                    if($val = self::resubmit_gnparser_if_applicable($scientificName, $taxonRank)) {}
-                elseif($val = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec)) {}
-                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = $val;
+                // ---------- new block START
+                $proceed_compute_4canonicalName = false;
+                if($this->params['resource_type'] == 'TB_dwca') { //TraitBank datasets from Zenodo
+                    if(@$rec['http://rs.tdwg.org/dwc/terms/canonicalName']) {}
+                    else $proceed_compute_4canonicalName = true;                                            
+                }
+                else $proceed_compute_4canonicalName = true; //legacy dwca e.g. FishBase, Wikipedia inferred GloBI
+                if($proceed_compute_4canonicalName) {
+                    $val = '';
+                        if($val = self::resubmit_gnparser_if_applicable($scientificName, $taxonRank)) {}
+                    elseif($val = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec)) {}
+                    $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = $val;
+                }
+                // ---------- new block END
+
                 // */
 
                 // /* New May 15,2026: If blank rank and canonical has 2 words, set taxonRank to 'species'

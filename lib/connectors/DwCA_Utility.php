@@ -630,7 +630,7 @@ class DwCA_Utility
         // /* -------------------- Preparing DwCA for Neo4j ingestion:
         if(in_array($this->resource_id, array("Brazilian_Flora_with_canonical")) || @$this->params['resource'] == "add_canonical_Katja") { //1st client is: Brazilian_Flora_with_canonical
             require_library('connectors/DwCA_RunGNParser');
-            $func = new DwCA_RunGNParser($this->archive_builder, $this->resource_id, $this->archive_path);
+            $func = new DwCA_RunGNParser($this->archive_builder, $this->resource_id, $this->archive_path, $this->params);
             $func->start($info);
         }
         if(@$this->params['resource'] == "match_taxa_2DH") {

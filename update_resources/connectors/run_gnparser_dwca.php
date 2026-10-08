@@ -82,12 +82,13 @@ if ($resource_id == "WoRMS2EoL") {
 
 $resource_id .= "_neo4j_1"; //generates this file; latest implementation
 
-process_resource_url($dwca_file, $resource_id, $timestart);
+process_resource_url($dwca_file, $resource_id, $timestart, @$param['resource_type']);
 
-function process_resource_url($dwca_file, $resource_id, $timestart)
+function process_resource_url($dwca_file, $resource_id, $timestart, $resource_type)
 {
     require_library('connectors/DwCA_Utility');
     $params['resource'] = "add_canonical_Katja";
+    $params['resource_type'] = $resource_type;
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
     $preferred_rowtypes = array("http://rs.gbif.org/terms/1.0/vernacularname", "http://eol.org/schema/reference/reference", 

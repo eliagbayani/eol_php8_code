@@ -778,12 +778,15 @@ class DwCA_Utility
         )*/
 
         // /* ---------- new 8Oct2026 - new TB data model
-        if($resource_type == 'TB_dwca') {
-            if(isset($records[0]['hC'])) {      //has higherClassification
-                recursive_rmdir($temp_dir); echo ("\n temporary directory removed: " . $temp_dir);
-                recursive_rmdir($this->path_to_archive_directory); echo ("\n temporary directory removed: " . $this->path_to_archive_directory); //folder ends with "_working"
-                echo "\nNOTE: Dataset has higherClassification field already. Will NOT compute higherClassification anymore [$task].\n";
-                return false;
+        if(in_array($this->resource_id, array('23067562_Bioc_and_Natu_Prod-with-hC'))) {} //better coverage if to re-compute higherClassification
+        else {
+            if($resource_type == 'TB_dwca') {
+                if(isset($records[0]['hC'])) {      //has higherClassification
+                    recursive_rmdir($temp_dir); echo ("\n temporary directory removed: " . $temp_dir);
+                    recursive_rmdir($this->path_to_archive_directory); echo ("\n temporary directory removed: " . $this->path_to_archive_directory); //folder ends with "_working"
+                    echo "\nNOTE: Dataset has higherClassification field already. Will NOT compute higherClassification anymore [$task].\n";
+                    return false;
+                }
             }
         }
         // ---------- */

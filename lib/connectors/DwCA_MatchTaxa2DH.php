@@ -551,6 +551,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     private function let_us_try_to_assign_an_IndexGroup($rec)
     {
         $hc = @$rec['higherClassification'];
+        $hc = $this->add_pipe_2str($hc);
         $hc_from_ancestry = self::get_names_from_ancestry($rec, $rec['canonicalName']); //2nd param is excluded name
         $hCs = array();
         if($hc) $hCs[] = $hc;

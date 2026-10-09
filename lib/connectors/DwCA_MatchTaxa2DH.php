@@ -460,7 +460,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 // /* uncomment in real operation
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
                 // */
-                if($this->debugNow) break; //dev only ; process just 1 rec
+                // if($this->debugNow) break; //dev only ; process just 1 rec   -- does not go here anymore
             } //end match_canonical
             //========================================================================================================= 
             elseif($what == 'generate_synonyms_info') {

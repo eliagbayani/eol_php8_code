@@ -37,7 +37,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //old
         $this->files['EOL resources'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/TraitBank_datasets.csv'; //new
-        $this->is_first_resourceYN = ($this->resource_id == '22943003') ? true: false; //23067562 22943003-PalmTraits
+        $this->is_first_resourceYN = ($this->resource_id == '23067562') ? true: false; //23067562 22943003-PalmTraits
 
         $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
@@ -390,7 +390,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                 $scientificName = $rec['scientificName'];
                 if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
                     // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
-                    if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
+                    if(self::is_valid_taxonID($rec['taxonKey'])) { //exit("\ngoes here 12\n");
                         // /* ========== start if Association
                         if(@$rec['associationID']) { 
                             $targetOccurrenceID = $rec['targetOccurrenceID'];
@@ -408,7 +408,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                         self::generate_TraitNode_row($rec);                
                     }
                     else {
-                        exit("\n-----------\nERROR: Invalid taxon: "); print_r($rec); exit;
+                        echo("\n-----------\nERROR: Invalid taxon: "); print_r($rec); exit;
                         $this->debug['source taxon is not valid'][$taxonID] = '';
                         continue;
                     }
@@ -816,7 +816,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $s['eol_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //new 
 
         $s['taxonID'] = $rec['taxonID'];
-        $s['scientific_name'] = $rec['scientific_name'];
+        $s['scientificName'] = $rec['scientificName'];
         
         if($val = @$rec['measurementID']) $s['resource_pk'] = $val;
         elseif($val = @$rec['associationID']) $s['resource_pk'] = $val;
@@ -825,7 +825,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         elseif($val = @$rec['associationType']) $s['predicate'] = $val;
 
         $s['sex'] = $rec['sex'];
-        $s['lifestage'] = $rec['lifestage'];
+        $s['lifeStage'] = $rec['lifeStage'];
         $s['statistical_method'] = @$rec['statisticalMethod'];
         $this->debug['statisticalMethod values'][@$rec['statisticalMethod']] = '';
 
@@ -943,7 +943,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         }
     }
     private function generate_ParentEdge_row($rec)
-    {   /*  taxonID:START_ID(Page-ID),taxonID:END_ID(Page-ID),:TYPE
+    {   /*  taxonID:START_ID(Taxon-ID),taxonID:END_ID(Taxon-ID),:TYPE
             gadus_m,gadus,parent
             chanos_c,chanos,parent */
         $fields = array('taxonID', 'parentNameUsageID');
@@ -952,7 +952,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         fwrite($this->WRITE, $csv."\n");
     }
     private function generate_VernacularEdge_row($rec)
-    {   /*  taxonID:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+    {   /*  taxonID:START_ID(Taxon-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
             WoRMS    Array(
                         [vernacularName] => dieren
                         [source] => 
@@ -1129,7 +1129,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
 
         // start Parent Edge
         $WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
-        fwrite($WRITE, "taxonID:START_ID(Page-ID),taxonID:END_ID(Page-ID),:TYPE"."\n");
+        fwrite($WRITE, "taxonID:START_ID(Taxon-ID),taxonID:END_ID(Taxon-ID),:TYPE"."\n");
         $param = array('task' => 'generate_ParentEdge_csv', 'fhandle' => $WRITE);
         $ret = $func->prepare_ParentEdge($param);
         fclose($WRITE);
@@ -1139,7 +1139,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     private function prepare_TRAIT_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/TRAIT.csv', 'w');
-        fwrite($WRITE, "taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        fwrite($WRITE, "taxonID:START_ID(Taxon-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
         $param = array('task' => 'generate_TRAIT_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
@@ -1147,7 +1147,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     private function prepare_INFERRED_TRAIT_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/INFERRED_TRAIT.csv', 'w');
-        fwrite($WRITE, "taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
+        fwrite($WRITE, "taxonID:START_ID(Taxon-ID),eol_pk:END_ID(Trait-ID),:TYPE"."\n");
         $param = array('task' => 'generate_INFERRED_TRAIT_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
@@ -1195,7 +1195,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     private function prepare_OBJECT_PAGE_Edge_csv()
     {
         $WRITE = Functions::file_open($this->path.'/edges/OBJECT_PAGE.csv', 'w');
-        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),taxonID:END_ID(Page-ID),:TYPE"."\n");
+        fwrite($WRITE, "eol_pk:START_ID(Trait-ID),taxonID:END_ID(Taxon-ID),:TYPE"."\n");
         $param = array('task' => 'generate_OBJECT_PAGE_Edge_csv', 'fhandle' => $WRITE);
         $ret = self::do_things_in_a_csv($param);
         fclose($WRITE);
@@ -1388,7 +1388,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     [:LABEL] => Trait
                 )*/
 
-                if($task == 'generate_TRAIT_Edge_csv') { //taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                if($task == 'generate_TRAIT_Edge_csv') { //taxonID:START_ID(Taxon-ID),eol_pk:END_ID(Trait-ID),:TYPE
                     if($val = @$rec['remarks']) {
                         if(!self::trait_is_inferred_YN($val)) {
                             $fieldz = array('taxonID', 'eol_pk:ID(Trait-ID)');
@@ -1406,7 +1406,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     }
                     // */
                 }
-                elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //taxonID:START_ID(Page-ID),eol_pk:END_ID(Trait-ID),:TYPE
+                elseif($task == 'generate_INFERRED_TRAIT_Edge_csv') { //taxonID:START_ID(Taxon-ID),eol_pk:END_ID(Trait-ID),:TYPE
                     if($val = @$rec['remarks']) {
                         if(self::trait_is_inferred_YN($val)) {
                             $fieldz = array('taxonID', 'eol_pk:ID(Trait-ID)');
@@ -1816,10 +1816,10 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
     }
     private function prepare_VernacularEdge_csv($meta)
     {   /*  personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
-            taxonID:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
+            taxonID:START_ID(Taxon-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE
         */
         $this->WRITE = Functions::file_open($this->path.'/edges/VERNACULAR.csv', 'w');
-        fwrite($this->WRITE, "taxonID:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
+        fwrite($this->WRITE, "taxonID:START_ID(Taxon-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE"."\n");
         if($meta) self::process_table($meta, 'generate-VernacularEdge-csv');
         fclose($this->WRITE);
     }

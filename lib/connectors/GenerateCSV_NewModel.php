@@ -37,7 +37,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //old
         $this->files['EOL resources'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/TraitBank_datasets.csv'; //new
-        $this->is_first_resourceYN = ($this->resource_id == '23067562') ? true: false;
+        $this->is_first_resourceYN = ($this->resource_id == '22943003') ? true: false; //23067562
 
         $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
@@ -118,12 +118,14 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         // Step 3: generate Resource node
         if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
         // */
-        exit("\n-stop muna 4-\n");
 
-
+        /* OBSOLETE for new tb data model
         // Step 4: generate Trait node
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
         self::process_table($meta, 'generate_occur_info');
+        */
+
+        exit("\n-stop muna 4-\n");
 
         // /* for Trait node
         $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');

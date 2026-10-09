@@ -37,7 +37,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         self::initialize_folders($this->resource_id); //exit("\nstop muna ito...\n");
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //old
         $this->files['EOL resources'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/TraitBank_datasets.csv'; //new
-        $this->is_first_resourceYN = ($this->resource_id == '22943003') ? true: false; //23067562
+        $this->is_first_resourceYN = ($this->resource_id == '22943003') ? true: false; //23067562 22943003-PalmTraits
 
         $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
@@ -125,18 +125,23 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         self::process_table($meta, 'generate_occur_info');
         */
 
-        exit("\n-stop muna 4-\n");
-
-        // /* for Trait node
+        // /* ---------- for Trait node
         $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
+        /* OBSOLETE for new tb data model
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'build_info_MoF_children');
+        */
         $this->writtenHeaderAlreadyYN['Trait node'] = false;
-        if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::prepare_TraitNode_csv($meta, true); //2nd param is writeHeaderYN
+
+        if (!($local_file = $this->get_generic_file_path($concept_id, 'Traits', true))) exit("\nERROR: No trait.tsv\n"); //3rd param is processedYN; true means product on name-matching already.
+        self::prepare_TraitNode_csv($local_file, true); //2nd param is writeHeaderYN
+        /* Let us get a good example in Zenodo TB datasets first
         if($meta = @$tables['http://eol.org/schema/association'][0])              self::prepare_TraitNode_csv($meta, false); //2nd param is writeHeaderYN
+        */
         fclose($this->WRITEx);        
         unset($meta);
         unset($this->occur_info);
-        // */
+        // ---------- */
+        exit("\n-stop muna 4-\n");
 
         // /*
         // Step 8: generate Metadata node
@@ -356,48 +361,59 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
                     )*/
                 }
             }
-            if($what == 'generate-TraitNode-csv') { //this is MoF record
-                $occurrenceID = $rec['occurrenceID'];
-                if($taxon = @$this->occur_info[$occurrenceID]) { //exit("\ngoes here 10\n");
-                    /*Array( $taxon
-                        [tI] => 46501030
-                        [sN] => Aahithis Schallreuter, 1988
-                        [sx] => e.g. http://eol.org/schema/terms/maleAndFemale
-                        [lS]
-                    )*/
-                    $taxonID = $taxon['tI'];
-                    $scientificName = $taxon['sN'];
-                    $sex = $taxon['sx'];
-                    $lifeStage = $taxon['lS'];
-                    if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
-                        // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
-                        if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
-                            $rec['taxonID'] = $taxonID;
-                            $rec['scientific_name'] = $scientificName;
-                            $rec['sex'] = $sex;
-                            $rec['lifestage'] = $lifeStage;
-                            // /* ========== start if Association
-                            if(@$rec['associationID']) { 
-                                $targetOccurrenceID = $rec['targetOccurrenceID'];
-                                if($target_taxon = @$this->occur_info[$targetOccurrenceID]) {
-                                    $rec['object_page_id'] = $target_taxon['tI'];
-                                    $rec['target_scientific_name'] = $target_taxon['sN'];
-                                }
-                                else {
-                                    $this->debug['target taxon is not valid'][$targetOccurrenceID] = '';
-                                    continue;
-                                }
+            if($what == 'generate-TraitNode-csv') { //this is MoF record before. Now it is Traits.tsv
+                /*Array( $rec
+                    [measurementID] => Kissling_Daniel_738
+                    [taxonID] => Acanthophoenix crinita
+                    [taxonKey] => 1133516
+                    [scientificName] => Acanthophoenix crinita
+                    [infer] => 
+                    [exclude] => 
+                    [measurementType] => http://purl.obolibrary.org/obo/FLOPO_0900032
+                    [measurementValue] => http://purl.obolibrary.org/obo/FLOPO_0900033
+                    [measurementRemarks] => 
+                    [measurementUnit] => 
+                    [lifeStage] => 
+                    [sex] => 
+                    [bodyPart] => 
+                    [statisticalMethod] => 
+                    [source] => https://doi.org/10.5061/dryad.ts45225
+                    [referenceID] => https://doi.org/10.1111/1365-2745.12698|https://palmweb.org/cdm_dataportal/reference/b83403f1-0316-4152-bc3b-22cf4f70ce86|https://doi.org/10.1038/s41559-017-0348-7
+                )*/                
+                /*Array( $taxon
+                    [tI] => 46501030
+                    [sN] => Aahithis Schallreuter, 1988
+                    [sx] => e.g. http://eol.org/schema/terms/maleAndFemale
+                    [lS]
+                )*/
+                $taxonID = $rec['taxonID'];
+                $scientificName = $rec['scientificName'];
+                if($taxonID && $scientificName) { //exit("\ngoes here 11\n");
+                    // echo("\ntaxonID: [$taxonID] | sn: [$scientificName]\n");
+                    if(self::is_valid_taxonID($taxonID)) { //exit("\ngoes here 12\n");
+                        // /* ========== start if Association
+                        if(@$rec['associationID']) { 
+                            $targetOccurrenceID = $rec['targetOccurrenceID'];
+                            if($target_taxon = @$this->occur_info[$targetOccurrenceID]) {
+                                $rec['object_page_id'] = $target_taxon['tI'];
+                                $rec['target_scientific_name'] = $target_taxon['sN'];
                             }
-                            // ========== */
-                            // exit("\nGoes here 100\n");
-                            self::generate_TraitNode_row($rec);                
+                            else {
+                                $this->debug['target taxon is not valid'][$targetOccurrenceID] = '';
+                                continue;
+                            }
                         }
-                        else {
-                            $this->debug['source taxon is not valid'][$taxonID] = '';
-                            continue;
-                        }
+                        // ========== */
+                        // exit("\nGoes here 100\n");
+                        self::generate_TraitNode_row($rec);                
+                    }
+                    else {
+                        exit("\n-----------\nERROR: Invalid taxon: "); print_r($rec); exit;
+                        $this->debug['source taxon is not valid'][$taxonID] = '';
+                        continue;
                     }
                 }
+
                 // if($i >= 500) break; //debug only
             } //end of -> if($what == 'generate-TraitNode-csv')
 
@@ -772,8 +788,33 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         // eol_pk	page_id	scientific_name	resource_pk	predicate	sex	lifestage	statistical_method	object_page_id	target_scientific_name	value_uri	literal	
         // measurement	units	normal_measurement	normal_units_uri	sample_size	citation	source	remarks	method	
         // contributor_uri	compiler_uri	determined_by_uri
-        // print_r($rec);
+
+
+        /*Array( $rec
+            [measurementID] => Kissling_Daniel_738
+            [taxonID] => Acanthophoenix crinita
+            [taxonKey] => 1133516
+            [scientificName] => Acanthophoenix crinita
+            [infer] => 
+            [exclude] => 
+            [measurementType] => http://purl.obolibrary.org/obo/FLOPO_0900032
+            [measurementValue] => http://purl.obolibrary.org/obo/FLOPO_0900033
+            [measurementRemarks] => 
+            [measurementUnit] => 
+            [lifeStage] => 
+            [sex] => 
+            [bodyPart] => 
+            [statisticalMethod] => 
+            [source] => https://doi.org/10.5061/dryad.ts45225
+            [referenceID] => https://doi.org/10.1111/1365-2745.12698|https://palmweb.org/cdm_dataportal/reference/b83403f1-0316-4152-bc3b-22cf4f70ce86|https://doi.org/10.1038/s41559-017-0348-7
+        )
+        $header = "eol_pk:ID(Trait-ID),taxonID:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,
+        object_page_id:long,target_scientific_name,
+        value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,
+        contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"; */
         $s = array();
+        $s['eol_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //new 
+
         $s['taxonID'] = $rec['taxonID'];
         $s['scientific_name'] = $rec['scientific_name'];
         
@@ -833,8 +874,6 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         
         $fields = array_keys($s);
         array_unshift($fields, "eol_pk"); //put 'eol_pk' to beginning of an array
-        // $s['eol_pk'] = $this->param['eol_resource_id'].'_'.md5(json_encode($s)); //old ways
-        $s['eol_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //new 
 
         $csv = self::format_csv_entry($s, $fields);
         $csv .= 'Trait'; //Labels are preferred to be singular nouns
@@ -1741,21 +1780,20 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         if($meta) self::process_table($meta, 'generate-VernacularNode-csv');
         fclose($this->WRITE);
     }
-    private function prepare_TraitNode_csv($meta, $writeHeaderYN)
-    {   /*  nodes/Trait.csv
-            eol_pk:ID(Trait-ID),page_id,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,:LABEL
-        */
+    private function prepare_TraitNode_csv($local_file, $writeHeaderYN)
+    {   /* nodes/Trait.csv */
+        $header = "eol_pk:ID(Trait-ID),taxonID:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL";
         if($writeHeaderYN) {
-            fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),taxonID:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+            fwrite($this->WRITEx, $header."\n");
             $this->writtenHeaderAlreadyYN['Trait node'] = true;
         }
         else {
             if(!$this->writtenHeaderAlreadyYN['Trait node']) {
-                fwrite($this->WRITEx, "eol_pk:ID(Trait-ID),taxonID:long,scientific_name,resource_pk,predicate,sex,lifestage,statistical_method,object_page_id:long,target_scientific_name,value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"."\n");
+                fwrite($this->WRITEx, $header."\n");
                 $this->writtenHeaderAlreadyYN['Trait node'] = true;
             }
         }
-        self::process_table($meta, 'generate-TraitNode-csv');
+        self::process_table($local_file, 'generate-TraitNode-csv');
     }
     private function prepare_ResourceNode_csv()
     {   /*  nodes/Resource.csv

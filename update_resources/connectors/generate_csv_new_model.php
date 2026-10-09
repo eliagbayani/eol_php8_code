@@ -39,7 +39,7 @@ require_library('connectors/GenerateCSV_NewModel');
 
 if(@$param['task'] == 'generate_Zenodo_TraitBank_datasets_inCSV') {
     $func = new ZenodoTraitBankAPI();
-    $func->generate_Zenodo_TraitBank_datasets_inCSV();    
+    $func->generate_Zenodo_TraitBank_datasets_inCSV(); //single report: https://github.com/eliagbayani/EOL-connector-data-files/blob/master/EOL/TraitBank_datasets.csv
     exit("\nGenerated TraitBank datasets in TSV file.\n");
 }
 

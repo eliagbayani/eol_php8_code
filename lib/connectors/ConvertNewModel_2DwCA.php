@@ -118,7 +118,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                 $taxonID = $rec['taxonID'];
                 if($t = @$this->taxon[$taxonID]) { //let us combine values
                     foreach($fields_2combine as $field) {
-                        if(!isset($rec[$field])) continue;
+                        if(!isset($rec[$field])) continue; //new
                         if($rec[$field]) {
                             if(@$t[$field] != $rec[$field]) {
                                 $t[$field] = $rec[$field];

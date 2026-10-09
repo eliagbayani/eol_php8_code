@@ -813,35 +813,41 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         value_uri,literal,measurement,units,normal_measurement,normal_units_uri,sample_size,citation,source,remarks,method,
         contributor_uri,compiler_uri,determined_by_uri,metadata,:LABEL"; */
         $s = array();
-        $s['eol_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //new 
+        $s['tb_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //old name: $s['eol_pk']
+
+        if($val = @$rec['measurementID']) $s['measurementID'] = $val;             //old name: $s['resource_pk']
+        elseif($val = @$rec['associationID']) $s['measurementID'] = $val;         //old name: $s['resource_pk']
 
         $s['taxonID'] = $rec['taxonID'];
+        $s['taxonKey'] = $rec['taxonKey'];
         $s['scientificName'] = $rec['scientificName'];
-        
-        if($val = @$rec['measurementID']) $s['resource_pk'] = $val;
-        elseif($val = @$rec['associationID']) $s['resource_pk'] = $val;
 
+        $s['infer'] = $rec['infer'];
+        $s['exclude'] = $rec['exclude'];
+        
         if($val = @$rec['measurementType']) $s['predicate'] = $val;
         elseif($val = @$rec['associationType']) $s['predicate'] = $val;
 
         $s['sex'] = $rec['sex'];
-        $s['lifeStage'] = $rec['lifeStage'];
+        $s['lifeStage'] = $rec['lifeStage'];                                    //old name: $s['lifestage']
         $s['statistical_method'] = @$rec['statisticalMethod'];
         $this->debug['statisticalMethod values'][@$rec['statisticalMethod']] = '';
 
         // /* for Associations
         $s['object_page_id'] = @$rec['object_page_id'];
-        $s['target_scientific_name'] = @$rec['target_scientific_name'];
+        // $s['target_scientific_name'] = @$rec['target_scientific_name'];      //removed for TB new model
         // */
         $s['value_uri'] = self::value_for($rec, 'value_uri');
         $s['literal'] = self::value_for($rec, 'literal');
         $s['measurement'] = self::value_for($rec, 'measurement');
         $s['units'] = @$rec['measurementUnit'];
 
+        /* removed for TB new model
         if(!self::value_is_uri_YN(@$rec['measurementValue'])) $s['normal_measurement'] = @$rec['measurementValue'];
         else                                                  $s['normal_measurement'] = '';
         if(self::value_is_uri_YN(@$rec['measurementUnit'])) $s['normal_units_uri'] = @$rec['measurementUnit'];
         else                                                $s['normal_units_uri'] = '';
+        */
 
         $s['sample_size'] = '';
         $s['citation'] = @$rec['bibliographicCitation'];

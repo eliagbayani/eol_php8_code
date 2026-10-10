@@ -375,9 +375,12 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     }
                                 }
                                 else {
+                                    $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                                    /*
                                     echo "\nSo it goes here...\n";
                                     print_r($ret2); print_r($pair); print_r($rec);  
-                                    $this->debug['Successful synonym match but accepted taxon does not have eolID'][$taxonID] = $rec;                                    
+                                    $this->debug['Successful synonym match but accepted taxon does not have eolID'][$taxonID] = $rec;
+                                    */
                                 }
                                 
                                 /*

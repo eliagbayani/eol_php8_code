@@ -834,20 +834,46 @@ class DwCA_MatchTaxa2DH_Functions
             }                       
         }
 
+        // /* NEW: 10Oct2026 https://github.com/EOL/ContentImport/issues/51#issuecomment-6088731258
+        if(count($ret2) > 1) {
+            // loop the pairs and get the acceptedNameUsageID from the DH.
+            // if only 1; start the validation below.
+            // if > 1; meaning the multimatch has diff. acceptedNameUsageID; then don't match the name.
+            foreach($ret2 as $pair) {
+                $rek = $pair[1];
+                $acceptedNameUsageID = $rek['u']; //acceptedNameUsageID
+                $aNUID[$acceptedNameUsageID] = '';
+            }
+            if(count($aNUID) > 1) { //Leave the name unmatched and put a note about it in the taxonRemarks of the report Cannot_be_matched_at_all.tsv: multiple incompatible synonyms.
+                // echo "\n huli ka: [$what] "; print_r($ret2); //good debug
+                $pair = $ret2[0];
+                $rec = $pair[0];
+                $rec['taxonRemarks'] .= " || multiple incompatible synonyms";
+                $rek = array();
+                $rek['e'] = "";
+                return array($rec, $rek);
+            }
+        }
+        // */
+
         // For both accepted and synonym
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];
+            // if( ($rec['taxonRank'] == $rek['r']) && ($rec['AI'] == $rek['AI']) ) echo " - [sagot 1]\n";
             if( ($rec['taxonRank'] == $rek['r']) && ($rec['AI'] == $rek['AI']) ) return array($rec, $rek);  //rank values and AI are the same
         }
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];
+            // if($rec['taxonRank'] == $rek['r']) echo " - [sagot 2]\n";
             if($rec['taxonRank'] == $rek['r']) return array($rec, $rek);                                    //rank values are the same
         }
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];
+            // if($rec['AI'] == $rek['AI']) echo " - [sagot 3]\n";
             if($rec['AI'] == $rek['AI']) return array($rec, $rek);                                          //AI values are the same
         }
 
+        exit("\nERROR: Investigate: Does it still ever go here?\n");
         if(count($ret2) > 1) {
             print_r($ret2); exit("\nReady to pick one, just curious why there are >1 pairs here at this point.\n");
         }

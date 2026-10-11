@@ -815,15 +815,21 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $s = array();
         $s['tb_pk'] = $this->param['eol_resource_id'].'_'.self::json_encode_them_md5($s); //old name: $s['eol_pk']
 
-        if($val = @$rec['measurementID']) $s['measurementID'] = $val;             //old name: $s['resource_pk']
-        elseif($val = @$rec['associationID']) $s['measurementID'] = $val;         //old name: $s['resource_pk']
+        if($val = @$rec['measurementID']) $s['resource_pk'] = $val;
+        elseif($val = @$rec['associationID']) $s['resource_pk'] = $val;
 
-        $s['taxonID'] = $rec['taxonID'];
-        $s['taxonKey'] = $rec['taxonKey'];
+        // $s['taxonID'] = $rec['taxonID'];    //removed for TB new model
+        // $s['taxonKey'] = $rec['taxonKey'];  //removed for TB new model
         $s['scientificName'] = $rec['scientificName'];
 
-        $s['infer'] = $rec['infer'];
-        $s['exclude'] = $rec['exclude'];
+        // $s['infer'] = $rec['infer'];        //removed for TB new model
+        // $s['exclude'] = $rec['exclude'];    //removed for TB new model
+
+        $s['value_uri'] = self::value_for($rec, 'value_uri');
+        $s['literal'] = self::value_for($rec, 'literal');
+        $s['measurement'] = self::value_for($rec, 'measurement');
+        $s['units'] = @$rec['measurementUnit'];
+
         
         if($val = @$rec['measurementType']) $s['predicate'] = $val;
         elseif($val = @$rec['associationType']) $s['predicate'] = $val;
@@ -837,10 +843,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         $s['object_page_id'] = @$rec['object_page_id'];
         // $s['target_scientific_name'] = @$rec['target_scientific_name'];      //removed for TB new model
         // */
-        $s['value_uri'] = self::value_for($rec, 'value_uri');
-        $s['literal'] = self::value_for($rec, 'literal');
-        $s['measurement'] = self::value_for($rec, 'measurement');
-        $s['units'] = @$rec['measurementUnit'];
+
 
         /* removed for TB new model
         if(!self::value_is_uri_YN(@$rec['measurementValue'])) $s['normal_measurement'] = @$rec['measurementValue'];

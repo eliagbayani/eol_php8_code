@@ -44,8 +44,10 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         if(!is_dir($dir)) mkdir($dir);
 
-        $this->not_a_resource_dataset = array(22776578);
-        /*  22776578 - Terms file
+        $this->main_datasets = array('Terms_conceptID' => 22776577, 'References_conceptID' => 22776838, 'DH_conceptID' => 22776209);
+        /*  22776577 - Terms: Data vocabulary for trait records.
+            22776838 - References: Scientific works cited by trait records
+            22776209 - TraitBank Reference Hierarchy Version 0.9: Names and taxonomic relationships to support the new TraitBank information architecture.            
         */
     }
     private function initialize($concept_id)
@@ -64,6 +66,10 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
 
         //step 2
         self::write_taxon_ext(); //this will use the output of the 2 previous steps
+
+        //step 2.1
+        self::initialize_references_info();
+
 
         //step 3
         if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
@@ -129,6 +135,13 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                 }
             }
             elseif($what == 'build_mof_and_occurrences_array') self::build_mof_and_occurrences_array($rec);
+            elseif($what == 'initialize_references_info') {
+                /*Array(
+                    [identifier] => https://doi.org/10.1093/jn/44.1.43
+                    [full_reference] => A. A. Heidebrecht;R. MacVicar;O. B. Ross;C. K. Whitehair. 1951. Composition of swine milk. I. Major constituents and carotene, vitamin A and vitamin C. pp. 43-50. Journal of Nutrition. vol. 44
+                )*/
+                $this->references_info[$rec['identifier']] = $rec['full_reference'];
+            }            
         }
     }
     private function build_mof_and_occurrences_array($rec)
@@ -169,6 +182,40 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         foreach($fields as $field) $mof->$field = $rec[$field];
         if(!isset($mof->measurementID)) $mof->measurementID = Functions::generate_measurementID($mof, $this->resource_id);
         $this->archive_builder->write_object_to_file($mof);
+        //step 3: write Reference
+        if($rec['referenceID']) {
+            self::write_references($rec);
+        }
+    }
+    private function write_references($rec)
+    {   /*Array(
+            [measurementID] => Milkdata_284
+            [measurementType] => http://eol.org/schema/terms/AminoAcidCompositionOfMilk
+            [measurementValue] => http://purl.obolibrary.org/obo/CHEBI_26271
+            [measurementUnit] => 
+            [measurementRemarks] => Values converted by Dr. van Tienhoven from units of micromol/g or from number of residues.  Data reported as number of amino acid residues per molecule of protein were converted to concentrations by multiplying the molecular weight (mw) of each amino acid by the number of residues (n) and then determining the sum of the product nmw, and finally converting these to a percentage for each amino acid.  The particular protein that was analyzed for its amino acid content: lysozyme.
+            [source] => https://doi.org/10.1007/BF00230951
+            [referenceID] => https://doi.org/10.1016/S0021-9258(19)43726-5
+            [occurrenceID] => 01d2c6f4538a959130b2fdd9b1785a3a
+        )*/
+        $referenceIDs = explode("|", $rec['referenceID']);
+        $referenceIDs = array_map('trim', $referenceIDs);
+        foreach($referenceIDs as $referenceID) {
+            if($rec = @$this->references_info[$referenceID]) {
+                $r = new \eol_schema\Reference();
+                $r->full_reference = $rec['full_reference'];
+                $r->identifier = $rec['identifier'];
+                if(!isset($this->reference_ids[$r->identifier])){
+                    $this->reference_ids[$r->identifier] = '';
+                    $this->archive_builder->write_object_to_file($r);
+                }
+            }
+            else self::report_to_admin($referenceID, 'undefined referenceID');
+        }
+    }
+    private function report_to_admin($referenceID, $msg)
+    {
+        echo "\nUndefined referenceID [$referenceID]\n";                        
     }
     private function write_taxon_ext()
     {
@@ -188,5 +235,14 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             $this->archive_builder->write_object_to_file($t);
         }
     }
+    private function initialize_references_info()
+    {
+        $concept_id = $this->main_datasets['References_conceptID'];
+        if (!($local = $this->get_generic_file_path($concept_id, 'references'))) exit("\nERROR: No references.tsv\n");
+        else self::process_table($local, 'initialize_references_info');
+    }
+
+
+    
 }
 ?>

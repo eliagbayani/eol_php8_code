@@ -78,7 +78,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
 
         $this->archive_builder->finalize(true);
 
-        // Functions::start_print_debug($this->debug, $this->param['resource_id'].'_convert');
+        Functions::start_print_debug($this->debug, $concept_id.'_UndefinedRefIDs');
         // recursive_rmdir($temp_dir);
         // debug("\n temporary directory removed: " . $temp_dir);
     }
@@ -201,16 +201,16 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         $referenceIDs = explode("|", $rec['referenceID']);
         $referenceIDs = array_map('trim', $referenceIDs);
         foreach($referenceIDs as $referenceID) {
-            if($rec = @$this->references_info[$referenceID]) {
+            if($full_ref = @$this->references_info[$referenceID]) {
                 $r = new \eol_schema\Reference();
-                $r->full_reference = $rec['full_reference'];
-                $r->identifier = $rec['identifier'];
+                $r->full_reference = $full_ref;
+                $r->identifier = $referenceID;
                 if(!isset($this->reference_ids[$r->identifier])){
                     $this->reference_ids[$r->identifier] = '';
                     $this->archive_builder->write_object_to_file($r);
                 }
             }
-            else self::report_to_admin($referenceID, 'undefined referenceID');
+            else $this->debug['undefined referenceID'][$referenceID] = '';
         }
     }
     private function report_to_admin($referenceID, $msg)

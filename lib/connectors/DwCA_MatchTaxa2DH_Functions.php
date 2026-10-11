@@ -825,15 +825,6 @@ class DwCA_MatchTaxa2DH_Functions
     }
     function choose_one_from_multiple_pairs($ret2, $what)
     {
-        // For reporting:
-        if($what == 'synonym') {
-            foreach($ret2 as $pair) {
-                $rec = $pair[0]; $rek = $pair[1];
-                $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
-                if($rec['EOLid']) $this->debug['With DH EOLid assignments (synonym)'][$rec['taxonID']] = $rec;
-            }                       
-        }
-
         // /* NEW: 10Oct2026 https://github.com/EOL/ContentImport/issues/51#issuecomment-6088731258
         if(count($ret2) > 1) {
             // loop the pairs and get the acceptedNameUsageID from the DH.
@@ -847,14 +838,24 @@ class DwCA_MatchTaxa2DH_Functions
             if(count($aNUID) > 1) { //Leave the name unmatched and put a note about it in the taxonRemarks of the report Cannot_be_matched_at_all.tsv: multiple incompatible synonyms.
                 // echo "\n huli ka: [$what] "; print_r($ret2); //good debug
                 $pair = $ret2[0];
-                $rec = $pair[0];
-                $rec['taxonRemarks'] .= " || multiple incompatible synonyms";
-                $rek = array();
+                $rec = $pair[0]; $rek = $pair[1];
+                $rec['taxonRemarks'] .= " || multiple incompatible synonyms";                
+                // print_r($ret2); exit("\ncheck first...[$what]...return the first pair but remove values for rek['e'] and rek['e2']\n");
                 $rek['e'] = "";
+                $rek['e2'] = "";
                 return array($rec, $rek);
             }
         }
         // */
+
+        // For reporting:
+        if($what == 'synonym') {
+            foreach($ret2 as $pair) {
+                $rec = $pair[0]; $rek = $pair[1];
+                $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
+                if($rec['EOLid']) $this->debug['With DH EOLid assignments (synonym)'][$rec['taxonID']] = $rec;
+            }                       
+        }
 
         // For both accepted and synonym
         foreach($ret2 as $pair) {

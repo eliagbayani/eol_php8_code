@@ -29,19 +29,27 @@ class ZenodoTraitBankAPI
         // Step 1: get latest Zenodo record info (cached) using the concept ID
         if(!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) exit("\nERROR: Cannot get Zenodo info.\n");
         print_r($arr);
-        // Step 2: download the latest version's zip archive to TB_files/[concept_id].zip
-        if(!($zip_file = $this->download_zenodo_zip_file($arr['archive_url'], $concept_id))) exit("\nERROR: Cannot download Zenodo zip file.\n");
-        // Step 3: extract to TB_files/[concept_id]_[abbreviated title]/input_files/ e.g. 23067562_Bioc_and_Natu_Prod/input_files/
-        //         -- only after a fresh download, or if input_files/ is missing or empty (e.g. it was deleted manually)
         $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);
-        $input_dir   = dirname($zip_file) . "/$folder_name/input_files/";
-        if($this->zip_freshly_downloaded || !is_dir($input_dir) || count(scandir($input_dir)) <= 2) {
-            if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file, $folder_name))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+        // Step 2, 1st option: download the latest version's zip archive to TB_files/[concept_id].zip
+        if($arr['archive_url'] && ($zip_file = $this->download_zenodo_zip_file($arr['archive_url'], $concept_id))) {
+            // Step 3: extract to TB_files/[concept_id]_[abbreviated title]/input_files/ e.g. 23067562_Bioc_and_Natu_Prod/input_files/
+            //         -- only after a fresh download, or if input_files/ is missing or empty (e.g. it was deleted manually)
+            $input_dir = dirname($zip_file) . "/$folder_name/input_files/";
+            if($this->zip_freshly_downloaded || !is_dir($input_dir) || count(scandir($input_dir)) <= 2) {
+                if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file, $folder_name))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+            }
+            else {
+                echo "No fresh download, will use existing extracted files.\n";
+                $this->input_dir = $input_dir;
+            }
         }
-        else {
-            echo "No fresh download, will use existing extracted files.\n";
-            $this->input_dir = $input_dir;
+        // Step 2, 2nd option: no archive_url (or its download failed), download the record's files individually
+        //         straight to TB_files/[concept_id]_[abbreviated title]/input_files/
+        elseif($arr['files']) {
+            echo "No usable Zenodo archive URL, will download the files individually.\n";
+            if(!($this->input_dir = $this->download_zenodo_files_individually($arr, $concept_id, $folder_name))) exit("\nERROR: Cannot download Zenodo files individually.\n");
         }
+        else exit("\nERROR: Zenodo record has no archive URL and no files.\n");
         echo "\nInput files folder: $this->input_dir\n";
     }
     function get_zenodo_info_using_conceptID($conceptId, $expire_seconds = null)
@@ -81,12 +89,24 @@ class ZenodoTraitBankAPI
             }
         }
 
+        // C. All files of the record, for downloading individually when there is no archive URL
+        $files = [];
+        foreach ($rec["files"] ?? [] as $f) {
+            if (empty($f["key"]) || empty($f["links"]["self"])) continue;
+            $files[] = array(
+                'key'      => $f["key"],                 // e.g. traits.tsv
+                'url'      => $f["links"]["self"],       // e.g. https://zenodo.org/api/records/23067563/files/traits.tsv/content
+                'size'     => $f["size"] ?? null,
+                'checksum' => $f["checksum"] ?? null);   // e.g. md5:0f1e...
+        }
+
         return array(
             'id'          => $rec['id'],
             'title'       => $rec['metadata']['title'] ?? '',
             'version'     => $rec['metadata']['version'] ?? null,
             'archive_url' => $archiveUrl,
-            'zip_files'   => $zipFiles);
+            'zip_files'   => $zipFiles,
+            'files'       => $files);
     }
     function get_zenodo_title_using_conceptID($conceptId, $expire_seconds = null)
     {   // returns the title of the latest version of the Zenodo record, or false on failure
@@ -125,13 +145,67 @@ class ZenodoTraitBankAPI
             return false;
         }
 
-        // download to a .part file first, so an interrupted download is never mistaken for an existing zip
+        if (!$this->download_url_to_file($archive_url, $dest)) return false;
+        file_put_contents($record_file, $record_id);
+        $this->zip_freshly_downloaded = true;
+        echo "Downloaded zip file [$filename] (record $record_id)\n";
+        return $dest;
+    }
+    function download_zenodo_files_individually($arr, $concept_id, $folder_name)
+    {   // 2nd option, when Zenodo gives no archive_url: download each file of the record ($arr from get_zenodo_info_using_conceptID())
+        // e.g. https://zenodo.org/api/records/23067563/files/traits.tsv/content -> TB_files/23067562_Bioc_and_Natu_Prod/input_files/traits.tsv
+        // TB_files/23067562.record_id stores the record ID (version) of the downloaded files, to detect new versions
+        $record_id   = (string) $arr['id'];
+        $dir         = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $dest_dir    = $dir . "$folder_name/input_files/";
+        $record_file = $dir . "{$concept_id}.record_id";
+
+        // skip downloading if same version and all files are already there with the expected size
+        $redownload      = !empty($this->param['redownload_zip_file_YN']); // missing param = 0
+        $local_record_id = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
+        $complete = true;
+        foreach ($arr['files'] as $f) {
+            $file = $dest_dir . basename($f['key']);
+            if (!is_file($file) || ($f['size'] !== null && filesize($file) != $f['size'])) { $complete = false; break; }
+        }
+        if ($local_record_id !== $record_id) {
+            echo "New version on Zenodo [record $record_id, local was " . ($local_record_id ?: 'unknown') . "], downloading files individually\n";
+        }
+        elseif ($complete && !$redownload) {
+            echo "Files already exist in [$folder_name/input_files/] (record $record_id)\n";
+            return $dest_dir;
+        }
+
+        // always start fresh: delete the destination folder and its contents, then download
+        if (is_dir($dest_dir)) recursive_rmdir($dest_dir);
+        if (!mkdir($dest_dir, 0775, true)) {
+            echo "Cannot create folder [$dest_dir]\n";
+            return false;
+        }
+        foreach ($arr['files'] as $f) {
+            $filename = basename($f['key']); // basename(): never write outside input_files/
+            $dest     = $dest_dir . $filename;
+            if (!$this->download_url_to_file($f['url'], $dest)) return false;
+            if (preg_match('/^md5:([0-9a-f]{32})$/i', (string) $f['checksum'], $m) && md5_file($dest) !== strtolower($m[1])) {
+                unlink($dest);
+                echo "Checksum mismatch, deleted [$filename]\n";
+                return false;
+            }
+            chmod($dest, 0644);
+            echo "Downloaded [$filename]\n";
+        }
+        file_put_contents($record_file, $record_id);
+        echo "Downloaded " . count($arr['files']) . " file(s) to [$folder_name/input_files/] (record $record_id)\n";
+        return $dest_dir;
+    }
+    private function download_url_to_file($url, $dest)
+    {   // download to a .part file first, so an interrupted download is never mistaken for a complete file
         $part = $dest . ".part";
         if (!($fp = fopen($part, "w"))) {
             echo "Cannot write to [$part]\n";
             return false;
         }
-        $ch = curl_init($archive_url);
+        $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_FILE           => $fp,
             CURLOPT_FOLLOWLOCATION => true,
@@ -148,14 +222,10 @@ class ZenodoTraitBankAPI
 
         if (!$ok || $status !== 200) {
             if (is_file($part)) unlink($part);
-            echo "Download failed (HTTP $status) [$archive_url]: $error\n";
+            echo "Download failed (HTTP $status) [$url]: $error\n";
             return false;
         }
-        rename($part, $dest);
-        file_put_contents($record_file, $record_id);
-        $this->zip_freshly_downloaded = true;
-        echo "Downloaded zip file [$filename] (record $record_id)\n";
-        return $dest;
+        return rename($part, $dest);
     }
     function unzip_zenodo_zip_file($zip_file, $folder_name = null)
     {   // e.g. TB_files/23067562.zip -> TB_files/23067562_Bioc_and_Natu_Prod/input_files/

@@ -37,6 +37,7 @@ class ZenodoTraitBankAPI
             $input_dir = dirname($zip_file) . "/$folder_name/input_files/";
             if($this->zip_freshly_downloaded || !is_dir($input_dir) || count(scandir($input_dir)) <= 2) {
                 if(!($this->input_dir = $this->unzip_zenodo_zip_file($zip_file, $folder_name))) exit("\nERROR: Cannot extract Zenodo zip file.\n");
+                $this->add_missing_header_rows($concept_id, $this->input_dir);
             }
             else {
                 echo "No fresh download, will use existing extracted files.\n";
@@ -48,6 +49,7 @@ class ZenodoTraitBankAPI
         elseif($arr['files']) {
             echo "No usable Zenodo archive URL, will download the files individually.\n";
             if(!($this->input_dir = $this->download_zenodo_files_individually($arr, $concept_id, $folder_name))) exit("\nERROR: Cannot download Zenodo files individually.\n");
+            if($this->files_freshly_downloaded) $this->add_missing_header_rows($concept_id, $this->input_dir);
         }
         else exit("\nERROR: Zenodo record has no archive URL and no files.\n");
         echo "\nInput files folder: $this->input_dir\n";
@@ -160,13 +162,16 @@ class ZenodoTraitBankAPI
         $dest_dir    = $dir . "$folder_name/input_files/";
         $record_file = $dir . "{$concept_id}.record_id";
 
-        // skip downloading if same version and all files are already there with the expected size
+        // skip downloading if same version and all files are already there (non-empty)
+        // -- not compared to Zenodo's size: add_missing_header_rows() may have added a header row since;
+        //    partial downloads never get the real name anyway (.part file in download_url_to_file())
+        $this->files_freshly_downloaded = false; // set to true only after a successful download below
         $redownload      = !empty($this->param['redownload_zip_file_YN']); // missing param = 0
         $local_record_id = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
         $complete = true;
         foreach ($arr['files'] as $f) {
             $file = $dest_dir . basename($f['key']);
-            if (!is_file($file) || ($f['size'] !== null && filesize($file) != $f['size'])) { $complete = false; break; }
+            if (!is_file($file) || filesize($file) == 0) { $complete = false; break; }
         }
         if ($local_record_id !== $record_id) {
             echo "New version on Zenodo [record $record_id, local was " . ($local_record_id ?: 'unknown') . "], downloading files individually\n";
@@ -195,8 +200,32 @@ class ZenodoTraitBankAPI
             echo "Downloaded [$filename]\n";
         }
         file_put_contents($record_file, $record_id);
+        $this->files_freshly_downloaded = true;
         echo "Downloaded " . count($arr['files']) . " file(s) to [$folder_name/input_files/] (record $record_id)\n";
         return $dest_dir;
+    }
+    function add_missing_header_rows($concept_id, $input_dir)
+    {   // some Zenodo datasets have files without a header row; add it right after a fresh download
+        // e.g. 22776838 (References): references.tsv starts with data, needs "identifier<TAB>full_reference" as 1st row
+        $required = array('22776838' => array('references.tsv' => "identifier\tfull_reference"));
+        foreach ($required[(string) $concept_id] ?? array() as $filename => $header) {
+            $file = rtrim($input_dir, '/') . "/$filename";
+            if (!is_file($file)) continue;
+            if (!($fp = fopen($file, "r"))) { echo "Cannot read [$file]\n"; continue; }
+            $first_line = rtrim((string) fgets($fp), "\r\n");
+            fclose($fp);
+            if ($first_line === $header) continue;
+            // write header + original contents to a .part file, then replace the original
+            $part = $file . ".part";
+            if (!($out = fopen($part, "w")) || !($in = fopen($file, "r"))) { echo "Cannot add header row to [$file]\n"; continue; }
+            fwrite($out, $header . "\n");
+            stream_copy_to_stream($in, $out);
+            fclose($in);
+            fclose($out);
+            rename($part, $file);
+            chmod($file, 0644);
+            echo "Added header row to [$filename]\n";
+        }
     }
     private function download_url_to_file($url, $dest)
     {   // download to a .part file first, so an interrupted download is never mistaken for a complete file

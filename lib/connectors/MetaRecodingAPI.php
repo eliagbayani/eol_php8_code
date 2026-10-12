@@ -589,7 +589,7 @@ class MetaRecodingAPI
             // rejected: null, ""
             @$this->debug['counts']['did not write']++;
             return $m;
-        }        
+        }
         
         /* 1st client is WoRMS: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=66426&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66426
         if(in_array($this->resource_id, array("26_meta_recoded_1", "26_meta_recoded"))) {

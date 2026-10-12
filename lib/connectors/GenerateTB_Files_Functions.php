@@ -130,7 +130,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $save['exclude'] = '';  // tb:exclude stop branchpainting: descendant taxa should not inherit this trait            
             $save['measurementType'] = $m['measurementType'];
             $save['measurementValue'] = $m['measurementValue'];
-            $save['measurementRemarks'] = $m['measurementRemarks'];
+            $save['measurementRemarks'] = @$m['measurementRemarks'];
             $save['measurementUnit'] = @$m['measurementUnit'];
             $save['lifeStage'] = @$occur['lifeStage'];
             $save['sex'] = @$occur['sex'];

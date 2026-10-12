@@ -32,5 +32,8 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $excluded_rowtypes = array();
     /* This will be processed in GenerateTB_FilesAPI.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
+
+    unlink(CONTENT_RESOURCE_LOCAL_PATH.$resource_id.'_working.tar.gz'); //e.g. 22943003_Palm_TraitBank_working.tar.gz
+    recursive_rmdir(CONTENT_RESOURCE_LOCAL_PATH.$resource_id.'_working'); //e.g. /22943003_Palm_TraitBank_working/
 }
 ?>

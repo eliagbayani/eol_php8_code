@@ -583,8 +583,7 @@ class MetaRecodingAPI
         if(!$m->measurementValue) {
             @$this->debug['counts']['did not write']++;
             return $m;
-        }
-        */
+        }*/
         if ($m->measurementValue !== null && $m->measurementValue !== '') {
             // allowed: 0, "0", 0.0, false, "abc", 5 ...
             // rejected: null, ""

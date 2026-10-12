@@ -74,9 +74,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
         else self::process_table($traits_file, 'build_mof_and_occurrences_array');
 
-
         $this->archive_builder->finalize(true);
-
         Functions::start_print_debug($this->debug, $concept_id.'_UndefinedRefIDs');
         // recursive_rmdir($temp_dir);
         // debug("\n temporary directory removed: " . $temp_dir);
@@ -108,6 +106,10 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                     [kingdom] => 
                     [higherClassification] => Archaeplastida
                 )*/
+                if(isset($rec['taxonKey'])) {
+                    $rec['old_taxonKey'] = $rec['taxonKey'];
+
+                }
                 $taxonID = $rec['taxonID']; //md5(trim($rec['taxonID'].$rec['scientificName']));
                 $this->taxon[$taxonID] = $rec;
             }
@@ -119,14 +121,16 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                     [infer] => TRUE
                     [exclude] =>  
                 )*/ 
-                $fields_2combine = array('scientificName', 'taxonKey', 'infer', 'exclude');
+                $fields_2combine = array('scientificName', 'taxonKey', 'infer', 'exclude'); //haven't encountered taxonMap yet
                 $taxonID = $rec['taxonID'];
                 if($t = @$this->taxon[$taxonID]) { //let us combine values
                     foreach($fields_2combine as $field) {
                         if(!isset($rec[$field])) continue; //new
                         if($rec[$field]) {
                             if(@$t[$field] != $rec[$field]) {
+                                // echo "\nError: Inconistent! values for [$field]\n"; print_r($t); print_r($rec);
                                 $t[$field] = $rec[$field];
+                                // print_r($t); exit("\nNow should be corrected.\n");
                                 $this->taxon[$taxonID] = $t;
                             }
                         }
@@ -188,6 +192,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         foreach($fields as $field) $mof->$field = $rec[$field];
         if(!isset($mof->measurementID)) $mof->measurementID = Functions::generate_measurementID($mof, $this->resource_id);
         $this->archive_builder->write_object_to_file($mof);
+
         //step 3: write Reference
         if(@$rec['referenceID']) {
             self::write_references($rec);
@@ -219,10 +224,6 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             else $this->debug['undefined referenceID'][$referenceID] = '';
         }
     }
-    private function report_to_admin($referenceID, $msg)
-    {
-        echo "\nUndefined referenceID [$referenceID]\n";                        
-    }
     private function write_taxon_ext()
     {
         foreach($this->taxon as $key => $rek) {
@@ -236,6 +237,11 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                 }
                 else $t->$field = $rek[$field];
             }
+            // $t->EOLid = '';
+            // if($val = @$rek['taxonKey']) {
+            //     if(is_numeric($val)) $t->EOLid = $val;
+            // }
+
             // $t->scientificName = '';
             // $t->kingdom = '';
             $this->archive_builder->write_object_to_file($t);

@@ -41,8 +41,8 @@ function process_resource_url($param, $timestart)
 
     require_library('connectors/ConvertNewModel_2DwCA');
     $func = new ConvertNewModel_2DwCA($archive_builder, $param);
-    $func->convert_2DwCA($param['concept_id']);
-
+    $func->convert_2DwCA($param['concept_id']); //main operation
+    /*$func->generate_measurements_values_associations(); exit("\n-end test utility-\n"); */ //test utility, working OK
     echo "\nend: [$resource_id]\n";
     Functions::finalize_dwca_resource($folder, false, true, $timestart);
 }

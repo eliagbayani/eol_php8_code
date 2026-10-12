@@ -422,6 +422,7 @@ class ZenodoTraitBankAPI
         // $basename: file name without extension, e.g. 'traits', 'taxon', 'occurrences' -- finds [basename].tsv or [basename].txt
         //            (extension varies per dataset: taxon.tsv vs taxon.txt); if both exist, .tsv is used
         //            a name with extension, e.g. 'occurrences.txt', is also accepted and matched exactly
+        //            if neither exists, a versioned name is also a valid hit, e.g. 'terms' -> terms_0.9.tsv (highest version wins)
         // folder name uses the current title (cached lookup), the same way do_zenodo_stuff() names it when extracting
         if (!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) return false;
         $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);  //e.g. '23067562_Bioc_and_Natu_Prod'               -> raw files from Zenodo 
@@ -429,12 +430,28 @@ class ZenodoTraitBankAPI
         $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/$folder_name/input_files/";
         if (is_file($dir . $basename)) return $dir . $basename; // exact name given, e.g. 'occurrences.txt'
         $found = array_values(array_filter(array("$basename.tsv", "$basename.txt"), fn($f) => is_file($dir . $f))); // .tsv first = preferred
+        if (!$found && ($versioned = self::find_versioned_file($dir, $basename))) {
+            echo "Using versioned file [$versioned] for [$basename]\n";
+            return $dir . $versioned;
+        }
         if (!$found) {
-            echo "[$basename.tsv] or [$basename.txt] not found in [$folder_name/input_files/], run do_zenodo_stuff($concept_id) first\n";
+            echo "[$basename.tsv] or [$basename.txt] (or e.g. [{$basename}_0.9.tsv]) not found in [$folder_name/input_files/], run do_zenodo_stuff($concept_id) first\n";
             return false;
         }
         if (count($found) > 1) echo "Both [$basename.tsv] and [$basename.txt] exist in [$folder_name/input_files/], using [$basename.tsv]\n";
         return $dir . $found[0];
+    }
+    private function find_versioned_file($dir, $basename)
+    {   // e.g. ($dir, 'terms') -> 'terms_0.9.tsv'; matches [basename]_[version].tsv|.txt where version is like 1, 0.9, 1.2.3
+        // if several versions exist, the highest is used; for the same version .tsv is preferred over .txt
+        $hits = array();
+        foreach (@scandir($dir) ?: array() as $f) { // @: folder may not exist yet
+            if (preg_match('/^' . preg_quote($basename, '/') . '_(\d+(?:\.\d+)*)\.(tsv|txt)$/', $f, $m)) $hits[] = array('file' => $f, 'version' => $m[1], 'ext' => $m[2]);
+        }
+        if (!$hits) return false;
+        usort($hits, fn($a, $b) => version_compare($b['version'], $a['version']) ?: strcmp($a['ext'], $b['ext'])); // highest version first, then 'tsv' before 'txt'
+        if (count($hits) > 1) echo "Several versions of [$basename] in [$dir]: " . implode(', ', array_column($hits, 'file')) . "\n";
+        return $hits[0]['file'];
     }
     function get_records_from_input_file($folder_name, $filename = null)
     {   // e.g. ('22776578_Term', 'terms_0.9.tsv') -> $output[0] = array('attribution' => ..., 'definition' => ..., 'name' => ..., ...)

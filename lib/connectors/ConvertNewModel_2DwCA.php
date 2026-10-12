@@ -51,8 +51,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         */
     }
     private function initialize($concept_id)
-    {
-    }
+    {}
     function convert_2DwCA($concept_id) 
     {
         $this->do_zenodo_stuff($concept_id);
@@ -141,10 +140,11 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                     [full_reference] => A. A. Heidebrecht;R. MacVicar;O. B. Ross;C. K. Whitehair. 1951. Composition of swine milk. I. Major constituents and carotene, vitamin A and vitamin C. pp. 43-50. Journal of Nutrition. vol. 44
                 )*/
                 $this->references_info[$rec['identifier']] = $rec['full_reference'];
-            }            
+            }
+            elseif($what == 'generate_MVA') self::generate_MVA($rec);
         }
     }
-    private function build_mof_and_occurrences_array($rec)
+    private function build_mof_and_occurrences_array($rec) //this is Traits
     {   /*Array(
             [measurementID] => toxins1
             [taxonID] => Remipedia
@@ -162,6 +162,8 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         )*/
         $occurrence_id = md5(json_encode($rec));
         $rec['occurrenceID'] = $occurrence_id;
+
+        // /* This is the version where we ignore the TB occurrences file and just generate our own using the available Traits
         //step 1: write occurrence
         $o = new \eol_schema\Occurrence_specific();
         $o->occurrenceID = $occurrence_id;
@@ -170,12 +172,16 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             $this->archive_builder->write_object_to_file($o);
             $this->occurrence_ids[$occurrence_id] = '';
         }
+        // */
+
         //step 2: write mof
         unset($rec['taxonID']);
         unset($rec['scientificName']);
         unset($rec['taxonKey']);
         unset($rec['infer']);
         unset($rec['exclude']);
+        unset($rec['verbatimScientificName']); //from 22923616_Fung_ecol_trai_reco_and_taxo_meta (http://rs.gbif.org/terms/1.0/verbatimScientificName)
+
         // print_r($rec); exit("\nstop x 1\n");
         $mof = new \eol_schema\MeasurementOrFact_specific();
         $fields = array_keys($rec);
@@ -183,7 +189,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         if(!isset($mof->measurementID)) $mof->measurementID = Functions::generate_measurementID($mof, $this->resource_id);
         $this->archive_builder->write_object_to_file($mof);
         //step 3: write Reference
-        if($rec['referenceID']) {
+        if(@$rec['referenceID']) {
             self::write_references($rec);
         }
     }
@@ -241,8 +247,38 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         if (!($local = $this->get_generic_file_path($concept_id, 'references'))) exit("\nERROR: No references.tsv\n");
         else self::process_table($local, 'initialize_references_info');
     }
-
-
-    
+    function generate_measurements_values_associations() //external function
+    {
+        if (!($local = $this->get_generic_file_path($this->main_datasets['Terms_conceptID'], 'terms'))) exit("\nERROR: No terms.tsv\n");
+        else {
+            self::process_table($local, 'generate_MVA');
+            return array('values' => $this->eol_term_values, 'measurements' => $this->eol_term_measurements, 'associations' => $this->eol_term_associations); 
+        }
+    }
+    private function generate_MVA($rec)
+    {   /*Array(
+            [attribution] => BROT trait database. Traits: units and categories (Propagule), http://www.uv.es/jgpausas/brot.htm;
+            [definition] => The dispersal unit for sexual regeneration.
+            [name] => propagule
+            [type] => measurement
+            [uri] => http://eol.org/schema/terms/Propagule
+            [parent uris] => 
+            [synonym of uri] => 
+            [units term] => 
+            [symmetrical assoc] => 
+            [inverse of] => 
+            [incompatible with clade] => 
+            [exclusive to clade] => 
+        )*/
+        if($rec['type'] == 'value') {
+            if(substr($rec['uri'], 0, 4) == 'http') $this->eol_term_values[trim($rec['uri'])] = '';       //list of URI values
+        }
+        elseif($rec['type'] == 'measurement') {
+            if(substr($rec['uri'], 0, 4) == 'http') $this->eol_term_measurements[trim($rec['uri'])] = ''; //list of URI measurements
+        }
+        elseif($rec['type'] == 'association') {
+            if(substr($rec['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($rec['uri'])] = ''; //list of URI associations
+        }        
+    }  
 }
 ?>

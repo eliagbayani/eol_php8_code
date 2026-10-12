@@ -18,7 +18,7 @@ class AnalyzeMoF_API
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
-    {
+    {   /* old implementation
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI($this->resource_id, $this->archive_builder);
         $arr = $func->use_yaml_parse_and_oldOrig(); //print_r($arr);
@@ -32,43 +32,18 @@ class AnalyzeMoF_API
             elseif($r['type'] == 'association') {
                 if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($r['uri'])] = ''; //list of URI associations
             }
-        }
-        // print_r($this->eol_term_values); print_r($this->eol_term_measurements); print_r($this->eol_term_associations) exit;
-        /*
-        [2239] => Array(
-                [attribution] => International Chronostratigraphic Chart: http://www.stratigraphy.org/index.php/ics-chart-timescale
-                [definition] => 
-                [is_hidden_from_select] => 
-                [is_hidden_from_overview] => 
-                [is_hidden_from_glossary] => 
-                [is_text_only] => 
-                [name] => gzhelian age
-                [type] => value
-                [uri] => http://resource.geosciml.org/classifier/ics/ischart/Gzhelian
-                [parent_uris] => Array(
-                        [0] => http://resource.geosciml.org/classifier/ics/ischart/Pennsylvanian
-                    )
-                [synonym_of_uri] => 
-                [units_term_uri] => 
-                [alias] => 
-            )
-        [2240] => Array(
-                [attribution] => 
-                [definition] => x has habitat y if: x is an organism, y is a habitat, and y can sustain and allow the growth of a population of x
-                [is_hidden_from_select] => 
-                [is_hidden_from_overview] => 
-                [is_hidden_from_glossary] => 
-                [is_text_only] => 
-                [name] => habitat
-                [type] => measurement
-                [uri] => http://purl.obolibrary.org/obo/RO_0002303
-                [parent_uris] => Array(
-                    )
-                [synonym_of_uri] => 
-                [units_term_uri] => 
-                [alias] => habitat
-            )
-        */        
+        }*/
+        require_library('connectors/ZenodoTraitBankAPI');
+        require_library('connectors/ConvertNewModel_2DwCA');
+        $func = new ConvertNewModel_2DwCA(false, array());
+        $ret = $func->generate_measurements_values_associations();
+        $this->eol_term_values = $ret['values'];
+        $this->eol_term_measurements = $ret['measurements'];
+        $this->eol_term_associations = $ret['associations'];
+        echo "\neol_term_values: [".count($this->eol_term_values)."]";
+        echo "\neol_term_measurements: [".count($this->eol_term_measurements)."]";
+        echo "\neol_term_associations: [".count($this->eol_term_associations)."]";
+        // print_r($this->eol_term_values); print_r($this->eol_term_measurements); print_r($this->eol_term_associations); exit("\nstopx 3\n");
     }
     function start($info)
     {   

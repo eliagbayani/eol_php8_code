@@ -375,6 +375,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                     }
                                 }
                                 else {
+                                    $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                                     $this->debug['Cannot be matched at all'][$taxonID] = $rec;
                                     /*
                                     echo "\nSo it goes here...\n";
@@ -429,11 +430,13 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             }
                             else { //incompatible ancestry
                                 if($this->debugNow) echo "\n => incompatible ancestry \n";
+                                $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                                 $this->debug['Cannot be matched at all'][$taxonID] = $rec;
                             }
                         }
                         else { //incompatible ranks
                             if($this->debugNow) echo "\n => incompatible ranks \n";
+                            $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                             $this->debug['Cannot be matched at all'][$taxonID] = $rec;
 
                             /* Eli's initiative only
@@ -448,18 +451,23 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     }
                     else { //no ancestry index
                         if($this->debugNow) echo "\n => no ancestry index \n";
+                        $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                         $this->debug['Cannot be matched at all'][$taxonID] = $rec;
                     }
                     // */
 
                     /* ----- OLD IMPLEMENTATION ----- */
                 }
-                else $this->debug['No canonical match'][$taxonID] = $rec;
+                else {
+                    $rec['taxonRemarks'] = $this->add_remarks(@$rec['taxonRemarks'], 'No canonical match');
+                    $this->debug['No canonical match'][$taxonID] = $rec;
+                }
 
                 if($this->debugNow) {
                     print_r($rec); self::debug_reports(); exit("\n-stop 1st rec-\n");
                 }
 
+                self::for_reporting($rec);
                 // /* uncomment in real operation
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
                 // */
@@ -491,6 +499,17 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             }
             //========================================================================================================= 
             // if($i >= 100) break; //dev only
+        }
+    }
+    private function for_reporting($rec)
+    {
+        if(isset($rec['old_taxonKey'])) {
+            if($val = $rec['EOLid']) {
+                if($val != $rec['old_taxonKey']) $this->debug4['Assigned EOLid != old_taxonKey'][$val.' !- '.$rec['old_taxonKey']] = '';
+            }
+            else {
+                if($val = $rec['old_taxonKey']) $this->debug4['has old_taxonKey but fail to assign'][$val] = '';
+            }
         }
     }
     private function major_assignment($pair)

@@ -971,5 +971,11 @@ class DwCA_MatchTaxa2DH_Functions
         if($lastChar != "|") $str = $str."|";
         return $str;
     }
+    function add_remarks($source, $remarks)
+    {
+        if($source) $source = trim($source);
+        if($source) return "$source || $remarks";
+        else return $remarks;
+    }
 }
 ?>

@@ -579,12 +579,18 @@ class MetaRecodingAPI
         }
         // */
 
-        // /* New Jan 14, 2021 --- measurementValue should not be blank
+        /* New Jan 14, 2021 --- measurementValue should not be blank BUT it also excludes 0 zero values. Use below instead.
         if(!$m->measurementValue) {
             @$this->debug['counts']['did not write']++;
             return $m;
         }
-        // */
+        */
+        if ($m->measurementValue !== null && $m->measurementValue !== '') {
+            // allowed: 0, "0", 0.0, false, "abc", 5 ...
+            // rejected: null, ""
+            @$this->debug['counts']['did not write']++;
+            return $m;
+        }        
         
         /* 1st client is WoRMS: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=66426&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66426
         if(in_array($this->resource_id, array("26_meta_recoded_1", "26_meta_recoded"))) {

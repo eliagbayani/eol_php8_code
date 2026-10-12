@@ -46,6 +46,7 @@ class GenerateCSV_NewModel extends ZenodoTraitBankAPI
         /*  R22776209	TraitBank Reference Hierarchy Version 0.9   https://doi.org/10.5281/zenodo.22776209
             R22776577	Terms                                       https://doi.org/10.5281/zenodo.22776577                          
             R22776838	References                                  https://doi.org/10.5281/zenodo.22776838 */
+        // $this->main_datasets = array('Terms_conceptID' => 22776577, 'References_conceptID' => 22776838, 'DH_conceptID' => 22776209);
     }
     private function initialize()
     {

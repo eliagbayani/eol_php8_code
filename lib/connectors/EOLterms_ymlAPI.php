@@ -17,6 +17,7 @@ class EOLterms_ymlAPI
 {
     function __construct($archive_builder = false, $resource_id = false)
     {
+        exit("\nERROR: not used anymore. Use Terms in TraitBank community in Zenodo instead.\n");
         $this->download_options = array('cache' => 1, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         // $this->download_options['expire_seconds'] = 0; //comment after first harvest; 0 means expires now.
         $this->EOL_terms_yml_url = "https://raw.githubusercontent.com/EOL/eol_terms/main/resources/terms.yml";

@@ -37,9 +37,7 @@ class AnalyzeMoF_API
         require_library('connectors/ConvertNewModel_2DwCA');
         $func = new ConvertNewModel_2DwCA(false, array());
         $ret = $func->generate_measurements_values_associations();
-        $this->eol_term_values = $ret['values'];
-        $this->eol_term_measurements = $ret['measurements'];
-        $this->eol_term_associations = $ret['associations'];
+        $this->eol_term_values = $ret['values']; $this->eol_term_measurements = $ret['measurements']; $this->eol_term_associations = $ret['associations'];
         echo "\neol_term_values: [".count($this->eol_term_values)."]";
         echo "\neol_term_measurements: [".count($this->eol_term_measurements)."]";
         echo "\neol_term_associations: [".count($this->eol_term_associations)."]";

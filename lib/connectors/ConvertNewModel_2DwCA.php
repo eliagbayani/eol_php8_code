@@ -69,15 +69,14 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         //step 2.1
         self::initialize_references_info();
 
-
         //step 3
         if (!($traits_file = $this->get_generic_file_path($concept_id, 'traits'))) exit("\nERROR: No traits.tsv\n");
         else self::process_table($traits_file, 'build_mof_and_occurrences_array');
 
+        print_r($this->debug['counts']);
+
         $this->archive_builder->finalize(true);
         Functions::start_print_debug($this->debug, $concept_id.'_UndefinedRefIDs');
-        // recursive_rmdir($temp_dir);
-        // debug("\n temporary directory removed: " . $temp_dir);
     }
     private function process_table($label_tsv_file, $what)
     {
@@ -137,7 +136,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                     }
                 }
             }
-            elseif($what == 'build_mof_and_occurrences_array') self::build_mof_and_occurrences_array($rec);
+            elseif($what == 'build_mof_and_occurrences_array') { self::build_mof_and_occurrences_array($rec); @$this->debug['counts']['count rec']++; }
             elseif($what == 'initialize_references_info') {
                 /*Array(
                     [identifier] => https://doi.org/10.1093/jn/44.1.43
@@ -191,7 +190,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         $fields = array_keys($rec);
         foreach($fields as $field) $mof->$field = $rec[$field];
         if(!isset($mof->measurementID)) $mof->measurementID = Functions::generate_measurementID($mof, $this->resource_id);
-        $this->archive_builder->write_object_to_file($mof);
+        $this->archive_builder->write_object_to_file($mof); @$this->debug['counts']['count mof writes']++;
 
         //step 3: write Reference
         if(@$rec['referenceID']) {

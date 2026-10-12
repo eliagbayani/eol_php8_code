@@ -97,6 +97,7 @@ class MetaRecodingAPI
             self::task_move_col_in_occurrence_to_MoF_row_with_MeasurementOfTaxon_false($tables);
         }
         // ----------------------------------------------------- */
+        print_r($this->debug['counts']);
         if(isset($this->debug)) print_r($this->debug);
     }
     private function task_CCP2Agents($tables) //task_200: contributor, creator, publisher from Document to Agents
@@ -246,7 +247,7 @@ class MetaRecodingAPI
                 $rec[$field['term']] = $tmp[$k]; //put "@" as @$tmp[$k] during development
                 $k++;
             } //print_r($rec); exit;
-            $rec = array_map('trim', $rec);
+            $rec = array_map('trim', $rec); @$this->debug['counts']['count rec']++;
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/measurementID] => 701b0a2f26dc29fb010578363b0b29ef_692
                 [http://rs.tdwg.org/dwc/terms/occurrenceID] => 12e1aea54c7d8dc661f84043155a5cde_692
@@ -484,7 +485,7 @@ class MetaRecodingAPI
                 if(isset($rec['http://rs.tdwg.org/dwc/terms/lifeStage'])) unset($rec['http://rs.tdwg.org/dwc/terms/lifeStage']);    //task_6
                 if(isset($rec['http://rs.tdwg.org/dwc/terms/sex']))       unset($rec['http://rs.tdwg.org/dwc/terms/sex']);          //task_7
                 if(isset($rec['http://eol.org/schema/terms/bodyPart']))   unset($rec['http://eol.org/schema/terms/bodyPart']);
-                self::write_MoF_rec($rec);
+                self::write_MoF_rec($rec); @$this->debug['counts']['write mof']++;
             }
             //===========================================================================================================================================================
             if($what == 'write_task_123') { //MoF
@@ -579,7 +580,10 @@ class MetaRecodingAPI
         // */
 
         // /* New Jan 14, 2021 --- measurementValue should not be blank
-        if(!$m->measurementValue) return $m;
+        if(!$m->measurementValue) {
+            @$this->debug['counts']['did not write']++;
+            return $m;
+        }
         // */
         
         /* 1st client is WoRMS: https://eol-jira.bibalex.org/browse/DATA-1827?focusedCommentId=66426&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-66426
@@ -590,7 +594,7 @@ class MetaRecodingAPI
 
         if(!isset($this->measurementIDs[$m->measurementID])) {
             $this->measurementIDs[$m->measurementID] = '';
-            $this->archive_builder->write_object_to_file($m);
+            $this->archive_builder->write_object_to_file($m); @$this->debug['counts']['actual write mof']++;
         }
         return $m;
     }

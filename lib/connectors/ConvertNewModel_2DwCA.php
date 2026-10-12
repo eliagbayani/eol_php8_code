@@ -29,7 +29,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
     function __construct($archive_builder, $param) {
         $this->param = $param;
 
-        $this->resource_id = $param['resource_id'];
+        $this->resource_id = @$param['resource_id']; //when calling just a function in this lib. Thus we put @ in $param['resource_id'].
         $this->archive_builder = $archive_builder;
 
         $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1);

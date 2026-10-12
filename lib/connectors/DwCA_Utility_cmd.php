@@ -303,7 +303,7 @@ class DwCA_Utility_cmd
             case "infer":       return "inf"; break;
             case "exclude":     return "exc"; break;
             case "superfamily": return "aSF"; break;
-
+            case "old_taxonKey": return "otK"; break;
             default: exit("\nUndefined field [$field] to shorten. Must be initialized before proceeding!\n");
         }
     }
@@ -351,7 +351,7 @@ class DwCA_Utility_cmd
             case "inf":  return "infer"; break;
             case "exc":  return "exclude"; break;
             case "aSF":  return "superfamily"; break;
-
+            case "otK":  return "old_taxonKey"; break;
             default: return $field;
             // default: exit("\nUndefined field [$field] to lengthen. Must be initialized before proceeding!\n"); //don't use this
         }

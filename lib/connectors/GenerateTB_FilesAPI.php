@@ -86,7 +86,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             }
 
             //========================================================================================================= 
-            if($what == 'write') {
+            if($what == 'write') { exit("\nERROR: Does it go here at all?\n");
                 $uris = array_keys($rec);            
                     if($class == "occurrence")      $o = new \eol_schema\Occurrence_specific();
                 elseif($class == "mof")             $o = new \eol_schema\MeasurementOrFact_specific();
@@ -105,7 +105,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             // if($i >= 100) break; //dev only
         }
     }
-    private function data_chain_linkup($rec)
+    private function data_chain_linkup($rec) //$rec is from DwCA
     {   /*Array(
             [taxonID] => 47138010
             [scientificName] => Plumeria rubra L
@@ -115,9 +115,11 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Plumeria\|.*?] ] || source_taxonID: [d6b158fbfeaa7914ce528b3c4df341a7]
             [canonicalName] => Plumeria rubra
             [EOLid] => 47138010
+            [source_taxonID] => blablabla
         )*/
         $taxonID = $rec['taxonID'];
         $taxon_info = self::retrieve_data($taxonID, 'taxon');
+        $taxonKey = $taxon_info['taxonKey'];
 
         // /* occurrences
         $occur_info = array();
@@ -147,7 +149,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     }
     private function write_input_files($taxon_compiled, $taxonID)
     {
-        $arr = $taxon_compiled[$taxonID]; //print_r($arr); exit("\nelix 4\n");
+        $arr = $taxon_compiled[$taxonID]; //print_r($arr); //exit("\nelix 4\n");
         $source_taxonID = self::get_source_taxonID($arr['taxon']['taxonRemarks']); // print_r($arr); exit("\n[$source_taxonID]\nsample chain\n");
         $arr['taxon']['source_taxonID'] = $source_taxonID;
         self::write_Traits_input_file($arr);
@@ -172,7 +174,32 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         [infer] => 
         [exclude] => 
         )*/
+        /*Array( PalmTraits
+            [taxonID] => 1133516
+            [scientificName] => Acanthophoenix crinita
+            [higherClassification] => Arecales|Acanthophoenix|
+            [order] => Arecales
+            [family] => 
+            [genus] => Acanthophoenix
+            [taxonRank] => species
+            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Arecales\|.*?] ] || source_taxonID: [Acanthophoenix crinita]
+            [canonicalName] => Acanthophoenix crinita
+            [EOLid] => 1133516
+            [taxonMap] => auto
+            [superfamily] => 
+            [old_taxonKey] => 
+        )*/
         $taxonID = $rec['taxonID'];
+
+        // /* here is we assign things == dito pala
+        $rec['source_taxonID'] = self::get_source_taxonID($rec['taxonRemarks']);
+        if(!$rec['EOLid']) {
+            $rec['taxonID'] = $rec['source_taxonID']; //overwrite
+            $rec['taxonKey'] = '';
+        }
+        else $rec['taxonKey'] = $rec['taxonID']; //which is EOLid
+        // */
+
         $arr = array();
         $arr = $rec;
         self::save2json($taxonID, $arr, 'taxon');

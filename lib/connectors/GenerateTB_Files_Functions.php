@@ -27,7 +27,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         )*/
         $save = array();
         $save['taxonID'] = $taxon_info['source_taxonID'];
-        $save['taxonKey'] = $taxon_info['taxonID'];
+        $save['taxonKey'] = $taxon_info['taxonKey'];
         
         $save['taxonMap'] = $taxon_info['taxonMap'];
         $save['infer'] = @$taxon_info['infer'];
@@ -83,21 +83,78 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         }
     }
     function write_Traits_input_file($taxon_main)
-    {
-        // print_r($taxon_main); //exit("\n[]\nsample chain x\n");
+    {   /*Array(
+            [taxon] => Array(
+                    [taxonID] => 1133516
+                    [scientificName] => Acanthophoenix crinita
+                    [higherClassification] => Arecales|Acanthophoenix|
+                    [order] => Arecales
+                    [family] => 
+                    [genus] => Acanthophoenix
+                    [taxonRank] => species
+                    [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Arecales\|.*?] ] || source_taxonID: [Acanthophoenix crinita]
+                    [canonicalName] => Acanthophoenix crinita
+                    [EOLid] => 1133516
+                    [taxonMap] => auto
+                    [superfamily] => 
+                    [old_taxonKey] => 
+                    [source_taxonID] => Acanthophoenix crinita
+                )
+            [occurrences] => Array(
+                    [0c90b41e692935f1c2df66ee36c3dfe4] => Array(
+                            [occurrenceID] => 0c90b41e692935f1c2df66ee36c3dfe4
+                            [taxonID] => 1133516
+                            [bodyPart] => 
+                        )
+                    [476aca6590f19d742ec011fe537fce4a] => Array(
+                            [occurrenceID] => 476aca6590f19d742ec011fe537fce4a
+                            [taxonID] => 1133516
+                            [bodyPart] => http://purl.obolibrary.org/obo/PO_0025034
+                        )
+            [mof] => Array(
+                    [0] => Array(
+                            [measurementID] => Kissling_Daniel_738
+                            [occurrenceID] => 0c90b41e692935f1c2df66ee36c3dfe4
+                            [measurementType] => http://purl.obolibrary.org/obo/FLOPO_0900032
+                            [measurementValue] => http://purl.obolibrary.org/obo/FLOPO_0900033
+                            [measurementUnit] => 
+                            [statisticalMethod] => 
+                            [measurementRemarks] => 
+                            [source] => https://doi.org/10.5061/dryad.ts45225
+                            [referenceID] => https://doi.org/10.1111/1365-2745.12698|https://palmweb.org/cdm_dataportal/reference/b83403f1-0316-4152-bc3b-22cf4f70ce86|https://doi.org/10.1038/s41559-017-0348-7
+                        )
+                    [1] => Array(
+                            [measurementID] => Kissling_Daniel_4301
+                            [occurrenceID] => 476aca6590f19d742ec011fe537fce4a
+                            [measurementType] => https://www.wikidata.org/entity/Q29688905
+                            [measurementValue] => http://purl.obolibrary.org/obo/UBERON_0008260
+                            [measurementUnit] => 
+                            [statisticalMethod] => 
+                            [measurementRemarks] => 
+                            [source] => https://doi.org/10.5061/dryad.ts45225
+                            [referenceID] => https://doi.org/10.1111/1365-2745.12698|https://palmweb.org/cdm_dataportal/reference/b83403f1-0316-4152-bc3b-22cf4f70ce86|https://doi.org/10.1038/s41559-017-0348-7
+                        )
+                    )
+        */
+        /*[taxon] => Array(
+                [taxonID] => 1133516
+                [scientificName] => Acanthophoenix crinita
+                [higherClassification] => Arecales|Acanthophoenix|
+                [order] => Arecales
+                [family] => 
+                [genus] => Acanthophoenix
+                [taxonRank] => species
+                [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Arecales\|.*?] ] || source_taxonID: [Acanthophoenix crinita]
+                [canonicalName] => Acanthophoenix crinita
+                [EOLid] => 1133516
+                [taxonMap] => auto
+                [superfamily] => 
+                [old_taxonKey] => 
+                [source_taxonID] => Acanthophoenix crinita
+            )*/
         $taxon_info = $taxon_main['taxon'];
         $occur_info = $taxon_main['occurrences']; // print_r($occur_info);
-        /*Array(
-            [taxonID] => 47138010
-            [scientificName] => Plumeria rubra L
-            [higherClassification] => Plumeria|
-            [genus] => Plumeria
-            [taxonRank] => species
-            [taxonRemarks] => Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Plumeria\|.*?] ] || source_taxonID: [d6b158fbfeaa7914ce528b3c4df341a7]
-            [canonicalName] => Plumeria rubra
-            [EOLid] => 47138010
-        )*/
-        $taxonKey = $taxon_info['taxonID'];
+        $taxonKey = $taxon_info['taxonKey'];
 
         $measurements = $taxon_main['mof'];
         foreach($measurements as $m) { //print_r($m); exit;
@@ -124,7 +181,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $save['measurementID'] = $m['measurementID'];
             // $save['occurrenceID'] = $occurrenceID; //optional
             $save['taxonID'] = $taxon_info['source_taxonID'];
-            $save['taxonKey'] = $taxonKey;
+            $save['taxonKey'] = $taxon_info['taxonKey'];
             $save['scientificName'] = $taxon_info['scientificName'];
             $save['infer'] = '';    // tb:infer if true, paint the branch: taxa descending from the tbTaxonMapping should inherit this trait
             $save['exclude'] = '';  // tb:exclude stop branchpainting: descendant taxa should not inherit this trait            

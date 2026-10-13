@@ -247,7 +247,7 @@ class MetaRecodingAPI
                 $rec[$field['term']] = $tmp[$k]; //put "@" as @$tmp[$k] during development
                 $k++;
             } //print_r($rec); exit;
-            $rec = array_map('trim', $rec); @$this->debug['counts']['count rec']++;
+            $rec = array_map('trim', $rec);
             /*Array(
                 [http://rs.tdwg.org/dwc/terms/measurementID] => 701b0a2f26dc29fb010578363b0b29ef_692
                 [http://rs.tdwg.org/dwc/terms/occurrenceID] => 12e1aea54c7d8dc661f84043155a5cde_692
@@ -583,8 +583,9 @@ class MetaRecodingAPI
         if(!$m->measurementValue) {
             @$this->debug['counts']['did not write']++;
             return $m;
-        }*/
-        if ($m->measurementValue !== null && $m->measurementValue !== '') {
+        }
+        */
+        if(strlen((string) $m->measurementValue) == 0) {
             // allowed: 0, "0", 0.0, false, "abc", 5 ...
             // rejected: null, ""
             @$this->debug['counts']['did not write']++;

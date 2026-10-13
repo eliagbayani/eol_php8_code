@@ -12,7 +12,7 @@ php update_resources/connectors/use_EOLid_as_taxonID.php _ '{"resource_id": "glo
 php update_resources/connectors/xxx.php _ '{"resource_id": "Brazilian_Flora"}'
 
 php use_EOLid_as_taxonID.php _ '{"resource_id": "WoRMS-with-hC"}' # gen neo4j_3
-
+php use_EOLid_as_taxonID.php _ '{"resource_id": "22943003_Palm-with-hC_neo4j_1_eolID", "resource_type": "TB_dwca"}' # gen 22943003_Palm_finale
 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
@@ -38,6 +38,7 @@ $timestart = time_elapsed();
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode(@$argv[2], true); // print_r($param); exit;
 $resource_id = $param['resource_id'];
+$resource_type = $param['resource_type'];
 $tmp_id = $param['resource_id']; //e.g. "Brazilian_Flora-with-hC_neo4j_1_eolID_eolID" | Source DwCA
 // $tmp_id .= "_neo4j_2"; //reads this file --- OBSOLETE
 
@@ -47,12 +48,13 @@ $dwca_file = CONTENT_RESOURCE_LOCAL_PATH . "/".$tmp_id.".tar.gz";               
 $arr = explode("-with-hC", $resource_id);
 $resource_id = $arr[0]."_finale"; //the DwCA using EOLid in taxonID of taxon.tab | Destination DwCA
 
-process_resource_url($dwca_file, $resource_id, $timestart);
+process_resource_url($dwca_file, $resource_id, $timestart, $resource_type);
 
-function process_resource_url($dwca_file, $resource_id, $timestart)
+function process_resource_url($dwca_file, $resource_id, $timestart, $resource_type)
 {
     require_library('connectors/DwCA_Utility');
     $params['resource'] = "use_EOLid_as_taxonID";
+    $params['resource_type'] = $resource_type;
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 
     $preferred_rowtypes = array("http://eol.org/schema/reference/reference", "http://eol.org/schema/agent/agent");

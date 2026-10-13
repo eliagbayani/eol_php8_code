@@ -22,9 +22,10 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class DwCA_UseEOLidInTaxa
 {
-    function __construct($archive_builder, $resource_id, $archive_path)
+    function __construct($archive_builder, $resource_id, $archive_path, $params)
     {
         $this->resource_id = $resource_id;
+        $this->params = $params; //print_r($params); exit("\nstop 1\n");
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
         $this->debug = array();

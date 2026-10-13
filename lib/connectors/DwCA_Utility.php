@@ -641,7 +641,7 @@ class DwCA_Utility
         }
         if(@$this->params['resource'] == "use_EOLid_as_taxonID") {
             require_library('connectors/DwCA_UseEOLidInTaxa');
-            $func = new DwCA_UseEOLidInTaxa($this->archive_builder, $this->resource_id, $this->archive_path);
+            $func = new DwCA_UseEOLidInTaxa($this->archive_builder, $this->resource_id, $this->archive_path, $this->params);
             $func->start($info);
         }
         // -------------------- */

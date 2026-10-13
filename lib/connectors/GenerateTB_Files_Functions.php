@@ -190,23 +190,61 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $occur = $occur_info[$occurrenceID]; //print_r($occur); exit("\nelix 3\n");
 
             $save = array();
-            $save['measurementID'] = $m['measurementID'];
-            // $save['occurrenceID'] = $occurrenceID; //optional
-            $save['taxonID'] = $taxon_info['source_taxonID'];
-            $save['taxonKey'] = $taxon_info['taxonKey'];
-            $save['scientificName'] = $taxon_info['scientificName'];
+
+            // /* version 2
+            $headers = self::get_headers($this->concept_id, 'traits'); //print_r($headers); exit("\nelix 2\n");
+            // if(!in_array('taxonMap', $headers)) $headers[] = 'taxonMap';         //copied template
+            // $headers = $this->insert_array($headers, 'taxonMap', 'taxonKey');    //copied template
+            /*Array(
+                [0] => measurementID
+                [1] => taxonID
+                [2] => scientificName
+                [3] => taxonKey
+                [4] => infer
+                [5] => measurementType
+                [6] => measurementValue
+                [7] => bodyPart
+                [8] => statisticalMethod
+                [9] => measurementUnit
+                [10] => measurementRemarks
+                [11] => source
+                [12] => referenceID
+            )*/
+            foreach($headers as $field) {
+                if($field == 'taxonID')             $save['taxonID']        = $taxon_info['source_taxonID'];
+                elseif($field == 'taxonKey')        $save['taxonKey']       = $taxon_info['taxonKey'];
+                elseif($field == 'scientificName')  $save['scientificName'] = $taxon_info['scientificName'];
+
+                elseif($field == 'lifeStage')   $save['lifeStage']  = @$occur['lifeStage'];
+                elseif($field == 'sex')         $save['sex']        = @$occur['sex'];
+                elseif($field == 'bodyPart')    $save['bodyPart']   = @$occur['bodyPart'];
+
+                else                            $save[$field] = @$m[$field];
+            }
+            // */
+
+            /* version 1
+            $save['measurementID']      = $m['measurementID'];
+            // $save['occurrenceID']    = $occurrenceID; //optional
+            $save['measurementType']    = $m['measurementType'];
+            $save['measurementValue']   = $m['measurementValue'];
+            $save['measurementRemarks'] = @$m['measurementRemarks'];
+            $save['measurementUnit']    = @$m['measurementUnit'];
+            $save['statisticalMethod']  = @$m['statisticalMethod'];
+            $save['source']             = @$m['source'];
+            $save['referenceID']        = @$m['referenceID'];
+
+            $save['taxonID']            = $taxon_info['source_taxonID'];
+            $save['taxonKey']           = $taxon_info['taxonKey'];
+            $save['scientificName']     = $taxon_info['scientificName'];
+
             $save['infer'] = '';    // tb:infer if true, paint the branch: taxa descending from the tbTaxonMapping should inherit this trait
             $save['exclude'] = '';  // tb:exclude stop branchpainting: descendant taxa should not inherit this trait            
-            $save['measurementType'] = $m['measurementType'];
-            $save['measurementValue'] = $m['measurementValue'];
-            $save['measurementRemarks'] = @$m['measurementRemarks'];
-            $save['measurementUnit'] = @$m['measurementUnit'];
-            $save['lifeStage'] = @$occur['lifeStage'];
-            $save['sex'] = @$occur['sex'];
-            $save['bodyPart'] = @$occur['bodyPart'];
-            $save['statisticalMethod'] = @$m['statisticalMethod'];
-            $save['source'] = @$m['source'];
-            $save['referenceID'] = @$m['referenceID'];
+
+            $save['lifeStage']  = @$occur['lifeStage'];
+            $save['sex']        = @$occur['sex'];
+            $save['bodyPart']   = @$occur['bodyPart'];
+            */
             self::write_to_text($save, 'Traits');
         }
     }

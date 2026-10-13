@@ -10,13 +10,16 @@ These ff. workspaces work together:
 - GenerateCSV_4Neo4j.code-workspace
 - GenerateTB_FilesAPI.code-workspace
 
-If EOLid exists.
-This lib. will now use EOLid for: taxon->taxonID
-                                  vernacular->taxonID  
-                                  media->taxonID
-                                  occurrence->taxonID
-It will delete/exclude those taxon, vernaculars, media, occurrence and MoF without the EOLid.
-*It can also assign DH taxonRank and canonicalName to resource document, but not anymore.
+ONLY FOR Legacy DwCA files e.g. FishBase, GloBI, Wikipedia inferred:
+    If EOLid exists.
+    This lib. will now use EOLid for: taxon->taxonID
+                                    vernacular->taxonID  
+                                    media->taxonID
+                                    occurrence->taxonID
+    It will delete/exclude those taxon, vernaculars, media, occurrence and MoF without the EOLid.
+    *It can also assign DH taxonRank and canonicalName to resource document, but not anymore.
+ONLY FOR TraitBank datasets:
+    It will NO LONGER delete/exclude those taxon, vernaculars, media, occurrence and MoF without the EOLid.
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -154,7 +157,9 @@ class DwCA_UseEOLidInTaxa
                         */
                     }
                 }
-                else continue; //this will drastically lessen our taxon count
+                else {  //this will drastically lessen our taxon count
+                    if($this->params['resource_type'] != 'TB_dwca') continue;
+                }
                 if($parentNameUsageID = @$rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID']) {
                     if($new_taxonID = @$this->taxonID_EOLid[$parentNameUsageID]) $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = $new_taxonID;
                     else $rec['http://rs.tdwg.org/dwc/terms/parentNameUsageID'] = ''; //since there is no EOLid for this parentID, we set it to blank.
@@ -165,9 +170,11 @@ class DwCA_UseEOLidInTaxa
             if ($what == 'write_occurrence') {
                 if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
                 else {
-                    @$this->debug['Taxa in Occur.tab has no EOLid'][$taxonID] = '';
-                    $this->occurrenceID_to_delete[$rec['http://rs.tdwg.org/dwc/terms/occurrenceID']] = '';
-                    continue; //don't save
+                    if($this->params['resource_type'] != 'TB_dwca') {
+                        @$this->debug['Taxa in Occur.tab has no EOLid'][$taxonID] = '';
+                        $this->occurrenceID_to_delete[$rec['http://rs.tdwg.org/dwc/terms/occurrenceID']] = '';
+                        continue; //don't save
+                    }
                 }
                 self::write_2archive($rec, 'occurrence_specific'); continue;
             }
@@ -193,8 +200,10 @@ class DwCA_UseEOLidInTaxa
                     if($rec['http://purl.org/dc/terms/type'] == 'http://purl.org/dc/dcmitype/Text') {
                         if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
                         else {
-                            @$this->debug["Taxa in $class .tab has no EOLid"][$taxonID] = '';                            
-                            continue; //don't save
+                            if($this->params['resource_type'] != 'TB_dwca') {
+                                @$this->debug["Taxa in $class .tab has no EOLid"][$taxonID] = '';                            
+                                continue; //don't save
+                            }
                         }
                     }
                     else continue; //non-text is excluded as well
@@ -202,8 +211,10 @@ class DwCA_UseEOLidInTaxa
                 elseif($class == 'vernacular') {
                     if($new_taxonID = @$this->taxonID_EOLid[$taxonID]) $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID;
                     else {
-                        @$this->debug["Taxa in $class .tab has no EOLid"][$taxonID] = '';
-                        continue; //don't save
+                        if($this->params['resource_type'] != 'TB_dwca') {
+                            @$this->debug["Taxa in $class .tab has no EOLid"][$taxonID] = '';
+                            continue; //don't save
+                        }
                     }
                 }
                 self::write_2archive($rec, $class); continue;

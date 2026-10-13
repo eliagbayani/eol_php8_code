@@ -25,14 +25,32 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             [superfamily] => 
             [source_taxonID] => Acanthophoenix crinita
         )*/
+        $headers = self::get_headers($this->concept_id, 'taxon');
+        if(!in_array('taxonMap', $headers)) $headers[] = 'taxonMap';
+        $headers = $this->insert_array($headers, 'taxonMap', 'taxonKey');
+        /*Array( $headers
+            [0] => taxonID
+            [1] => scientificName
+            [2] => taxonKey
+            [3] => taxonRank
+            [4] => genus
+            [5] => family
+            [6] => superfamily
+            [7] => order
+        )*/
         $save = array();
+        // /* version 2
+        foreach($headers as $field) {
+            if($field == 'taxonID') $save['taxonID'] = $taxon_info['source_taxonID'];
+            else                    $save[$field] = $taxon_info[$field];
+        }
+        // */
+        /* version 1
         $save['taxonID'] = $taxon_info['source_taxonID'];
         $save['taxonKey'] = $taxon_info['taxonKey'];
-        
         $save['taxonMap'] = $taxon_info['taxonMap'];
         $save['infer'] = @$taxon_info['infer'];
         $save['exclude'] = @$taxon_info['exclude'];
-
         $save['canonicalName'] = $taxon_info['canonicalName'];
         $save['scientificName'] = $taxon_info['scientificName'];
         $save['parentNameUsageID'] = @$taxon_info['parentNameUsageID'];
@@ -45,10 +63,9 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $save['genus'] = @$taxon_info['genus'];
         $save['species'] = @$taxon_info['species'];
         $save['taxonRemarks'] = ''; //@$taxon_info['taxonRemarks']; works but per Katja should be blank
-        $save['source'] = @$taxon_info['source'];        
-        // print_r($save);
+        $save['source'] = @$taxon_info['source'];
+        */
         self::write_to_text($save, 'Taxon');
-        // exit("\n--stop--\n");
     }
     function write_Occurrence_input_file($occur_info)
     {   //print_r($occur_info); exit("\nelix 1\n");
@@ -172,11 +189,6 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $occurrenceID = $m['occurrenceID'];
             $occur = $occur_info[$occurrenceID]; //print_r($occur); exit("\nelix 3\n");
 
-            // if(!$occurrenceID) { //debug only
-            //     print_r($taxon_main);
-            //     exit("\ninvestigate 1\n");
-            // }
-
             $save = array();
             $save['measurementID'] = $m['measurementID'];
             // $save['occurrenceID'] = $occurrenceID; //optional
@@ -195,9 +207,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $save['statisticalMethod'] = @$m['statisticalMethod'];
             $save['source'] = @$m['source'];
             $save['referenceID'] = @$m['referenceID'];
-            // print_r($save);
             self::write_to_text($save, 'Traits');
-            // exit("\n--stop--\n");
         }
     }
     private function write_to_text($rec, $kind)

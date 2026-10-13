@@ -15,6 +15,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $this->debug = array();
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'TB_files'; if(!is_dir($temp)) mkdir($temp);
         $this->TB_folder = $temp;
+        $this->concept_id = $this->get_concept_id_from_resource_id($this->resource_id);
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
@@ -45,9 +46,9 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         // step 2: do the data chain linkup
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup'); 
 
-        if($concept_id = $this->get_concept_id_from_resource_id($this->resource_id)) { //only resource_type = 'tb_dwca'
+        if($this->concept_id) { //only resource_type = 'tb_dwca'
             echo "\n\n----------STATS----------[".date('D Y-m-d h:i:s A')."]";
-            $row_counts = $this->list_files_row_counts($concept_id); //print_r($row_counts);
+            $row_counts = $this->list_files_row_counts($this->concept_id); //print_r($row_counts);
             echo "\n----------STATS end----------\n";
         }
 

@@ -519,6 +519,20 @@ class ZenodoTraitBankAPI
         if ($headers && $shortNamesYN) $headers = array_map(fn($h) => $this->small_field($h), $headers);
         return $headers;
     }
+    function insert_array($arr, $value, $after)
+    {   // e.g. (array('a', 'b', 'd'), 'c', 'b') -> array('a', 'b', 'c', 'd')
+        // $value: what to add; $after: the existing value to add it after (first match)
+        // if $after is not in $arr, $value is appended at the end
+        $pos = array_search($after, $arr, true);
+        if ($pos === false) {
+            echo "[$after] not found, [$value] appended at the end\n";
+            $arr[] = $value;
+            return $arr;
+        }
+        $index = array_search($pos, array_keys($arr), true); // position in the list, works for any keys
+        array_splice($arr, $index + 1, 0, array($value));
+        return $arr;
+    }
     function list_files_row_counts($concept_id)
     {   // e.g. 23067562 -> lists files and row counts (excluding header line) in:
         //   TB_files/23067562_Bioc_and_Natu_Prod/input_files/

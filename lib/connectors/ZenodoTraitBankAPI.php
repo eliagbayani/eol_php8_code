@@ -497,6 +497,28 @@ class ZenodoTraitBankAPI
         fclose($fh);
         return $output;
     }
+    function get_headers($concept_id, $basename, $processedYN = false, $shortNamesYN = true)
+    {   // e.g. (22943003, 'taxon')  -> headers of TB_files/22943003_Palm/input_files/taxon.txt
+        //      (22943003, 'traits') -> headers of TB_files/22943003_Palm/input_files/traits.tsv
+        // $processedYN: true reads from the [folder]_TraitBank/input_files/ folder instead, same as get_generic_file_path()
+        // $shortNamesYN: true returns short names via small_field(), e.g. 'http://rs.tdwg.org/dwc/terms/TaxonID' -> 'taxonID'
+        if (!($file = $this->get_generic_file_path($concept_id, $basename, $processedYN))) return false;
+        if (!($fh = @fopen($file, "r"))) {
+            echo "Cannot open [$file]\n";
+            return false;
+        }
+        $headers = false;
+        while (($line = fgets($fh)) !== false) {
+            $line = rtrim($line, "\r\n");
+            if ($line === '') continue;
+            $line    = preg_replace('/^\xEF\xBB\xBF/', '', $line); // strip UTF-8 BOM
+            $headers = array_map('trim', explode("\t", $line));
+            break;
+        }
+        fclose($fh);
+        if ($headers && $shortNamesYN) $headers = array_map(fn($h) => $this->small_field($h), $headers);
+        return $headers;
+    }
     function list_files_row_counts($concept_id)
     {   // e.g. 23067562 -> lists files and row counts (excluding header line) in:
         //   TB_files/23067562_Bioc_and_Natu_Prod/input_files/

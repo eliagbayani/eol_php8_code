@@ -143,14 +143,15 @@ class DwCA_RunGNParser
                     $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = $val;
                 }
                 // ---------- new block END
-
                 // */
 
-                // /* New May 15,2026: If blank rank and canonical has 2 words, set taxonRank to 'species'
-                if(!$taxonRank) {
-                    $rec = self::guess_taxonRank_from_canonicalName($rec);
+                if($this->params['resource_type'] != 'TB_dwca') {
+                    // /* New May 15,2026: If blank rank and canonical has 2 words, set taxonRank to 'species'
+                    if(!$taxonRank) {
+                        $rec = self::guess_taxonRank_from_canonicalName($rec);
+                    }
+                    // */
                 }
-                // */
 
                 $o = new \eol_schema\Taxon();
                 $uris = array_keys($rec); 

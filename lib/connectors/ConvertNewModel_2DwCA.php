@@ -93,7 +93,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                 $rec[$field] = $tmp[$k];
                 $k++;
             }
-            if($what == 'compile_taxon_info_from_taxon_file') { //print_r($rec); exit;
+            if($what == 'compile_taxon_info_from_taxon_file') { //print_r($rec); exit("\nstopx 1\n");
                 /*Array(
                     [taxonID] => Camellia sinensis
                     [scientificName] => Camellia sinensis
@@ -107,7 +107,6 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                 )*/
                 if(isset($rec['taxonKey'])) {
                     $rec['old_taxonKey'] = $rec['taxonKey'];
-
                 }
                 $taxonID = $rec['taxonID']; //md5(trim($rec['taxonID'].$rec['scientificName']));
                 $this->taxon[$taxonID] = $rec;

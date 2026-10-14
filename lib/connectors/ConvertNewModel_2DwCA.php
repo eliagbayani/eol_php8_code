@@ -178,6 +178,13 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         }
         // */
 
+        // /*
+        $meta = array('taxonKey' => @$rec['taxonKey'], 'infer' => @$rec['infer'], 'exclude' => @$rec['exclude']);
+        $meta = json_encode($meta);
+        if(@$rec['measurementRemarks']) $rec['measurementRemarks'] .= " || $meta";
+        else                            $rec['measurementRemarks'] = $meta;
+        // */
+
         //step 2: write mof
         unset($rec['taxonID']);
         unset($rec['scientificName']);

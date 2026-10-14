@@ -47,6 +47,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         // step 1.1:
         self::get_orig_taxon_input_file($this->concept_id);
 
+        // step 1.2:
+        if (!($local = $this->get_generic_file_path($this->concept_id, 'occurrence', false))) { //3rd param is: $processedYN
+            echo("\nNo occurrence.tsv\n");
+            $this->proceed_write_OccrrencesYN = false;
+        }
+        else $this->proceed_write_OccrrencesYN = true;
+
+
         // step 2: do the data chain linkup
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup');
 
@@ -139,6 +147,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             }
         }
         // */
+
         // /* mof
         $mof_info = array();
         if($occurrenceIDs = @$this->info_taxonID_occurrenceIDs[$taxonID]) { //print_r($occurrenceIDs);
@@ -180,11 +189,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     private function write_input_files($taxon_compiled, $taxonID)
     {
         $arr = $taxon_compiled[$taxonID]; //print_r($arr); //exit("\nelix 4\n");
-        $source_taxonID = self::get_source_taxonID($arr['taxon']['taxonRemarks']); // print_r($arr); exit("\n[$source_taxonID]\nsample chain\n");
-        $arr['taxon']['source_taxonID'] = $source_taxonID;
+        // $source_taxonID = self::get_source_taxonID($arr['taxon']['taxonRemarks']); // print_r($arr); exit("\n[$source_taxonID]\nsample chain\n"); --- NOT NEEDED ANYMORE
+        
+        // $source_taxonID = $arr['taxon']['source_taxonID'];
+        // $arr['taxon']['source_taxonID'] = $source_taxonID;
+
         self::write_Traits_input_file($arr);
         self::write_Taxon_input_file($arr['taxon']);
-        self::write_Occurrence_input_file($arr['occurrences']);
+        if($this->proceed_write_OccrrencesYN) self::write_Occurrence_input_file($arr['occurrences']);
     }
     private function buildup_taxon($rec)
     {   /*Array( 23067562_Bioc_and_Natu_Prod
@@ -235,6 +247,10 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         }
         else $rec['taxonKey'] = $rec['taxonID']; //which is EOLid
         // */
+
+        if(isset($rec['taxonRemarks'])) {
+            if($val = $rec['taxonRemarks']) $rec['taxonRemarks'] = self::get_orig_taxonRemarks($val);
+        }
 
         $arr = array();
         $arr = $rec;
@@ -312,5 +328,9 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $dir = "$path/$subfolder";
         if(!is_dir($dir)) mkdir($dir);
         return "".$subfolder."";
+    }
+    private function get_orig_taxonRemarks($str)
+    {   //e.g. "abc <{first one}> xyz" -> "first one"
+        if(preg_match("/<\{(.*?)\}>/ims", $str, $a)) return $a[1];
     }
 }

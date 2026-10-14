@@ -302,7 +302,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             [higherClassification] => Eukaryota
             [taxonRemarks] => 
         )*/
-        $this->taxon_info[$rec['taxonID']] = $rec['taxonKey'];
+        $this->taxon_info[$rec['taxonID']] = $rec;
     }  
 }
 ?>

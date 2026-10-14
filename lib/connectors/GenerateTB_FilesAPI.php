@@ -54,7 +54,6 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         }
         else $this->proceed_write_OccrrencesYN = true;
 
-
         // step 2: do the data chain linkup
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup');
 
@@ -249,7 +248,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         // */
 
         if(isset($rec['taxonRemarks'])) {
-            if($val = $rec['taxonRemarks']) $rec['taxonRemarks'] = self::get_orig_taxonRemarks($val);
+            if($val = $rec['taxonRemarks']) $rec['taxonRemarks'] = self::bringback_orig_taxonRemarks($val);
         }
 
         $arr = array();
@@ -329,7 +328,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         if(!is_dir($dir)) mkdir($dir);
         return "".$subfolder."";
     }
-    private function get_orig_taxonRemarks($str)
+    private function bringback_orig_taxonRemarks($str)
     {   //e.g. "abc <{first one}> xyz" -> "first one"
         if(preg_match("/<\{(.*?)\}>/ims", $str, $a)) return $a[1];
     }

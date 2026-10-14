@@ -16,6 +16,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'TB_files'; if(!is_dir($temp)) mkdir($temp);
         $this->TB_folder = $temp;
         $this->concept_id = $this->get_concept_id_from_resource_id($this->resource_id);
+        $this->orig_taxon_input_file = array();
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
@@ -38,6 +39,10 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions); //exit;
 
+        // step 0:
+        $this->orig_taxon_input_file = self::get_orig_taxon_input_file($this->concept_id);
+        // print_r($this->orig_taxon_input_file); exit;
+
         // step 1: builup json files for all extensions
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) $this->with_old_taxonKey_valuesYN = self::process_table($meta, 'do_we_have_old_taxonKey_valuesYN');
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_taxon');          //exit("\nstop muna taxon\n");
@@ -46,10 +51,6 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_association');
 
         // step 1.1:
-        self::get_orig_taxon_input_file($this->concept_id); //generates $this->orig_taxon_input_file
-        // print_r($this->orig_taxon_input_file); exit("\nstopx 1\n");
-
-        // step 1.2:
         if (!($local = $this->get_generic_file_path($this->concept_id, 'occurrence', false))) { //3rd param is: $processedYN
             echo("\nNo occurrence.tsv\n");
             $this->proceed_write_OccrrencesYN = false;
@@ -261,8 +262,11 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             if($val = $rec['taxonRemarks']) $rec['taxonRemarks'] = self::bringback_orig_taxonRemarks($val);
         }
 
-        $arr = array();
-        $arr = $rec;
+        if(isset($rec['higherClassification'])) {
+            $rec['higherClassification'] = self::bringback_orig_higherClassification($rec['taxonID']);
+        }
+
+        $arr = array(); $arr = $rec;
         self::save2json($taxonID, $arr, 'taxon');
     }
     private function buildup_occurrence($rec)
@@ -300,6 +304,9 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             [source] => https://doi.org/10.1093/molbev/mst199
             [referenceID] => 
         */
+        
+        $rec = self::bring_back_big3($rec); //taxonKey, infer, exclude
+
         $occurrenceID = $rec['occurrenceID'];
         $arr = array();
         $arr = json_encode($rec);
@@ -341,5 +348,19 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     private function bringback_orig_taxonRemarks($str)
     {   //e.g. "abc <{first one}> xyz" -> "first one"
         if(preg_match("/<\{(.*?)\}>/ims", $str, $a)) return $a[1];
+    }
+    private function bringback_orig_higherClassification($taxonID)
+    {
+        if($rek = @$this->orig_taxon_input_file[$taxonID]) {
+            return @$rek['higherClassification'];
+        }       
+    }
+    private function bring_back_big3($rec) //taxonKey, infer, exclude
+    {   //dark period only || {"taxonKey":","infer":"TRUE","exclude":"}
+        $mRemarks = $rec['measurementRemarks'];
+        $ret = $this->get_taxonKey_infer_exclude($mRemarks); // print_r($ret); exit("\nelix 1\n");
+        $rec['infer'] = $ret['infer'];
+        $rec['exclude'] = $ret['exclude'];
+        return $rec;
     }
 }

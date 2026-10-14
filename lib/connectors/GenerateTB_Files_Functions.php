@@ -279,6 +279,27 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
     {   //Trait: [ IndexGroup:[Angiosperms] - IndexHC:[.*?\|Asclepias\|.*?] ] || source_taxonID: [bb345e46c7900f99efefd82ecf42a8fd]
         if(preg_match("/source_taxonID\: \[(.*?)\]/ims", $taxonRemarks, $a)) return $a[1];
     }
+    function get_taxonKey_infer_exclude($str)
+    {   //e.g. 'dark period only || {"taxonKey":","infer":"TRUE","exclude":"} || blablabla'
+        //  -> array('taxonKey' => '', 'infer' => 'TRUE', 'exclude' => '')
+        //the {...} part is not always valid JSON: an empty value can be written as a single quote, e.g. "taxonKey":"
+        $final = array('taxonKey' => '', 'infer' => '', 'exclude' => '');
+        foreach(explode("||", $str) as $part) {
+            $part = trim($part);
+            if(!preg_match("/^\{(.*)\}$/s", $part, $a)) continue; //only the {...} part
+            if(is_array($json = json_decode($part, true))) $pairs = $json; //valid JSON
+            else { //split on the commas that start a new "key":
+                $pairs = array();
+                foreach(preg_split('/,(?="\w+":)/', $a[1]) as $pair) {
+                    if(preg_match('/^\s*"(\w+)"\s*:\s*(.*?)\s*$/s', $pair, $b)) $pairs[$b[1]] = preg_replace('/^"|"$/', '', $b[2]); //strip enclosing quotes; a lone " becomes ''
+                }
+            }
+            foreach(array_keys($final) as $key) {
+                if(isset($pairs[$key])) $final[$key] = trim((string) $pairs[$key]);
+            }
+        }
+        return $final;
+    }
     function get_concept_id_from_resource_id($resource_id)
     {   //resource_id e.g. "23067562_Bioc_and_Natu_Prod_TraitBank"
         $arr = explode("_", $resource_id);
@@ -303,11 +324,12 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
     function get_orig_taxon_input_file($concept_id)
     {
         require_library('connectors/ConvertNewModel_2DwCA');
-        $func = new ConvertNewModel_2DwCA(false, array());       
+        $func = new ConvertNewModel_2DwCA(false, array());
+        $final = array();
         if (!($local = $this->get_generic_file_path($concept_id, 'taxon', false))) exit("\nERROR: No taxon.tsv\n"); //3rd param is: $processedYN
-        else $this->orig_taxon_input_file = $func->process_table($local, 'build_taxon_info');
-        echo "\norig_taxon_input_file: ".count($this->orig_taxon_input_file)."\n";
-
+        else $final = $func->process_table($local, 'build_taxon_info');
+        echo "\norig_taxon_input_file: ".count($final)."\n";
+        return $final;
     }
 }
 ?>

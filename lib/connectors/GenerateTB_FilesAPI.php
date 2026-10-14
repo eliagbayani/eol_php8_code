@@ -39,13 +39,15 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $extensions = array_keys($tables); print_r($extensions); //exit;
 
         // step 1: builup json files for all extensions
-        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_taxon');          //exit("\nstop muna taxon\n");        
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) $this->with_old_taxonKey_valuesYN = self::process_table($meta, 'do_we_have_old_taxonKey_valuesYN');
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_taxon');          //exit("\nstop muna taxon\n");
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_occurrence');     //exit("\nstop muna occurrence\n");
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_mof');            //exit("\nstop muna mof\n");
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_association');
 
         // step 1.1:
-        self::get_orig_taxon_input_file($this->concept_id);
+        self::get_orig_taxon_input_file($this->concept_id); //generates $this->orig_taxon_input_file
+        // print_r($this->orig_taxon_input_file); exit("\nstopx 1\n");
 
         // step 1.2:
         if (!($local = $this->get_generic_file_path($this->concept_id, 'occurrence', false))) { //3rd param is: $processedYN
@@ -92,6 +94,9 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             // print_r($rec); exit;
             /**/
             //========================================================================================================= 
+            if($what == 'do_we_have_old_taxonKey_valuesYN') {
+                if(@$rec['old_taxonKey']) return true;
+            }
             if($what == 'buildup_taxon') self::buildup_taxon($rec);
             if($what == 'buildup_occurrence') self::buildup_occurrence($rec);
             if($what == 'buildup_mof') self::buildup_mof($rec);
@@ -230,12 +235,17 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             [superfamily] => 
             [old_taxonKey] => 
         )*/
+        
+        if(!$this->with_old_taxonKey_valuesYN) {
+            if(isset($rec['old_taxonKey'])) unset($rec['old_taxonKey']);
+        }
+        
         $taxonID = $rec['taxonID'];
 
         // /* here is we assign things == dito pala
         $rec['source_taxonID'] = self::get_source_taxonID($rec['taxonRemarks']);
+        $rec['taxonID'] = $rec['source_taxonID']; //overwrite
         if(!$rec['EOLid']) {
-            $rec['taxonID'] = $rec['source_taxonID']; //overwrite
             $rec['taxonKey'] = '';
             /* --- new
             if($val = @$rec['old_taxonKey']) { //Eli's initiative
@@ -244,7 +254,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             }
             --- */
         }
-        else $rec['taxonKey'] = $rec['taxonID']; //which is EOLid
+        else $rec['taxonKey'] = $rec['EOLid']; //which is EOLid
         // */
 
         if(isset($rec['taxonRemarks'])) {

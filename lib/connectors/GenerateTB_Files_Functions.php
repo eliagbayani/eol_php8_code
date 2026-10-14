@@ -28,7 +28,8 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $headers = self::get_headers($this->concept_id, 'taxon');
         if(!in_array('taxonMap', $headers)) $headers[] = 'taxonMap';
         $headers = $this->insert_array($headers, 'taxonMap', 'taxonKey');
-        $headers = $this->insert_array($headers, 'old_taxonKey', 'taxonKey');
+
+        if($this->with_old_taxonKey_valuesYN) $headers = $this->insert_array($headers, 'old_taxonKey', 'taxonKey');
 
         /*Array( $headers
             [0] => taxonID
@@ -196,8 +197,12 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
 
             // /* version 2
             $headers = self::get_headers($this->concept_id, 'traits'); //print_r($headers); exit("\nelix 2\n");
-            if(!in_array('old_taxonKey', $headers)) $headers[] = 'old_taxonKey';         //copied template
-            $headers = $this->insert_array($headers, 'old_taxonKey', 'taxonKey');
+
+            if($this->with_old_taxonKey_valuesYN) {
+                if(!in_array('old_taxonKey', $headers)) $headers[] = 'old_taxonKey';         //copied template
+                $headers = $this->insert_array($headers, 'old_taxonKey', 'taxonKey');
+            }
+
             /*Array(
                 [0] => measurementID
                 [1] => taxonID

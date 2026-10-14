@@ -43,6 +43,12 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $this->orig_taxon_input_file = self::get_orig_taxon_input_file($this->concept_id);
         // print_r($this->orig_taxon_input_file); exit;
 
+        // step 0.1: check input files for duplicate IDs (reported on screen and in the debug file)
+        if($this->concept_id) {
+            $this->check_file_integrity($this->concept_id, 'taxon');
+            $this->check_file_integrity($this->concept_id, 'traits');
+        }
+
         // step 1: builup json files for all extensions
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) $this->with_old_taxonKey_valuesYN = self::process_table($meta, 'do_we_have_old_taxonKey_valuesYN');
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_taxon');          //exit("\nstop muna taxon\n");
@@ -68,6 +74,8 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             $row_counts = $this->list_files_row_counts($this->concept_id); //print_r($row_counts);
             echo "\n----------STATS end----------\n";
         }
+
+        
 
         // $this->archive_builder->finalize(TRUE); //copied template
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->TB_folder);

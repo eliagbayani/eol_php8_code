@@ -300,6 +300,39 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         }
         return $final;
     }
+    function check_file_integrity($concept_id, $basename)
+    {   //e.g. (23067562, 'taxon')  -> duplicate taxonID values in      TB_files/23067562_Bioc_and_Natu_Prod/input_files/taxon.txt
+        //     (23067562, 'traits') -> duplicate measurementID values in TB_files/23067562_Bioc_and_Natu_Prod/input_files/traits.tsv
+        //reported on screen and in $this->debug (written to the debug file at the end of GenerateTB_FilesAPI::start())
+        //returns array(id => array(line numbers)) of the duplicates, empty array if none, false if file/column not found
+        $columns = array('taxon' => 'taxonID', 'traits' => 'measurementID');
+        if(!($column = @$columns[$basename])) { echo "\ncheck_file_integrity(): no check defined for [$basename]\n"; return false; }
+        if(!($file = $this->get_generic_file_path($concept_id, $basename))) return false;
+        if(!($headers = $this->get_headers($concept_id, $basename))) return false; //short names e.g. 'taxonID'
+        if(($index = array_search($column, $headers, true)) === false) { echo "\nColumn [$column] not found in [".basename($file)."]\n"; return false; }
+
+        $lines = array(); $line_no = 0; $header_done = false;
+        $fh = fopen($file, "r");
+        while(($line = fgets($fh)) !== false) {
+            $line_no++;
+            $line = rtrim($line, "\r\n");
+            if($line === '') continue;
+            if(!$header_done) { $header_done = true; continue; } //1st non-blank line is the header
+            $id = trim((string) @explode("\t", $line)[$index]);
+            if($id === '') continue;
+            $lines[$id][] = $line_no;
+        }
+        fclose($fh);
+
+        $dups = array_filter($lines, fn($a) => count($a) > 1);
+        $topic = "duplicate $column in [$concept_id/".basename($file)."]";
+        if($dups) {
+            echo "\nWARNING: ".count($dups)." duplicate $column value(s) in [".basename($file)."]\n";
+            foreach($dups as $id => $nos) $this->debug[$topic][$id]["lines: ".implode(", ", $nos)] = '';
+        }
+        else echo "\nNo duplicate $column in [".basename($file)."]\n";
+        return $dups;
+    }
     function get_concept_id_from_resource_id($resource_id)
     {   //resource_id e.g. "23067562_Bioc_and_Natu_Prod_TraitBank"
         $arr = explode("_", $resource_id);

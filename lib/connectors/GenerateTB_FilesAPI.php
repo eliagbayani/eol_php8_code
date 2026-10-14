@@ -48,7 +48,10 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         self::get_orig_taxon_input_file($this->concept_id);
 
         // step 2: do the data chain linkup
-        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup'); 
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup');
+
+        // step 2.1: report occurrences whose taxonID is not in the taxon table -- their MoF records were not written
+        self::check_orphan_occurrences();
 
         if($this->concept_id) { //only resource_type = 'tb_dwca'
             echo "\n\n----------STATS----------[".date('D Y-m-d h:i:s A')."]";
@@ -123,6 +126,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             [source_taxonID] => blablabla
         )*/
         $taxonID = $rec['taxonID'];
+        $this->linked_taxonIDs[$taxonID] = ''; //for check_orphan_occurrences()
         $taxon_info = self::retrieve_data($taxonID, 'taxon');
         $taxonKey = $taxon_info['taxonKey'];
 
@@ -151,6 +155,27 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
 
         $final[$taxonID] = array('taxon' => $taxon_info, 'occurrences' => $occur_info, 'mof' => $mof_info);
         return $final;
+    }
+    private function check_orphan_occurrences()
+    {   // data_chain_linkup() goes through the taxon table, so an occurrence whose taxonID has no taxon row is never reached
+        // and its MoF is silently left out of Traits.tsv
+        // e.g. 22923616 (Fungi): occurrence taxonID [Caliciella parasitica] but the taxon row has taxonID [Arthonia Ach. s.l.]
+        $orphans = 0; $mofs = 0;
+        foreach(@$this->info_taxonID_occurrenceIDs ?: array() as $taxonID => $occurrenceIDs) {
+            if(isset($this->linked_taxonIDs[$taxonID])) continue;
+            foreach($occurrenceIDs as $occurrenceID) {
+                $orphans++;
+                $measurementID = '';
+                if($mof_json = self::retrieve_data($occurrenceID, 'mof')) {
+                    $m = json_decode($mof_json, true);
+                    $measurementID = @$m['measurementID'];
+                    $mofs++;
+                }
+                $this->debug['orphan occurrences: taxonID not in taxon table, MoF not written'][$taxonID]["occurrenceID: $occurrenceID | measurementID: $measurementID"] = '';
+            }
+        }
+        if($orphans) echo "\nWARNING: $orphans occurrence(s) with a taxonID not in the taxon table, $mofs MoF record(s) not written to Traits.tsv. See debug file.\n";
+        else         echo "\nNo orphan occurrences.\n";
     }
     private function write_input_files($taxon_compiled, $taxonID)
     {

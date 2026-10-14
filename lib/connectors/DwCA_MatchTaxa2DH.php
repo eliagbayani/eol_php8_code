@@ -80,6 +80,8 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         // }
         $this->debug3 = array();
         $this->debug4 = array();
+        $this->debug5 = array();
+
 
         /* ===== start of entire detailed workflow ===== */
         $ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
@@ -464,8 +466,19 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 }
 
                 if($this->debugNow) {
-                    print_r($rec); self::debug_reports(); exit("\n-stop 1st rec-\n");
+                    // print_r($rec); self::debug_reports(); exit("\n-stop 1st rec-\n");
                 }
+
+                /* ----- Eli's initiative:
+                if(!$rec['EOLid']) {
+                    if($val = @$rec['old_taxonKey']) { //Eli's initiative
+                        if(is_numeric($val)) {
+                            $rec['EOLid'] = $val;
+                            $rec['taxonMap'] = 'copied';
+                        }
+                    }
+                }
+                ----- */
 
                 self::for_reporting($rec);
                 // /* uncomment in real operation
@@ -505,10 +518,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     {
         if(isset($rec['old_taxonKey'])) {
             if($val = $rec['EOLid']) {
-                if($val != $rec['old_taxonKey']) $this->debug4['Assigned EOLid != old_taxonKey'][$val.' !- '.$rec['old_taxonKey']] = '';
+                if($val != $rec['old_taxonKey']) $this->debug5['Assigned EOLid (taxonKey) != old_taxonKey'][$val.' !- '.$rec['old_taxonKey']] = '';
             }
             else {
-                if($val = $rec['old_taxonKey']) $this->debug4['has old_taxonKey but fail to assign'][$val] = '';
+                if($val = $rec['old_taxonKey']) $this->debug5['has old_taxonKey but script fail to assign one'][$val] = '';
             }
         }
     }

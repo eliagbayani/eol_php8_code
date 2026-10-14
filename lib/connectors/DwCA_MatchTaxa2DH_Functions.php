@@ -278,6 +278,7 @@ class DwCA_MatchTaxa2DH_Functions
         if($this->run_debug4_YN) {
             if(@$this->debug4) Functions::start_print_debug($this->debug4, $this->resource_id."_".$this->AncestryIndexVer."_attempts", $this->neo4j_debug_folder);
         }
+        if(@$this->debug5) Functions::start_print_debug($this->debug5, $this->resource_id."_taxonKeys", $this->neo4j_debug_folder);
 
         if($val = @$this->debug['eli']) print_r($val);
         // if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id); //works OK but not needed atm.

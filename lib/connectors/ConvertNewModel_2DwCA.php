@@ -235,7 +235,13 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                         if(is_numeric($val)) $t->EOLid = $val;
                     }
                 }
-                else $t->$field = $rek[$field];
+                else {
+                    if($field == 'taxonRemarks') {
+                        if(@$rek['taxonRemarks']) $t->$field = "<{".$rek[$field]."}>";
+                        else                      $t->$field = $rek[$field]; 
+                    }
+                    else                         $t->$field = $rek[$field];
+                }
             }
             // $t->EOLid = '';
             // if($val = @$rek['taxonKey']) {

@@ -28,6 +28,8 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $headers = self::get_headers($this->concept_id, 'taxon');
         if(!in_array('taxonMap', $headers)) $headers[] = 'taxonMap';
         $headers = $this->insert_array($headers, 'taxonMap', 'taxonKey');
+        $headers = $this->insert_array($headers, 'old_taxonKey', 'taxonKey');
+
         /*Array( $headers
             [0] => taxonID
             [1] => scientificName
@@ -41,8 +43,9 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $save = array();
         // /* version 2
         foreach($headers as $field) {
-            if($field == 'taxonID') $save['taxonID'] = $taxon_info['source_taxonID'];
-            else                    $save[$field] = $taxon_info[$field];
+            if($field == 'taxonID')         $save['taxonID']      = $taxon_info['source_taxonID'];
+            if($field == 'old_taxonKey')    $save['old_taxonKey'] = $taxon_info['old_taxonKey'];
+            else $save[$field] = $taxon_info[$field];
         }
         // */
         /* version 1
@@ -193,8 +196,8 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
 
             // /* version 2
             $headers = self::get_headers($this->concept_id, 'traits'); //print_r($headers); exit("\nelix 2\n");
-            // if(!in_array('taxonMap', $headers)) $headers[] = 'taxonMap';         //copied template
-            // $headers = $this->insert_array($headers, 'taxonMap', 'taxonKey');    //copied template
+            if(!in_array('old_taxonKey', $headers)) $headers[] = 'old_taxonKey';         //copied template
+            $headers = $this->insert_array($headers, 'old_taxonKey', 'taxonKey');
             /*Array(
                 [0] => measurementID
                 [1] => taxonID
@@ -214,6 +217,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
                 if($field == 'taxonID')             $save['taxonID']        = $taxon_info['source_taxonID'];
                 elseif($field == 'taxonKey')        $save['taxonKey']       = $taxon_info['taxonKey'];
                 elseif($field == 'scientificName')  $save['scientificName'] = $taxon_info['scientificName'];
+                elseif($field == 'old_taxonKey')    $save['old_taxonKey']   = $taxon_info['old_taxonKey'];
 
                 elseif($field == 'lifeStage')   $save['lifeStage']  = @$occur['lifeStage'];
                 elseif($field == 'sex')         $save['sex']        = @$occur['sex'];
@@ -290,6 +294,15 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         if(file_exists($destination)) { echo "\nZip created: [$destination]\n"; return $destination; }
         echo "\nERROR: zip not created [$destination]\n";
         return false;
+    }
+    function get_orig_taxon_input_file($concept_id)
+    {
+        require_library('connectors/ConvertNewModel_2DwCA');
+        $func = new ConvertNewModel_2DwCA(false, array());       
+        if (!($local = $this->get_generic_file_path($concept_id, 'taxon', false))) exit("\nERROR: No taxon.tsv\n"); //3rd param is: $processedYN
+        else $this->orig_taxon_input_file = $func->process_table($local, 'build_taxon_info');
+        echo "\norig_taxon_input_file: ".count($this->orig_taxon_input_file)."\n";
+
     }
 }
 ?>

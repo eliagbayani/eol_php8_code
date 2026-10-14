@@ -43,6 +43,10 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_occurrence');     //exit("\nstop muna occurrence\n");
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_mof');            //exit("\nstop muna mof\n");
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'buildup_association');
+
+        // step 1.1:
+        self::get_orig_taxon_input_file($this->concept_id);
+
         // step 2: do the data chain linkup
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup'); 
 
@@ -197,6 +201,12 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         if(!$rec['EOLid']) {
             $rec['taxonID'] = $rec['source_taxonID']; //overwrite
             $rec['taxonKey'] = '';
+            /* --- new
+            if($val = @$rec['old_taxonKey']) { //Eli's initiative
+                $rec['taxonKey'] = $val;
+                $rec['taxonMap'] = 'copied';
+            }
+            --- */
         }
         else $rec['taxonKey'] = $rec['taxonID']; //which is EOLid
         // */

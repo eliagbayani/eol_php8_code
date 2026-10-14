@@ -78,7 +78,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         $this->archive_builder->finalize(true);
         Functions::start_print_debug($this->debug, $concept_id.'_UndefinedRefIDs');
     }
-    private function process_table($label_tsv_file, $what)
+    function process_table($label_tsv_file, $what)
     {
         echo "\nprocess_table: [$what] [$label_tsv_file]...\n"; $i = 0;
         foreach(new FileIterator($label_tsv_file) as $line => $row) { $i++;
@@ -144,7 +144,9 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
                 $this->references_info[$rec['identifier']] = $rec['full_reference'];
             }
             elseif($what == 'generate_MVA') self::generate_MVA($rec);
+            elseif($what == 'build_taxon_info') self::build_taxon_info($rec); //this is an external call; from: GenerateTB_Files_Functions.php
         }
+        if($what == 'build_taxon_info') return $this->taxon_info;
     }
     private function build_mof_and_occurrences_array($rec) //this is Traits
     {   /*Array(
@@ -283,6 +285,18 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         elseif($rec['type'] == 'association') {
             if(substr($rec['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($rec['uri'])] = ''; //list of URI associations
         }        
+    }
+    private function build_taxon_info($rec) //called externally
+    {   /*Array( sample $rec from: 22923616_Fung_ecol_trai_reco_and_taxo_meta
+            [taxonID] => Fungi
+            [scientificName] => Fungi
+            [canonicalName] => Fungi
+            [taxonKey] => 46702383
+            [taxonRank] => kingdom
+            [higherClassification] => Eukaryota
+            [taxonRemarks] => 
+        )*/
+        $this->taxon_info[$rec['taxonID']] = $rec['taxonKey'];
     }  
 }
 ?>

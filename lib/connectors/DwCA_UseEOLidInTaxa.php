@@ -34,7 +34,6 @@ class DwCA_UseEOLidInTaxa
         $this->debug = array();
         $this->download_options = array('cache' => 1, 'resource_id' => 'neo4j', 'expire_seconds' => 60*60*24, 'download_wait_time' => 1000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->urls['preferred_vernaculars'] = 'https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/neo4j_tasks/english_preferred_vernaculars_by_page.tsv';
-        $this->debug['Duplicate taxonIDs']['First taxonID is not displayed'] = ''; //remark for print_debug()
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_debug'; if(!is_dir($temp)) mkdir($temp);
         $this->neo4j_debug_folder = $temp;
     }
@@ -75,6 +74,7 @@ class DwCA_UseEOLidInTaxa
         if($meta = @$tables['http://eol.org/schema/media/document'][0]) {
             self::process_table($meta, 'write_other_extensions', 'document');
         }
+        if(@$this->merged_taxa_count) echo "\nWARNING: ".$this->merged_taxa_count." taxon row(s) merged into another taxon with the same EOLid. See debug file in [neo4j_debug/].\n";
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_debug_folder); //works OK
     }
     /* working but may not be needed anymore
@@ -141,11 +141,13 @@ class DwCA_UseEOLidInTaxa
                 $this->source_taxonID = $taxonID;
                 if($new_taxonID = $this->taxonID_EOLid[$taxonID]) { //there is EOLid for this taxon
                     if(isset($this->unique_taxonID[$new_taxonID])) {
-                        @$this->debug['Duplicate taxonIDs'][$new_taxonID] .= '_'.$taxonID;
+                        $kept = $this->unique_taxonID[$new_taxonID];
+                        $this->debug['Taxa merged, same EOLid: taxon row dropped, its occurrences now under the kept taxon']["EOLid $new_taxonID | kept: $kept"][$taxonID] = '';
+                        @$this->merged_taxa_count++;
                         continue; //prevented duplicate taxonIDs, which is possible e.g. Globi DwCA.
                     }
                     else {
-                        $this->unique_taxonID[$new_taxonID] = '';
+                        $this->unique_taxonID[$new_taxonID] = $taxonID; //remembers the kept source taxonID, for the debug above
                         $rec['http://rs.tdwg.org/dwc/terms/taxonID'] = $new_taxonID; //is the EOLid
 
                         /* working but may not be used anymore

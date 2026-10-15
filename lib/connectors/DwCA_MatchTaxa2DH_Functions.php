@@ -397,7 +397,7 @@ class DwCA_MatchTaxa2DH_Functions
                     [s] => a
                 )
         )*/
-        $taxonRank = $rec['taxonRank'];
+        $taxonRank = @$rec['taxonRank']; //for the longest time we don't use @ in $rec['taxonRank'] here, only started with TB dataset 23067562_Bioc_and_Natu_Prod
         /*--- If the rank values are the same, keep the match and go to Step 4 ---*/
         $pairs = array(); //a pair consists of 1 rec and 1 rek
         foreach($reks as $rek) {
@@ -862,12 +862,14 @@ class DwCA_MatchTaxa2DH_Functions
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];
             // if( ($rec['taxonRank'] == $rek['r']) && ($rec['AI'] == $rek['AI']) ) echo " - [sagot 1]\n";
-            if( ($rec['taxonRank'] == $rek['r']) && ($rec['AI'] == $rek['AI']) ) return array($rec, $rek);  //rank values and AI are the same
+            if( (@$rec['taxonRank'] == $rek['r']) && ($rec['AI'] == $rek['AI']) ) return array($rec, $rek);  //rank values and AI are the same
+            //for the longest time we don't use @ in $rec['taxonRank'] here, only started with TB dataset 23067562_Bioc_and_Natu_Prod
         }
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];
             // if($rec['taxonRank'] == $rek['r']) echo " - [sagot 2]\n";
-            if($rec['taxonRank'] == $rek['r']) return array($rec, $rek);                                    //rank values are the same
+            if(@$rec['taxonRank'] == $rek['r']) return array($rec, $rek);                                    //rank values are the same
+            //for the longest time we don't use @ in $rec['taxonRank'] here, only started with TB dataset 23067562_Bioc_and_Natu_Prod            
         }
         foreach($ret2 as $pair) {
             $rec = $pair[0]; $rek = $pair[1];

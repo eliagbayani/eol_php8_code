@@ -75,10 +75,8 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             echo "\n----------STATS end----------\n";
         }
 
-        
-
         // $this->archive_builder->finalize(TRUE); //copied template
-        if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->TB_folder);
+        if($this->debug) Functions::start_print_debug($this->debug, $this->concept_id.'_checkErrors', $this->TB_folder);
         unset($this->debug);
         $this->zip_TB_folder($this->resource_id); //e.g. TB_files/22943003_Palm_TraitBank.zip
     }
@@ -170,10 +168,11 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         }
         // */
 
+        /* works, but no need to monitor anymore... since it can happen anyway...
         if(count($mof_info) != count($occur_info)) {
             $this->debug['diff totals mof and occur'][$rec['taxonID']][] = $occurrenceID;
             // echo("\nIt happnes: diff totals for mof [".count($mof_info)."] and occurrence [".count($occur_info)."].\n");
-        }
+        }*/
 
         $final[$taxonID] = array('taxon' => $taxon_info, 'occurrences' => $occur_info, 'mof' => $mof_info);
         return $final;
@@ -193,11 +192,11 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
                     $measurementID = @$m['measurementID'];
                     $mofs++;
                 }
-                $this->debug['orphan occurrences: taxonID not in taxon table, MoF not written'][$taxonID]["occurrenceID: $occurrenceID | measurementID: $measurementID"] = '';
+                $this->debug['orphan cases: taxonID not in taxon table, MoF not written'][$taxonID]["occurrenceID: $occurrenceID | measurementID: $measurementID"] = '';
             }
         }
-        if($orphans) echo "\nWARNING: $orphans occurrence(s) with a taxonID not in the taxon table, $mofs MoF record(s) not written to Traits.tsv. See debug file.\n";
-        else         echo "\nNo orphan occurrences.\n";
+        if($orphans) echo "\nWARNING: $orphans case(s) with a taxonID not in the taxon table, $mofs MoF record(s) not written to Traits.tsv. See debug file.\n";
+        else         echo "\nNo orphan cases.\n";
     }
     private function write_input_files($taxon_compiled, $taxonID)
     {

@@ -156,9 +156,10 @@ class DwCA_MatchTaxa2DH_Functions
         // echo "\n -> B4. Has canonical match with DH but without eolID: [" . self::number_format_eli($has_canonical_match_with_DH_without_eolID) . "]";
         echo "\n -> B4. Has canonical match with DH but to a synonym: [" . self::number_format_eli($has_canonical_match_with_DH_to_a_synonym) . "]";
 
-        echo "\n -> --- Failed syn assignment: [" . self::number_format_eli($Failed_syn_assignment) . "]";
-        echo "\n -> --- Total syn assignment: [" . self::number_format_eli($Total_syn_assignment) . "]";
-        echo "\n -> B5. Successful synonym match but accepted taxon does not have eolID: [" . number_format($Successful_syn_but_accepted_taxon_no_eolID) . "]";
+        // echo "\n -> --- Failed syn assignment: [" . self::number_format_eli($Failed_syn_assignment) . "]";
+        // echo "\n -> --- Total syn assignment: [" . self::number_format_eli($Total_syn_assignment) . "]";
+
+        // echo "\n -> B5. Successful synonym match but accepted taxon does not have eolID: [" . number_format($Successful_syn_but_accepted_taxon_no_eolID) . "]";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_to_a_synonym + $Successful_syn_but_accepted_taxon_no_eolID; // + $With_EOLid_but_not_matched;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> Total = [".number_format($sum)."]";
@@ -286,10 +287,11 @@ class DwCA_MatchTaxa2DH_Functions
     }
     private function print_logs_for_Katja()
     {   echo "\nPrinting logs...";
-        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)', 'Successful synonym match but accepted taxon does not have eolID',
+        $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)',
                          'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)', 
                          'incompatible_multimatches_v2', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2'); //compatible_multimatches_v1
         // excluded: 'With EOLid but not matched'
+        // excluded: 'Successful synonym match but accepted taxon does not have eolID'
         foreach($indexes as $index) { echo "\n-> $index ...";
             $file = $this->stats_path ."/". str_replace(" ", "_", $index).".tsv"; echo "\nfile: [$file]";
             $WRITE = fopen($file, 'w');

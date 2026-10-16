@@ -94,53 +94,56 @@ class DwCA_RunGNParser
                 $rec[$field['term']] = $tmp[$k];
                 $k++;
             }
-            // print_r($rec); exit;
+            $rec = Functions::shorten_record($rec); // print_r($rec); exit;
             /*Array(
-                [http://rs.tdwg.org/dwc/terms/taxonID] => 12
+                [taxonID] => 12
                 [http://rs.tdwg.org/ac/terms/furtherInformationURL] => http://reflora.jbrj.gov.br/reflora/listaBrasil/FichaPublicaTaxonUC/FichaPublicaTaxonUC.do?id=FB12
                 [http://rs.tdwg.org/dwc/terms/acceptedNameUsageID] => 
                 [http://rs.tdwg.org/dwc/terms/parentNameUsageID] => 120181
-                [http://rs.tdwg.org/dwc/terms/scientificName] => Agaricales
+                [scientificName] => Agaricales
                 [http://rs.tdwg.org/dwc/terms/namePublishedIn] => 
                 [http://rs.tdwg.org/dwc/terms/kingdom] => Fungi
                 [http://rs.tdwg.org/dwc/terms/phylum] => Basidiomycota
                 [http://rs.tdwg.org/dwc/terms/class] => 
                 [http://rs.tdwg.org/dwc/terms/order] => Agaricales
                 [http://rs.tdwg.org/dwc/terms/family] => 
-                [http://rs.tdwg.org/dwc/terms/genus] => 
-                [http://rs.tdwg.org/dwc/terms/taxonRank] => order
-                [http://rs.tdwg.org/dwc/terms/scientificNameAuthorship] => 
+                [genus] => 
+                [taxonRank] => order
+                [scientificNameAuthorship] => 
                 [http://rs.tdwg.org/dwc/terms/taxonomicStatus] => accepted
                 [http://purl.org/dc/terms/modified] => 2018-08-10 11:58:06.954
             )*/
 
             // /* Not recognized fields e.g. WoRMS2EoL.zip
-            if(isset($rec['http://purl.org/dc/terms/rights'])) unset($rec['http://purl.org/dc/terms/rights']);
-            if(isset($rec['http://purl.org/dc/terms/rightsHolder'])) unset($rec['http://purl.org/dc/terms/rightsHolder']);
+            if(isset($rec['rights'])) unset($rec['rights']);
+            if(isset($rec['rightsHolder'])) unset($rec['rightsHolder']);
             // */
 
             if($what == 'write_archive') {
                 // /* assign canonical name
-                $taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID'];
-                $scientificName = $rec['http://rs.tdwg.org/dwc/terms/scientificName'];
-                $taxonRank = @$rec['http://rs.tdwg.org/dwc/terms/taxonRank'];
+                $taxonID = $rec['taxonID'];
+                $scientificName = $rec['scientificName'];
+                $taxonRank = @$rec['taxonRank'];
                 
                 /* working but too many calls; not ideal
-                $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = self::lookup_canonical_name($scientificName, 'simple');
+                $rec['canonicalName'] = self::lookup_canonical_name($scientificName, 'simple');
                 */
                 
                 // ---------- new block START
                 $proceed_compute_4canonicalName = false;
                 if($this->params['resource_type'] == 'TB_dwca') { //TraitBank datasets from Zenodo
-                    if(@$rec['http://rs.tdwg.org/dwc/terms/canonicalName']) {}
+                    if(@$rec['canonicalName']) {}
                     else $proceed_compute_4canonicalName = true;                                            
                 }
                 else $proceed_compute_4canonicalName = true; //legacy dwca e.g. FishBase, Wikipedia inferred GloBI
-                if($proceed_compute_4canonicalName) {
+
+                $proceed_compute_4canonicalName = true;
+
+                if($proceed_compute_4canonicalName) { //print_r($rec); exit("\nnag proceed\n");
                     $val = '';
                         if($val = self::resubmit_gnparser_if_applicable($scientificName, $taxonRank)) {}
                     elseif($val = self::evaluate_name_and_rank($scientificName, $taxonRank, $rec)) {}
-                    $rec['http://rs.tdwg.org/dwc/terms/canonicalName'] = $val;
+                    $rec['canonicalName'] = $val;
                 }
                 // ---------- new block END
                 // */
@@ -155,7 +158,7 @@ class DwCA_RunGNParser
 
                 $o = new \eol_schema\Taxon();
                 $uris = array_keys($rec); 
-                $uris = self::move_an_element_to_last('http://rs.tdwg.org/dwc/terms/higherClassification', $uris);
+                $uris = self::move_an_element_to_last('higherClassification', $uris);
                 foreach($uris as $uri) {
                     $field = self::get_field_from_uri($uri);
                     $o->$field = $rec[$uri];
@@ -182,8 +185,8 @@ class DwCA_RunGNParser
     }
     private function guess_taxonRank_from_canonicalName($rec)
     {
-        if($canonical = @$rec['http://rs.tdwg.org/dwc/terms/canonicalName']) {
-            if(str_word_count($canonical) == 2) $rec['http://rs.tdwg.org/dwc/terms/taxonRank'] = 'species';
+        if($canonical = @$rec['canonicalName']) {
+            if(str_word_count($canonical) == 2) $rec['taxonRank'] = 'species';
         }
         return $rec;
     }
@@ -227,7 +230,7 @@ class DwCA_RunGNParser
                 is usually of the form: Canonical of the parent taxa subgen.| sect. |subsect. simple canonical of the subgenus/section/subsection.
                 */
                 if($taxonRank == 'subgenus') {
-                    if($genus = @$rec['http://rs.tdwg.org/dwc/terms/genus']) {
+                    if($genus = @$rec['genus']) {
                         $canonical_of_parent = self::run_gnparser($genus, 'simple');
                         $canonical_of_subgenus = self::run_gnparser($scientificName, 'simple');
                         $canonical = "$canonical_of_parent subgen. $canonical_of_subgenus";
@@ -251,7 +254,7 @@ class DwCA_RunGNParser
     }
     private function get_canonical_of_parent($scientificName, $taxonRank, $rec)
     {
-        if($taxonID = $rec['http://rs.tdwg.org/dwc/terms/taxonID']) {
+        if($taxonID = $rec['taxonID']) {
             if($parent_id = self::get_parent_id_given_taxonID($taxonID)) {
                 if($rek = @$this->func->taxID_info[$parent_id]) { // print_r($rek);
                     /*Array(

@@ -518,7 +518,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     {
         if(isset($rec['old_taxonKey'])) {
             if($val = $rec['EOLid']) {
-                if($val != $rec['old_taxonKey']) $this->debug5['Assigned EOLid (taxonKey) != old_taxonKey'][$val.' !- '.$rec['old_taxonKey']] = '';
+                if($rec['old_taxonKey']) {
+                    if($val != $rec['old_taxonKey']) $this->debug5['Assigned EOLid (taxonKey) != old_taxonKey'][$val.' !- '.$rec['old_taxonKey']] = '';
+                }
             }
             else {
                 if($val = $rec['old_taxonKey']) $this->debug5['Has old_taxonKey but name-matching script failed to assign one'][$val] = '';

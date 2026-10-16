@@ -198,10 +198,12 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             // /* version 2
             $headers = self::get_headers($this->concept_id, 'traits'); //print_r($headers); exit("\nelix 2\n");
 
+            // /* working OK but decided not to show old_taxonKey in Traits.tsv
             if($this->with_old_taxonKey_valuesYN) {
                 if(!in_array('old_taxonKey', $headers)) $headers[] = 'old_taxonKey';         //copied template
                 $headers = $this->insert_array($headers, 'old_taxonKey', 'taxonKey');
             }
+            // */
 
             /*Array(
                 [0] => measurementID
@@ -224,9 +226,9 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
                 elseif($field == 'scientificName')  $save['scientificName'] = $taxon_info['scientificName'];
                 elseif($field == 'old_taxonKey')    $save['old_taxonKey']   = $taxon_info['old_taxonKey'];
 
-                elseif($field == 'lifeStage')   $save['lifeStage']  = @$occur['lifeStage'];
-                elseif($field == 'sex')         $save['sex']        = @$occur['sex'];
-                elseif($field == 'bodyPart')    $save['bodyPart']   = @$occur['bodyPart'];
+                // elseif($field == 'lifeStage')   $save['lifeStage']  = @$occur['lifeStage'];
+                // elseif($field == 'sex')         $save['sex']        = @$occur['sex'];
+                // elseif($field == 'bodyPart')    $save['bodyPart']   = @$occur['bodyPart'];
 
                 else                            $save[$field] = @$m[$field];
             }
@@ -325,9 +327,10 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         fclose($fh);
 
         $dups = array_filter($lines, fn($a) => count($a) > 1);
-        $topic = "duplicate $column in [$concept_id/".basename($file)."]";
         if($dups) {
-            echo "\nWARNING: ".count($dups)." duplicate $column value(s) in [".basename($file)."]\n";
+            $warning = "WARNING: ".count($dups)." duplicate $column value(s) in [".basename($file)."]";
+            echo "\n$warning\n";
+            $topic = "$warning -- concept_id $concept_id"; //same text as the screen warning, so it can be searched in the debug file
             foreach($dups as $id => $nos) $this->debug[$topic][$id]["lines: ".implode(", ", $nos)] = '';
         }
         else echo "\nNo duplicate $column in [".basename($file)."]\n";

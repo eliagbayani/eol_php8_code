@@ -138,7 +138,11 @@ class DarwinCoreExtensionBase
         $fields[] = array('name' => 'superfamily',      'namespace' => 'http://rs.tdwg.org/dwc/terms',  'uri' => 'http://rs.tdwg.org/dwc/terms/superfamily');
         $fields[] = array('name' => 'old_taxonKey',     'namespace' => 'http://eol.org/schema',         'uri' => 'http://eol.org/schema/old_taxonKey');
 
+        $existing_names = array_column($this->accepted_properties, 'name');
         foreach($fields as $f) {
+            // add_property() runs in load_extension() and again in assigned_properties(), and the extension XML may already define the field (e.g. 'infer')
+            // -- without this check the field is listed twice and its column is written twice, e.g. 2 'infer' columns in measurement_or_fact_specific.tab
+            if(in_array($f['name'], $existing_names)) continue;
             $property = array();
             $property['name']       = $f['name'];
             $property['namespace']  = $f['namespace'];
@@ -217,11 +221,11 @@ class DarwinCoreExtensionBase
         $this->accepted_properties_by_name['EOLidAnnotations'] = array('name' => 'EOLidAnnotations', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/EOLidAnnotations');
         $this->accepted_properties_by_name['Landmark'] = array('name' => 'Landmark', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/Landmark');
 
-        $this->accepted_properties_by_name['taxonMap'] = array('name' => 'taxonMap', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/taxonMap');
-        $this->accepted_properties_by_name['infer'] = array('name' => 'infer', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/infer');
-        $this->accepted_properties_by_name['exclude'] = array('name' => 'exclude', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/exclude');
-        $this->accepted_properties_by_name['superfamily'] = array('name' => 'superfamily', 'namespace' => 'http://rs.tdwg.org/dwc/terms', 'uri' => 'http://rs.tdwg.org/dwc/terms/superfamily');
-        $this->accepted_properties_by_name['old_taxonKey'] = array('name' => 'old_taxonKey', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/old_taxonKey');
+        $this->accepted_properties_by_name['taxonMap']      = array('name' => 'taxonMap',     'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/taxonMap');
+        $this->accepted_properties_by_name['infer']         = array('name' => 'infer',        'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/infer');
+        $this->accepted_properties_by_name['exclude']       = array('name' => 'exclude',      'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/exclude');
+        $this->accepted_properties_by_name['superfamily']   = array('name' => 'superfamily',  'namespace' => 'http://rs.tdwg.org/dwc/terms', 'uri' => 'http://rs.tdwg.org/dwc/terms/superfamily');
+        $this->accepted_properties_by_name['old_taxonKey']  = array('name' => 'old_taxonKey', 'namespace' => 'http://eol.org/schema', 'uri' => 'http://eol.org/schema/old_taxonKey');
         // */
 
         /* Not needed anymore, since a specific measurement_extension.xml is available for such resources

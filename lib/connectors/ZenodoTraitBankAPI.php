@@ -65,6 +65,7 @@ class ZenodoTraitBankAPI
             'expire_seconds'    => $expire_seconds,
             'timeout'           => $this->download_options['timeout'] ?? 60*3,
             'download_attempts' => 1,
+            'download_wait_time' => 5000000, //5 seconds
             'user_agent'        => 'EOL-Zenodo-connector/1.0', // Zenodo returns HTTP 403 when User-Agent is empty
             'validation_regex'  => '"conceptrecid"'); // only use cache if it is a real Zenodo record JSON
         $body = Functions::lookup_with_cache("{$domain}/api/records/{$conceptId}/versions/latest", $options);
@@ -571,6 +572,7 @@ class ZenodoTraitBankAPI
     {
         $uri = str_replace("TaxonID", "taxonID", $uri);
         $uri = str_replace("tb:taxonKey", "taxonKey", $uri);
+        $uri = str_replace("tb:tbKey", "taxonKey", $uri);
         return pathinfo($uri, PATHINFO_FILENAME);
     }
 }

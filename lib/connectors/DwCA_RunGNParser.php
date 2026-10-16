@@ -136,9 +136,6 @@ class DwCA_RunGNParser
                     else $proceed_compute_4canonicalName = true;                                            
                 }
                 else $proceed_compute_4canonicalName = true; //legacy dwca e.g. FishBase, Wikipedia inferred GloBI
-
-                $proceed_compute_4canonicalName = true;
-
                 if($proceed_compute_4canonicalName) { //print_r($rec); exit("\nnag proceed\n");
                     $val = '';
                         if($val = self::resubmit_gnparser_if_applicable($scientificName, $taxonRank)) {}

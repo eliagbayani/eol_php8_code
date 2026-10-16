@@ -181,7 +181,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     {   // data_chain_linkup() goes through the taxon table, so an occurrence whose taxonID has no taxon row is never reached
         // and its MoF is silently left out of Traits.tsv
         // e.g. 22923616 (Fungi): occurrence taxonID [Caliciella parasitica] but the taxon row has taxonID [Arthonia Ach. s.l.]
-        $orphans = 0; $mofs = 0;
+        $orphans = 0; $mofs = 0; $orphan_debug = array();
         foreach(@$this->info_taxonID_occurrenceIDs ?: array() as $taxonID => $occurrenceIDs) {
             if(isset($this->linked_taxonIDs[$taxonID])) continue;
             foreach($occurrenceIDs as $occurrenceID) {
@@ -192,10 +192,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
                     $measurementID = @$m['measurementID'];
                     $mofs++;
                 }
-                $this->debug['orphan cases: taxonID not in taxon table, MoF not written'][$taxonID]["occurrenceID: $occurrenceID | measurementID: $measurementID"] = '';
+                $orphan_debug[$taxonID]["measurementID: " . ($measurementID ?: '(no MoF)')] = '';
             }
         }
-        if($orphans) echo "\nWARNING: $orphans case(s) with a taxonID not in the taxon table, $mofs MoF record(s) not written to Traits.tsv. See debug file.\n";
+        if($orphans) {
+            $warning = "WARNING: $orphans case(s) with a taxonID not in the taxon table, $mofs MoF record(s) not written to Traits.tsv.";
+            echo "\n$warning See checkErrors.txt.\n";
+            $this->debug["orphan cases: taxonID not in taxon table, MoF not written\n$warning"] = $orphan_debug; //2-line heading in the debug file
+        }
         else         echo "\nNo orphan cases.\n";
     }
     private function write_input_files($taxon_compiled, $taxonID)
@@ -312,7 +316,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             [referenceID] => 
         */
         
-        $rec = self::bring_back_big3($rec); //taxonKey, infer, exclude
+        // $rec = self::bring_back_big3($rec); //taxonKey, infer, exclude --- NO LONGER NEEDED
 
         $occurrenceID = $rec['occurrenceID'];
         $arr = array();

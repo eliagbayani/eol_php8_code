@@ -272,7 +272,7 @@ class DwCA_UseEOLidInTaxa
         elseif($class == "occurrence_specific") $c = new \eol_schema\Occurrence_specific();
         elseif($class == "vernacular")          $c = new \eol_schema\VernacularName();
         elseif($class == "document")             $c = new \eol_schema\MediaResource();
-        elseif($class == "measurementorfact")    $c = new \eol_schema\MeasurementOrFact();
+        elseif($class == "measurementorfact")    $c = new \eol_schema\MeasurementOrFact_specific();
         elseif($class == "association")          $c = new \eol_schema\Association();
         /* not used here
         elseif($class == "agent")                $c = new \eol_schema\Agent();

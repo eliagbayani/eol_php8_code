@@ -172,30 +172,38 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         $o = new \eol_schema\Occurrence_specific();
         $o->occurrenceID = $occurrence_id;
         $o->taxonID = $rec['taxonID'];
+        /* No need to add these two since they are now accepted in MoF below
+        if($val = @$rec['sex']) $o->sex = $val;
+        if($val = @$rec['lifeStage']) $o->lifeStage = $val;
+        */
         if(!isset($this->occurrence_ids[$occurrence_id])) {
             $this->archive_builder->write_object_to_file($o);
             $this->occurrence_ids[$occurrence_id] = '';
         }
         // */
 
-        // /*
+        /* NO LONGER NEEDED
         $meta = array('taxonKey' => @$rec['taxonKey'], 'infer' => @$rec['infer'], 'exclude' => @$rec['exclude']);
         $meta = json_encode($meta);
         if(@$rec['measurementRemarks']) $rec['measurementRemarks'] .= " || $meta";
         else                            $rec['measurementRemarks'] = $meta;
-        // */
+        */
 
         //step 2: write mof
         unset($rec['taxonID']);
         unset($rec['scientificName']);
         unset($rec['taxonKey']);
-        unset($rec['infer']);
-        unset($rec['exclude']);
-        unset($rec['verbatimScientificName']); //from 22923616_Fung_ecol_trai_reco_and_taxo_meta (http://rs.gbif.org/terms/1.0/verbatimScientificName)
 
-        // print_r($rec); exit("\nstop x 1\n");
+        // these 5 are now part of MoF schema or the add_property() in vendor/DarwinCoreExtensionBase.php
+        // unset($rec['infer']);
+        // unset($rec['exclude']);
+        // unset($rec['verbatimScientificName']); //from 22923616_Fung_ecol_trai_reco_and_taxo_meta (http://rs.gbif.org/terms/1.0/verbatimScientificName) - now officially included in MoF
+        // unset($rec['sex']);
+        // unset($rec['lifeStage']);
+
+        // print_r($rec); //exit("\nstop x 1\n");
         $mof = new \eol_schema\MeasurementOrFact_specific();
-        $fields = array_keys($rec);
+        $fields = array_keys($rec); //print_r($fields); exit;
         foreach($fields as $field) $mof->$field = $rec[$field];
         if(!isset($mof->measurementID)) $mof->measurementID = Functions::generate_measurementID($mof, $this->resource_id);
         $this->archive_builder->write_object_to_file($mof); @$this->debug['counts']['count mof writes']++;

@@ -25,7 +25,7 @@ class ZenodoTraitBankAPI
     }
     function do_zenodo_stuff($concept_id)
     {
-        print_r($this->param); //exit("\nelix 3\n");
+        // print_r($this->param); //exit("\nelix 3\n");
         // Step 1: get latest Zenodo record info (cached) using the concept ID
         if(!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) exit("\nERROR: Cannot get Zenodo info.\n");
         print_r($arr);
@@ -57,8 +57,17 @@ class ZenodoTraitBankAPI
     function get_zenodo_info_using_conceptID($conceptId, $expire_seconds = null)
     {   // $expire_seconds: null = use download_options, int = cache lifetime in seconds (0 = always re-fetch), false = cache never expires
         // fallbacks: child classes (e.g. GenerateCSV_NewModel) may not call this class' constructor
+        // print_r($this->param); exit("\nthis param\n");
         $domain = $this->api['domain'] ?? 'https://zenodo.org';
-        if ($expire_seconds === null) $expire_seconds = $this->download_options['expire_seconds'] ?? 60*60*24*1;
+        if ($expire_seconds === null) {
+            // redownload_zip_file_YN = 1 or true: get fresh record info from Zenodo (expire_seconds = 0), once per concept ID per run;
+            // later calls in the same run (e.g. from get_generic_file_path()) use the just-refreshed cache
+            if (!empty($this->param['redownload_zip_file_YN']) && !isset($this->zenodo_info_refreshed[$conceptId])) {
+                $expire_seconds = 0;
+                $this->zenodo_info_refreshed[$conceptId] = true;
+            }
+            else $expire_seconds = $this->download_options['expire_seconds'] ?? 60*60*24*1;
+        }
 
         $options = array(
             'resource_id'       => 'zenodo', // cache goes to: DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/'

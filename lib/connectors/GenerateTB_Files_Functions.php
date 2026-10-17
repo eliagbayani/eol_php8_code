@@ -69,6 +69,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $save['taxonRemarks'] = ''; //@$taxon_info['taxonRemarks']; works but per Katja should be blank
         $save['source'] = @$taxon_info['source'];
         */
+        if(isset($save['old_taxonKey'])) unset($save['old_taxonKey']); //one place to exclude old_taxonKey from Taxon.tsv
         self::write_to_text($save, 'Taxon');
     }
     function write_Occurrence_input_file($occur_info)
@@ -256,6 +257,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $save['sex']        = @$occur['sex'];
             $save['bodyPart']   = @$occur['bodyPart'];
             */
+            if(isset($save['old_taxonKey'])) unset($save['old_taxonKey']); //one place to exclude old_taxonKey from Traits.tsv
             self::write_to_text($save, 'Traits');
         }
     }

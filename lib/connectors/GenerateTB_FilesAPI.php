@@ -259,12 +259,12 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $rec['taxonID'] = $rec['source_taxonID']; //overwrite
         if(!$rec['EOLid']) {
             $rec['taxonKey'] = '';
-            /* --- new
+            // /* --- new
             if($val = @$rec['old_taxonKey']) { //Eli's initiative
                 $rec['taxonKey'] = $val;
-                $rec['taxonMap'] = 'copied';
+                $rec['taxonMap'] = '';
             }
-            --- */
+            // --- */
         }
         else $rec['taxonKey'] = $rec['EOLid']; //which is EOLid
         // */

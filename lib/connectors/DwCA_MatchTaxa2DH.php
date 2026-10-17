@@ -379,6 +379,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 else {
                                     $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                                     $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                                    unset($this->debug['With DH EOLid assignments (synonym)'][$taxonID]); //may have been pre-recorded by Step 5 choose_one_from_multiple_pairs($ret2, 'synonym')
                                     /*
                                     echo "\nSo it goes here...\n";
                                     print_r($ret2); print_r($pair); print_r($rec);  

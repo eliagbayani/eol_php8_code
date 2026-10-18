@@ -778,7 +778,7 @@ class DwCA_Utility
         )*/
 
         // /* ---------- new 8Oct2026 - new TB data model
-        if(in_array($this->resource_id, array('23067562_Bioc_and_Natu_Prod-with-hC'))) {} //better coverage if to re-compute higherClassification
+        if(in_array($this->resource_id, array('23067562_Biochemistry_and_Natu_Prod-with-hC'))) {} //better coverage if to re-compute higherClassification
         else {
             if($resource_type == 'TB_dwca') {
                 if(isset($records[0]['hC'])) {      //has higherClassification

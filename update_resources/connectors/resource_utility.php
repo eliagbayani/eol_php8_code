@@ -394,8 +394,8 @@ elseif($task == 'metadata_recoding') {
         else                            $dwca_file = DOC_ROOT . "/applications/content_server/resources/26_meta_recoded_1.tar.gz";
     }
 
-    elseif($resource_id == '22943003_Palm_meta_recoded') { //task_67: bodyPart
-        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22943003_Palm.tar.gz";
+    elseif($resource_id == '22943003_PalmTraits_meta_recoded') { //task_67: bodyPart
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22943003_PalmTraits.tar.gz";
     }
 
 

@@ -412,15 +412,18 @@ class ZenodoTraitBankAPI
         return $file;
     }
     function abbreviate_title($str)
-    {   // e.g. "Biochemistry and Natural Products" -> "Bioc_and_Natu_Prod" (first 4 chars of every word, joined by "_")
-        // accents removed, letter kept: "Écologie Végétale" -> "Ecol_Vege"
+    {   // e.g. "Biochemistry and Natural Products" -> "Biochemistry_and_Natu_Prod" (1st word complete, first 4 chars of every other word, joined by "_")
+        //      "Fungal ecology, trait records and taxonomic metadata" -> "Fungal_ecol_trai_reco_and_taxo_meta"
+        // accents removed, letter kept: "Écologie Végétale" -> "Ecologie_Vege"
         if (class_exists('Transliterator')) $str = \Transliterator::create('NFD; [:Nonspacing Mark:] Remove; NFC')->transliterate($str);
         else                                $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str); // PHP intl extension not installed (e.g. our Docker container)
-        // characters that break folder paths act as word separators, so they become "_": "Plants/Fungi" -> "Plan_Fung"
+        // characters that break folder paths act as word separators, so they become "_": "Plants/Fungi" -> "Plants_Fung"
         $str = preg_replace('#[/\\\\:*?"<>|\x00-\x1F]#u', ' ', $str);
         $str = preg_replace('/^\.+/', '', trim($str)); // no leading dots: avoids hidden folders and "." / ".."
         $words = preg_split('/\s+/u', trim($str), -1, PREG_SPLIT_NO_EMPTY);
-        return implode('_', array_map(fn($w) => mb_substr($w, 0, 4), $words));
+        if (!$words) return '';
+        $first = rtrim(array_shift($words), ',;.'); // 1st word complete, minus trailing punctuation e.g. "Fungi," -> "Fungi"
+        return implode('_', array_merge(array($first), array_map(fn($w) => mb_substr($w, 0, 4), $words)));
     }
     function get_dataset_folder_name($concept_id, $title)
     {   // e.g. (23067562, "Biochemistry and Natural Products") -> "23067562_Bioc_and_Natu_Prod"

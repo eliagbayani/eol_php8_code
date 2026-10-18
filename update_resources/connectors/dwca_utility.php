@@ -51,7 +51,7 @@ if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) $resourc
 echo "\n[$resource_id] [$dwca_file] [".$task."]\n";
 
 // /* //main operation
-$func = new DwCA_Utility($resource_id, $dwca_file);
+$func = new DwCA_Utility($resource_id, $dwca_file, $params);
 if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) {
     $ret = $func->convert_archive_by_adding_higherClassification($params);
     if($ret) Functions::finalize_dwca_resource($resource_id, false, true);

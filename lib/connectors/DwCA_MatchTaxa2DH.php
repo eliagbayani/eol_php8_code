@@ -2,14 +2,24 @@
 namespace php_active_record;
 /* connector: [called from DwCA_Utility.php, which is called from match_taxa_2DH.php] 
 These ff. workspaces work together:
+
+- UpdateLocalWithGoogleSheet
+- DwCA_UpdateTaxa
+
 - generate_higherClassification_8.code-workspace
 - DHConnLib_8.code-workspace - old
 - DHConnLib_8v2.code-workspace -- new
 - GNParserAPI_8.code-workspace
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
+- AnalyzeMoF_API.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+
+- ConvertNewModel_2DwCA
 - GenerateTB_FilesAPI.code-workspace
+- GenerateCSV_NewModel
+
+
 
 10088_6943_ENV
 tar -czf 10088_6943_ENV.tar.gz 10088_6943_ENV/

@@ -85,7 +85,6 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
                 )
         */
         foreach($occur_info as $occurrenceID => $rek) {
-
             $save = array();
             $save['occurrenceID'] = $rek['occurrenceID'];
             $save['institutionCode']    = @$rek['institutionCode'];
@@ -359,14 +358,24 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         echo "\nERROR: zip not created [$destination]\n";
         return false;
     }
-    function get_orig_taxon_input_file($concept_id)
+    function get_orig_input_file($concept_id, $what) //$what is 'taxon' 'occurrence'
     {
         require_library('connectors/ConvertNewModel_2DwCA');
         $func = new ConvertNewModel_2DwCA(false, array());
         $final = array();
-        if (!($local = $this->get_generic_file_path($concept_id, 'taxon', false))) exit("\nERROR: No taxon.tsv\n"); //3rd param is: $processedYN
-        else $final = $func->process_table($local, 'build_taxon_info');
-        echo "\norig_taxon_input_file: ".count($final)."\n";
+
+        if($what == 'taxon') {
+            if (!($local = $this->get_generic_file_path($concept_id, 'taxon', false))) exit("\nERROR: No taxon.tsv\n"); //3rd param is: $processedYN
+            else $final = $func->process_table($local, 'build_taxon_info');
+            echo "\norig_taxon_input_file: ".count($final)."\n";
+        }
+        elseif($what == 'occurrence') {
+            if (!($local = $this->get_generic_file_path($concept_id, 'occurrence', false))) exit("\nERROR: No occurrence.tsv\n"); //3rd param is: $processedYN
+            else $final = $func->process_table($local, 'build_occurrence_info');
+            echo "\norig_occurrence_input_file: ".count($final)."\n";
+        }
+        else exit("\nERROR: input file not defined.\n");
+        
         return $final;
     }
 }

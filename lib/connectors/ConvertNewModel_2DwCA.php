@@ -145,8 +145,10 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             }
             elseif($what == 'generate_MVA') self::generate_MVA($rec);
             elseif($what == 'build_taxon_info') self::build_taxon_info($rec); //this is an external call; from: GenerateTB_Files_Functions.php
+            elseif($what == 'build_occurrence_info') self::build_occurrence_info($rec); //this is an external call; from: GenerateTB_Files_Functions.php
         }
         if($what == 'build_taxon_info') return $this->taxon_info;
+        if($what == 'build_occurrence_info') return $this->occurrence_info;
     }
     private function build_mof_and_occurrences_array($rec) //this is Traits
     {   /*Array(
@@ -318,6 +320,10 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             [taxonRemarks] => 
         )*/
         $this->taxon_info[$rec['taxonID']] = $rec;
+    }
+    private function build_occurrence_info($rec) //called externally
+    {   /**/
+        $this->occurrence_info[$rec['taxonID']] = $rec;
     }  
 }
 ?>

@@ -40,7 +40,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $extensions = array_keys($tables); print_r($extensions); //exit;
 
         // step 0:
-        $this->orig_taxon_input_file = self::get_orig_taxon_input_file($this->concept_id);
+        $this->orig_taxon_input_file = self::get_orig_input_file($this->concept_id, 'taxon');
         // print_r($this->orig_taxon_input_file); exit;
 
         // step 0.1: check input files for duplicate IDs (reported on screen and in the debug file)

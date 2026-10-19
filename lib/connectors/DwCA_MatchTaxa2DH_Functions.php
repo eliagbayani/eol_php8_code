@@ -851,14 +851,16 @@ class DwCA_MatchTaxa2DH_Functions
         }
         // */
 
-        // For reporting:
+        /* For reporting: moved to the main loop in DwCA_MatchTaxa2DH.php, after the final pair is chosen. 17Oct2026
+           Recording here was premature: the main loop may still pick another pair or end up 'Cannot be matched at all' (e.g. Cristatella), causing double counts.
         if($what == 'synonym') {
             foreach($ret2 as $pair) {
                 $rec = $pair[0]; $rek = $pair[1];
                 $rec['EOLid'] = $rek['e'] ? $rek['e'] : @$rek['e2'];
                 if($rec['EOLid']) $this->debug['With DH EOLid assignments (synonym)'][$rec['taxonID']] = $rec;
-            }                       
+            }
         }
+        */
 
         // For both accepted and synonym
         foreach($ret2 as $pair) {

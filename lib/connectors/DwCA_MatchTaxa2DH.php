@@ -366,20 +366,14 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                                 $pair = self::choose_one_from_multiple_pairs($ret2, 'accepted');
                                 $rec = self::major_assignment($pair);
 
-                                // For reporting
+                                // For reporting: bucket is decided by the finally chosen DH rek; 's' = 'n' means it was matched thru a synonym (synonymSaviorYN or Step 5)
                                 if($rec['EOLid']) { $rec['taxonMap'] = 'auto';
-                                    if($synonymSaviorYN) {
-                                        $this->debug['With DH EOLid assignments (synonym)'][$taxonID] = $rec;                                        
-                                    }
-                                    else {
-                                        if(isset($this->debug['With DH EOLid assignments (synonym)'][$taxonID])) {}
-                                        else $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
-                                    }
+                                    if($pair[1]['s'] == 'n') $this->debug['With DH EOLid assignments (synonym)'][$taxonID] = $rec;
+                                    else                     $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
                                 }
                                 else {
                                     $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                                     $this->debug['Cannot be matched at all'][$taxonID] = $rec;
-                                    unset($this->debug['With DH EOLid assignments (synonym)'][$taxonID]); //may have been pre-recorded by Step 5 choose_one_from_multiple_pairs($ret2, 'synonym')
                                     /*
                                     echo "\nSo it goes here...\n";
                                     print_r($ret2); print_r($pair); print_r($rec);  

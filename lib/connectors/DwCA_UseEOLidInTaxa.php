@@ -144,7 +144,7 @@ class DwCA_UseEOLidInTaxa
                         $kept = $this->unique_taxonID[$new_taxonID];
                         $this->debug['Taxa merged, same EOLid: taxon row dropped, its occurrences now under the kept taxon']["EOLid $new_taxonID | kept: $kept"][$taxonID] = '';
                         @$this->merged_taxa_count++;
-                        continue; //prevented duplicate taxonIDs, which is possible e.g. Globi DwCA.
+                        if($this->params['resource_type'] != 'TB_dwca') continue; //prevented duplicate taxonIDs, which is possible e.g. Globi DwCA.
                     }
                     else {
                         $this->unique_taxonID[$new_taxonID] = $taxonID; //remembers the kept source taxonID, for the debug above

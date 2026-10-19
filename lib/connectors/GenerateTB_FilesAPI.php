@@ -17,6 +17,7 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $this->TB_folder = $temp;
         $this->concept_id = $this->get_concept_id_from_resource_id($this->resource_id);
         $this->orig_taxon_input_file = array();
+        $this->orig_occurrence_input_file = array();
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
@@ -40,13 +41,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         $extensions = array_keys($tables); print_r($extensions); //exit;
 
         // step 0:
-        $this->orig_taxon_input_file = self::get_orig_input_file($this->concept_id, 'taxon');
-        // print_r($this->orig_taxon_input_file); exit;
+        $this->orig_taxon_input_file = self::get_orig_input_file($this->concept_id, 'taxon');               //print_r($this->orig_taxon_input_file); exit;
+        $this->orig_occurrence_input_file = self::get_orig_input_file($this->concept_id, 'occurrence');     //print_r($this->orig_occurrence_input_file); exit("\n".count($this->orig_occurrence_input_file)."\n");
 
         // step 0.1: check input files for duplicate IDs (reported on screen and in the debug file)
         if($this->concept_id) {
             $this->check_file_integrity($this->concept_id, 'taxon');
             $this->check_file_integrity($this->concept_id, 'traits');
+            if($this->orig_occurrence_input_file) $this->check_file_integrity($this->concept_id, 'occurrence'); //occurrence file is optional
         }
 
         // step 1: builup json files for all extensions
@@ -62,6 +64,8 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             $this->proceed_write_OccrrencesYN = false;
         }
         else $this->proceed_write_OccrrencesYN = true;
+        if($this->proceed_write_OccrrencesYN) self::write_Occurrence_input_file($this->orig_occurrence_input_file);
+
 
         // step 2: do the data chain linkup
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup');
@@ -212,7 +216,6 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
 
         self::write_Traits_input_file($arr);
         self::write_Taxon_input_file($arr['taxon']);
-        if($this->proceed_write_OccrrencesYN) self::write_Occurrence_input_file($arr['occurrences']);
     }
     private function buildup_taxon($rec)
     {   /*Array( 23067562_Bioc_and_Natu_Prod

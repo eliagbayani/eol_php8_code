@@ -72,7 +72,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         if(isset($save['old_taxonKey'])) unset($save['old_taxonKey']); //one place to exclude old_taxonKey from Taxon.tsv
         self::write_to_text($save, 'Taxon');
     }
-    function write_Occurrence_input_file($occur_info)
+    function write_Occurrence_input_file_FROM_DwCA($occur_info) //not used atm
     {   //print_r($occur_info); exit("\nelix 1\n");
         /*Array(
             [0602fb1aabecdfa65eb898018a7fef2e_10088_6943_ENV] => Array(
@@ -103,6 +103,37 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             // exit("\n--stop--\n");
         }
     }
+    function write_Occurrence_input_file($occur_info)
+    {   //print_r($occur_info); exit("\nelix 1\n");
+        /*Array(
+            [Platanus orientalis] => Array(
+                    [occurrenceID] => geng_1
+                    [taxonID] => Platanus orientalis
+                    [bodyPart] => http://purl.obolibrary.org/obo/PO_0025034
+                    [Concentration] => 0.42
+                    [measurementUnit] => https://eol.org/schema/terms/picomolpermetersquaredpersecond
+                    [measurementRemarks] => production measured per single leaf area
+                    [SampleSize] => 
+                )
+            [Alpinia zerumbet] => Array(
+                    [occurrenceID] => Jardine_1
+                    [taxonID] => Alpinia zerumbet
+                    [bodyPart] => http://purl.obolibrary.org/obo/PO_0025034
+                    [Concentration] => 6
+                    [measurementUnit] => https://eol.org/schema/terms/picomolpermetersquaredpersecond
+                    [measurementRemarks] => production measured per single leaf area
+                    [SampleSize] => 
+                )*/
+        foreach($occur_info as $key => $rek) {
+            /* copied template
+            $save = array();
+            $fields = array_keys($rek);
+            foreach($fields as $field) $save[$field] = $rek[$field];
+            self::write_to_text($save, 'Occurrences'); */
+            self::write_to_text($rek, 'Occurrences');
+        }
+    }
+
     function write_Traits_input_file($taxon_main)
     {   /*Array(
             [taxon] => Array(
@@ -306,26 +337,45 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
     function check_file_integrity($concept_id, $basename)
     {   //e.g. (23067562, 'taxon')  -> duplicate taxonID values in      TB_files/23067562_Bioc_and_Natu_Prod/input_files/taxon.txt
         //     (23067562, 'traits') -> duplicate measurementID values in TB_files/23067562_Bioc_and_Natu_Prod/input_files/traits.tsv
+        //     (23067562, 'occurrence') -> duplicate occurrenceID values in TB_files/23067562_Bioc_and_Natu_Prod/input_files/occurrences.txt
         //reported on screen and in $this->debug (written to the debug file at the end of GenerateTB_FilesAPI::start())
         //returns array(id => array(line numbers)) of the duplicates, empty array if none, false if file/column not found
-        $columns = array('taxon' => 'taxonID', 'traits' => 'measurementID');
+        $columns = array('taxon' => 'taxonID', 'traits' => 'measurementID', 'occurrence' => 'occurrenceID', 'occurrences' => 'occurrenceID');
         if(!($column = @$columns[$basename])) { echo "\ncheck_file_integrity(): no check defined for [$basename]\n"; return false; }
         if(!($file = $this->get_generic_file_path($concept_id, $basename))) return false;
         if(!($headers = $this->get_headers($concept_id, $basename))) return false; //short names e.g. 'taxonID'
         if(($index = array_search($column, $headers, true)) === false) { echo "\nColumn [$column] not found in [".basename($file)."]\n"; return false; }
 
-        $lines = array(); $line_no = 0; $header_done = false;
+        //for detecting stray header rows inside the data, e.g. occurrences.txt line 158: "measurementID  taxonID  BodyPart  Concentration  Unit  Remarks"
+        $header_names = array_map('strtolower', $headers);
+        $id_names = array('taxonid', 'measurementid', 'occurrenceid', 'scientificname');
+
+        $lines = array(); $header_rows = array(); $line_no = 0; $header_done = false;
         $fh = fopen($file, "r");
         while(($line = fgets($fh)) !== false) {
             $line_no++;
             $line = rtrim($line, "\r\n");
             if($line === '') continue;
             if(!$header_done) { $header_done = true; continue; } //1st non-blank line is the header
-            $id = trim((string) @explode("\t", $line)[$index]);
+            $values = explode("\t", $line);
+            $id = trim((string) @$values[$index]);
+            // a header-like row: its ID value is a column name, or 2+ of its values are names of this file's columns
+            $names = array_map(fn($v) => strtolower($this->small_field(trim($v))), array_filter($values, fn($v) => trim($v) !== ''));
+            if(in_array(strtolower($id), $id_names) || count(array_intersect($names, $header_names)) >= 2) {
+                $header_rows[$line_no] = $line;
+                continue; //not counted as a duplicate ID
+            }
             if($id === '') continue;
             $lines[$id][] = $line_no;
         }
         fclose($fh);
+
+        if($header_rows) {
+            $warning = "ERROR: ".count($header_rows)." header-like row(s) found inside the data of [".basename($file)."]";
+            echo "\n$warning\n";
+            $topic = "$warning -- concept_id $concept_id";
+            foreach($header_rows as $no => $row) $this->debug[$topic]["line $no"][str_replace("\t", " | ", $row)] = '';
+        }
 
         $dups = array_filter($lines, fn($a) => count($a) > 1);
         if($dups) {
@@ -370,7 +420,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             echo "\norig_taxon_input_file: ".count($final)."\n";
         }
         elseif($what == 'occurrence') {
-            if (!($local = $this->get_generic_file_path($concept_id, 'occurrence', false))) exit("\nERROR: No occurrence.tsv\n"); //3rd param is: $processedYN
+            if (!($local = $this->get_generic_file_path($concept_id, 'occurrence', false))) return array(); //exit("\nERROR: No occurrence.tsv\n"); //3rd param is: $processedYN
             else $final = $func->process_table($local, 'build_occurrence_info');
             echo "\norig_occurrence_input_file: ".count($final)."\n";
         }

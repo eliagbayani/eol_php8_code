@@ -322,8 +322,16 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         $this->taxon_info[$rec['taxonID']] = $rec;
     }
     private function build_occurrence_info($rec) //called externally
-    {   /**/
-        $this->occurrence_info[$rec['taxonID']] = $rec;
+    {   /*Array(
+            [occurrenceID] => geng_1
+            [taxonID] => Platanus orientalis
+            [bodyPart] => http://purl.obolibrary.org/obo/PO_0025034
+            [Concentration] => 0.42
+            [measurementUnit] => https://eol.org/schema/terms/picomolpermetersquaredpersecond
+            [measurementRemarks] => production measured per single leaf area
+            [SampleSize] => 
+        )*/
+        $this->occurrence_info[$rec['occurrenceID']] = $rec;
     }  
 }
 ?>

@@ -436,22 +436,27 @@ class ZenodoTraitBankAPI
         //            (extension varies per dataset: taxon.tsv vs taxon.txt); if both exist, .tsv is used
         //            a name with extension, e.g. 'occurrences.txt', is also accepted and matched exactly
         //            if neither exists, a versioned name is also a valid hit, e.g. 'terms' -> terms_0.9.tsv (highest version wins)
+        //            'occurrence' and 'occurrences' are interchangeable: either one finds occurrence.tsv|.txt or occurrences.tsv|.txt
         // folder name uses the current title (cached lookup), the same way do_zenodo_stuff() names it when extracting
         if (!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) return false;
-        $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);  //e.g. '23067562_Bioc_and_Natu_Prod'               -> raw files from Zenodo 
+        $folder_name = $this->get_dataset_folder_name($concept_id, $arr['title']);  //e.g. '23067562_Bioc_and_Natu_Prod'               -> raw files from Zenodo
         if($processedYN) $folder_name .= '_TraitBank';                          //e.g. '23067562_Bioc_and_Natu_Prod_TraitBank' -> prod of name-matching already
         $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/$folder_name/input_files/";
         if (is_file($dir . $basename)) return $dir . $basename; // exact name given, e.g. 'occurrences.txt'
-        $found = array_values(array_filter(array("$basename.tsv", "$basename.txt"), fn($f) => is_file($dir . $f))); // .tsv first = preferred
+        $aliases = array('occurrence' => array('occurrence', 'occurrences'), 'occurrences' => array('occurrences', 'occurrence'));
+        $candidates = array();
+        foreach ($aliases[$basename] ?? array($basename) as $name) { $candidates[] = "$name.tsv"; $candidates[] = "$name.txt"; } // the given name first, .tsv first = preferred
+        $found = array_values(array_filter($candidates, fn($f) => is_file($dir . $f)));
+        if ($found && basename($found[0], '.' . pathinfo($found[0], PATHINFO_EXTENSION)) !== $basename) echo "Using [$found[0]] for [$basename]\n";
         if (!$found && ($versioned = self::find_versioned_file($dir, $basename))) {
             echo "Using versioned file [$versioned] for [$basename]\n";
             return $dir . $versioned;
         }
         if (!$found) {
-            echo "[$basename.tsv] or [$basename.txt] (or e.g. [{$basename}_0.9.tsv]) not found in [$folder_name/input_files/], run do_zenodo_stuff($concept_id) first\n";
+            echo "[" . implode("] or [", $candidates) . "] (or e.g. [{$basename}_0.9.tsv]) not found in [$folder_name/input_files/], run do_zenodo_stuff($concept_id) first\n";
             return false;
         }
-        if (count($found) > 1) echo "Both [$basename.tsv] and [$basename.txt] exist in [$folder_name/input_files/], using [$basename.tsv]\n";
+        if (count($found) > 1) echo "Several of [" . implode("], [", $found) . "] exist in [$folder_name/input_files/], using [$found[0]]\n";
         return $dir . $found[0];
     }
     private function find_versioned_file($dir, $basename)

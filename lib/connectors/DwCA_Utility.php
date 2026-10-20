@@ -779,7 +779,8 @@ class DwCA_Utility
 
         // /* ---------- new 8Oct2026 - new TB data model
         if(in_array($this->resource_id, array('23067562_Biochemistry_and_Natu_Prod-with-hC', '22943466_Sexual_Syst_and_Char-with-hC', '23072529_Algae-with-hC'
-            , '23072941_Locomotion-with-hC', '23073097_Reef_Dwel-with-hC'))) {} //only if higherClassification is blank then we will re-compute the hC.
+            , '23072941_Locomotion-with-hC', '23073097_Reef_Dwel-with-hC', '23073232_TRY_plan_trai-with-hC', '23073330_Botany_Lite-with-hC'
+            , '23073052_Sensory-with-hC'))) {} //only if higherClassification is blank then we will re-compute the hC.
         else {
             if($resource_type == 'TB_dwca') {
                 if(isset($records[0]['hC'])) {      //has higherClassification
@@ -1348,7 +1349,14 @@ class DwCA_Utility
                     if(@$rec['pID']) $higherClassification = self::get_higherClassification($rec);
                 }
                 if($this->params['resource_type'] == 'TB_dwca') {
-                    if(!@$records[$i]["hC"]) $records[$i]["hC"] = $higherClassification; //only assign if it is blank 
+                    
+                    if(in_array($this->resource_id, array('23073330_Botany_Lite-with-hC'))) { //for this dataset, will use the hC from script.
+                        if($higherClassification) $records[$i]["hC"] = $higherClassification;
+                    }
+                    else {
+                        if(!@$records[$i]["hC"]) $records[$i]["hC"] = $higherClassification; //only assign if it is blank; orig
+                    }
+
                 }
                 else $records[$i]["hC"] = $higherClassification; //assign value to main $records -> UNCOMMENT in real operation
             } //end foreach()

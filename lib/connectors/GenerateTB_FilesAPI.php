@@ -281,7 +281,8 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         }
 
         $arr = array(); $arr = $rec;
-        self::save2json($taxonID, $arr, 'taxon');
+        if(substr($taxonID,0,4) == 'http') {}
+        else self::save2json($taxonID, $arr, 'taxon');
     }
     private function buildup_occurrence($rec)
     {   /*Array(

@@ -535,6 +535,7 @@ class ZenodoTraitBankAPI
         }
         fclose($fh);
         if ($headers && $shortNamesYN) $headers = array_map(fn($h) => $this->small_field($h), $headers);
+        if ($headers) $headers = array_map(fn($h) => $h === 'tb:taxonKey' ? 'taxonKey' : $h, $headers); // also when $shortNamesYN is false
         return $headers;
     }
     function insert_array($arr, $value, $after)
@@ -590,6 +591,9 @@ class ZenodoTraitBankAPI
         $uri = str_replace("TaxonID", "taxonID", $uri);
         $uri = str_replace("tb:taxonKey", "taxonKey", $uri);
         $uri = str_replace("tb:tbKey", "taxonKey", $uri);
+        $uri = str_replace("tb:taxonMap", "taxonMap", $uri);
+        // URI with a #fragment: the name is after the '#', e.g. 'http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#Standard_Deviation' -> 'Standard_Deviation' (not 'Thesaurus')
+        if (($pos = strrpos($uri, '#')) !== false && $pos < strlen($uri) - 1) return substr($uri, $pos + 1);
         return pathinfo($uri, PATHINFO_FILENAME);
     }
 }

@@ -593,8 +593,8 @@ class ZenodoTraitBankAPI
         $uri = str_replace("tb:tbKey", "taxonKey", $uri);
         $uri = str_replace("tb:taxonMap", "taxonMap", $uri);
         // URI with a #fragment: the name is after the '#', e.g. 'http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#Standard_Deviation' -> 'Standard_Deviation' (not 'Thesaurus')
-        if (($pos = strrpos($uri, '#')) !== false && $pos < strlen($uri) - 1) return substr($uri, $pos + 1);
-        return pathinfo($uri, PATHINFO_FILENAME);
+        if (($pos = strrpos($uri, '#')) !== false && $pos < strlen($uri) - 1) return trim(substr($uri, $pos + 1));
+        return trim(pathinfo($uri, PATHINFO_FILENAME));
     }
 }
 ?>

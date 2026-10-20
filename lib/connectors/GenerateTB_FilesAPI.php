@@ -330,18 +330,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     private function save2json($id, $arr, $extension)
     {
         $json = json_encode($arr);
-        $destination = $this->TB_folder . "/$this->resource_id/temp/$extension/"; 
-        $path = self::generate_path_then_create($id, $destination);
-        $destination .= "$path/$id.json"; // exit("\n[$destination]\n");
+        $destination = self::get_json_path($id, $extension, true); // exit("\n[$destination]\n");
         if(!($f = Functions::file_open($destination, "w"))) exit("\nERROR: cannot write to [$destination]\n");
         fwrite($f, $json);
         fclose($f);
     }
     private function retrieve_data($id, $extension)
     {
-        $source = $this->TB_folder . "/$this->resource_id/temp/$extension/";
-        $path = self::generate_path_then_create($id, $source);
-        $source .= "$path/$id.json"; // exit("\n[$source]\n");
+        $source = self::get_json_path($id, $extension, false); // exit("\n[$source]\n");
         if(file_exists($source)) {
             $json = file_get_contents($source);
             $arr = json_decode($json, true);
@@ -351,14 +347,14 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
             // echo "\nxxxxxxxxxx\n"; exit("\ninvestigate 2 [$id] [$extension]\n");
         }
     }
-    private function generate_path_then_create($id, $path)
-    {
-        $length = 2; //given 4 returns 04
-        $str = str_pad($id, $length, "0", STR_PAD_LEFT);
-        $subfolder = substr($str,0,2);
-        $dir = "$path/$subfolder";
-        if(!is_dir($dir)) mkdir($dir);
-        return "".$subfolder."";
+    private function get_json_path($id, $extension, $createYN)
+    {   // temp/[extension]/[2 chars]/[md5].json -- md5 of the ID: always ASCII, fixed length, no '/' etc.
+        // e.g. 'Kükenthalia' -> temp/taxon/[2 chars of md5]/[md5].json
+        // before: temp/taxon/K?/Kükenthalia.json -- substr($id,0,2) cut the 2-byte 'ü' in half -> invalid UTF-8 folder name, mkdir failed
+        $md5 = md5((string) $id);
+        $dir = $this->TB_folder . "/$this->resource_id/temp/$extension/" . substr($md5, 0, 2);
+        if($createYN && !is_dir($dir)) mkdir($dir, 0775, true);
+        return "$dir/$md5.json";
     }
     private function bringback_orig_taxonRemarks($str)
     {   //e.g. "abc <{first one}> xyz" -> "first one"

@@ -26,6 +26,9 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             [source_taxonID] => Acanthophoenix crinita
         )*/
         $headers = self::get_headers($this->concept_id, 'taxon');
+        // /* New
+        if(!in_array('taxonKey', $headers)) $headers = $this->insert_array($headers, 'taxonKey', 'scientificName');
+        // */
         if(!in_array('taxonMap', $headers)) $headers[] = 'taxonMap';
         $headers = $this->insert_array($headers, 'taxonMap', 'taxonKey');
 

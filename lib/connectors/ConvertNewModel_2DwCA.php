@@ -90,7 +90,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             foreach($fields as $field) {
                 $field = $this->small_field($field);
                 if(!$field) continue;
-                $rec[$field] = $tmp[$k];
+                $rec[$field] = @$tmp[$k]; //echo "\n<-".$rec[$field].'|'.$tmp[$k]."->";
                 $k++;
             }
             if($what == 'compile_taxon_info_from_taxon_file') { //print_r($rec); exit("\nstopx 1\n");

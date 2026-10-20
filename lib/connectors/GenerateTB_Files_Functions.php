@@ -49,7 +49,9 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         foreach($headers as $field) {
             if($field == 'taxonID')         $save['taxonID']      = $taxon_info['source_taxonID'];
             if($field == 'old_taxonKey')    $save['old_taxonKey'] = $taxon_info['old_taxonKey'];
-            else $save[$field] = $taxon_info[$field];
+            else {
+                if($field) $save[$field] = $taxon_info[$field]; 
+            }
         }
         // */
         /* version 1

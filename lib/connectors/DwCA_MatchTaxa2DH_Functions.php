@@ -154,7 +154,7 @@ class DwCA_MatchTaxa2DH_Functions
         echo "\n -> B3. Cannot be matched at all: [" . number_format($cannot_be_matched_at_all) . "]";
         
         // echo "\n -> B4. Has canonical match with DH but without eolID: [" . self::number_format_eli($has_canonical_match_with_DH_without_eolID) . "]";
-        echo "\n -> B4. Has canonical match with DH but to a synonym: [" . self::number_format_eli($has_canonical_match_with_DH_to_a_synonym) . "]";
+        // echo "\n -> B4. Has canonical match with DH but to a synonym: [" . self::number_format_eli($has_canonical_match_with_DH_to_a_synonym) . "]"; //seems obsolete
 
         // echo "\n -> --- Failed syn assignment: [" . self::number_format_eli($Failed_syn_assignment) . "]";
         // echo "\n -> --- Total syn assignment: [" . self::number_format_eli($Total_syn_assignment) . "]";

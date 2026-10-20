@@ -378,12 +378,12 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
 
                                 // For reporting: bucket is decided by the finally chosen DH rek; 's' = 'n' means it was matched thru a synonym (synonymSaviorYN or Step 5)
                                 if($rec['EOLid']) { $rec['taxonMap'] = 'auto';
-                                    if($pair[1]['s'] == 'n') $this->debug['With DH EOLid assignments (synonym)'][$taxonID] = $rec;
-                                    else                     $this->debug['With DH EOLid assignments (accepted name)'][$taxonID] = $rec;
+                                    if($pair[1]['s'] == 'n') $this->add_to_bucket('With DH EOLid assignments (synonym)', $taxonID, $rec);
+                                    else                     $this->add_to_bucket('With DH EOLid assignments (accepted name)', $taxonID, $rec);
                                 }
                                 else {
                                     $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
-                                    $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                                    $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
                                     /*
                                     echo "\nSo it goes here...\n";
                                     print_r($ret2); print_r($pair); print_r($rec);  
@@ -438,13 +438,13 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             else { //incompatible ancestry
                                 if($this->debugNow) echo "\n => incompatible ancestry \n";
                                 $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
-                                $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                                $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
                             }
                         }
                         else { //incompatible ranks
                             if($this->debugNow) echo "\n => incompatible ranks \n";
                             $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
-                            $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                            $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
 
                             /* Eli's initiative only
                             if($syn_pair = $this->name_matching_through_synonyms($rec)) {
@@ -459,7 +459,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     else { //no ancestry index
                         if($this->debugNow) echo "\n => no ancestry index \n";
                         $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
-                        $this->debug['Cannot be matched at all'][$taxonID] = $rec;
+                        $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
                     }
                     // */
 
@@ -467,7 +467,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 }
                 else {
                     $rec['taxonRemarks'] = $this->add_remarks(@$rec['taxonRemarks'], 'No canonical match');
-                    $this->debug['No canonical match'][$taxonID] = $rec;
+                    $this->add_to_bucket('No canonical match', $taxonID, $rec);
                 }
 
                 if($this->debugNow) {

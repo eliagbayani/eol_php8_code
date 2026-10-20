@@ -130,6 +130,19 @@ class DwCA_MatchTaxa2DH_Functions
         $highestArray = $nestedArray[$maxKey];
         return $highestArray;
     }
+    function add_to_bucket($bucket, $taxonID, $rec)
+    {   // For reporting: buckets (A, B1-B3) are keyed by taxonID, but 'Has canonical match' counts rows.
+        // A taxonID repeated in taxon.tab whose rows land in the same bucket is counted only once there -> record the extra row(s) in 'duplicate taxonID rows'
+        // e.g. 23073330_Botany_Lite: [Aldina paulberryi] is in 2 rows, both 'Cannot be matched at all'
+        if(isset($this->debug[$bucket][$taxonID])) @$this->debug['duplicate taxonID rows'][$bucket][$taxonID]++;
+        $this->debug[$bucket][$taxonID] = $rec;
+    }
+    private function count_duplicate_taxonID_rows($buckets)
+    {   // total extra rows for the given buckets, see add_to_bucket()
+        $total = 0;
+        foreach($buckets as $bucket) $total += array_sum(@$this->debug['duplicate taxonID rows'][$bucket] ?? array());
+        return $total;
+    }
     function debug_reports()
     {   echo '' ?? '';
         $cannot_be_matched_at_all = count($this->debug['Cannot be matched at all'] ?? array());
@@ -160,7 +173,10 @@ class DwCA_MatchTaxa2DH_Functions
         // echo "\n -> --- Total syn assignment: [" . self::number_format_eli($Total_syn_assignment) . "]";
 
         // echo "\n -> B5. Successful synonym match but accepted taxon does not have eolID: [" . number_format($Successful_syn_but_accepted_taxon_no_eolID) . "]";
-        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_to_a_synonym + $Successful_syn_but_accepted_taxon_no_eolID; // + $With_EOLid_but_not_matched;
+        $dup_B = self::count_duplicate_taxonID_rows(array('With DH EOLid assignments (accepted name)', 'With DH EOLid assignments (synonym)', 'Cannot be matched at all'));
+        if($dup_B) echo "\n -> B4. Duplicate taxonID rows (2nd row in the same bucket as the 1st, counted once in B1-B3): [" . number_format($dup_B) . "]";
+        $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_to_a_synonym + $Successful_syn_but_accepted_taxon_no_eolID // + $With_EOLid_but_not_matched;
+               + $dup_B;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> Total = [".number_format($sum)."]";
         if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
@@ -198,9 +214,11 @@ class DwCA_MatchTaxa2DH_Functions
         echo "\n -> excluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
         echo "\n -> excluded: already has EOLid: "  . self::number_format_eli(@$this->debug['excluded: already has EOLid']) . " - (taxonMap = 'man')";
         echo "\n -> A. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
+        $dup_A = self::count_duplicate_taxonID_rows(array('No canonical match'));
+        if($dup_A) echo "\n -> A2. Duplicate taxonID rows (counted once in A): [" . number_format($dup_A) . "]";
         echo "\n -> B. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         $sum = @$this->debug['excluded: invalid taxa'] + @$this->debug['excluded: no canonicalName'] + @$this->debug['excluded: already has EOLid']
-               + count(@$this->debug['No canonical match'] ?? array())
+               + count(@$this->debug['No canonical match'] ?? array()) + $dup_A
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
         echo "\nTotal = [".number_format($sum)."]";

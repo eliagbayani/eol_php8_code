@@ -2881,7 +2881,9 @@ class Functions
     {
         $new = array();
         foreach($rec as $key => $val) {
-            $small_field = pathinfo($key, PATHINFO_FILENAME);
+            // URI with a #fragment: the name is after the '#', e.g. 'http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#Standard_Deviation' -> 'Standard_Deviation' (not 'Thesaurus')
+            if (($pos = strrpos($key, '#')) !== false && $pos < strlen($key) - 1) $small_field = substr($key, $pos + 1);
+            else $small_field = pathinfo($key, PATHINFO_FILENAME); //orig, the rest goes here
             $new[$small_field] = $val;
         }
         return $new;

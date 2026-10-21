@@ -901,7 +901,7 @@ class DwCA_MatchTaxa2DH_Functions
 
         // exit("\nERROR: Investigate: Does it still ever go here?\n"); //still goes here OK
         if(count($ret2) > 1) {
-            print_r($ret2); exit("\nReady to pick one, just curious why there are >1 pairs here at this point.\n");
+            // print_r($ret2); exit("\nReady to pick one, just curious why there are >1 pairs here at this point.\n"); //it goes here: TB: Botany Literature; since it has duplicate scientificNames.
         }
         foreach($ret2 as $pair) { //exit("\nHmmm... just curious so it can go here. [$what]\n");            //just pick one
             print_r($pair); echo " -> Finally picked 1\n";

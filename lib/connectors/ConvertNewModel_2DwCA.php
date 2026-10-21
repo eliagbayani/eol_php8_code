@@ -76,7 +76,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         print_r($this->debug['counts']);
 
         $this->archive_builder->finalize(true);
-        Functions::start_print_debug($this->debug['referenceIDs'], $concept_id.'_UndefinedRefIDs');
+        Functions::start_print_debug(@$this->debug['referenceIDs'], $concept_id.'_UndefinedRefIDs');
     }
     function process_table($label_tsv_file, $what)
     {

@@ -597,14 +597,18 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $hc_from_ancestry = self::get_names_from_ancestry($rec, $rec['canonicalName']); //2nd param is excluded name
         $hCs = array();
         if($hc) $hCs[] = $hc;
-        if($hc_from_ancestry) $hCs[] = $hc_from_ancestry;
+        if($hc_from_ancestry) $hCs[] = $this->add_pipe_2str(implode("|", $hc_from_ancestry)); //array of names e.g. ['Plantae', 'Fabaceae'] -> "|Plantae|Fabaceae|"; as array it became "Array" in the $hc .= below
 
         // print_r($rec); print_r($hCs); echo " -> hCs to check\n";
-        foreach($hCs as $hc) {
-            // /* for latest TB, here is where I append the canonicalName to the end of the needle higherClassification to search: change #1
-            $hc .= $rec['canonicalName']."|"; //e.g. "Basidiomycota|Agaricales|"
-            // exit("\n[$hc]\nstopx-1\n");
-            // */
+        // 1st: each hC with the canonicalName appended (as before); 2nd, only if none of those hit: each hC as is, without the canonicalName.
+        // The 2nd round is for index patterns ending in '$', e.g. Vertebrata: .*?\|Gnathostomata\|$ -- it can never hit "|Gnathostomata|Squalus acanthias|"
+        // but hits "|Gnathostomata|", i.e. when Gnathostomata is the lowest ancestor given. Running it last keeps all previous matches unchanged.
+        $needles = array();
+        // /* for latest TB, here is where I append the canonicalName to the end of the needle higherClassification to search: change #1
+        foreach($hCs as $hc) $needles[] = $hc . $rec['canonicalName']."|"; //e.g. "Basidiomycota|Agaricales|"
+        // */
+        foreach($hCs as $hc) if(trim($hc, '|') !== '') $needles[] = $hc; //e.g. "|Gnathostomata|"
+        foreach($needles as $hc) {
             if($ret = self::given_hc_get_Ancestry_Group_and_Index($hc, 'E1')) { //2nd param is guide
                 /*Array(
                     [IndexGroup] => Angiosperms
@@ -956,7 +960,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
     private function retrieve_ancestry_index($file_2use)
     {
         $options = $this->download_options;
-        $options['expire_seconds'] = 60*60*24*1; //orig 1 day
+        $options['expire_seconds'] = 60*60*24*1; //orig 1 day //TODO: make this param driver via terminal php ...
         if($local = Functions::save_remote_file_to_local($file_2use, $options)) {
             $i = 0;
             foreach(new FileIterator($local) as $line_number => $line) {

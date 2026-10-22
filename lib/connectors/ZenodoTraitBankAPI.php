@@ -450,7 +450,7 @@ class ZenodoTraitBankAPI
         $found = array_values(array_filter($candidates, fn($f) => is_file($dir . $f)));
         if ($found && basename($found[0], '.' . pathinfo($found[0], PATHINFO_EXTENSION)) !== $basename) echo "Using [$found[0]] for [$basename]\n";
         if (!$found && ($versioned = self::find_versioned_file($dir, $aliases[$basename] ?? array($basename)))) {
-            echo "Using versioned file [$versioned] for [$basename]\n";
+            if (!preg_match('/ \(\d+\)\.(tsv|txt)$/', $versioned)) echo "Using versioned file [$versioned] for [$basename]\n"; // shown for e.g. terms_0.9.tsv; not for numbered copies e.g. 'taxon (2).tsv'
             return $dir . $versioned;
         }
         if (!$found) {

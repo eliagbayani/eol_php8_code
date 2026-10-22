@@ -1,8 +1,8 @@
 <?php
 namespace php_active_record;
 /* Generates the TraitBank input files.  Also, this analyzes the MoF extension
-php generate_TB_files.php _ '{"resource_id": "TreatmentBank_TraitBank_1_0"}' #existing TreatmentBank_TraitBank_1_0.tar.gz
-php generate_TB_files.php _ '{"resource_id": "22943003_Palm_TraitBank_1_0"}'
+php generate_TB_files.php _ '{"resource_id": "TreatmentBank_TraitBank_1_0", "resource_type": "TB_dwca"}' # we may not need this for legacy DwCA
+php generate_TB_files.php _ '{"resource_id": "22943003_Palm_TraitBank_1_0"}' # only for TB datasets
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -21,12 +21,14 @@ $resource_id = $param['resource_id'];
 $tmp_id = $param['resource_id'];
 $dwca_file = DOC_ROOT . "/applications/content_server/resources/".$tmp_id.".tar.gz";
 
-process_resource_url($dwca_file, $resource_id, $timestart);
+process_resource_url($dwca_file, $param, $timestart);
 
-function process_resource_url($dwca_file, $resource_id, $timestart)
+function process_resource_url($dwca_file, $param, $timestart)
 {
+    $resource_id = $param['resource_id'];
     require_library('connectors/DwCA_Utility');
     $params['resource'] = "generate_TB_files";
+    $params['resource_type'] = $param['resource_type'];
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
     $preferred_rowtypes = array();
     $excluded_rowtypes = array();

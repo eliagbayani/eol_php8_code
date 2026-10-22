@@ -1,15 +1,18 @@
 <?php
 namespace php_active_record;
 /* Main starting point for generating CSV files for loading into Neo4j
-
+======================================================================
 start Oct 1, 2026:
 php generate_csv_new_model.php _ '{"concept_id": "23067562" , "redownload_zip_file_YN": 1}'         -> Biochemistry and Natural Products
 php generate_csv_new_model.php _ '{"task": "generate_Zenodo_TraitBank_datasets_inCSV"}'
 
+php generate_csv_new_model.php _ '{"concept_id": "22776577", "redownload_zip_file_YN": 0, "task": "download_only", "what": "Main:Terms file"}'
+php generate_csv_new_model.php _ '{"concept_id": "22776838", "redownload_zip_file_YN": 0, "task": "download_only", "what": "Main:References"}'
+======================================================================
 php generate_csv_4EOLneo4j.php _ '{"resource_id": "GloBI_TraitBank_1_0",     "eol_resource_id": "R20"}'     -> 20 globi   
 php generate_csv_4EOLneo4j.php _ '{"resource_id": "Wikipedia_TraitBank_1_0", "eol_resource_id": "R512"}'    -> 512 wikipedia
 -> generates CSV files for import to Neo4j
-
+======================================================================
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

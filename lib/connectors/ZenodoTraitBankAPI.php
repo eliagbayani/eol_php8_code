@@ -436,6 +436,7 @@ class ZenodoTraitBankAPI
         //            (extension varies per dataset: taxon.tsv vs taxon.txt); if both exist, .tsv is used
         //            a name with extension, e.g. 'occurrences.txt', is also accepted and matched exactly
         //            if neither exists, a versioned name is also a valid hit, e.g. 'terms' -> terms_0.9.tsv (highest version wins)
+        //            and so is a numbered copy, e.g. 'taxon' -> 'taxon (2).tsv' (name given by a browser when the file was downloaded twice)
         //            'occurrence' and 'occurrences' are interchangeable: either one finds occurrence.tsv|.txt or occurrences.tsv|.txt
         // folder name uses the current title (cached lookup), the same way do_zenodo_stuff() names it when extracting
         if (!($arr = $this->get_zenodo_info_using_conceptID($concept_id))) return false;
@@ -448,27 +449,33 @@ class ZenodoTraitBankAPI
         foreach ($aliases[$basename] ?? array($basename) as $name) { $candidates[] = "$name.tsv"; $candidates[] = "$name.txt"; } // the given name first, .tsv first = preferred
         $found = array_values(array_filter($candidates, fn($f) => is_file($dir . $f)));
         if ($found && basename($found[0], '.' . pathinfo($found[0], PATHINFO_EXTENSION)) !== $basename) echo "Using [$found[0]] for [$basename]\n";
-        if (!$found && ($versioned = self::find_versioned_file($dir, $basename))) {
+        if (!$found && ($versioned = self::find_versioned_file($dir, $aliases[$basename] ?? array($basename)))) {
             echo "Using versioned file [$versioned] for [$basename]\n";
             return $dir . $versioned;
         }
         if (!$found) {
-            echo "[" . implode("] or [", $candidates) . "] (or e.g. [{$basename}_0.9.tsv]) not found in [$folder_name/input_files/], run do_zenodo_stuff($concept_id) first\n";
+            echo "[" . implode("] or [", $candidates) . "] (or e.g. [{$basename}_0.9.tsv] or [$basename (2).tsv]) not found in [$folder_name/input_files/], run do_zenodo_stuff($concept_id) first\n";
             return false;
         }
         if (count($found) > 1) echo "Several of [" . implode("], [", $found) . "] exist in [$folder_name/input_files/], using [$found[0]]\n";
         return $dir . $found[0];
     }
-    private function find_versioned_file($dir, $basename)
-    {   // e.g. ($dir, 'terms') -> 'terms_0.9.tsv'; matches [basename]_[version].tsv|.txt where version is like 1, 0.9, 1.2.3
-        // if several versions exist, the highest is used; for the same version .tsv is preferred over .txt
+    private function find_versioned_file($dir, $basenames)
+    {   // e.g. ($dir, array('terms')) -> 'terms_0.9.tsv'; ($dir, array('taxon')) -> 'taxon (2).tsv'
+        // matches [basename]_[version].tsv|.txt where version is like 1, 0.9, 1.2.3
+        //     and [basename] ([n]).tsv|.txt -- a numbered copy, e.g. a browser's name for a file downloaded twice
+        // $basenames: the name and its aliases, e.g. array('occurrence', 'occurrences')
+        // if several match: versioned names before numbered copies, then the highest version/number, then .tsv before .txt
+        $names = implode('|', array_map(fn($b) => preg_quote($b, '/'), (array) $basenames));
         $hits = array();
         foreach (@scandir($dir) ?: array() as $f) { // @: folder may not exist yet
-            if (preg_match('/^' . preg_quote($basename, '/') . '_(\d+(?:\.\d+)*)\.(tsv|txt)$/', $f, $m)) $hits[] = array('file' => $f, 'version' => $m[1], 'ext' => $m[2]);
+            if (!preg_match('/^(?:' . $names . ')(?:_(\d+(?:\.\d+)*)| \((\d+)\))\.(tsv|txt)$/', $f, $m)) continue;
+            $copyYN = ($m[1] === '');
+            $hits[] = array('file' => $f, 'kind' => $copyYN ? 1 : 0, 'version' => $copyYN ? $m[2] : $m[1], 'ext' => $m[3]);
         }
         if (!$hits) return false;
-        usort($hits, fn($a, $b) => version_compare($b['version'], $a['version']) ?: strcmp($a['ext'], $b['ext'])); // highest version first, then 'tsv' before 'txt'
-        if (count($hits) > 1) echo "Several versions of [$basename] in [$dir]: " . implode(', ', array_column($hits, 'file')) . "\n";
+        usort($hits, fn($a, $b) => ($a['kind'] <=> $b['kind']) ?: version_compare($b['version'], $a['version']) ?: strcmp($a['ext'], $b['ext']));
+        if (count($hits) > 1) echo "Several versions/copies of [" . implode('|', (array) $basenames) . "] in [$dir]: " . implode(', ', array_column($hits, 'file')) . "\n";
         return $hits[0]['file'];
     }
     function get_records_from_input_file($folder_name, $filename = null)

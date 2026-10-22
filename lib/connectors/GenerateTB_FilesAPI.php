@@ -6,9 +6,10 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
 {
-    function __construct($archive_builder, $resource_id, $archive_path)
+    function __construct($archive_builder, $resource_id, $archive_path, $params)
     {
         $this->resource_id = $resource_id;
+        $this->params = $params;
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
@@ -65,7 +66,6 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         }
         else $this->proceed_write_OccrrencesYN = true;
         if($this->proceed_write_OccrrencesYN) self::write_Occurrence_input_file($this->orig_occurrence_input_file);
-
 
         // step 2: do the data chain linkup
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'data_chain_linkup');

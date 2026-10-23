@@ -28,12 +28,77 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     {}
     function start()
     {
-        $paths = self::get_all_UndefinedRefIDs_files();
-        $paths = self::delete_and_leave_only_the_latest_dates($paths);
-        print_r($paths);
-        $tsv = self::save_unique_referenceIDs_2tsv($paths);
-        echo "\nTSV saved: $tsv\n";
+        // $paths = self::get_all_UndefinedRefIDs_files();
+        // $paths = self::delete_and_leave_only_the_latest_dates($paths);
+        // if($paths) {
+        //     print_r($paths);
+        //     $tsv = self::save_unique_referenceIDs_2tsv($paths);
+        //     echo "\nTSV saved: $tsv\n";
+        // }
+        // else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
+
+        $doi = "https://doi.org/10.1111%2Fj.1756-1051.2011.01092.x";
+        $doi = "https://doi.org/10.1353/psc.2001.0024";
+        $ret = self::get_citation_from_CrossRef($doi);
+        echo "\n$ret\n";
     }
+    function get_citation_from_CrossRef($doi)
+    {   // e.g. "https://doi.org/10.1126/science.233.4770.1314" (also "10.1126/..." or "doi:10.1126/...") ->
+        // "Dacey, J. W. H., & Wakeham, S. G. (1986). Oceanic Dimethylsulfide: Production During Zooplankton Grazing on Phytoplankton. Science, 233(4770), 1314-1316. https://doi.org/10.1126/science.233.4770.1314"
+        // APA-like; parts missing in CrossRef are left out. Returns false if the DOI is not found in CrossRef.
+        $doi = trim((string) $doi);
+        $doi = preg_replace('#^(https?://(dx\.)?doi\.org/|doi:\s*)#i', '', $doi);
+        if(!preg_match('#^10\.\d{4,}/\S+$#', $doi)) { echo "\nNot a DOI: [$doi]\n"; return false; }
+
+        $options = array('resource_id' => 'crossref', 'expire_seconds' => false, // a published record rarely changes; cache never expires
+                         'timeout' => 60, 'download_attempts' => 2, 'download_wait_time' => 1000000,
+                         'user_agent' => 'EOL-connector/1.0',
+                         'validation_regex' => '"status":"ok"'); // only use cache if it is a real CrossRef record
+        $url = "https://api.crossref.org/works/" . rawurlencode($doi);
+        if(!($json = Functions::lookup_with_cache($url, $options))) { echo "\nCrossRef: no record for [$doi]\n"; return false; }
+        $m = @json_decode($json, true)['message'];
+        if(!$m) return false;
+        $clean = fn($str) => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $str), ENT_QUOTES | ENT_HTML5, 'UTF-8'))); // titles may have <i>, <sub>, &amp;
+
+        // Authors: "Family, G. N." -- or the organization name
+        $authors = array();
+        foreach(@$m['author'] ?? array() as $a) {
+            if($family = $clean(@$a['family'])) {
+                $initials = array();
+                foreach(preg_split('/\s+/', $clean(@$a['given']), -1, PREG_SPLIT_NO_EMPTY) as $name) { // "John W. H." -> "J. W. H."; "Jean-Paul" -> "J.-P."
+                    $initials[] = implode('-', array_map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)) . '.', explode('-', $name)));
+                }
+                $authors[] = $initials ? "$family, " . implode(' ', $initials) : $family;
+            }
+            elseif($name = $clean(@$a['name'])) $authors[] = $name;
+        }
+        if(count($authors) > 1) $authors_str = implode(', ', array_slice($authors, 0, -1)) . ', & ' . end($authors);
+        else                    $authors_str = (string) @$authors[0];
+
+        $year      = @$m['issued']['date-parts'][0][0] ?: @$m['published']['date-parts'][0][0];
+        $title     = $clean(@$m['title'][0]);
+        $container = $clean(@$m['container-title'][0]); // journal, or the book title for a chapter
+        $volume    = $clean(@$m['volume']);
+        $issue     = $clean(@$m['issue']);
+        $pages     = $clean(@$m['page']);
+        $publisher = $clean(@$m['publisher']);
+        $type      = (string) @$m['type'];
+
+        // Assemble: Authors (Year). Title. Container, Volume(Issue), Pages. [Publisher.] https://doi.org/DOI
+        $parts = array();
+        if($authors_str) $parts[] = $authors_str . ($year ? " ($year)." : (str_ends_with($authors_str, '.') ? '' : '.')); // keep the last initial's '.', e.g. "S. G. (1986)."
+        elseif($year)    $parts[] = "($year).";
+        if($title) $parts[] = rtrim($title, '.') . '.';
+        $source = $container;
+        if($volume) $source .= ($source ? ', ' : '') . $volume . ($issue ? "($issue)" : '');
+        elseif($issue) $source .= ($source ? ', ' : '') . "($issue)";
+        if($pages) $source .= ($source ? ', ' : '') . $pages;
+        if($source) $parts[] = "$source.";
+        if($publisher && in_array($type, array('book', 'book-chapter', 'edited-book', 'monograph', 'reference-book', 'report'))) $parts[] = rtrim($publisher, '.') . '.';
+        $parts[] = "https://doi.org/" . (@$m['DOI'] ?: $doi);
+        return implode(' ', $parts);
+    }
+
     private function get_all_UndefinedRefIDs_files()
     {   // e.g. 23073097_UndefinedRefIDs_debug_2026-10-19.txt
         $paths = array();

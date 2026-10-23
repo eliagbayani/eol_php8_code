@@ -433,7 +433,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
 
         return $final;
     }
-    function get_citation_from_CrossRef($doi)
+    function xxxget_citation_from_CrossRef($doi)
     {   // e.g. "https://doi.org/10.1126/science.233.4770.1314" (also "10.1126/..." or "doi:10.1126/...") ->
         // "Dacey, J. W. H., & Wakeham, S. G. (1986). Oceanic Dimethylsulfide: Production During Zooplankton Grazing on Phytoplankton. Science, 233(4770), 1314-1316. https://doi.org/10.1126/science.233.4770.1314"
         // APA-like; parts missing in CrossRef are left out. Returns false if the DOI is not found in CrossRef.

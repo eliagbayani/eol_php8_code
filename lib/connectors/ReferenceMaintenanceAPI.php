@@ -26,6 +26,14 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     }
     private function initialize($concept_id)
     {}
+    function start()
+    {
+        $paths = self::get_all_UndefinedRefIDs_files();
+        $paths = self::delete_and_leave_only_the_latest_dates($paths);
+        print_r($paths);
+        $tsv = self::save_unique_referenceIDs_2tsv($paths);
+        echo "\nTSV saved: $tsv\n";
+    }
     private function get_all_UndefinedRefIDs_files()
     {   // e.g. 23073097_UndefinedRefIDs_debug_2026-10-19.txt
         $paths = array();
@@ -49,11 +57,30 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
         return $remaining;
     }
-    function start()
-    {
-        $paths = self::get_all_UndefinedRefIDs_files();
-        $paths = self::delete_and_leave_only_the_latest_dates($paths);
-        print_r($paths);
+    private function save_unique_referenceIDs_2tsv($paths)
+    {   // save unique (referenceID, concept_id) pairs to TSV, then prefix processed files with "x_"
+        $tsv = CONTENT_RESOURCE_LOCAL_PATH . "undefined_referenceIDs_" . date("Ymd") . ".tsv";
+        $unique = array();
+        foreach($paths as $path) {
+            if(!preg_match("/^(\d+)_UndefinedRefIDs_debug_/", basename($path), $arr)) continue;
+            $concept_id = $arr[1];
+            $section = ''; $prev = '';
+            foreach(file($path, FILE_IGNORE_NEW_LINES) as $line) {
+                if(substr($prev, 0, 5) == '=====') $section = trim($line);
+                $prev = $line;
+                if($section != 'undefined referenceID') continue;
+                if(!preg_match("/^----- (.+?)\s+total: \d+/", $line, $arr)) continue;
+                $refID = trim($arr[1]);
+                if($refID == '' || $refID == '#N/A') continue;
+                $unique["$refID\t$concept_id"] = '';
+            }
+        }
+        $fhandle = fopen($tsv, "w");
+        fwrite($fhandle, "referenceID\tconcept_id\n");
+        foreach(array_keys($unique) as $row) fwrite($fhandle, $row . "\n");
+        fclose($fhandle);
+        foreach($paths as $path) rename($path, dirname($path) . "/x_" . basename($path));
+        return $tsv;
     }
 }
 ?>

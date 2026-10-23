@@ -21,6 +21,11 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $this->param = $param;
         $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->debug = array();
+        $this->main_datasets = array('Terms_conceptID' => 22776577, 'References_conceptID' => 22776838, 'DH_conceptID' => 22776209);
+
+        // $this->main_datasets['References_conceptID'] this equals to 22776838
+
+
         // $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         // if(!is_dir($dir)) mkdir($dir);
     }
@@ -28,19 +33,36 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     {}
     function start()
     {
-        // $paths = self::get_all_UndefinedRefIDs_files();
-        // $paths = self::delete_and_leave_only_the_latest_dates($paths);
-        // if($paths) {
-        //     print_r($paths);
-        //     $tsv = self::save_unique_referenceIDs_2tsv($paths);
-        //     echo "\nTSV saved: $tsv\n";
-        // }
-        // else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
-
+        /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
+        $paths = self::get_all_UndefinedRefIDs_files();
+        $paths = self::delete_and_leave_only_the_latest_dates($paths);
+        if($paths) {
+            print_r($paths);
+            $tsv = self::save_unique_referenceIDs_2tsv($paths); //TSV with 2 columns: referenceID and concept_id
+            echo "\nTSV saved: $tsv\n"; //e.g. undefined_referenceIDs_20261023.tsv
+        }
+        else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
+        */
+        
+        /* Step 2: create a new TSV with additional columns: citation and status
         $source_tsv = "undefined_referenceIDs_20261023.tsv";
         $target_tsv = "undefined_referenceIDs_20261023_processed.tsv";
         $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv);
         echo "\nProcessed TSV saved: $ret\n";
+        */
+
+        // /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and full_reference.
+        $processed_tsv = "undefined_referenceIDs_20261023_processed.tsv";
+        $added = self::update_References_file($processed_tsv);
+        echo "\nReferences added: [$added]\n";
+        // */
+
+        // /* Step 4: save the identifiers with no citation (status not 'OK') to unmappable_identifiers.tsv
+        $processed_tsv = "undefined_referenceIDs_20261023_processed.tsv";
+        $added = self::update_unmappable_identifiers($processed_tsv);
+        echo "\nUnmappable identifiers added: [$added]\n";
+        // */
+
     }
     function get_citation_from_CrossRef($doi)
     {   // e.g. "https://doi.org/10.1126/science.233.4770.1314" (also "10.1126/..." or "doi:10.1126/...") ->
@@ -138,13 +160,19 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
                 $prev = $line;
                 if($section != 'undefined referenceID') continue;
                 if(!preg_match("/^----- (.+?)\s+total: \d+/", $line, $arr)) continue;
-                $refID = trim($arr[1]);
+                $refID = trim($arr[1], " \t\"'"); // drop stray quotes, e.g. '"http://dx.doi.org/...' -- a leading " breaks the TSV in spreadsheet apps
                 if($refID == '' || $refID == '#N/A') continue;
                 $unique["$refID\t$concept_id"] = '';
             }
         }
-        $fhandle = fopen($tsv, "w");
-        fwrite($fhandle, "referenceID\tconcept_id\n");
+        if(file_exists($tsv)) { // append; skip rows already in the file
+            foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $row) unset($unique[$row]);
+            $fhandle = fopen($tsv, "a");
+        }
+        else {
+            $fhandle = fopen($tsv, "w");
+            fwrite($fhandle, "referenceID\tconcept_id\n");
+        }
         foreach(array_keys($unique) as $row) fwrite($fhandle, $row . "\n");
         fclose($fhandle);
         foreach($paths as $path) rename($path, dirname($path) . "/x_" . basename($path));
@@ -172,6 +200,67 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         fclose($fhandle);
         echo "\nTotal referenceIDs: $i\n"; print_r($stats);
         return $target_tsv;
+    }
+    private function update_References_file($processed_tsv)
+    {   // append the 'OK' rows of the processed TSV (referenceID, citation, status) to the master references.tsv (identifier, full_reference)
+        // skips identifiers already in the master; backs up the master first. Returns no. of rows added, or false.
+        if(strpos($processed_tsv, '/') === false) $processed_tsv = CONTENT_RESOURCE_LOCAL_PATH . $processed_tsv;
+        if(!is_file($processed_tsv)) { echo "\nERROR: No processed TSV [$processed_tsv]\n"; return false; }
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        echo "\nReferences: [$references_tsv]\n";
+
+        $existing = array();
+        foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line) $existing[trim(explode("\t", $line)[0])] = '';
+        $rows = array();
+        foreach(file($processed_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            [$refID, $citation, $status] = array_map('trim', explode("\t", $line) + array('', '', ''));
+            if($status != 'OK' || $refID == '' || $citation == '') continue;
+            if(isset($existing[$refID])) continue;
+            $existing[$refID] = '';
+            $rows[] = "$refID\t$citation";
+        }
+        if(!$rows) { echo "\nNo new references to add.\n"; return 0; }
+
+        $backup = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_backup_" . date("Ymd_His") . ".tsv";
+        if(!copy($references_tsv, $backup)) { echo "\nERROR: Cannot backup [$references_tsv]\n"; return false; }
+        echo "\nBackup: [$backup]\n";
+
+        $eol = "\r\n"; // master uses CRLF line endings
+        $fhandle = fopen($references_tsv, "a");
+        if(substr(file_get_contents($references_tsv, false, null, -1), -1) !== "\n") fwrite($fhandle, $eol); // last row has no line ending
+        foreach($rows as $row) fwrite($fhandle, $row . $eol);
+        fclose($fhandle);
+        echo "\nAdded to references.tsv: " . count($rows) . "\n";
+        return count($rows);
+    }
+    private function update_unmappable_identifiers($processed_tsv)
+    {   // non-'OK' rows of the processed TSV (referenceID, citation, status) --> unmappable_identifiers.tsv (identifier, status)
+        // creates the file if it doesn't exist yet, else appends; skips identifiers already in the file. Returns no. of rows added, or false.
+        if(strpos($processed_tsv, '/') === false) $processed_tsv = CONTENT_RESOURCE_LOCAL_PATH . $processed_tsv;
+        if(!is_file($processed_tsv)) { echo "\nERROR: No processed TSV [$processed_tsv]\n"; return false; }
+        $tsv = CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
+        $existing = array();
+        if(file_exists($tsv)) {
+            foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line) $existing[trim(explode("\t", $line)[0])] = '';
+        }
+        $rows = array();
+        foreach(file($processed_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            [$refID, $citation, $status] = array_map('trim', explode("\t", $line) + array('', '', ''));
+            if($status == 'OK' || $refID == '' || isset($existing[$refID])) continue;
+            $existing[$refID] = '';
+            $rows[] = "$refID\t$status";
+        }
+        if(file_exists($tsv)) $fhandle = fopen($tsv, "a");
+        else {
+            $fhandle = fopen($tsv, "w");
+            fwrite($fhandle, "identifier\tstatus\n");
+        }
+        foreach($rows as $row) fwrite($fhandle, $row . "\n");
+        fclose($fhandle);
+        echo "\nAdded to [$tsv]: " . count($rows) . "\n";
+        return count($rows);
     }
 }
 ?>

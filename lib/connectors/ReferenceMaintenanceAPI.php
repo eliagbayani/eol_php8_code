@@ -37,27 +37,29 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         // }
         // else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
 
-        $doi = "https://doi.org/10.1111%2Fj.1756-1051.2011.01092.x";
-        $doi = "https://doi.org/10.1353/psc.2001.0024";
-        $ret = self::get_citation_from_CrossRef($doi);
-        echo "\n$ret\n";
+        $source_tsv = "undefined_referenceIDs_20261023.tsv";
+        $target_tsv = "undefined_referenceIDs_20261023_processed.tsv";
+        $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv);
+        echo "\nProcessed TSV saved: $ret\n";
     }
     function get_citation_from_CrossRef($doi)
     {   // e.g. "https://doi.org/10.1126/science.233.4770.1314" (also "10.1126/..." or "doi:10.1126/...") ->
         // "Dacey, J. W. H., & Wakeham, S. G. (1986). Oceanic Dimethylsulfide: Production During Zooplankton Grazing on Phytoplankton. Science, 233(4770), 1314-1316. https://doi.org/10.1126/science.233.4770.1314"
         // APA-like; parts missing in CrossRef are left out. Returns false if the DOI is not found in CrossRef.
-        $doi = trim((string) $doi);
+        // $this->crossref_status is set to why it failed ("Not a DOI", "CrossRef: no record", ...) or "OK"
+        $this->crossref_status = '';
+        $doi = urldecode(trim((string) $doi, " \t\"'")); // e.g. "10.1111%2Fj.1756-..." -> "10.1111/j.1756-..."; drop stray quotes
         $doi = preg_replace('#^(https?://(dx\.)?doi\.org/|doi:\s*)#i', '', $doi);
-        if(!preg_match('#^10\.\d{4,}/\S+$#', $doi)) { echo "\nNot a DOI: [$doi]\n"; return false; }
+        if(!preg_match('#^10\.\d{4,}/\S+$#', $doi)) { echo "\nNot a DOI: [$doi]\n"; $this->crossref_status = 'Not a DOI'; return false; }
 
         $options = array('resource_id' => 'crossref', 'expire_seconds' => false, // a published record rarely changes; cache never expires
-                         'timeout' => 60, 'download_attempts' => 2, 'download_wait_time' => 1000000,
+                         'timeout' => 60, 'download_attempts' => 2, 'download_wait_time' => 3000000,
                          'user_agent' => 'EOL-connector/1.0',
                          'validation_regex' => '"status":"ok"'); // only use cache if it is a real CrossRef record
         $url = "https://api.crossref.org/works/" . rawurlencode($doi);
-        if(!($json = Functions::lookup_with_cache($url, $options))) { echo "\nCrossRef: no record for [$doi]\n"; return false; }
+        if(!($json = Functions::lookup_with_cache($url, $options))) { echo "\nCrossRef: no record for [$doi]\n"; $this->crossref_status = 'CrossRef: no record'; return false; }
         $m = @json_decode($json, true)['message'];
-        if(!$m) return false;
+        if(!$m) { $this->crossref_status = 'CrossRef: invalid response'; return false; }
         $clean = fn($str) => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $str), ENT_QUOTES | ENT_HTML5, 'UTF-8'))); // titles may have <i>, <sub>, &amp;
 
         // Authors: "Family, G. N." -- or the organization name
@@ -96,6 +98,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if($source) $parts[] = "$source.";
         if($publisher && in_array($type, array('book', 'book-chapter', 'edited-book', 'monograph', 'reference-book', 'report'))) $parts[] = rtrim($publisher, '.') . '.';
         $parts[] = "https://doi.org/" . (@$m['DOI'] ?: $doi);
+        $this->crossref_status = 'OK';
         return implode(' ', $parts);
     }
 
@@ -146,6 +149,29 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         fclose($fhandle);
         foreach($paths as $path) rename($path, dirname($path) . "/x_" . basename($path));
         return $tsv;
+    }
+    private function process_undefined_reference_IDs_file($source_tsv, $target_tsv)
+    {   // source: referenceID, concept_id --> target: referenceID, citation, status (one row per referenceID)
+        if(strpos($source_tsv, '/') === false) $source_tsv = CONTENT_RESOURCE_LOCAL_PATH . $source_tsv;
+        if(strpos($target_tsv, '/') === false) $target_tsv = CONTENT_RESOURCE_LOCAL_PATH . $target_tsv;
+        $fhandle = fopen($target_tsv, "w");
+        fwrite($fhandle, "referenceID\tcitation\tstatus\n");
+        $done = array(); $stats = array(); $i = 0;
+        foreach(file($source_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            $refID = trim(explode("\t", $line)[0]);
+            if($refID == '' || isset($done[$refID])) continue;
+            $done[$refID] = '';
+            $citation = self::get_citation_from_CrossRef($refID);
+            $status = $this->crossref_status ?: ($citation ? 'OK' : 'Unknown error');
+            $citation = $citation ? preg_replace('/[\t\r\n]+/', ' ', $citation) : '';
+            fwrite($fhandle, "$refID\t$citation\t$status\n");
+            @$stats[$status]++;
+            $i++; if(($i % 50) == 0) echo "\nprocessed: $i\n";
+        }
+        fclose($fhandle);
+        echo "\nTotal referenceIDs: $i\n"; print_r($stats);
+        return $target_tsv;
     }
 }
 ?>

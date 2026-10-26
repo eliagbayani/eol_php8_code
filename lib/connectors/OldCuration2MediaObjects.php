@@ -25,7 +25,7 @@ class OldCuration2MediaObjects
     {
         $file = fopen($this->path['media_csv'], 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++; echo " $i";
             if($i == 1) $fields = $line;
             else {

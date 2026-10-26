@@ -129,11 +129,11 @@ class IrmngAPI
         {
             $i++;
             if(($i % 50000) == 0) echo "\n [$type] $i - ";
-            if($i == 1) $fields = fgetcsv($file);
+            if($i == 1) $fields = fgetcsv($file, escape: '\\');
             else
             {
                 $rec = array();
-                $temp = fgetcsv($file);
+                $temp = fgetcsv($file, escape: '\\');
                 $k = 0;
                 if(!$temp) continue;
                 foreach($temp as $t)

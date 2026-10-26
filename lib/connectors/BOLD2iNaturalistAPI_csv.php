@@ -53,7 +53,7 @@ class BOLD2iNaturalistAPI_csv
         $i = 0; $valid_records = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if(!$row) break;
             $row = self::clean_html($row); // print_r($row);
             $i++; if(($i % 2000) == 0) echo "\n $i ";

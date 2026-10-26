@@ -79,7 +79,7 @@ class WikiDataMtceAPI extends WikiDataMtce_ResourceAPI
         $i = 0;
         foreach(new FileIterator($spreadsheet) as $line_number => $line) { $i++; $this->progress = "\n$i of $total resources\n";
             if(!$line) continue;
-            $row = str_getcsv($line);
+            $row = str_getcsv($line, escape: '\\');
             if(!$row) continue;
             if($i == 1) { $fields = $row; $count = count($fields); continue;}
             else { //main records
@@ -1717,7 +1717,7 @@ class WikiDataMtceAPI extends WikiDataMtce_ResourceAPI
         $i = 0;
         foreach(new FileIterator($spreadsheet) as $line_number => $line) { $i++; echo "\n$i of $total resources\n";
             if(!$line) continue;
-            $row = str_getcsv($line);
+            $row = str_getcsv($line, escape: '\\');
             if(!$row) continue;
             if($i == 1) { $fields = $row; $count = count($fields); continue;}
             else { //main records

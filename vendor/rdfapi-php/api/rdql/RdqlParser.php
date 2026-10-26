@@ -145,7 +145,7 @@ Class RdqlParser extends Object{
             while($i < $last  && ($query{$i} != '*' || $query{$i+1} != '/'))
               ++$i;
             if ($i >= $last && ($query{$last-1} != '*' || $query{$last} != '/'))
-               trigger_error(RDQL_SYN_ERR .": unterminated comment - '*/' missing", E_USER_ERROR);
+               { trigger_error(RDQL_SYN_ERR .": unterminated comment - '*/' missing", E_USER_WARNING); exit(1); }
             ++$i;
         }else
           $clean .= $query{$i};
@@ -210,8 +210,8 @@ Class RdqlParser extends Object{
 
    // Check if the queryString contains a "SELECT" token
    if (strcasecmp('SELECT', current($this->tokens)))
-      trigger_error(RDQL_SEL_ERR  ."'" .current($this->tokens)
-                                  ."' - SELECT keyword expected", E_USER_ERROR);
+      { trigger_error(RDQL_SEL_ERR  ."'" .current($this->tokens)
+                                  ."' - SELECT keyword expected", E_USER_WARNING); exit(1); }
    unset($this->tokens[key($this->tokens)]);
    $this->_clearWhiteSpaces();
 
@@ -223,8 +223,8 @@ Class RdqlParser extends Object{
       if (strcasecmp('FROM', current($this->tokens))
           && strcasecmp('SOURCE', current($this->tokens))
           && strcasecmp('WHERE', current($this->tokens)))
-        trigger_error(RDQL_SYN_ERR .": '" .htmlspecialchars(current($this->tokens))
-                               ."' - SOURCE or WHERE clause expected", E_USER_ERROR);
+        { trigger_error(RDQL_SYN_ERR .": '" .htmlspecialchars(current($this->tokens))
+                               ."' - SOURCE or WHERE clause expected", E_USER_WARNING); exit(1); }
    }
 
    // Parse SELECT ?Var (, ?Var)*
@@ -236,22 +236,22 @@ Class RdqlParser extends Object{
 
      switch ($token) {
         case ',': if (!$commaExpected)
-                     trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_ERROR);
+                     { trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
                   $comma = TRUE;
                   $commaExpected = FALSE;
                   break;
         case '(':
-        case ')': trigger_error(RDQL_SEL_ERR ." '$token' - illegal input", E_USER_ERROR);
+        case ')': { trigger_error(RDQL_SEL_ERR ." '$token' - illegal input", E_USER_WARNING); exit(1); }
                   break;
         default :
                   if (!strcasecmp('FROM', $token) || !strcasecmp('SOURCE', $token)) {
                      if ($comma)
-                        trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_ERROR);
+                        { trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
                      unset($this->tokens[$k]);
                      return $this->parseFrom();
                   }elseif (!strcasecmp('WHERE', $token) && !$comma) {
                      if ($comma)
-                        trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_ERROR);
+                        { trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
                      unset($this->tokens[$k]);
                      return $this->parseWhere();
                   }
@@ -260,12 +260,12 @@ Class RdqlParser extends Object{
                      $commaExpected = TRUE;
                      $comma = FALSE;
                   }else
-                     trigger_error(RDQL_SEL_ERR ." '$token' - '?' missing", E_USER_ERROR);
+                     { trigger_error(RDQL_SEL_ERR ." '$token' - '?' missing", E_USER_WARNING); exit(1); }
      }
      unset($this->tokens[$k]);
      $this->_clearWhiteSpaces();
    }
-   trigger_error(RDQL_SYN_ERR . ': WHERE clause missing', E_USER_ERROR);
+   trigger_error(RDQL_SYN_ERR . ': WHERE clause missing', E_USER_WARNING); exit(1);
  }
 
 
@@ -286,7 +286,7 @@ Class RdqlParser extends Object{
       $this->_clearWhiteSpaces();
       if (!strcasecmp('WHERE', current($this->tokens)) && count($this->parsedQuery['sources']) != 0) {
          if ($comma)
-            trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_ERROR);
+            { trigger_error(RDQL_SEL_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
          unset($this->tokens[key($this->tokens)]);
          return $this->parseWhere();
       }
@@ -296,7 +296,7 @@ Class RdqlParser extends Object{
             $commaExpected = FALSE;
             unset($this->tokens[key($this->tokens)]);
          }else
-            trigger_error(RDQL_SRC_ERR ."',' - unecpected comma", E_USER_ERROR);
+            { trigger_error(RDQL_SRC_ERR ."',' - unecpected comma", E_USER_WARNING); exit(1); }
       }else{
         $token = current($this->tokens);
         $this->parsedQuery['sources'][++$i]['value'] = $this->_validateURI($token, RDQL_SRC_ERR);
@@ -306,7 +306,7 @@ Class RdqlParser extends Object{
         $comma = FALSE;
       }
    }
-   trigger_error(RDQL_SYN_ERR .': WHERE clause missing', E_USER_ERROR);
+   trigger_error(RDQL_SYN_ERR .': WHERE clause missing', E_USER_WARNING); exit(1);
  }
 
 
@@ -329,13 +329,13 @@ Class RdqlParser extends Object{
      if (!strcasecmp('AND', current($this->tokens))
          && count($this->parsedQuery['patterns']) != 0){
         if ($comma)
-            trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_ERROR);
+            { trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
         unset($this->tokens[key($this->tokens)]);
         return $this->parseAnd();
      }elseif (!strcasecmp('USING', current($this->tokens))
               && count($this->parsedQuery['patterns']) != 0) {
         if ($comma)
-            trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_ERROR);
+            { trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
         unset($this->tokens[key($this->tokens)]);
         return $this->parseUsing();
      }
@@ -347,8 +347,8 @@ Class RdqlParser extends Object{
      }else{
 
         if (current($this->tokens) != '(')
-           trigger_error(RDQL_WHR_ERR ."'" .current($this->tokens)
-                                      ."' - '(' expected", E_USER_ERROR);
+           { trigger_error(RDQL_WHR_ERR ."'" .current($this->tokens)
+                                      ."' - '(' expected", E_USER_WARNING); exit(1); }
         unset($this->tokens[key($this->tokens)]);
         $this->_clearWhiteSpaces();
 
@@ -360,7 +360,7 @@ Class RdqlParser extends Object{
         $this->_clearWhiteSpaces();
 
        if (current($this->tokens) != ')')
-          trigger_error(RDQL_WHR_ERR ."'" .current($this->tokens) ."' - ')' expected", E_USER_ERROR);
+          { trigger_error(RDQL_WHR_ERR ."'" .current($this->tokens) ."' - ')' expected", E_USER_WARNING); exit(1); }
        unset($this->tokens[key($this->tokens)]);
        $this->_clearWhiteSpaces();
        $commaExpected = TRUE;
@@ -369,7 +369,7 @@ Class RdqlParser extends Object{
    }while(current($this->tokens) != NULL);
 
    if ($comma)
-      trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_ERROR);
+      { trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
  }
 
 
@@ -428,7 +428,7 @@ Class RdqlParser extends Object{
        $this->_clearWhiteSpaces();
 
        if (strcasecmp('FOR', current($this->tokens)))
-          trigger_error(RDQL_USG_ERR ." keyword: 'FOR' missing in the namespace declaration: '", E_USER_ERROR);
+          { trigger_error(RDQL_USG_ERR ." keyword: 'FOR' missing in the namespace declaration: '", E_USER_WARNING); exit(1); }
        unset($this->tokens[key($this->tokens)]);
        $this->_clearWhiteSpaces();
 
@@ -440,7 +440,7 @@ Class RdqlParser extends Object{
   }while(current($this->tokens) != NULL);
 
   if ($comma)
-      trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_ERROR);
+      { trigger_error(RDQL_WHR_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
  }
 
 
@@ -456,14 +456,14 @@ Class RdqlParser extends Object{
  function parseFilter($n, $filter) {
 
    if ($filter == NULL)
-      trigger_error(RDQL_AND_ERR ." ',' - unexpected comma", E_USER_ERROR);
+      { trigger_error(RDQL_AND_ERR ." ',' - unexpected comma", E_USER_WARNING); exit(1); }
    $paren = substr_count($filter, '(') - substr_count($filter, ')');
    if ($paren != 0) {
       if ($paren > 0)
          $errorMsg = "'" .htmlspecialchars($filter) ."' - ')' missing ";
       elseif ($paren < 0)
          $errorMsg = "'" .htmlspecialchars($filter) ."' - too many ')' ";
-      trigger_error(RDQL_AND_ERR .$errorMsg, E_USER_ERROR);
+      trigger_error(RDQL_AND_ERR .$errorMsg, E_USER_WARNING); exit(1);
    }
 
    $this->parsedQuery['filters'][$n] = $this->parseExpressions($filter);
@@ -603,7 +603,7 @@ Class RdqlParser extends Object{
        }
      }
      if (!$count)
-        trigger_error(RDQL_WHR_ERR .'pattern contains no variables', E_USER_ERROR);
+        { trigger_error(RDQL_WHR_ERR .'pattern contains no variables', E_USER_WARNING); exit(1); }
    }
 
    return $vars;
@@ -736,7 +736,7 @@ Class RdqlParser extends Object{
    $this->_clearWhiteSpaces();
    if (current($this->tokens) == ',') {
       if (!$commaExpected)
-         trigger_error($clause_error ."',' - unexpected comma", E_USER_ERROR);
+         { trigger_error($clause_error ."',' - unexpected comma", E_USER_WARNING); exit(1); }
       else {
          unset($this->tokens[key($this->tokens)]);
          $this->_checkComma(FALSE, $clause_error);
@@ -794,7 +794,7 @@ Class RdqlParser extends Object{
    	  $statement_object['value'] = $this->_validateUri($token, RDQL_WHR_ERR);
    	  $statement_object['is_qname'] = TRUE;
    }else
-   	  trigger_error(RDQL_WHR_ERR ." '$token' - ?Variable, &lt;URI&gt;, QName, or \"LITERAL\" expected", E_USER_ERROR);   
+   	  { trigger_error(RDQL_WHR_ERR ." '$token' - ?Variable, &lt;URI&gt;, QName, or \"LITERAL\" expected", E_USER_WARNING); exit(1); }   
    return $statement_object;      
  }
  
@@ -812,8 +812,8 @@ Class RdqlParser extends Object{
 
    preg_match("/\?[a-zA-Z0-9_]+/", $token, $match);
    if (!isset($match[0]) || $match[0] != $token)
-      trigger_error($clause_error ."'" .htmlspecialchars($token)
-                    ."' - variable name contains illegal characters", E_USER_ERROR);
+      { trigger_error($clause_error ."'" .htmlspecialchars($token)
+                    ."' - variable name contains illegal characters", E_USER_WARNING); exit(1); }
    unset($this->tokens[key($this->tokens)]);
    return $token;
  }
@@ -840,21 +840,21 @@ Class RdqlParser extends Object{
          $errmsg .= "- ?Variable or &lt;URI&gt; or QName expected";
       else
          $errmsg .= "- &lt;URI&gt; or QName expected";
-      trigger_error($errmsg, E_USER_ERROR);
+      trigger_error($errmsg, E_USER_WARNING); exit(1);
    }else{
       $token_res = $token;
       while($token{strlen($token)-1} != '>' && $token != NULL) {
         if ($token == '(' || $token == ')' || $token == ',' ||
             $token == ' ' || $token == "\n" || $token == "\r") {
            trigger_error($clause_error .'\'' .htmlspecialchars($token_res)
-                          ."' - illegal input: '$token' - '>' missing", E_USER_ERROR);
+                          ."' - illegal input: '$token' - '>' missing", E_USER_WARNING); exit(1);
         }
         unset($this->tokens[key($this->tokens)]);
         $token = current($this->tokens);
         $token_res .= $token;
       }
       if ($token == NULL)
-         trigger_error($clause_error .'\'' .htmlspecialchars($token_res) ."' - '>' missing", E_USER_ERROR);
+         { trigger_error($clause_error .'\'' .htmlspecialchars($token_res) ."' - '>' missing", E_USER_WARNING); exit(1); }
       unset($this->tokens[key($this->tokens)]);
       return trim($token_res, '<>');
    }
@@ -896,8 +896,8 @@ Class RdqlParser extends Object{
         if (strpos($lang, '^^') || substr($lang, 0,2) == '^^') {
            $dtype = substr($lang, strpos($lang, '^^')+2);
            if (!$dtype)
-              trigger_error(RDQL_WHR_ERR .$quotation_mark .$statement_object['value']
-                                         .$token  ." - datatype expected" ,E_USER_ERROR);
+              { trigger_error(RDQL_WHR_ERR .$quotation_mark .$statement_object['value']
+                                         .$token  ." - datatype expected" ,E_USER_WARNING); exit(1); }
                                          
 		   $statement_object['l_dtype'] = $this->_validateUri($dtype, RDQL_WHR_ERR);
 		   if ($dtype{0} != '<')
@@ -906,8 +906,8 @@ Class RdqlParser extends Object{
            $lang = substr($lang, 0, strpos($lang, '^^'));
         }
         if (!$lang)
-           trigger_error(RDQL_WHR_ERR .$quotation_mark .$statement_object['value']
-                                      .$token ." - language expected" ,E_USER_ERROR);
+           { trigger_error(RDQL_WHR_ERR .$quotation_mark .$statement_object['value']
+                                      .$token ." - language expected" ,E_USER_WARNING); exit(1); }
         $statement_object['l_lang'] = $lang;
         $token = substr($token, 0, strpos($token, $quotation_mark .'@'));
         $return = TRUE;
@@ -916,8 +916,8 @@ Class RdqlParser extends Object{
      }elseif (strpos($token, $quotation_mark .'^^') || substr($token, 0, 3)  == $quotation_mark .'^^') {
         $dtype = substr($token, strpos($token, $quotation_mark .'^^')+3);
         if (!$dtype)
-           trigger_error(RDQL_WHR_ERR .$quotation_mark .$statement_object['value']
-                                      .$token  ." - datatype expected" ,E_USER_ERROR);       
+           { trigger_error(RDQL_WHR_ERR .$quotation_mark .$statement_object['value']
+                                      .$token  ." - datatype expected" ,E_USER_WARNING); exit(1); }       
 
         $statement_object['l_dtype'] = $this->_validateUri($dtype, RDQL_WHR_ERR);
 		if ($dtype{0} != '<')
@@ -926,13 +926,13 @@ Class RdqlParser extends Object{
         $token = substr($token, 0, strpos($token, $quotation_mark .'^^'));
         $return = TRUE;
      }elseif (strpos($token, $quotation_mark))
-        trigger_error(RDQL_WHR_ERR ."'$token' - illegal input", E_USER_ERROR);
+        { trigger_error(RDQL_WHR_ERR ."'$token' - illegal input", E_USER_WARNING); exit(1); }
      $statement_object['value'] .= $token;
      unset($this->tokens[$k]);
      if ($return)
         return $statement_object;
    }
-   trigger_error(RDQL_WHR_ERR ."quotation end mark: $quotation_mark missing", E_USER_ERROR);
+   trigger_error(RDQL_WHR_ERR ."quotation end mark: $quotation_mark missing", E_USER_WARNING); exit(1);
  }
 
  
@@ -949,11 +949,11 @@ function _validateQName($token, $clause_error) {
  
   $parts = explode(':', $token);
   if (count($parts) > 2)
-  	trigger_error($clause_error ."illegal QName: '$token'", E_USER_ERROR);
+  	{ trigger_error($clause_error ."illegal QName: '$token'", E_USER_WARNING); exit(1); }
   if (!$this->_validateNCName($parts[0]))
-  	trigger_error($clause_error ."illegal prefix in QName: '$token'", E_USER_ERROR);
+  	{ trigger_error($clause_error ."illegal prefix in QName: '$token'", E_USER_WARNING); exit(1); }
   if ($parts[1] && !$this->_validateNCName($parts[1]))
-  	trigger_error($clause_error ."illegal local part in QName: '$token'", E_USER_ERROR);
+  	{ trigger_error($clause_error ."illegal local part in QName: '$token'", E_USER_WARNING); exit(1); }
   	
   return TRUE;
 }
@@ -986,8 +986,8 @@ function _validateNCName($token) {
  function _validatePrefix($token) {
 
    if (!$this->_validateNCName($token))
-      trigger_error(RDQL_USG_ERR ."'" .htmlspecialchars($token)
-                                 ."' - illegal input, namespace prefix expected", E_USER_ERROR);
+      { trigger_error(RDQL_USG_ERR ."'" .htmlspecialchars($token)
+                                 ."' - illegal input, namespace prefix expected", E_USER_WARNING); exit(1); }
    unset($this->tokens[key($this->tokens)]);
    return $token;
  }
@@ -1005,7 +1005,7 @@ function _validateNCName($token) {
 
    $qName_parts = explode(':', $qName);
    if (!array_key_exists($qName_parts[0], $this->parsedQuery['ns']))
-      trigger_error($clause_error .'undefined prefix: \'' .$qName_parts[0] .'\' in: \'' .$qName .'\'', E_USER_ERROR);
+      { trigger_error($clause_error .'undefined prefix: \'' .$qName_parts[0] .'\' in: \'' .$qName .'\'', E_USER_WARNING); exit(1); }
    return $this->parsedQuery['ns'][$qName_parts[0]] .$qName_parts[1];
  } 
           	 	
@@ -1035,7 +1035,7 @@ function _validateNCName($token) {
    $allQueryVars = $this->findAllQueryVariables();
 
    if (!in_array($var, $allQueryVars))
-      trigger_error(RDQL_SYN_ERR .": '$var' - variable must be defined in the WHERE clause", E_USER_ERROR);
+      { trigger_error(RDQL_SYN_ERR .": '$var' - variable must be defined in the WHERE clause", E_USER_WARNING); exit(1); }
    return $var;
  }
 
@@ -1052,10 +1052,10 @@ function _validateNCName($token) {
  function _checkRegExQuotation($filterString, $lQuotMark, $rQuotMark) {
 
    if (!$lQuotMark)
-      trigger_error(RDQL_AND_ERR ."'$filterString' - regular expressions must be quoted", E_USER_ERROR);
+      { trigger_error(RDQL_AND_ERR ."'$filterString' - regular expressions must be quoted", E_USER_WARNING); exit(1); }
 
    if ($lQuotMark != $rQuotMark)
-      trigger_error(RDQL_AND_ERR ."'$filterString' - quotation end mark in the regular expression missing", E_USER_ERROR);
+      { trigger_error(RDQL_AND_ERR ."'$filterString' - quotation end mark in the regular expression missing", E_USER_WARNING); exit(1); }
  }
 
 } // end: Class RdqlParser

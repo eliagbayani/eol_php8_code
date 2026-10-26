@@ -61,7 +61,7 @@ class FEISDataConnector
         $i = 0;
         if(!($file = Functions::file_open($csv_file, "r"))) return;
         while(!feof($file)) {
-            $temp = fgetcsv($file);
+            $temp = fgetcsv($file, escape: '\\');
             if(is_array($temp)) $temp = array_map('trim', $temp);
             $i++;
             if($i == 1) continue;   // ignore first line of CSV file

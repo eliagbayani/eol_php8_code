@@ -396,7 +396,7 @@ class DataHub_INAT_API
         $i = 0; $meron = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file); //print_r($row);
+            $row = fgetcsv($file, escape: '\\'); //print_r($row);
 
             if(!$row) continue; 
             $str = implode("\t", $row);

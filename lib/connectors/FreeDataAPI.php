@@ -168,7 +168,7 @@ class FreeDataAPI
         if($file = Functions::file_open($filename, "r"))
         {
             while(!feof($file)) {
-                $arr = fgetcsv($file);
+                $arr = fgetcsv($file, escape: '\\');
                 $i++;
                 if($i != 1)
                 {
@@ -635,7 +635,7 @@ class FreeDataAPI
         }
         
         while(!feof($file)) {
-            $temp = fgetcsv($file);
+            $temp = fgetcsv($file, escape: '\\');
             $i++;
             if(($i % 10000) == 0) echo number_format($i) . "\n";
             if($i == 1)
@@ -774,7 +774,7 @@ class FreeDataAPI
     {
         if($file = Functions::file_open($filename, "r")) {
             while(!feof($file)) {
-                return fgetcsv($file);
+                return fgetcsv($file, escape: '\\');
                 break; //just get one line
             }
         }

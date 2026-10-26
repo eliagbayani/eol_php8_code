@@ -69,7 +69,7 @@ class SummaryDataResourcesAPI
     private function generate_children_of_taxa_using_parentsCSV()
     {
         $file = fopen($this->main_paths['archive_path'].'/parents.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if($i == 1) $fields = $line;
             else {
                 $rec = array(); $k = 0;
@@ -1049,7 +1049,7 @@ class SummaryDataResourcesAPI
     {
         self::initialize();
         $file = fopen($this->main_paths['archive_path'].'/metadata.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if($i == 1) $fields = $line;
             else {
                 $rec = array(); $k = 0;
@@ -1092,7 +1092,7 @@ class SummaryDataResourcesAPI
     private function get_unique_eol_pks_from_metadata_csv()
     {
         $file = fopen($this->main_paths['archive_path'].'/metadata.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if($i == 1) $fields = $line;
             else {
                 $rec = array(); $k = 0;
@@ -1137,7 +1137,7 @@ class SummaryDataResourcesAPI
         if(!$eol_pks) return array();
         $refs = array();
         $file = fopen($this->main_paths['archive_path'].'/metadata.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if($i == 1) $fields = $line;
             else {
                 $rec = array(); $k = 0;
@@ -1207,7 +1207,7 @@ class SummaryDataResourcesAPI
     private function get_fields_from_file($headers, $filename)
     {
         $file = fopen($this->main_paths['archive_path'].'/'.$filename, 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($i == 1) $fields = $line;
             else {
@@ -2520,7 +2520,7 @@ class SummaryDataResourcesAPI
         self::working_dir();
         $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++; echo " $i";
             if($i == 1) $fields = $line;
             else {
@@ -2904,7 +2904,7 @@ class SummaryDataResourcesAPI
         $temp_file = Functions::save_remote_file_to_local($this->file['preferred synonym']['path'], $this->download_options);
         $file = fopen($temp_file, 'r'); $i = 0;
         $fields = $this->file['preferred synonym']['fields'];
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($line) {
                 $rec = array(); $k = 0;
@@ -2974,7 +2974,7 @@ class SummaryDataResourcesAPI
         $file = fopen($temp_file, 'r');
         $i = 0;
         $fields = $this->file['parent child']['fields'];
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($line) {
                 $rec = array(); $k = 0;
@@ -3021,7 +3021,7 @@ class SummaryDataResourcesAPI
     {
         $file = fopen($this->main_paths['archive_path'].'/parents.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($i == 1) $fields = $line;
             else {
@@ -3048,7 +3048,7 @@ class SummaryDataResourcesAPI
         fwrite($WRITE, implode("\t", array("page_id", "scientific_name", "ancestry"))."\n");
         $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($i == 1) $fields = $line;
             else {
@@ -3083,7 +3083,7 @@ class SummaryDataResourcesAPI
         fwrite($WRITE, implode("\t", array("page_id", "scientific_name", "predicate", "value_uri OR literal"))."\n");
         $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($i == 1) {
                 $fields = $line;
@@ -3155,14 +3155,14 @@ class SummaryDataResourcesAPI
         //from 'parent child':
         $temp_file = Functions::save_remote_file_to_local($this->file['parent child'], $this->download_options);
         $file = fopen($temp_file, 'r');
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
           if($line[0] == $pred) $final[$line[1]] = '';
         }
         fclose($file); unlink($temp_file);
         //from 'preferred synonym':
         $temp_file = Functions::save_remote_file_to_local($this->file['preferred synonym'], $this->download_options);
         $file = fopen($temp_file, 'r');
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
           if($line[1] == $pred) $final[$line[0]] = '';
         }
         fclose($file); unlink($temp_file);
@@ -3182,7 +3182,7 @@ class SummaryDataResourcesAPI
     {
         $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++; 
             if($i == 1) $fields = $line;
             else {

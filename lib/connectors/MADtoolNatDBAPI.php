@@ -446,7 +446,7 @@ class MADtoolNatDBAPI
         $i = 0;
         $file = Functions::file_open($csv['file'], "r");
         while(!feof($file)) {
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if(!$row) break;
             $row = self::clean_html($row); // print_r($row);
             $i++; if(($i % 300000) == 0) echo "\n $i ";

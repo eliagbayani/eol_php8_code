@@ -53,7 +53,7 @@ class InvasiveSpeciesCompendiumAPI
         while(!feof($file)) {
             $i++;
             if(($i % 100) == 0) echo "\n count:[$i] ";
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if($i == 1) $fields = $row;
             else {
                 $vals = $row;

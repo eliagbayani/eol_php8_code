@@ -152,7 +152,7 @@ function get_values_fromCSV()
     $arr = array();
     
     print"<table cellpadding='3' cellspacing='0' border='1' style='font-size : small; font-family : Arial Narrow;'>";
-    while (($data = fgetcsv($handle)) !== FALSE) 
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE) 
     {
         if($row == 0) //to get first row, first cell
         {

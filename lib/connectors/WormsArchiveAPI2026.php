@@ -731,7 +731,7 @@ class WormsArchiveAPI2026 extends ContributorsMapAPI
         $local = Functions::save_remote_file_to_local($url, $options);
         $file = fopen($local, 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if(($i % 1000000) == 0) echo "\n".number_format($i);
             if($i == 1) $fields = $line;
             else {

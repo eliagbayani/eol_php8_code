@@ -56,7 +56,7 @@ class ConservationEvidenceDataAPI
         $i = 0;
         $file = Functions::file_open($local_csv, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if(!$row) break;
             $row = self::clean_html($row); // print_r($row);
             $i++; if(($i % 200) == 0) echo "\n $i ";

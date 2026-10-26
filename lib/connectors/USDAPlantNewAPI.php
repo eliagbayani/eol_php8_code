@@ -101,7 +101,7 @@ class USDAPlantNewAPI
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if(!$row) break;
             // print_r($row);
             $i++; if(($i % 2000) == 0) echo "\n$i of $out";

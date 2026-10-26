@@ -1359,7 +1359,7 @@ class GenerateCSV_4EOLNeo4j
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if(!$row) break;
             // $row = self::clean_html($row); print_r($row);
             $i++; if(($i % $mod) == 0) echo "\n $i ";
@@ -2045,7 +2045,7 @@ class GenerateCSV_4EOLNeo4j
             fwrite($WRITE, "page_id:long,vernacularName"."\n");
             $file = Functions::file_open($csv_file, "r");
             while(!feof($file)) {
-                $row = fgetcsv($file);
+                $row = fgetcsv($file, escape: '\\');
                 if(!$row) break;
                 $i++; if(($i % 50000) == 0) echo "\n $i ";
                 if($i == 1) {

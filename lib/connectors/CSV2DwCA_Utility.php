@@ -105,7 +105,7 @@ class CSV2DwCA_Utility
             elseif($class == "measurementorfact")   $c = new \eol_schema\MeasurementOrFact();
             else exit("\nUndefined class [$class]\n");
 
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             // print_r($row);
             $row = self::clean_html($row);
             // print_r($row);

@@ -47,7 +47,7 @@ class EOLv2MetadataAPI
         $i = 0;
         if(!$file = Functions::file_open($csv_file, "r")) return;
         while(!feof($file)) {
-            $temp = fgetcsv($file);
+            $temp = fgetcsv($file, escape: '\\');
             $i++;
             if(($i % 1000) == 0) echo "\nbatch $i";
             if($i == 1) {

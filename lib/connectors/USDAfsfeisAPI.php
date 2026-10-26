@@ -110,7 +110,7 @@ class USDAfsfeisAPI
                 return;
             }
             while(!feof($file)) {
-                $temp = fgetcsv($file);
+                $temp = fgetcsv($file, escape: '\\');
                 $temp = str_replace(array("\t"), " ", $temp);
                 if(!$temp) continue;
                 $i++;

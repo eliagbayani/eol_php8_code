@@ -299,7 +299,7 @@ class BranchGraftAPI extends BranchGraftRules
         $WRITE = Functions::file_open($tsv_file, "w");
         $fp = fopen($csv_file, 'r');
         $data = array();
-        while (($row = fgetcsv($fp))) { // echo "<pre>"; print_r($row); exit;
+        while (($row = fgetcsv($fp, escape: '\\'))) { // echo "<pre>"; print_r($row); exit;
             /* Array(
                 [0] => taxonID
                 [1] => furtherInformationURL

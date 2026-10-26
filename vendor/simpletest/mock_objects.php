@@ -693,7 +693,7 @@ class SimpleMock {
         if (! is_array($args)) {
             trigger_error(
                 "Cannot $task as \$args parameter is not an array",
-                E_USER_ERROR);
+                E_USER_WARNING); exit(1);
         }
     }
 
@@ -708,7 +708,7 @@ class SimpleMock {
         if ($this->_is_strict && ! method_exists($this, $method)) {
             trigger_error(
                     "Cannot $task as no ${method}() in class " . get_class($this),
-                    E_USER_ERROR);
+                    E_USER_WARNING); exit(1);
         }
     }
 

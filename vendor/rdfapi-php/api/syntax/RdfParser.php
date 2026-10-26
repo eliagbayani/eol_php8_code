@@ -1049,7 +1049,7 @@ function _report_warning($warning)
 function _report_error($error)
 {
 	$errmsg = RDFAPI_ERROR . '(class: parser): ' . $error .'.';
-	trigger_error($errmsg, E_USER_ERROR);
+	trigger_error($errmsg, E_USER_WARNING); exit(1);
 }
 
 
@@ -2222,7 +2222,7 @@ function & generateModel($base,$rdfBaseURI = false, $model = false) {
 	    $err_code = xml_get_error_code( $this->rdf_get_xml_parser());
 		$line = xml_get_current_line_number($this->rdf_get_xml_parser() );
 	    $errmsg = RDFAPI_ERROR . '(class: parser; method: generateModel): XML-parser-error ' . $err_code .' in Line ' . $line .' of input document.';
-	    trigger_error($errmsg, E_USER_ERROR);
+	    trigger_error($errmsg, E_USER_WARNING); exit(1);
 	  }
 	}
 	/* close file. */
@@ -2247,7 +2247,7 @@ function & generateModel($base,$rdfBaseURI = false, $model = false) {
 	    $err_code = xml_get_error_code( $this->rdf_get_xml_parser());
 		$line = xml_get_current_line_number($this->rdf_get_xml_parser() );
 	    $errmsg = RDFAPI_ERROR . '(class: parser; method: generateModel): XML-parser-error ' . $err_code .' in Line ' . $line .' of input document.';
-	    trigger_error($errmsg, E_USER_ERROR);
+	    trigger_error($errmsg, E_USER_WARNING); exit(1);
 	  }
 	}
 	// base_uri could have changed while parsing

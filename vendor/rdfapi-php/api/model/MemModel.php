@@ -131,7 +131,7 @@ class MemModel extends Model {
 	function add($statement) {
 		if (!is_a($statement, 'Statement')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: add): Statement expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if($this->indexed != -1){
@@ -171,7 +171,7 @@ class MemModel extends Model {
 
 		if (!is_a($statement, 'Statement')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: addWithoutDuplicates): Statement expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if (!$this->contains($statement)) {
@@ -196,7 +196,7 @@ class MemModel extends Model {
 
 		if (!is_a($statement, 'Statement')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: remove): Statement expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 		if($this->indexed==-1){
 			$pass=false;
@@ -397,7 +397,7 @@ class MemModel extends Model {
 		return $model->containsAll($this);
 
 		$errmsg = RDFAPI_ERROR . '(class: MemModel; method: containsAll): Model expected.';
-		trigger_error($errmsg, E_USER_ERROR);
+		trigger_error($errmsg, E_USER_WARNING); exit(1);
 	}
 
 	/**
@@ -422,7 +422,7 @@ class MemModel extends Model {
 		return $model->containsAny($this);
 
 		$errmsg = RDFAPI_ERROR . '(class: MemModel; method: containsAll): Model expected.';
-		trigger_error($errmsg, E_USER_ERROR);
+		trigger_error($errmsg, E_USER_WARNING); exit(1);
 	}
 
 
@@ -527,7 +527,7 @@ class MemModel extends Model {
 		(!is_a($object, 'Node') && $object != NULL)
 		) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: find): Parameters must be subclasses of Node or NULL';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$res = new MemModel($this->getBaseURI());
@@ -720,7 +720,7 @@ class MemModel extends Model {
 		(!is_a($object, 'Node') && $object != NULL)
 		) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: find): Parameters must be subclasses of Node or NULL';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$match=-1;
@@ -833,7 +833,7 @@ class MemModel extends Model {
 		if (isset($parsedQuery['sources'][1])) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: rdqlQuery):';
 			$errmsg .= ' this method can only query this MemModel';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$engine = new RdqlMemEngine();
@@ -884,7 +884,7 @@ class MemModel extends Model {
 		(!is_a($object, 'Node') && $object != NULL)
 		) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: replace): Parameters must be subclasses of Node or NULL';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if($this->size() == 0)
@@ -945,7 +945,7 @@ class MemModel extends Model {
 
 		if (!is_a($that, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: equals): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if ($this->size() != $that->size())
@@ -990,7 +990,7 @@ class MemModel extends Model {
 
 		if (!is_a($model, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: unite): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$res = $this;
@@ -1026,7 +1026,7 @@ class MemModel extends Model {
 
 		if (!is_a($model, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: subtract): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$res = $this;
@@ -1064,7 +1064,7 @@ class MemModel extends Model {
 
 		if (!is_a($model, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: intersect: Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$res = new MemModel($this->getBaseURI());
@@ -1108,7 +1108,7 @@ class MemModel extends Model {
 
 		if (!is_a($model, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: MemModel; method: addModel): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$blankNodes_tmp = array();

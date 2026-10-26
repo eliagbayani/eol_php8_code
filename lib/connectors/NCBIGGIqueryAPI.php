@@ -663,10 +663,10 @@ however, journal publishers or authors may. NLM provides no legal advice concern
         if(!($file = Functions::file_open($temp_path, "r"))) return;
         while(!feof($file)) {
             $i++;
-            if($i == 1) $fields = fgetcsv($file);
+            if($i == 1) $fields = fgetcsv($file, escape: '\\');
             else {
                 $rec = array();
-                $temp = fgetcsv($file);
+                $temp = fgetcsv($file, escape: '\\');
                 $k = 0;
                 if(!$temp) continue;
                 foreach($temp as $t) {

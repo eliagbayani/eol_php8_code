@@ -167,7 +167,7 @@ function getDays($filename)
     }
     
     $comma_separated='';
-    while (($data = fgetcsv($handle)) !== FALSE) 
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE) 
     {
         $num = count($data);
         for ($c=0; $c < $num; $c++) 

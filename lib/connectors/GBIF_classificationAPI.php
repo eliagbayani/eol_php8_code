@@ -320,7 +320,7 @@ class GBIF_classificationAPI
     private function process_eolpageids_csv()
     {
         $file = fopen('/Volumes/AKiTiO4/web/cp/DATA-1826 GBIF class/eolpageids.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if($i == 1) $fields = $line;
             else {
                 $rec = array(); $k = 0;

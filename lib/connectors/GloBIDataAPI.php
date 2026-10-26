@@ -36,7 +36,7 @@ class GloBIDataAPI extends Globi_Refuted_Records
         $i = 0;
         if(!$file = Functions::file_open($csv_file, "r")) return;
         while(!feof($file)) { $i++;
-            $temp = fgetcsv($file);
+            $temp = fgetcsv($file, escape: '\\');
             if(($i % 1000) == 0) echo "\nbatch $i";
             if($i == 1) {
                 $fields = $temp; //print_r($fields);

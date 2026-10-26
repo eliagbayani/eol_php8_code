@@ -59,7 +59,7 @@ if($controller)
         if(class_exists($class))
         {
             // make sure the defined controller method is defined
-            if(!method_exists($class, $action)) trigger_error('Undefined method `' . $action . '` in class `' . $class . '`', E_USER_ERROR);
+            if(!method_exists($class, $action)) { trigger_error('Undefined method `' . $action . '` in class `' . $class . '`', E_USER_WARNING); exit(1); }
             
             // a bit of a hack so the controller can intercept the call and run stuff before/after the method
             $action = 'method_|' . $controller . '|' . $action;
@@ -73,13 +73,13 @@ if($controller)
     header("HTTP/1.0 404 Not Found");
     echo file_get_contents(DOC_ROOT . '/public/404.html');
     exit;
-    trigger_error('Unknown controller `' . $controller . '`', E_USER_ERROR);
+    trigger_error('Unknown controller `' . $controller . '`', E_USER_WARNING); exit(1);
 }
 
 // shouldn't ever get here
 header("HTTP/1.0 404 Not Found");
 echo file_get_contents(DOC_ROOT . '/public/404.html');
 exit;
-trigger_error('Unspecified controller', E_USER_ERROR);
+trigger_error('Unspecified controller', E_USER_WARNING); exit(1);
 
 ?>

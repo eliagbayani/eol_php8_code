@@ -420,7 +420,7 @@ class CypherQueryAPI
         $i = 0;
         foreach(new FileIterator($spreadsheet) as $line_number => $line) { $i++;
             if(!$line) continue;
-            $row = str_getcsv($line);
+            $row = str_getcsv($line, escape: '\\');
             if(!$row) continue;
             if($i == 1) { $fields = $row; $count = count($fields); continue;}
             else { //main records

@@ -181,7 +181,7 @@ class SummaryDataResourcesAllAPI
     private function generate_children_of_taxa_using_parentsCSV()
     {
         $file = fopen($this->main_paths['archive_path'].'/pages.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if($i == 1) $fields = $line;
             else {
                 $rec = array(); $k = 0;
@@ -1781,7 +1781,7 @@ class SummaryDataResourcesAllAPI
         $file_write = $this->main_dir."/".$this->MySQL_append_files_dir."/".$table."_".$file_cnt.".txt"; $WRITE = fopen($file_write, "w");
         
         self::initialize(); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if(($i % 1000000) == 0) echo "\n".number_format($i);
             if($i == 1) $fields = $line;
             else {
@@ -1900,7 +1900,7 @@ class SummaryDataResourcesAllAPI
         
         self::initialize();
         $file = fopen($this->main_paths['archive_path'].'/metadata.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if(($i % 1000000) == 0) echo "\n".number_format($i);
             if($i == 1) $fields = $line;
             else {
@@ -1951,7 +1951,7 @@ class SummaryDataResourcesAllAPI
     {
         self::initialize();
         $file = fopen($this->main_paths['archive_path'].'/metadata.csv', 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if(($i % 500000) == 0) echo "\n".number_format($i);
             if($i == 1) $fields = $line;
             else {
@@ -3955,7 +3955,7 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
         self::working_dir();
         $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r'); //11,276,098 rows in traits.csv | 11,276,097 in MySQL
         $i = 0; $save_cnt = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++;
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++;
             if(($i % 1000000) == 0) echo "\n".number_format($i);
             if($i == 1) {
                 $fields = $line;
@@ -4391,7 +4391,7 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
         $temp_file = Functions::save_remote_file_to_local($this->file['preferred synonym']['path'], $options);
         $file = fopen($temp_file, 'r'); $i = 0;
         $fields = $this->file['preferred synonym']['fields'];
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($line) {
                 $rec = array(); $k = 0;
@@ -4463,7 +4463,7 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
         $file = fopen($temp_file, 'r');
         $i = 0;
         $fields = $this->file['parent child']['fields'];
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($line) {
                 $rec = array(); $k = 0;
@@ -4487,7 +4487,7 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
     private function generate_child_parent_list()
     {   $file = fopen($this->main_paths['archive_path'].'/parents.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($i == 1) $fields = $line;
             else {
@@ -4513,7 +4513,7 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
         fwrite($WRITE, implode("\t", array("page_id", "scientific_name", "ancestry"))."\n");
         $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($i == 1) $fields = $line;
             else {
@@ -4547,7 +4547,7 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
         fwrite($WRITE, implode("\t", array("page_id", "scientific_name", "predicate", "value_uri OR literal"))."\n");
         $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++;
             if($i == 1) {
                 $fields = $line;
@@ -4596,14 +4596,14 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
         //from 'parent child':
         $temp_file = Functions::save_remote_file_to_local($this->file['parent child'], $this->download_options);
         $file = fopen($temp_file, 'r');
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
           if($line[0] == $pred) $final[$line[1]] = '';
         }
         fclose($file); unlink($temp_file);
         //from 'preferred synonym':
         $temp_file = Functions::save_remote_file_to_local($this->file['preferred synonym'], $this->download_options);
         $file = fopen($temp_file, 'r');
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
           if($line[1] == $pred) $final[$line[0]] = '';
         }
         fclose($file); unlink($temp_file);
@@ -4622,7 +4622,7 @@ EOL-000000000003	trunk:be97d60f-6568-4cba-92e3-9d068a1a85cf,NCBI:2,WOR:6			EOL-0
     private function investigate_traits_csv()
     {   $file = fopen($this->main_paths['archive_path'].'/traits.csv', 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++; 
             if($i == 1) $fields = $line;
             else {

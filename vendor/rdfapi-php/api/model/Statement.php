@@ -53,17 +53,17 @@ class Statement extends Object {
     if (!is_a($subj, 'Resource')) {
 		$errmsg = RDFAPI_ERROR . 
 		          '(class: Statement; method: new): Resource expected as subject.';
-		trigger_error($errmsg, E_USER_ERROR); 
+		trigger_error($errmsg, E_USER_WARNING); exit(1); 
 	}
 	if (!is_a($pred, 'Resource') || is_a($pred, 'BlankNode')) {
 		$errmsg = RDFAPI_ERROR . 
 		          '(class: Statement; method: new): Resource expected as predicate, no blank node allowed.';
-		trigger_error($errmsg, E_USER_ERROR); 
+		trigger_error($errmsg, E_USER_WARNING); exit(1); 
 	}
 	if (!(is_a($obj, 'Resource') or is_a($obj, 'Literal'))) {
 		$errmsg = RDFAPI_ERROR . 
 		          '(class: Statement; method: new): Resource or Literal expected as object.';
-		trigger_error($errmsg, E_USER_ERROR); 
+		trigger_error($errmsg, E_USER_WARNING); exit(1); 
 	}
 		
 	$this->pred = $pred;

@@ -189,7 +189,7 @@ class ActiveRecord
         if(!isset($value)) return NULL;
         if($attribute!=1 && !self::is_field($attribute))
         {
-            trigger_error('Error Finding: ' . $attribute . ' is undefined in ' . self::called_class() . ' in ' .get_last_function(1), E_USER_ERROR);
+            trigger_error('Error Finding: ' . $attribute . ' is undefined in ' . self::called_class() . ' in ' .get_last_function(1), E_USER_WARNING); exit(1);
         }
 
         if($cache = Cache::get("find_by_". self::table_name() ."|".$attribute."|".$value."|".serialize($args))) return $cache;
@@ -346,7 +346,7 @@ class ActiveRecord
 
     public function _set($attribute, $value)
     {
-        if(!$this->id) trigger_error('Setting value: Cannot set attribute `' . $attribute . '` of non-existant ' . self::called_class() . ' in '.get_last_function(1), E_USER_ERROR);
+        if(!$this->id) { trigger_error('Setting value: Cannot set attribute `' . $attribute . '` of non-existant ' . self::called_class() . ' in '.get_last_function(1), E_USER_WARNING); exit(1); }
         if(self::is_field($attribute))
         {
             $query = "UPDATE `" . self::table_name() . "` SET `$attribute`='" . $GLOBALS['db_connection']->escape($value) . "'  WHERE `" . static::$primary_key . "` = ".$this->id;
@@ -382,16 +382,16 @@ class ActiveRecord
     public function _add($association, &$object)
     {
         $class_name = __NAMESPACE__ . '\\' . to_camel_case($association);
-        if(!class_exists($class_name)) trigger_error("Association Add: Class `$class_name` doesn't exist in ". get_last_function(1), E_USER_ERROR);
+        if(!class_exists($class_name)) { trigger_error("Association Add: Class `$class_name` doesn't exist in ". get_last_function(1), E_USER_WARNING); exit(1); }
 
         $args = self::check_relationship('has_many', $association);
-        if(!$args) trigger_error("Association Add: Class `$association` doesn't exist in ". get_last_function(1), E_USER_ERROR);
+        if(!$args) { trigger_error("Association Add: Class `$association` doesn't exist in ". get_last_function(1), E_USER_WARNING); exit(1); }
 
         if($through = @$args['through'])
         {
             $through = to_singular($through);
             $through_class_name = __NAMESPACE__ . '\\' . to_camel_case($through);
-            if(!class_exists($through_class_name)) trigger_error("Association Add: Class `$through_class_name` doesn't exist in ". get_last_function(1), E_USER_ERROR);
+            if(!class_exists($through_class_name)) { trigger_error("Association Add: Class `$through_class_name` doesn't exist in ". get_last_function(1), E_USER_WARNING); exit(1); }
 
             if($fk = @$args['foreign_key']) $foreign_key = $fk;
             else $foreign_key = static::foreign_key();
@@ -552,7 +552,7 @@ class ActiveRecord
     {
         foreach(static::$$callback as $function)
         {
-            if(!method_exists($this, $function)) trigger_error("$callback: Method `$function` doesn't exist in class `". self::called_class(). "` in ". get_last_function(1), E_USER_ERROR);
+            if(!method_exists($this, $function)) { trigger_error("$callback: Method `$function` doesn't exist in class `". self::called_class(). "` in ". get_last_function(1), E_USER_WARNING); exit(1); }
             if($this->$function() === false) throw new ActiveRecordError("Validation `$callback::$function` failed");
         }
 
@@ -577,7 +577,7 @@ class ActiveRecord
     {
         if($association_class = @$args['class_name']) $association = $association_class;
         $class_name = __NAMESPACE__ . '\\' . to_camel_case($association);
-        if(!class_exists($class_name)) trigger_error("Association: Class `$class_name` doesn't exist in ". get_last_function(1), E_USER_ERROR);
+        if(!class_exists($class_name)) { trigger_error("Association: Class `$class_name` doesn't exist in ". get_last_function(1), E_USER_WARNING); exit(1); }
 
         if($fk = @$args['foreign_key']) $foreign_key = $fk;
         else $foreign_key = $association . '_id';
@@ -599,7 +599,7 @@ class ActiveRecord
         if($association_class = @$args['class_name']) $association = $association_class;
         else $association = to_singular($association);
         $class_name = __NAMESPACE__ . '\\' . to_camel_case($association);
-        if(!class_exists($class_name)) trigger_error("Association: Class `$class_name` doesn't exist in ". get_last_function(1), E_USER_ERROR);
+        if(!class_exists($class_name)) { trigger_error("Association: Class `$class_name` doesn't exist in ". get_last_function(1), E_USER_WARNING); exit(1); }
         $return = array();
 
         if($fk = @$args['foreign_key']) $foreign_key = $fk;
@@ -609,7 +609,7 @@ class ActiveRecord
         {
             $through = to_singular($through);
             $through_class_name = __NAMESPACE__ . '\\' . to_camel_case($through);
-            if(!class_exists($through_class_name)) trigger_error("Association: Class `$through_class_name` doesn't exist in ". get_last_function(1), E_USER_ERROR);
+            if(!class_exists($through_class_name)) { trigger_error("Association: Class `$through_class_name` doesn't exist in ". get_last_function(1), E_USER_WARNING); exit(1); }
 
             //$foreign_key = self::foreign_key();
             $association_foreign_key = call_user_func($class_name . "::foreign_key");
@@ -644,7 +644,7 @@ class ActiveRecord
     private function get_has_one($association, $args)
     {
         $class_name = __NAMESPACE__ . '\\' . to_camel_case($association);
-        if(!class_exists($class_name)) trigger_error("Association: Class `$class_name` doesn't exist in ".get_last_function(1), E_USER_ERROR);
+        if(!class_exists($class_name)) { trigger_error("Association: Class `$class_name` doesn't exist in ".get_last_function(1), E_USER_WARNING); exit(1); }
 
         $foreign_key = self::foreign_key();
         $table_name = to_plural($association);
@@ -964,7 +964,7 @@ class ActiveRecord
             return self::find_or_create_by($attribute, $value, $args);
         }
 
-        trigger_error('Call to undefined method `' . self::called_class() . ' => ' . $function . '()` in '.get_last_function(1), E_USER_ERROR);
+        trigger_error('Call to undefined method `' . self::called_class() . ' => ' . $function . '()` in '.get_last_function(1), E_USER_WARNING); exit(1);
     }
 
     function debug_start($method) {

@@ -423,7 +423,7 @@ Class RdqlMemEngine extends RdqlEngine {
 
         eval("\$filterBoolVal = $evalFilterStr; \$eval_filter_ok = TRUE;");
         if (!isset($eval_filter_ok))
-           trigger_error(RDQL_AND_ERR ."'" .htmlspecialchars($filter['string']) ."'", E_USER_ERROR);
+           { trigger_error(RDQL_AND_ERR ."'" .htmlspecialchars($filter['string']) ."'", E_USER_WARNING); exit(1); }
 
         if (!$filterBoolVal)
            unset($finalRes[$n]);

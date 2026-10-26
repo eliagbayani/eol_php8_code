@@ -424,7 +424,7 @@ class InfModel extends MemModel
 	{
 	
 	   $errmsg = RDFAPI_ERROR . '(class: InfModel; method: replace): This function is disabled in the Inference Model';
-	   trigger_error($errmsg, E_USER_ERROR); 
+	   trigger_error($errmsg, E_USER_WARNING); exit(1); 
 	}
 
 	/**
@@ -449,7 +449,7 @@ class InfModel extends MemModel
 		$errmsg = RDFAPI_ERROR . '(class: InfModel; method: findRegex): 
 									This function is disabled in the  
 									Inference Model';
-	   	trigger_error($errmsg, E_USER_ERROR); 
+	   	trigger_error($errmsg, E_USER_WARNING); exit(1); 
 	} 
    
 	/**
@@ -471,7 +471,7 @@ class InfModel extends MemModel
 		$errmsg = RDFAPI_ERROR . '(class: InfModel; method: findVocabulary): 
 									This function is disabled in the  
 									Inference Model';
-		trigger_error($errmsg, E_USER_ERROR); 
+		trigger_error($errmsg, E_USER_WARNING); exit(1); 
 	} 
 
 	

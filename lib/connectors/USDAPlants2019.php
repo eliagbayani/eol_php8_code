@@ -501,7 +501,7 @@ class USDAPlants2019
         
         $file = fopen($local, 'r');
         $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) {
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) {
             $i++; if(($i % 100) == 0) echo " -$i- ";
             if($i == 1) $fields = $line;
             else {

@@ -678,7 +678,7 @@ class NMNHTypeRecordAPI
         if(!($file = Functions::file_open($csv_file,"r"))) return;
         while(!feof($file))
         {
-            $temp = fgetcsv($file);
+            $temp = fgetcsv($file, escape: '\\');
             $i++;
             if(($i % 100000) == 0) echo "\n" . number_format($i) . " - ";
             if($i == 1)

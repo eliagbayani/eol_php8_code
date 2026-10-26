@@ -135,7 +135,7 @@ function render_view($view, $parameters = NULL, $return = false)
         return true;
     }
 
-    trigger_error('Unknown view `' . $view . '` in '.get_last_function(1), E_USER_ERROR);
+    trigger_error('Unknown view `' . $view . '` in '.get_last_function(1), E_USER_WARNING); exit(1);
 }
 
 function render_template($filename, $parameters = NULL, $return = false)

@@ -153,10 +153,10 @@ class AggregateCSV_4Neo4j
         // Process each CSV file inside the specified directory
         foreach (glob($directory) as $file) { // Open and Read individual CSV file
             if (($handle = fopen($file, 'r')) !== false) {
-                fgetcsv($handle); // Skip the first row (header)
+                fgetcsv($handle, escape: '\\'); // Skip the first row (header)
                 // Collect CSV each row records and write to master file
-                while (($dataValue = fgetcsv($handle)) !== false) {
-                    fputcsv($masterCSVFile, $dataValue); // Write the row to the master file
+                while (($dataValue = fgetcsv($handle, escape: '\\')) !== false) {
+                    fputcsv($masterCSVFile, $dataValue, escape: '\\'); // Write the row to the master file
                 }
                 fclose($handle); // Close individual CSV file
             }

@@ -56,7 +56,7 @@ class ActiveRecordError extends \Exception
             E_USER_ERROR         => 'User Error',
             E_USER_WARNING       => 'User Warning',
             E_USER_NOTICE        => 'User Notice',
-            E_STRICT             => 'E_STRICT',
+            // E_STRICT removed: never raised since PHP 8.0, and the constant is deprecated in PHP 8.4
             E_RECOVERABLE_ERROR  => 'Catchable Fatal Error');
         if(defined('PHP_MAJOR_VERSION') && (PHP_MAJOR_VERSION > 5 || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION > 3)))
         {

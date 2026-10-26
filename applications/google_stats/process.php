@@ -74,7 +74,7 @@ if(!($handle = fopen($filename, "r")))
   debug(__CLASS__ .":". __LINE__ .": Couldn't open file: " . $filename);
   exit;
 }
-while (($data = fgetcsv($handle)) !== FALSE)
+while (($data = fgetcsv($handle, escape: '\\')) !== FALSE)
 {
     if($row > 0)
     {
@@ -275,7 +275,7 @@ function getMonthYear()
       return "";
     }
     $comma_separated='';
-    while (($data = fgetcsv($handle)) !== FALSE)
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE)
     {
         $num = count($data);
         for ($c=0; $c < $num; $c++)
@@ -425,7 +425,7 @@ function getCountOfTaxaPages($provider,$path,$for)
       debug(__CLASS__ .":". __LINE__ .": Couldn't open file: " . $filename);
       return;
     }
-    while (($data = fgetcsv($handle)) !== FALSE)
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE)
     {
         if($row > 0)
         {
@@ -461,7 +461,7 @@ function count_rec($file)
       debug(__CLASS__ .":". __LINE__ .": Couldn't open file: " . $file);
       return;
     }
-    while (($data = fgetcsv($handle)) !== FALSE)
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE)
     {
         if($row > 0) $num = count($data);
         $row++;
@@ -481,7 +481,7 @@ function process_all_eol($file)
       debug(__CLASS__ .":". __LINE__ .": Couldn't open file: " . $file);
       return;
     }
-    while (($data = fgetcsv($handle)) !== FALSE)
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE)
     {
         if($row > 0)
         {
@@ -552,7 +552,7 @@ function record_details($provider,$path,$start_cnt,$total_taxon_id,$agentID)
       debug(__CLASS__ .":". __LINE__ .": Couldn't open file: " . $filename);
       return;
     }
-    while (($data = fgetcsv($handle)) !== FALSE)
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE)
     {
         if($row > 0 )
         {
@@ -714,7 +714,7 @@ function record_details_eol($path)
       debug(__CLASS__ .":". __LINE__ .": Couldn't open file: " . $filename);
       return;
     }
-    while (($data = fgetcsv($handle)) !== FALSE)
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE)
     {
         if($row > 0 )
         {

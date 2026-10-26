@@ -231,8 +231,8 @@ class InfModelB extends InfModel
 	{
 	//throws an error, if $statement is not of class Statement
 	if(!is_a($statement,'Statement'))
-		trigger_error(RDFAPI_ERROR . '(class: InfModelB; method: contains): 
-			$statement has to be object of class Statement', E_USER_ERROR);	
+		{ trigger_error(RDFAPI_ERROR . '(class: InfModelB; method: contains): 
+			$statement has to be object of class Statement', E_USER_WARNING); exit(1); }	
 	
 	//Call the _infFind method, but let it stop, if it finds the first match.	
 	if (count( $this->_infFind($statement->getSubject(),
@@ -509,7 +509,7 @@ class InfModelB extends InfModel
 		$errmsg = RDFAPI_ERROR . '(class: InfModelB; method: findAsIterator): 
 									This function is disabled in the
 									Inference Model';
-		trigger_error($errmsg, E_USER_ERROR); 
+		trigger_error($errmsg, E_USER_WARNING); exit(1); 
 	}	  
 }
 ?>

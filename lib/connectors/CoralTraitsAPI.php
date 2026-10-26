@@ -205,7 +205,7 @@ class CoralTraitsAPI
         foreach(new FileIterator($this->text_path[$type]) as $line_number => $line) {
             if(!$line) continue;
             $line = str_replace('\flume\"""', 'flume"', $line); //clean entire row. fix for 'data' csv
-            $row = str_getcsv($line);
+            $row = str_getcsv($line, escape: '\\');
             /* good debug
             if(stripos($line, "Light extinction coefficient") !== false) { //string is found
                 print_r($row);

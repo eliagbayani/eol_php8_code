@@ -538,7 +538,7 @@ class MysqliConnection
 
         if($this->mysqli->connect_errno)
         {
-            trigger_error('MySQL Connect Error: ' . $this->mysqli->connect_error, E_USER_ERROR);
+            trigger_error('MySQL Connect Error: ' . $this->mysqli->connect_error, E_USER_WARNING); exit(1);
             exit;
         }
 
@@ -546,7 +546,7 @@ class MysqliConnection
         {
             if(@!$GLOBALS['ENV_ALLOW_MISSING_DB'])
             {
-                trigger_error('MySQL Error: ' . $this->mysqli->error, E_USER_ERROR);
+                trigger_error('MySQL Error: ' . $this->mysqli->error, E_USER_WARNING); exit(1);
                 exit;
             }
         }
@@ -563,7 +563,7 @@ class MysqliConnection
 
             if($this->master_mysqli->connect_errno)
             {
-                trigger_error('MySQL Connect Error: ' . $this->master_mysqli->connect_error, E_USER_ERROR);
+                trigger_error('MySQL Connect Error: ' . $this->master_mysqli->connect_error, E_USER_WARNING); exit(1);
                 exit;
             }
 
@@ -571,7 +571,7 @@ class MysqliConnection
             {
                 if(@!$GLOBALS['ENV_ALLOW_MISSING_DB'])
                 {
-                    trigger_error('MySQL Error: ' . $this->master_mysqli->error, E_USER_ERROR);
+                    trigger_error('MySQL Error: ' . $this->master_mysqli->error, E_USER_WARNING); exit(1);
                     exit;
                 }
             }

@@ -49,7 +49,7 @@ class Quad
 		{
 			$errmsg = RDFAPI_ERROR . 
 		          '(class: Quad; method: new): Resource expected as graphName.';
-			trigger_error($errmsg, E_USER_ERROR); 
+			trigger_error($errmsg, E_USER_WARNING); exit(1); 
 		}
 		$this->statement=new Statement($subject,$predicate,$object);
 		$this->graphName=$graphName;

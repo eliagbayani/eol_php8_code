@@ -133,7 +133,7 @@ class InvasiveSpeciesDataConnector
             $i++;
             if(($i % 100) == 0) echo "\n count:[$i] ";
             
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             $row = str_replace('"', "", $row[0]);
             if($i == 1) $fields = explode(";", $row);
             else {

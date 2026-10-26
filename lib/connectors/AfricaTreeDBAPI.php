@@ -180,7 +180,7 @@ class AfricaTreeDBAPI
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if(!$row) break;
             $row = self::clean_html($row);
             // print_r($row);
@@ -468,7 +468,7 @@ class AfricaTreeDBAPI
         $i = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             if(!$row) break;
             $row = self::clean_html($row);
             // print_r($row);

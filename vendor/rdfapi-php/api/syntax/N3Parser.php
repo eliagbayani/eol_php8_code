@@ -600,7 +600,7 @@ function str2unicode_nfc($str=""){
                 } else {
                     //die('Prefix not declared:'.$ns);
                     $this->parseError = true;
-                    trigger_error('Prefix not declared: '.$ns, E_USER_ERROR);
+                    trigger_error('Prefix not declared: '.$ns, E_USER_WARNING); exit(1);
                     break;
                 }
 

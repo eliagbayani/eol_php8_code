@@ -44,8 +44,8 @@ class ResModel
 	function ResModel(& $model)
 	{
 		if (!is_a($model,'Model'))
-			trigger_error(RDFAPI_ERROR . '(class: ResourceLayer; method: ResourceLayer): 
-				$model has to be object of class Model', E_USER_ERROR);	
+			{ trigger_error(RDFAPI_ERROR . '(class: ResourceLayer; method: ResourceLayer): 
+				$model has to be object of class Model', E_USER_WARNING); exit(1); }	
 		
 		$this->model =& $model;			
 	}

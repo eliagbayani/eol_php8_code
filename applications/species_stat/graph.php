@@ -140,7 +140,7 @@ function get_values_fromCSV($title)
     $label=array();
     $arr = array();
     
-    while (($data = fgetcsv($handle)) !== FALSE) 
+    while (($data = fgetcsv($handle, escape: '\\')) !== FALSE) 
     {
         //if($row > 0) //to bypass first row, which is the row for the labels
         if($row > -1)

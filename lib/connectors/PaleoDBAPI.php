@@ -129,7 +129,7 @@ class PaleoDBAPI
                 else
                 {
                     $values = explode(",", $line);
-                    $values = str_getcsv($line);
+                    $values = str_getcsv($line, escape: '\\');
                     if(count($values) == $no_of_fields) {
                         $i = 0;
                         foreach($values as $value) {

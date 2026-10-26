@@ -155,16 +155,16 @@ function load_mysql_environment($environment = NULL)
 {
     if(!file_exists(DOC_ROOT . 'config/database.yml'))
     {
-        trigger_error('Booting failure: /config/database.yml doesn\'t exist', E_USER_ERROR);
-        return false;
+        trigger_error('Booting failure: /config/database.yml doesn\'t exist', E_USER_WARNING);
+        exit(1); // was E_USER_ERROR (deprecated in PHP 8.4), which ActiveRecordError::handleError ended with exit(1)
     }
     $environments = Spyc::YAMLLoad(DOC_ROOT . 'config/database.yml');
     
     $possible_environments = array_keys($environments);
     if(!in_array($environment, $possible_environments))
     {
-        trigger_error('Booting failure: environment `'. $environment .'` doesn\'t exist', E_USER_ERROR);
-        return false;
+        trigger_error('Booting failure: environment `'. $environment .'` doesn\'t exist', E_USER_WARNING);
+        exit(1); // was E_USER_ERROR (deprecated in PHP 8.4), which ActiveRecordError::handleError ended with exit(1)
     }
     
     $MYSQL_SERVER           = $environments[$environment]['host'];

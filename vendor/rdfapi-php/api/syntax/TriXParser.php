@@ -79,7 +79,7 @@ class TriXParser
 			} else 
 			{
 				if ($defaultGraphOccurred)
-					trigger_error('Only one unnamed Graph per file allowed', E_USER_ERROR);
+					{ trigger_error('Only one unnamed Graph per file allowed', E_USER_WARNING); exit(1); }
 				
 				$namedGraph=& $this->graphSet->getDefaultGraph();
 				$defaultGraphOccurred=true;

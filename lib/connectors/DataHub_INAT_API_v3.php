@@ -220,7 +220,7 @@ class DataHub_INAT_API_v3
         $i = 0; $meron = 0;
         $file = Functions::file_open($csv_file, "r");
         while(!feof($file)) {
-            $row = fgetcsv($file); //print_r($row);
+            $row = fgetcsv($file, escape: '\\'); //print_r($row);
             if(!$row) continue; 
             $str = implode("\t", $row);
             // if(stripos($str, "Callisaurus	genus") !== false) {echo("\n$str\n");}  //string found --- good debug                

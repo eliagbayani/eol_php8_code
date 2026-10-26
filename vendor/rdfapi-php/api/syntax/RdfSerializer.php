@@ -652,7 +652,7 @@ class RdfSerializer extends Object {
 
 		if ($prefix===FALSE) {
 			$errmsg = RDFAPI_ERROR . "(class: Serializer; method: getElementText): Prefix for element '" . $elementName . "' cannot be found.";
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 		switch ($prefix) {
 			case RDF_NAMESPACE_PREFIX:

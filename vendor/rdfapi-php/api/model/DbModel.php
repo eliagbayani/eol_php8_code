@@ -134,7 +134,7 @@ class DbModel extends Model{
 
 		if (!is_a($statement, 'Statement')) {
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: add): Statement expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if (!$this->contains($statement)) {
@@ -200,7 +200,7 @@ class DbModel extends Model{
 
 		if (!is_a($statement, 'Statement')) {
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: remove): Statement expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$sql = 'DELETE FROM statements
@@ -388,7 +388,7 @@ class DbModel extends Model{
 		}
 
 		$errmsg = RDFAPI_ERROR . '(class: DbModel; method: containsAll): Model expected.';
-		trigger_error($errmsg, E_USER_ERROR);
+		trigger_error($errmsg, E_USER_WARNING); exit(1);
 	}
 
 
@@ -421,7 +421,7 @@ class DbModel extends Model{
 		}
 
 		$errmsg = RDFAPI_ERROR . '(class: DbModel; method: containsAny): Model expected.';
-		trigger_error($errmsg, E_USER_ERROR);
+		trigger_error($errmsg, E_USER_WARNING); exit(1);
 	}
 
 
@@ -446,7 +446,7 @@ class DbModel extends Model{
 		(!is_a($object, 'Node') && $object != NULL)) {
 
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: find): Parameters must be subclasses of Node or NULL';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		// static part of the sql statement
@@ -549,7 +549,7 @@ class DbModel extends Model{
 		(!is_a($object, 'Node') && $object != NULL)) {
 
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: find): Parameters must be subclasses of Node or NULL';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		// static part of the sql statement
@@ -595,7 +595,7 @@ class DbModel extends Model{
 		(!is_a($object, 'Node') && $object != NULL)) {
 
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: find): Parameters must be subclasses of Node or NULL';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		// static part of the sql statement
@@ -640,7 +640,7 @@ class DbModel extends Model{
 		if($parsedQuery['sources'][0] != $this->modelURI) {
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: rdqlQuery):';
 			$errmsg .= ' this method can only query this DbModel';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$engine = new RdqlDbEngine();
@@ -695,7 +695,7 @@ class DbModel extends Model{
 		is_a($replacement, 'BlankNode')))) )
 		{
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: find): Parameter mismatch';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if (!(!$subject && !$predicate && !$object)) {
@@ -751,7 +751,7 @@ class DbModel extends Model{
 
 		if (!is_a($that, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: equals): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if ($this->size() != $that->size())
@@ -792,7 +792,7 @@ class DbModel extends Model{
 
 		if (!is_a($model, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: unite): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if (is_a($model, 'MemModel')) {
@@ -823,7 +823,7 @@ class DbModel extends Model{
 
 		if (!is_a($model, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: subtract): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		if (is_a($model, 'MemModel')) {
@@ -866,7 +866,7 @@ class DbModel extends Model{
 		}
 
 		$errmsg = RDFAPI_ERROR . '(class: DbModel; method: intersect: Model expected.';
-		trigger_error($errmsg, E_USER_ERROR);
+		trigger_error($errmsg, E_USER_WARNING); exit(1);
 	}
 
 
@@ -885,7 +885,7 @@ class DbModel extends Model{
 
 		if (!is_a($model, 'Model')) {
 			$errmsg = RDFAPI_ERROR . '(class: DbModel; method: addModel): Model expected.';
-			trigger_error($errmsg, E_USER_ERROR);
+			trigger_error($errmsg, E_USER_WARNING); exit(1);
 		}
 
 		$blankNodes_tmp = array();

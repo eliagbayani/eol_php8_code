@@ -55,7 +55,7 @@ class AmphibiansOfTheWorldAPI
         $i = 0;
         if(!$file = Functions::file_open($csv_file, "r")) return;
         while(!feof($file)) {
-            $temp = fgetcsv($file, 0, "|", '"');
+            $temp = fgetcsv($file, 0, "|", '"', escape: '\\');
             if(!$temp) continue;
             $json = json_encode($temp);
             //--------------------------------- to have unique rows

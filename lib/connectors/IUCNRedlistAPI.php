@@ -125,7 +125,7 @@ class IUCNRedlistAPI
         $i = 0;
         if(!($file = Functions::file_open($csv_file, "r"))) return;
         while(!feof($file)) {
-            $temp = fgetcsv($file);
+            $temp = fgetcsv($file, escape: '\\');
             $i++;
             if($i > 1) {
                 if(!$temp) continue;

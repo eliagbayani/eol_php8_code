@@ -59,7 +59,7 @@ class AlgaebaseClassificationAPI
                 {
                     $line = str_ireplace(array('\n', '\t'), '', $line);
                     $line = trim($line);
-                    $cols = str_getcsv($line, ',', '"');
+                    $cols = str_getcsv($line, ',', '"', escape: '\\');
                     $i = 0;
                     foreach($cols as $col)
                     {
@@ -151,7 +151,7 @@ class AlgaebaseClassificationAPI
             if($line)
             {
                 $line = trim(str_ireplace("\n", "", $line));
-                $cols = str_getcsv($line, ',', '"');
+                $cols = str_getcsv($line, ',', '"', escape: '\\');
                 $i = 0;
                 foreach($cols as $col)
                 {

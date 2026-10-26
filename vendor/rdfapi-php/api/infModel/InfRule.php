@@ -78,17 +78,17 @@ class InfRule
  		//throw an error if subject, predicate, or object are neither 
  		//node, nor null.
 		if(!is_a($subject,'Node') && $subject != null) 
-			trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
+			{ trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
 				setTrigger): $subject has to be null or of class Node'
-				, E_USER_ERROR);
+				, E_USER_WARNING); exit(1); }
 		if(!is_a($predicate,'Node') && $predicate != null) 
-			trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
+			{ trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
 				setTrigger): $predicate has to be null or of class Node'
-				, E_USER_ERROR);
+				, E_USER_WARNING); exit(1); }
 		if(!is_a($object,'Node') && $object != null) 
-			trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
+			{ trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
 				setTrigger): $object has to be null or of class Node'
-				, E_USER_ERROR);
+				, E_USER_WARNING); exit(1); }
  			
  		//set the trigger
 		$this->trigger['s']=$subject;
@@ -112,17 +112,17 @@ class InfRule
 		//throw an error if subject, predicate, or object are neither node, 
 		//nor <s>,<p>,<o>.
 		if(!is_a($subject,'Node') && !ereg('<[spo]>', $subject)) 
-			trigger_error(RDFAPI_ERROR . '(class: Infrule; method:  
+			{ trigger_error(RDFAPI_ERROR . '(class: Infrule; method:  
 				setEntailment): $subject has to be <s>,<p>,or <o> or of class Node'
-				, E_USER_ERROR);
+				, E_USER_WARNING); exit(1); }
 		if(!is_a($predicate,'Node') && !ereg('<[spo]>', $predicate)) 
-			trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
+			{ trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
 				setEntailment): $predicate has to be <s>,<p>,or <o> or of class Node'
-				, E_USER_ERROR);
+				, E_USER_WARNING); exit(1); }
 		if(!is_a($object,'Node') && !ereg('<[spo]>', $object)) 
-			trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
+			{ trigger_error(RDFAPI_ERROR . '(class: Infrule; method: 
 				setEntailment): $object has to be <s>,<p>,or <o> or of class Node'
-				, E_USER_ERROR);
+				, E_USER_WARNING); exit(1); }
 		
 		$this->entailment['s']=$subject;	
 		$this->entailment['p']=$predicate;

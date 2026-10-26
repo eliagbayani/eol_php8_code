@@ -341,7 +341,7 @@ class GBIF_classificationAPI_v2
         if(!file_exists($csv_file)) exit("\n[DH0.9 EOL pageID mappings] cannot be loaded!\nWill terminate.\n");
         
         $file = fopen($csv_file, 'r'); $i = 0;
-        while(($line = fgetcsv($file)) !== FALSE) { $i++; 
+        while(($line = fgetcsv($file, escape: '\\')) !== FALSE) { $i++; 
             if($i == 1) $fields = $line;
             else {
                 $rec = array(); $k = 0;

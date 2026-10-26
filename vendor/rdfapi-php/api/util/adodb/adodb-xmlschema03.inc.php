@@ -2049,7 +2049,7 @@ class adoSchema {
 		
 		$error_details .= '</table>';
 		
-		trigger_error( $error_details, E_USER_ERROR );
+		trigger_error( $error_details, E_USER_WARNING ); exit(1);
 	}
 	
 	/**

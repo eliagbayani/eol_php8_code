@@ -58,7 +58,7 @@ class Model extends Object
         $errmsg  = 'Since RAP 0.6 the class for manipulating memory models has been renamed to MemModel.';
         $errmsg .= '<br>Sorry for this inconvenience.<br>';
 
-        trigger_error($errmsg, E_USER_ERROR);
+        trigger_error($errmsg, E_USER_WARNING); exit(1);
     }
 
 
@@ -166,8 +166,8 @@ class Model extends Object
 				$parser = new RssParser();
 				break;
 			default:
-				trigger_error('(class: Model; method: loadFromString): type ' . $type . 'is currently not supported',
-			 			E_USER_ERROR);
+				{ trigger_error('(class: Model; method: loadFromString): type ' . $type . 'is currently not supported',
+			 			E_USER_WARNING); exit(1); }
 		}
 		
 		if ($parser instanceof JsonParser) {

@@ -28,8 +28,8 @@ if(preg_match("/^([a-z_]+)\/?$/i", $test_name, $arr))
 {
     if(!is_dir(DOC_ROOT . "tests/$arr[1]/"))
     {
-        trigger_error("Directory tests/$arr[1]/ does not exist", E_USER_ERROR);
-        exit;
+        trigger_error("Directory tests/$arr[1]/ does not exist", E_USER_WARNING);
+        exit(1); // was E_USER_ERROR (deprecated in PHP 8.4)
     }
     get_tests_from_dir(DOC_ROOT . "tests/$arr[1]/", $group_test, false);
 }elseif($test_name)
@@ -37,8 +37,8 @@ if(preg_match("/^([a-z_]+)\/?$/i", $test_name, $arr))
     if(preg_match("/^(.*)\.php/", $test_name, $arr)) $test_name = $arr[1];
     if(!file_exists(DOC_ROOT . "tests/$test_name.php"))
     {
-        trigger_error("Test tests/$test_name.php does not exist", E_USER_ERROR);
-        exit;
+        trigger_error("Test tests/$test_name.php does not exist", E_USER_WARNING);
+        exit(1); // was E_USER_ERROR (deprecated in PHP 8.4)
     }
     require_once(DOC_ROOT . "tests/$test_name.php");
     

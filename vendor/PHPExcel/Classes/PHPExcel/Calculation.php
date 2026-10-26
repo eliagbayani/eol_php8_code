@@ -3683,7 +3683,7 @@ class PHPExcel_Calculation {
 		$this->formulaError = $errorMessage;
 		$this->_cyclicReferenceStack->clear();
 		if (!$this->suppressFormulaErrors) throw new PHPExcel_Calculation_Exception($errorMessage);
-		trigger_error($errorMessage, E_USER_ERROR);
+		trigger_error($errorMessage, E_USER_WARNING); exit(1);
 	}	//	function _raiseFormulaError()
 
 

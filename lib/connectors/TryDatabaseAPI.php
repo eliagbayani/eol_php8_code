@@ -101,7 +101,7 @@ class TryDatabaseAPI
             elseif($class == "taxa")            $c = new \eol_schema\Taxon();
             elseif($class == "occurrence")      $c = new \eol_schema\Occurrence();
             elseif($class == "measurements")    $c = new \eol_schema\MeasurementOrFact_specific(); //NOTE: used a new class MeasurementOrFact_specific()
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
             $row = array_map('trim', $row);
             // print_r($row); exit;
             // $row = self::clean_html($row); may not need this anymore...

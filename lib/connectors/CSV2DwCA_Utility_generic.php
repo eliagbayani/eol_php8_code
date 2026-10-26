@@ -275,7 +275,7 @@ class CSV2DwCA_Utility_generic
             elseif($class == "measurementorfact")   $c = new \eol_schema\MeasurementOrFact();
             else exit("\nUndefined class [$class]\n");
 
-            $row = fgetcsv($file);
+            $row = fgetcsv($file, escape: '\\');
 
             /* good debug
             if($tbl->row_type == "http://eol.org/schema/media/Document" && $tbl->location == "description.txt") {

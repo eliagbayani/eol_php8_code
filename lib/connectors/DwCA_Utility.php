@@ -780,7 +780,8 @@ class DwCA_Utility
         // /* ---------- new 8Oct2026 - new TB data model
         if(in_array($this->resource_id, array('23067562_Biochemistry_and_Natu_Prod-with-hC', '22943466_Sexual_Syst_and_Char-with-hC', '23072529_Algae-with-hC'
             , '23072941_Locomotion-with-hC', '23073097_Reef_Dwel-with-hC', '23073232_TRY_plan_trai-with-hC', '23073330_Botany_Lite-with-hC'
-            , '23073052_Sensory-with-hC', '23072612_Aquatic_Ecol-with-hC'))) {} //only if higherClassification is blank then we will re-compute the hC.
+            , '23073052_Sensory-with-hC', '23072612_Aquatic_Ecol-with-hC'))) {}         //only if higherClassification is blank then we will compute the hC.
+        elseif($this->params['todo_with_hC'] == 'compute hC only if it is blank') {}    //only if higherClassification is blank then we will compute the hC.
         else {
             if($resource_type == 'TB_dwca') {
                 if(isset($records[0]['hC'])) {      //has higherClassification
@@ -794,7 +795,7 @@ class DwCA_Utility
         }
         // ---------- */
 
-        if(DwCA_Utility_cmd::can_compute_higherClassification($records[0], $task)) {
+        if(DwCA_Utility_cmd::can_compute_higherClassification($records[0], $task) || $resource_type == 'TB_dwca') {
             echo "\n1 of 3*\n";
             if($task == 'gen_hC_using_pID') self::build_id_name_array($records);
             echo "\n2 of 3*\n";  $records = self::generate_higherClassification_field($records, $this->source_of_hc); //2nd param is either "gen_hC_using_pID" or "gen_hC_using_ancestry"

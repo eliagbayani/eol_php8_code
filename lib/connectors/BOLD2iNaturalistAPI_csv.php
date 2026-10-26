@@ -203,7 +203,7 @@ class BOLD2iNaturalistAPI_csv
     {   /*
         flickr.photos.getInfo
         e.g. https://www.flickr.com/services/api/flickr.photos.getInfo.html
-        https://api.flickr.com/services/rest/?&method=flickr.photos.getInfo&api_key=1142baaccbaf8c6cc46f8f4ce26a7135&photo_id=48861925538
+        https://api.flickr.com/services/rest/?&method=flickr.photos.getInfo&api_key=FLICKR_API_KEY&photo_id=48861925538
         */
         $url = "https://api.flickr.com/services/rest/?&method=flickr.photos.getInfo&api_key=".FLICKR_API_KEY."&photo_id=$photo_id";
         if($xml = Functions::lookup_with_cache($url, $this->download_options)) {

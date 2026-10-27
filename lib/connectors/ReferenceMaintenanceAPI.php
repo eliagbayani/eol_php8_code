@@ -18,14 +18,12 @@ use \AllowDynamicProperties; //for PHP 8.2
 class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 {
     function __construct($param) {
-        $this->param = $param;
+        $this->param = $param; print_r($param);
         $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->debug = array();
         $this->main_datasets = array('Terms_conceptID' => 22776577, 'References_conceptID' => 22776838, 'DH_conceptID' => 22776209);
 
         // $this->main_datasets['References_conceptID'] this equals to 22776838
-
-
         // $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . 'zenodo/';
         // if(!is_dir($dir)) mkdir($dir);
     }
@@ -33,52 +31,79 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     {}
     function start()
     {
-        /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
-        $paths = self::get_all_UndefinedRefIDs_files();
-        $paths = self::delete_and_leave_only_the_latest_dates($paths);
-        if($paths) {
-            print_r($paths);
-            $tsv = self::save_unique_referenceIDs_2tsv($paths); //TSV with 2 columns: referenceID and concept_id
-            echo "\nTSV saved: [$tsv]\n"; //e.g. undefined_referenceIDs_20261023.tsv
-        }
-        else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
-        exit("\nend: Step 1\n");
-        */
+        $date = date("Y-m-d");
+        $target = 'unmappable_identifiers_fromGH_'.$date.'.tsv';
+        self::get_file_from_github('unmappable_identifiers.tsv', $target); exit("\nstop muna\n");
 
+        $task = $this->param['task'];
         $basename = 'undefined_referenceIDs_20261027';
 
-        /* Step 2: create a new TSV with additional columns: citation and status
-        $source_tsv = $basename.".tsv";
-        $target_tsv = $basename."_processed.tsv";
-        $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv);
-        echo "\nProcessed TSV saved: $ret\n";
-        exit("\nend: Step 2\n");
-        */
+        if($task == 'prepare_undefined_referenceIDs_list') {
+            // /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
+            $paths = self::get_all_UndefinedRefIDs_files();
+            $paths = self::delete_and_leave_only_the_latest_dates($paths);
+            if($paths) {
+                print_r($paths);
+                $tsv = self::save_unique_referenceIDs_2tsv($paths); //TSV with 2 columns: referenceID and concept_id
+                echo "\nTSV saved: [$tsv]\n"; //e.g. undefined_referenceIDs_20261023.tsv
+            }
+            else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
+            // exit("\nend: Step 1\n");
+            // */
 
-        /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and full_reference.
-        $processed_tsv = $basename."_processed.tsv";
-        $added = self::update_References_file($processed_tsv);
-        echo "\nReferences added: [$added]\n";
-        // exit("\nend: Step 3\n");
-        */
+            // /* Step 2: create a new TSV with additional columns: citation and status
+            $source_tsv = $basename.".tsv";
+            $target_tsv = $basename."_processed.tsv";
+            $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv);
+            echo "\nProcessed TSV saved: $ret\n"; //e.g. undefined_referenceIDs_20261023_processed.tsv
+            exit("\nend: Steps 1 & 2\n");
+            // */
+        }
 
-        /* Step 4: save the identifiers with no citation (status not 'OK') to unmappable_identifiers.tsv
-        $processed_tsv = $basename."_processed.tsv";
-        $added = self::update_unmappable_identifiers($processed_tsv);
-        echo "\nUnmappable identifiers added: [$added]\n";
-        exit("\nend: Step 4\n");
-        */
+        if($task == 'update_References_from_UndefinedRefIDs_files') {
+            // /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and full_reference.
+            $processed_tsv = $basename."_processed.tsv";
+            $added = self::update_References_file($processed_tsv);
+            echo "\nReferences added: [$added]\n";
+            // exit("\nend: Step 3\n");
+            // */
 
-        // /* Step 5: refresh our unmappable_identifiers.tsv
-        $removed = self::refresh_unmappable_identifiers();
-        echo "\nUnmappable identifiers removed: [$removed]\n";
-        exit("\nend: Step 5\n");
-        // */
+            // /* Step 4: save the identifiers with no citation (status not 'OK') to unmappable_identifiers.tsv
+            $processed_tsv = $basename."_processed.tsv";
+            $added = self::update_unmappable_identifiers($processed_tsv);
+            echo "\nUnmappable identifiers added: [$added]\n";
+            exit("\nend: Steps 3 & 4\n");
+            // */
+        }
 
-        /* Step 6: report the identifiers that appear more than once in the master References file
+        if($task == 'refresh_unmappable_identifiers') {
+            // /* Step 5: refresh our unmappable_identifiers.tsv
+            $removed = self::refresh_unmappable_identifiers_usingMaster();
+            echo "\nUnmappable identifiers removed, since master already have them: [$removed]\n";
+            // exit("\nend: Step 5\n");
+            // */
+
+            // $removed = self::refresh_unmappable_identifiers_usingItself();
+            // echo "\nUnmappable identifiers removed, since Data Manager added full_reference for them: [$removed]\n";
+        }
+
+        /* Step 6: A utility. Report the identifiers that appear more than once in the master References file
         $tsv = self::save_duplicate_identifiers_2tsv();
         echo "\nDuplicate identifiers TSV: [$tsv]\n";
         exit("\nend: Step 6\n");
+        */
+    }
+    private function get_file_from_github($source, $target) //e.g. unmappable_identifiers.tsv
+    {
+        $url = "https://github.com/EOL/unmappable_reference_identifiers/blob/main/".$source;
+        $path = Functions::get_github_file($url, array('local_path' => CONTENT_RESOURCE_LOCAL_PATH . $target, 'expire_seconds' => 60*60*24)); // saves it, returns the path
+        echo "\n[$path]\n";
+        /* usage
+        $contents = Functions::get_github_file($url);                                        // returns the contents
+        $path     = Functions::get_github_file($url, array('local_path' => CONTENT_RESOURCE_LOCAL_PATH . "eli.tsv")); // saves it, returns the path
+        $contents = Functions::get_github_file($url, array('expire_seconds' => 60*60*24));   // download at most once a day
+        $contents = Functions::get_github_file($url, array('expire_seconds' => false));      // cache never expires
+        $contents = Functions::get_github_file($url);                                        // no cache: always downloads (same as before)
         */
     }
     function get_citation_from_CrossRef($doi)
@@ -254,7 +279,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return count($rows);
     }
     private function update_unmappable_identifiers($processed_tsv)
-    {   // non-'OK' rows of the processed TSV (referenceID, citation, status) --> unmappable_identifiers.tsv (identifier, status)
+    {   // non-'OK' rows of the processed TSV (referenceID, citation, status) --> unmappable_identifiers.tsv (identifier, status, full_reference)
+        // full_reference is left blank, to be filled in by hand
         // creates the file if it doesn't exist yet, else appends; skips identifiers already in the file. Returns no. of rows added, or false.
         if(strpos($processed_tsv, '/') === false) $processed_tsv = CONTENT_RESOURCE_LOCAL_PATH . $processed_tsv;
         if(!is_file($processed_tsv)) { echo "\nERROR: No processed TSV [$processed_tsv]\n"; return false; }
@@ -270,12 +296,12 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             [$refID, $citation, $status] = array_map('trim', explode("\t", $line) + array('', '', ''));
             if($status == 'OK' || $refID == '' || isset($existing[$refID])) continue;
             $existing[$refID] = '';
-            $rows[] = "$refID\t$status";
+            $rows[] = "$refID\t$status\t"; // blank full_reference
         }
         if(file_exists($tsv)) $fhandle = fopen($tsv, "a");
         else {
             $fhandle = fopen($tsv, "w");
-            fwrite($fhandle, "identifier\tstatus\n");
+            fwrite($fhandle, "identifier\tstatus\tfull_reference\n");
         }
         foreach($rows as $row) fwrite($fhandle, $row . "\n");
         fclose($fhandle);
@@ -283,7 +309,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         self::print_row_stats($orig, count($rows), self::count_data_rows($tsv));
         return count($rows);
     }
-    private function refresh_unmappable_identifiers()
+    private function refresh_unmappable_identifiers_usingMaster()
     {   // remove from unmappable_identifiers.tsv the identifiers that now have a non-blank full_reference in the master references.tsv
         // Returns no. of rows removed, or false.
         $tsv = CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";

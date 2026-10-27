@@ -281,6 +281,89 @@ class Functions
         }
         return false;
     }
+    public static function get_github_file($url, $options = array())
+    {   /* Downloads a file from a GitHub repo -- private (needs a token) or public. Uses the GitHub API, so a token works for private repos.
+        $url: the GitHub page or the raw link, e.g.
+            https://github.com/EOL/unmappable_reference_identifiers/blob/main/unmappable_identifiers.tsv
+            https://raw.githubusercontent.com/EOL/unmappable_reference_identifiers/main/unmappable_identifiers.tsv
+            https://raw.githubusercontent.com/EOL/unmappable_reference_identifiers/refs/heads/main/unmappable_identifiers.tsv
+            (branch names with '/' aren't supported in these URL forms)
+        $options:
+            'token'             => GitHub token; default is the GITHUB_TOKEN constant (define it in config/environments/[env].php). No token = public repos only.
+            'local_path'        => if given, the file is saved there and the path is returned; else the contents are returned
+            'timeout'           => seconds; default DOWNLOAD_TIMEOUT_SECONDS
+            'download_attempts' => default 2
+            'expire_seconds'    => use a cached copy younger than this, e.g. 60*60*24 (1 day); false = cache never expires.
+                                   Not given = no cache, always download (the default).
+            'cache_path'        => default DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] (same as lookup_with_cache()); 'resource_id' adds a subfolder
+        Returns the contents (or local_path), or false. The token is never printed.
+        Unlike get_remote_file(), this verifies the SSL certificate, since a token is sent.
+        Only successful downloads are cached, so a failed or unauthorized request is never served from cache. */
+        if(preg_match('#^https://github\.com/([^/]+)/([^/]+)/(?:blob|raw)/([^/]+)/(.+)$#', $url, $arr) ||
+           preg_match('#^https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/(?:refs/heads/)?([^/]+)/(.+)$#', $url, $arr)) {
+            [, $owner, $repo, $ref, $path] = $arr;
+        }
+        else { echo "\nERROR: Not a GitHub file URL: [$url]\n"; return false; }
+        $path = preg_replace('/[?#].*$/', '', $path); // drop e.g. "?raw=true"
+        $api_url = "https://api.github.com/repos/$owner/$repo/contents/" . implode('/', array_map('rawurlencode', explode('/', rawurldecode($path)))) . "?ref=" . rawurlencode($ref);
+
+        // cache: same folder layout as lookup_with_cache(); keyed by the API URL (which has no token in it)
+        $cache_file = false;
+        if(array_key_exists('expire_seconds', $options)) {
+            $cache_dir = isset($options['cache_path']) ? $options['cache_path'] : DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'];
+            if($resource_id = @$options['resource_id']) $cache_dir .= "$resource_id/";
+            $md5 = md5($api_url);
+            $cache_dir .= substr($md5, 0, 2) . "/" . substr($md5, 2, 2) . "/";
+            $cache_file = $cache_dir . "$md5.cache";
+            if(is_file($cache_file)) {
+                $age = time() - filemtime($cache_file);
+                if($options['expire_seconds'] === false || $age < $options['expire_seconds']) {
+                    debug("GitHub file from cache (age $age seconds): [$owner/$repo/$path] at [$ref]");
+                    return self::github_file_output(file_get_contents($cache_file), $options);
+                }
+            }
+        }
+
+        $token = isset($options['token']) ? $options['token'] : (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '');
+        $headers = array('Accept: application/vnd.github.raw', 'X-GitHub-Api-Version: 2022-11-28');
+        if($token) $headers[] = "Authorization: Bearer $token";
+        $timeout = isset($options['timeout']) ? $options['timeout'] : DOWNLOAD_TIMEOUT_SECONDS;
+        $attempts = isset($options['download_attempts']) ? $options['download_attempts'] : 2;
+
+        for($i = 1; $i <= $attempts; $i++) {
+            $ch = curl_init($api_url);
+            curl_setopt_array($ch, array(CURLOPT_HTTPHEADER => $headers, CURLOPT_USERAGENT => 'EOL-connector/1.0', // GitHub API requires a User-Agent
+                                         CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_MAXREDIRS => 5,
+                                         CURLOPT_CONNECTTIMEOUT => 20, CURLOPT_TIMEOUT => $timeout,
+                                         CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2));
+            $contents = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curl_error = curl_error($ch);
+            curl_close($ch);
+            if($contents !== false && $http_code == 200) {
+                if($cache_file) { // write to a temp file first, so a reader never sees a half-written cache
+                    if(!is_dir($cache_dir)) @mkdir($cache_dir, 0777, true);
+                    if(@file_put_contents($cache_file . ".tmp", $contents) === false || !@rename($cache_file . ".tmp", $cache_file)) debug("Cannot write GitHub cache [$cache_file]");
+                }
+                return self::github_file_output($contents, $options);
+            }
+            if(in_array($http_code, array(401, 403, 404))) break; // retrying won't help
+            if($i < $attempts) sleep(2);
+        }
+        if($http_code == 404)     $why = $token ? "not found, or the token has no access to this repo" : "not found -- if the repo is private, a token is needed (GITHUB_TOKEN)";
+        elseif($http_code == 401) $why = "bad or expired token";
+        elseif($http_code == 403) $why = "forbidden, or API rate limit reached";
+        else                      $why = $curl_error ?: "unexpected response";
+        echo "\nERROR: GitHub download failed (HTTP $http_code: $why) for [$owner/$repo/$path] at [$ref]\n";
+        return false;
+    }
+    private static function github_file_output($contents, $options)
+    {   // for get_github_file(): return the contents, or save them to $options['local_path'] and return that path
+        if(!($local_path = @$options['local_path'])) return $contents;
+        $tmp = $local_path . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written file
+        if(file_put_contents($tmp, $contents) === false || !rename($tmp, $local_path)) { echo "\nERROR: Cannot save to [$local_path]\n"; return false; }
+        return $local_path;
+    }
     public static function gzip_resource_xml($resource_id)
     {
         $command_line = "gzip -c " . CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".xml >" . CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".xml.gz";

@@ -86,28 +86,31 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // */
         }
 
-
-        /* Step 6: A utility. Report the identifiers that appear more than once in the master References file
-        $tsv = self::save_duplicate_identifiers_2tsv();
-        echo "\nDuplicate identifiers TSV: [$tsv]\n";
-        exit("\nend: Step 6\n");
-        */
+        if($task == 'utility_report_duplicate_identifiers_from_master') {
+            // /* Step 6: A utility. Report the identifiers that appear more than once in the master References file
+            $tsv = self::save_duplicate_identifiers_2tsv();
+            echo "\nDuplicate identifiers TSV: [$tsv]\n";
+            // exit("\nend: Step 6\n");
+            // */
+        }
     }
     private function refresh_unmappable_identifiers_usingItself()
     {
         $date = date("Y-m-d");
         $target = 'unmappable_identifiers_fromGH_'.$date.'.tsv';
-        $from_GitHub = self::get_file_from_github('unmappable_identifiers.tsv', $target); //exit("\nstop muna\n");
+        $expire_seconds = 60*60*24;
+        $expire_seconds = 0;
+        $from_GitHub = self::get_file_from_github('unmappable_identifiers.tsv', $target, $expire_seconds);
 
         $source1 = CONTENT_RESOURCE_LOCAL_PATH . 'unmappable_identifiers.tsv';
         $source2 = $from_GitHub;
+        echo "\nsource 1: [$source1]\nsource 2: [$source2]";
         self::compare_unmappable_identifiers_using_self($source1, $source2);
-
     }
-    private function get_file_from_github($source, $target) //e.g. unmappable_identifiers.tsv
+    private function get_file_from_github($source, $target, $expire_seconds) //e.g. unmappable_identifiers.tsv
     {
         $url = "https://github.com/EOL/unmappable_reference_identifiers/blob/main/".$source;
-        $path = Functions::get_github_file($url, array('local_path' => CONTENT_RESOURCE_LOCAL_PATH . $target, 'expire_seconds' => 60*60*24)); // saves it, returns the path
+        $path = Functions::get_github_file($url, array('local_path' => CONTENT_RESOURCE_LOCAL_PATH . $target, 'expire_seconds' => $expire_seconds)); // saves it, returns the path
         echo "\nDownloaded from GitHub: [$path]\n";
         return $path;
         /* usage
@@ -374,6 +377,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         // Step 1
         if(file_get_contents($source1) !== file_get_contents($source2)) {
             echo "\nFiles not identical. Please investigate.\n[$source1]\n[$source2]\n";
+            echo "Differences (source1 = 1st file, source2 = 2nd file):\n- " . implode("\n- ", self::explain_tsv_difference($source1, $source2)) . "\n";
             return false;
         }
 
@@ -430,6 +434,54 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         self::print_row_stats($orig1, $total_deleted, self::count_data_rows($source1), 'deleted');
         echo "(copied now: " . $deleted['copied now'] . ", already in master: " . $deleted['already in master'] . ")\n";
         return array('added' => count($rows), 'deleted' => $total_deleted);
+    }
+    private function explain_tsv_difference($file1, $file2, $max_examples = 10)
+    {   // why two TSV files (1st column = identifier) are not byte-identical. Returns lines of explanation.
+        // values are shown JSON-encoded, so tabs and \r are visible, e.g. "FJ\tNot a DOI\t" has a blank 3rd column
+        $show = fn($s) => json_encode($s, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $raw = array(1 => file_get_contents($file1), 2 => file_get_contents($file2));
+        $why = array(); $lines = array();
+        foreach($raw as $k => $str) {
+            $info[$k] = array('size' => strlen($str), 'bom' => substr($str, 0, 3) === "\xEF\xBB\xBF",
+                              'crlf' => substr_count($str, "\r\n"), 'final_newline' => substr($str, -1) === "\n");
+            $str = str_replace("\r\n", "\n", $info[$k]['bom'] ? substr($str, 3) : $str);
+            $lines[$k] = ($str === '') ? array() : explode("\n", rtrim($str, "\n"));
+        }
+        // formatting differences
+        $why[] = "file size: " . number_format($info[1]['size']) . " vs " . number_format($info[2]['size']) . " bytes";
+        if($info[1]['bom'] != $info[2]['bom'])                     $why[] = "BOM (invisible mark at the start of the file): " . ($info[1]['bom'] ? "source1 only" : "source2 only");
+        if(($info[1]['crlf'] > 0) != ($info[2]['crlf'] > 0))       $why[] = "line endings: source1 has {$info[1]['crlf']} CRLF (Windows) lines, source2 has {$info[2]['crlf']}";
+        if($info[1]['final_newline'] != $info[2]['final_newline']) $why[] = "line ending after the last row: " . ($info[1]['final_newline'] ? "source1 only" : "source2 only");
+        if($lines[1] === $lines[2]) { $why[] = "the rows themselves are the same; only the formatting above differs"; return $why; }
+
+        // content differences
+        $why[] = "rows (incl. header): " . count($lines[1]) . " vs " . count($lines[2]);
+        if(@$lines[1][0] !== @$lines[2][0]) $why[] = "header: " . $show(@$lines[1][0]) . " vs " . $show(@$lines[2][0]);
+        $rows = array(1 => array(), 2 => array());
+        foreach($lines as $k => $arr) {
+            foreach(array_slice($arr, 1) as $line) {
+                $id = trim(explode("\t", $line)[0]);
+                if(isset($rows[$k][$id])) $why[] = "identifier listed more than once in source$k: " . $show($id);
+                else $rows[$k][$id] = $line;
+            }
+        }
+        $only1 = array_diff_key($rows[1], $rows[2]);
+        $only2 = array_diff_key($rows[2], $rows[1]);
+        $changed = array();
+        foreach(array_intersect_key($rows[1], $rows[2]) as $id => $line) if($line !== $rows[2][$id]) $changed[$id] = $line;
+        $examples = fn($arr) => implode("", array_map(fn($line) => "\n    " . $show($line), array_slice($arr, 0, $max_examples))) . (count($arr) > $max_examples ? "\n    ..." : '');
+        if($only1) $why[] = count($only1) . " row(s) only in source1:" . $examples($only1);
+        if($only2) $why[] = count($only2) . " row(s) only in source2:" . $examples($only2);
+        if($changed) {
+            $str = count($changed) . " row(s) with the same identifier but different values (source1 / source2):";
+            foreach(array_slice($changed, 0, $max_examples, true) as $id => $line) {
+                $n1 = count(explode("\t", $line)); $n2 = count(explode("\t", $rows[2][$id]));
+                $str .= "\n    " . $show($line) . "\n    " . $show($rows[2][$id]) . ($n1 != $n2 ? "   <-- $n1 vs $n2 columns" : '');
+            }
+            $why[] = $str . (count($changed) > $max_examples ? "\n    ..." : '');
+        }
+        if(!$only1 && !$only2 && !$changed && array_keys($rows[1]) !== array_keys($rows[2])) $why[] = "same rows, but in a different order";
+        return $why;
     }
     private function save_duplicate_identifiers_2tsv()
     {   // rows of the master references.tsv whose identifier appears more than once --> references_duplicate_identifiers_YYYYMMDD.tsv

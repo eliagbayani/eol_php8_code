@@ -75,6 +75,11 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         exit("\nend: Step 5\n");
         // */
 
+        /* Step 6: report the identifiers that appear more than once in the master References file
+        $tsv = self::save_duplicate_identifiers_2tsv();
+        echo "\nDuplicate identifiers TSV: [$tsv]\n";
+        exit("\nend: Step 6\n");
+        */
     }
     function get_citation_from_CrossRef($doi)
     {   // e.g. "https://doi.org/10.1126/science.233.4770.1314" (also "10.1126/..." or "doi:10.1126/...") ->
@@ -311,6 +316,35 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         echo "\nUpdated: [$tsv]\nRemoved (now in the master):\n" . implode("\n", $removed) . "\n";
         self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
         return count($removed);
+    }
+    private function save_duplicate_identifiers_2tsv()
+    {   // rows of the master references.tsv whose identifier appears more than once --> references_duplicate_identifiers_YYYYMMDD.tsv
+        // columns: identifier, full_reference, master_row (line no. in the master, header = 1); sorted by identifier, then master_row
+        // a snapshot report: overwrites the same day's file. Returns the TSV path, or false.
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        echo "\nReferences Master: [$references_tsv]\n";
+
+        $recs = array(); $count = array();
+        foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            $tmp = explode("\t", $line);
+            $identifier = trim($tmp[0]);
+            if($identifier == '') continue; // blank identifier is not a duplicate
+            $full_reference = rtrim((string) @$tmp[1], "\r"); // master uses CRLF line endings
+            $recs[] = array($identifier, $full_reference, $line_no + 1);
+            @$count[$identifier]++;
+        }
+        $dups = array_values(array_filter($recs, fn($r) => $count[$r[0]] > 1));
+        usort($dups, fn($a, $b) => strcmp($a[0], $b[0]) ?: $a[2] <=> $b[2]);
+
+        $tsv = CONTENT_RESOURCE_LOCAL_PATH . "references_duplicate_identifiers_" . date("Ymd") . ".tsv";
+        $rows = array("identifier\tfull_reference\tmaster_row");
+        foreach($dups as $r) $rows[] = implode("\t", $r);
+        $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+        if(file_put_contents($tmp, implode("\n", $rows) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot write [$tsv]\n"; return false; }
+        $ids = count(array_unique(array_column($dups, 0)));
+        echo "\nSaved: [$tsv]\nduplicate identifiers: " . number_format($ids) . "\nrows involved: " . number_format(count($dups)) . "\n";
+        return $tsv;
     }
     private function count_data_rows($file)
     {   // no. of non-blank rows, excluding the header; 0 if the file doesn't exist

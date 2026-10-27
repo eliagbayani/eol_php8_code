@@ -84,6 +84,12 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             self::refresh_unmappable_identifiers_usingItself();
             // */
         }
+        if($task == 'refresh_unmappable_identifiers_usingDatasets') {
+            // /* Step 5.2: remove from unmappable_identifiers.tsv the identifiers no TraitBank dataset cites any more (local copies, must be up to date)
+            $removed = self::refresh_unmappable_identifiers_usingDatasets();
+            if($removed !== false) echo "\nUnmappable identifiers removed, since no dataset cites them any more: [$removed]\n";
+            // */
+        }
 
         if($task == 'utility_report_duplicate_identifiers_from_master') {
             // /* Step 6: A utility. Report the identifiers that appear more than once in the master References file
@@ -369,6 +375,100 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
         return count($removed);
     }
+    private function refresh_unmappable_identifiers_usingDatasets($tsv = null)
+    {   // remove from unmappable_identifiers.tsv the identifiers that no TraitBank dataset cites any more
+        // datasets: the Zenodo 'traitbank' community, except $this->main_datasets (Terms, References, DH)
+        // cited IDs: the referenceID column of each dataset's local traits file (get_generic_file_path(), no download)
+        // stops and removes nothing if a local copy is missing or older than Zenodo's latest version
+        // Returns no. of rows removed, or false.
+        $tsv = $tsv ?? CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
+        if(!is_file($tsv)) { echo "\nERROR: No file [$tsv]\n"; return false; }
+
+        // 1. dataset list from Zenodo
+        if(!($csv = $this->generate_Zenodo_TraitBank_datasets_inCSV())) { echo "\nERROR: Cannot get the TraitBank datasets list from Zenodo\n"; return false; }
+        $datasets = array(); // concept_id => array(record_id, title)
+        $fh = fopen($csv, "r");
+        $fields = fgetcsv($fh, 0, ',', '"', '');
+        while(($row = fgetcsv($fh, 0, ',', '"', '')) !== false) {
+            $rec = array_combine($fields, array_pad($row, count($fields), ''));
+            if(in_array($rec['concept_id'], $this->main_datasets)) continue; // Terms, References, DH
+            $datasets[$rec['concept_id']] = array('record_id' => $rec['record_id'], 'title' => $rec['title']);
+        }
+        fclose($fh);
+        echo "\nTraitBank datasets to check: " . count($datasets) . "\n";
+
+        // 2. every local copy must be there and be Zenodo's latest version
+        $problems = array(); $traits_files = array();
+        foreach($datasets as $concept_id => $d) {
+            $record_file = CONTENT_RESOURCE_LOCAL_PATH . "TB_files/$concept_id.record_id";
+            $local = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
+            $file = ($local !== '') ? $this->get_generic_file_path($concept_id, 'traits', false) : false;
+            if($local === '' || !$file) $problems[$concept_id] = "not downloaded";
+            elseif($local !== $d['record_id']) $problems[$concept_id] = "local version $local is older than Zenodo's latest {$d['record_id']}";
+            else $traits_files[$concept_id] = $file;
+        }
+        if($problems) {
+            echo "\nThese local copies must be (re-)downloaded first:\n";
+            foreach($problems as $concept_id => $why) {
+                $title = $datasets[$concept_id]['title'];
+                echo "- $concept_id \"$title\": $why\n"
+                   . "    php generate_csv_new_model.php _ '{\"concept_id\": \"$concept_id\", \"redownload_zip_file_YN\": 0, \"task\": \"download_only\", \"what\": \"" . str_replace(array('"', "'"), '', $title) . "\"}'\n";
+            }
+            echo "Nothing was removed.\n";
+            return false;
+        }
+
+        // 3. all referenceIDs cited in the traits files; a cell may hold several, e.g. "id1|id2"
+        $cited = array();
+        foreach($traits_files as $concept_id => $file) {
+            $fh = fopen($file, "r");
+            $fields = explode("\t", rtrim((string) fgets($fh), "\r\n"));
+            $col = false;
+            foreach($fields as $i => $field) if(pathinfo(trim($field), PATHINFO_FILENAME) == 'referenceID') { $col = $i; break; } // e.g. http://rs.tdwg.org/dwc/terms/referenceID
+            if($col === false) { fclose($fh); echo "$concept_id: no referenceID column\n"; continue; }
+            $rows = 0; $ids = array();
+            while(($line = fgets($fh)) !== false) {
+                $rows++;
+                $value = explode("\t", rtrim($line, "\r\n"))[$col] ?? '';
+                foreach(explode("|", $value) as $id) {
+                    $id = trim($id, " \t\"'"); // same as in save_unique_referenceIDs_2tsv(), e.g. '"http://dx.doi.org/...' -> 'http://dx.doi.org/...'
+                    if($id !== '') $ids[$id] = '';
+                }
+            }
+            fclose($fh);
+            $cited += $ids;
+            echo "$concept_id: " . number_format($rows) . " rows, " . number_format(count($ids)) . " distinct referenceIDs\n";
+        }
+        echo "Distinct referenceIDs cited in all datasets: " . number_format(count($cited)) . "\n";
+
+        // 4. keep the identifiers that are still cited
+        $orig = self::count_data_rows($tsv);
+        $keep = array(); $removed = array();
+        foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) { $keep[] = $line; continue; } // header
+            if(trim($line) == '') continue;
+            if(isset($cited[trim(explode("\t", $line)[0])])) $keep[] = $line;
+            else                                              $removed[] = $line;
+        }
+        if(!$removed) {
+            echo "\nAll unmappable identifiers are still cited in some dataset. Nothing to remove.\n";
+            self::print_row_stats($orig, 0, $orig, 'removed');
+            return 0;
+        }
+
+        // 5. backup, record of the removed rows, then rewrite the list safely
+        $dir = dirname($tsv) . "/"; $date = date("Ymd_His");
+        $backup = $dir . "unmappable_identifiers_backup_$date.tsv";
+        if(!copy($tsv, $backup)) { echo "\nERROR: Cannot backup [$tsv]\n"; return false; }
+        $record = $dir . "unmappable_identifiers_removed_notInDatasets_$date.tsv";
+        file_put_contents($record, $keep[0] . "\n" . implode("\n", $removed) . "\n");
+        $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+        if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
+        echo "\nBackup: [$backup]\nRemoved rows saved in: [$record]\nUpdated: [$tsv]\nRemoved (no dataset cites them any more):\n";
+        foreach($removed as $line) echo explode("\t", $line)[0] . "\n";
+        self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
+        return count($removed);
+    }
     private function compare_unmappable_identifiers_using_self($source1, $source2)
     {   // $source1, $source2: two copies of unmappable_identifiers.tsv (identifier, status, full_reference), e.g. local and from GitHub
         // Step 1: the two files must be byte-identical, else stop
@@ -538,7 +638,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     }
     private function upload_file_toZenodo()
     {
-        Usage, e.g. from ReferenceMaintenanceAPI:
+        // Usage, e.g. from ReferenceMaintenanceAPI:
         $concept_id = $this->main_datasets['References_conceptID'];   // 22776838
         $file = $this->get_generic_file_path($concept_id, 'references', false);
         $r = $this->upload_new_version_to_zenodo($concept_id, $file);                                            // draft only, for review

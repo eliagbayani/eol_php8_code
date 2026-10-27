@@ -31,10 +31,6 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     {}
     function start()
     {
-        $date = date("Y-m-d");
-        $target = 'unmappable_identifiers_fromGH_'.$date.'.tsv';
-        self::get_file_from_github('unmappable_identifiers.tsv', $target); exit("\nstop muna\n");
-
         $task = $this->param['task'];
         $basename = 'undefined_referenceIDs_20261027';
 
@@ -76,16 +72,20 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // */
         }
 
-        if($task == 'refresh_unmappable_identifiers') {
+        if($task == 'refresh_unmappable_identifiers_usingMaster') {
             // /* Step 5: refresh our unmappable_identifiers.tsv
             $removed = self::refresh_unmappable_identifiers_usingMaster();
             echo "\nUnmappable identifiers removed, since master already have them: [$removed]\n";
             // exit("\nend: Step 5\n");
             // */
-
-            // $removed = self::refresh_unmappable_identifiers_usingItself();
-            // echo "\nUnmappable identifiers removed, since Data Manager added full_reference for them: [$removed]\n";
         }
+        if($task == 'refresh_unmappable_identifiers_usingItself') {
+            // /* Step 5.1: also refresh our unmappable_identifiers.tsv
+            $removed = self::refresh_unmappable_identifiers_usingItself();
+            echo "\nUnmappable identifiers removed, since Data Manager added full_reference for them: [$removed]\n";
+            // */
+        }
+
 
         /* Step 6: A utility. Report the identifiers that appear more than once in the master References file
         $tsv = self::save_duplicate_identifiers_2tsv();
@@ -93,11 +93,23 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         exit("\nend: Step 6\n");
         */
     }
+    private function refresh_unmappable_identifiers_usingItself()
+    {
+        $date = date("Y-m-d");
+        $target = 'unmappable_identifiers_fromGH_'.$date.'.tsv';
+        $from_GitHub = self::get_file_from_github('unmappable_identifiers.tsv', $target); //exit("\nstop muna\n");
+
+        $source1 = CONTENT_RESOURCE_LOCAL_PATH . 'unmappable_identifiers.tsv';
+        $source2 = $from_GitHub;
+        self::compare_unmappable_identifiers_using_self($source1, $source2);
+
+    }
     private function get_file_from_github($source, $target) //e.g. unmappable_identifiers.tsv
     {
         $url = "https://github.com/EOL/unmappable_reference_identifiers/blob/main/".$source;
         $path = Functions::get_github_file($url, array('local_path' => CONTENT_RESOURCE_LOCAL_PATH . $target, 'expire_seconds' => 60*60*24)); // saves it, returns the path
-        echo "\n[$path]\n";
+        echo "\nDownloaded from GitHub: [$path]\n";
+        return $path;
         /* usage
         $contents = Functions::get_github_file($url);                                        // returns the contents
         $path     = Functions::get_github_file($url, array('local_path' => CONTENT_RESOURCE_LOCAL_PATH . "eli.tsv")); // saves it, returns the path
@@ -264,7 +276,12 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             $rows[] = "$refID\t$citation";
         }
         if(!$rows) { echo "\nNo new references to add.\n"; self::print_row_stats($orig, 0, $orig); return 0; }
-
+        if(!self::append_to_references_master($references_tsv, $rows)) return false;
+        self::print_row_stats($orig, count($rows), self::count_data_rows($references_tsv));
+        return count($rows);
+    }
+    private function append_to_references_master($references_tsv, $rows)
+    {   // append rows ("identifier\tfull_reference") to the master references.tsv; backs up the master first. Returns true, or false.
         $backup = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_backup_" . date("Ymd_His") . ".tsv";
         if(!copy($references_tsv, $backup)) { echo "\nERROR: Cannot backup [$references_tsv]\n"; return false; }
         echo "\nBackup: [$backup]\n";
@@ -275,8 +292,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         foreach($rows as $row) fwrite($fhandle, $row . $eol);
         fclose($fhandle);
         echo "\nUpdated: [$references_tsv]\n";
-        self::print_row_stats($orig, count($rows), self::count_data_rows($references_tsv));
-        return count($rows);
+        return true;
     }
     private function update_unmappable_identifiers($processed_tsv)
     {   // non-'OK' rows of the processed TSV (referenceID, citation, status) --> unmappable_identifiers.tsv (identifier, status, full_reference)
@@ -343,6 +359,78 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
         return count($removed);
     }
+    private function compare_unmappable_identifiers_using_self($source1, $source2)
+    {   // $source1, $source2: two copies of unmappable_identifiers.tsv (identifier, status, full_reference), e.g. local and from GitHub
+        // Step 1: the two files must be byte-identical, else stop
+        // Step 2: rows of $source1 with identifier + full_reference --> master references.tsv, if the identifier isn't there yet
+        // Step 3: delete from $source1 the rows whose identifier now has a full_reference in the master (copied now, or already there)
+        // Returns array('added' => n, 'deleted' => n), or false.
+        if(strpos($source1, '/') === false) $source1 = CONTENT_RESOURCE_LOCAL_PATH . $source1;
+        if(strpos($source2, '/') === false) $source2 = CONTENT_RESOURCE_LOCAL_PATH . $source2;
+        foreach(array($source1, $source2) as $file) {
+            if(!is_file($file)) { echo "\nERROR: No file [$file]\n"; return false; }
+        }
+
+        // Step 1
+        if(file_get_contents($source1) !== file_get_contents($source2)) {
+            echo "\nFiles not identical. Please investigate.\n[$source1]\n[$source2]\n";
+            return false;
+        }
+
+        // Step 2
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        echo "\nReferences Master: [$references_tsv]\n";
+        $master = array(); // identifier => full_reference
+        foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            [$identifier, $full_reference] = array_map('trim', explode("\t", $line) + array('', '')); // trim also drops the CRLF's \r
+            if($identifier != '' && !isset($master[$identifier])) $master[$identifier] = $full_reference;
+        }
+        $orig = self::count_data_rows($references_tsv);
+        $rows = array(); $copied = array(); $differs = array();
+        foreach(file($source1, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            [$identifier, $status, $full_reference] = array_map('trim', explode("\t", $line) + array('', '', ''));
+            if($identifier == '' || $full_reference == '') continue;
+            if(isset($master[$identifier])) {
+                if(!isset($copied[$identifier]) && $master[$identifier] != $full_reference) $differs[] = $identifier;
+                continue;
+            }
+            $master[$identifier] = $full_reference;
+            $copied[$identifier] = '';
+            $rows[] = "$identifier\t$full_reference";
+        }
+        if($rows) {
+            if(!self::append_to_references_master($references_tsv, $rows)) return false;
+            $final = self::count_data_rows($references_tsv);
+        }
+        else { echo "\nNo new references to add to the master.\n"; $final = $orig; }
+        self::print_row_stats($orig, count($rows), $final);
+        if($differs) echo "NOTE: already in the master with a different full_reference (master kept as is):\n" . implode("\n", array_unique($differs)) . "\n";
+
+        // Step 3
+        $orig1 = self::count_data_rows($source1);
+        $keep = array(); $deleted = array('copied now' => 0, 'already in master' => 0);
+        foreach(file($source1, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) { $keep[] = $line; continue; } // header
+            $identifier = trim(explode("\t", $line)[0]);
+            if($identifier != '' && @$master[$identifier] != '') {
+                if(isset($copied[$identifier])) $deleted['copied now']++;
+                else                            $deleted['already in master']++;
+            }
+            else $keep[] = $line;
+        }
+        $total_deleted = array_sum($deleted);
+        if($total_deleted) {
+            $tmp = $source1 . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+            if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $source1)) { echo "\nERROR: Cannot update [$source1]\n"; return false; }
+            echo "\nUpdated: [$source1]\n";
+        }
+        else echo "\nNo rows to delete from [$source1].\n";
+        self::print_row_stats($orig1, $total_deleted, self::count_data_rows($source1), 'deleted');
+        echo "(copied now: " . $deleted['copied now'] . ", already in master: " . $deleted['already in master'] . ")\n";
+        return array('added' => count($rows), 'deleted' => $total_deleted);
+    }
     private function save_duplicate_identifiers_2tsv()
     {   // rows of the master references.tsv whose identifier appears more than once --> references_duplicate_identifiers_YYYYMMDD.tsv
         // columns: identifier, full_reference, master_row (line no. in the master, header = 1); sorted by identifier, then master_row
@@ -380,12 +468,13 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return max($n - 1, 0);
     }
     private function print_row_stats($orig, $changed, $final, $label = 'added')
-    {   // $label: 'added' or 'removed'
+    {   // $label: 'added', or 'removed' / 'deleted'
+        $minus = in_array($label, array('removed', 'deleted'));
         echo "orig total rows: "  . number_format($orig)    . "\n";
         echo "$label rows: "      . number_format($changed) . "\n";
         echo "final total rows: " . number_format($final)   . "\n";
-        $expected = ($label == 'removed') ? $orig - $changed : $orig + $changed;
-        if($expected != $final) echo "WARNING: orig " . ($label == 'removed' ? '-' : '+') . " $label != final\n";
+        $expected = $minus ? $orig - $changed : $orig + $changed;
+        if($expected != $final) echo "WARNING: orig " . ($minus ? '-' : '+') . " $label != final\n";
     }
 }
 ?>

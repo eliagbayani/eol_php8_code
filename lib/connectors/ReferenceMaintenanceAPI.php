@@ -92,6 +92,13 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // exit("\nend: Step 6\n");
             // */
         }
+
+        if($task == 'merge_zenodo_references') {
+            // /* Merge the changes in Zenodo's copy of references.tsv (saved beside the folder after a new download) into our local master
+            $ret = $this->merge_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv');
+            echo "\nMerge result: " . json_encode($ret) . "\n";
+            // */
+        }
     }
     private function refresh_unmappable_identifiers_usingItself()
     {
@@ -528,6 +535,14 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         echo "final total rows: " . number_format($final)   . "\n";
         $expected = $minus ? $orig - $changed : $orig + $changed;
         if($expected != $final) echo "WARNING: orig " . ($minus ? '-' : '+') . " $label != final\n";
+    }
+    private function upload_file_toZenodo()
+    {
+        Usage, e.g. from ReferenceMaintenanceAPI:
+        $concept_id = $this->main_datasets['References_conceptID'];   // 22776838
+        $file = $this->get_generic_file_path($concept_id, 'references', false);
+        $r = $this->upload_new_version_to_zenodo($concept_id, $file);                                            // draft only, for review
+        $r = $this->upload_new_version_to_zenodo($concept_id, $file, array('publish' => true, 'version' => date("Y-m-d"))); // publish now        
     }
 }
 ?>

@@ -15,6 +15,11 @@ class ZenodoTraitBankAPI
         'record_url', 'concept_url', 'archive_url',
         'views', 'unique_views', 'downloads', 'unique_downloads', 'description');
 
+    // Files in input_files/ that we update locally (e.g. ReferenceMaintenanceAPI adds references to references.tsv).
+    // A fresh Zenodo extraction/download keeps our local copy and saves Zenodo's copy beside the folder instead.
+    // To take Zenodo's copy on purpose, run with param "overwrite_protected_files_YN": 1
+    const PROTECTED_INPUT_FILES = array('22776838' => array('references.tsv')); // 22776838 = References
+
     function __construct($folder = null, $query = null)
     {
         $this->download_options = array(
@@ -190,7 +195,13 @@ class ZenodoTraitBankAPI
             echo "Files already exist in [$folder_name/input_files/] (record $record_id)\n";
             return $dest_dir;
         }
-
+        $saved = $this->set_aside_protected_files($concept_id, $dest_dir);
+        $ret = $this->download_zenodo_files_fresh($arr, $folder_name, $dest_dir, $record_file, $record_id);
+        $this->restore_protected_files($saved, $dest_dir, $concept_id); // also after a failed download
+        return $ret;
+    }
+    private function download_zenodo_files_fresh($arr, $folder_name, $dest_dir, $record_file, $record_id)
+    {   // part of download_zenodo_files_individually()
         // always start fresh: delete the destination folder and its contents, then download
         if (is_dir($dest_dir)) recursive_rmdir($dest_dir);
         if (!mkdir($dest_dir, 0775, true)) {
@@ -237,6 +248,273 @@ class ZenodoTraitBankAPI
             echo "Added header row to [$filename]\n";
         }
     }
+    private function set_aside_protected_files($concept_id, $dest_dir)
+    {   // before input_files/ is deleted: move our locally updated files (PROTECTED_INPUT_FILES) out of it
+        // returns array(filename => path of the set-aside copy)
+        $saved = array();
+        if (!empty($this->param['overwrite_protected_files_YN'])) { // missing param = 0
+            echo "overwrite_protected_files_YN = 1: protected files will be replaced by Zenodo's copy\n";
+            return $saved;
+        }
+        foreach (self::PROTECTED_INPUT_FILES[(string) $concept_id] ?? array() as $filename) {
+            $file = $dest_dir . $filename;
+            if (!is_file($file) || filesize($file) == 0) continue; // nothing local yet, e.g. first download
+            $aside = dirname(rtrim($dest_dir, '/')) . "/$filename.local_protected"; // outside input_files/, so it survives
+            if (!rename($file, $aside)) exit("\nERROR: Cannot protect [$file], stopped so it isn't overwritten.\n");
+            $saved[$filename] = $aside;
+        }
+        return $saved;
+    }
+    private function restore_protected_files($saved, $dest_dir, $concept_id)
+    {   // after extraction/download: move Zenodo's new copy (if any) beside the folder, then put our local file back
+        // e.g. TB_files/22776838_References/references_from_zenodo_record23100000.tsv -- outside input_files/, so get_generic_file_path() never uses it
+        foreach ($saved as $filename => $aside) {
+            if (!is_dir($dest_dir)) mkdir($dest_dir, 0775, true); // e.g. the download failed after the folder was deleted
+            $file = $dest_dir . $filename;
+            if (is_file($file)) {
+                $record_file = dirname(dirname(rtrim($dest_dir, '/'))) . "/$concept_id.record_id";
+                $label       = is_file($record_file) ? "record" . trim(file_get_contents($record_file)) : date("Ymd_His");
+                $zenodo_copy = dirname(rtrim($dest_dir, '/')) . "/" . pathinfo($filename, PATHINFO_FILENAME) . "_from_zenodo_$label." . pathinfo($filename, PATHINFO_EXTENSION);
+                if (!rename($file, $zenodo_copy)) { echo "ERROR: Cannot move Zenodo's [$filename] to [$zenodo_copy]\n"; $zenodo_copy = false; }
+                else echo "Zenodo's [$filename] saved as [" . basename($zenodo_copy) . "]\n";
+            }
+            else $zenodo_copy = false;
+            if (!rename($aside, $file)) { echo "ERROR: Cannot restore our local [$filename], it is at [$aside]\n"; continue; }
+            echo "Kept our local [$filename] (protected, has local updates)\n";
+            if ($zenodo_copy) $this->suggest_zenodo_merge($concept_id, $filename, $file, $zenodo_copy);
+        }
+    }
+    private function compare_with_zenodo_copy($local_file, $zenodo_copy)
+    {   // for protected files whose 1st column is the identifier (e.g. references.tsv: identifier, full_reference)
+        // compares (identifier, rest of the row) pairs; a header row (1st field 'identifier') and blank lines are skipped
+        // returns array('new_rows' => rows of identifiers we don't have, 'new_ids' => count,
+        //               'conflicts' => array(identifier => array('local' => values, 'zenodo' => values we don't have for it)))
+        $read = function ($file) {
+            $pairs = array();
+            foreach (file($file, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+                $line = rtrim($line, "\r");
+                if (trim($line) === '') continue;
+                $tmp = explode("\t", $line, 2);
+                $id = trim($tmp[0]);
+                if ($line_no == 0 && $id === 'identifier') continue; // header
+                $pairs[$id][trim($tmp[1] ?? '')] = $line;
+            }
+            return $pairs;
+        };
+        $local = $read($local_file); $zenodo = $read($zenodo_copy);
+        $new_rows = array(); $new_ids = 0; $conflicts = array();
+        foreach ($zenodo as $id => $values) {
+            if (!isset($local[$id])) { $new_ids++; foreach ($values as $line) $new_rows[] = $line; continue; }
+            $missing = array_diff_key($values, $local[$id]); // Zenodo has a value we don't have for this identifier
+            if ($missing) $conflicts[$id] = array('local' => array_keys($local[$id]), 'zenodo' => array_keys($missing));
+        }
+        return array('new_rows' => $new_rows, 'new_ids' => $new_ids, 'conflicts' => $conflicts);
+    }
+    private function suggest_zenodo_merge($concept_id, $filename, $local_file, $zenodo_copy)
+    {   // shows whether Zenodo's copy has changes our local protected file doesn't, and how to merge them
+        $diff = $this->compare_with_zenodo_copy($local_file, $zenodo_copy);
+        if (!$diff['new_ids'] && !$diff['conflicts']) {
+            echo "Zenodo's copy [" . basename($zenodo_copy) . "] has nothing that our local [$filename] doesn't have. No merge needed.\n";
+            return false;
+        }
+        echo "\nSUGGESTION: Zenodo's copy [" . basename($zenodo_copy) . "] has changes not in our local [$filename]:\n"
+           . "  - new identifiers: " . number_format($diff['new_ids']) . " (" . number_format(count($diff['new_rows'])) . " rows)\n"
+           . "  - identifiers with a different value on Zenodo: " . number_format(count($diff['conflicts'])) . "\n"
+           . "  To merge them into our local file, run:\n";
+        if ($filename == 'references.tsv') echo "    php do_reference_mtce.php _ '{\"task\": \"merge_zenodo_references\"}'\n  or call:\n";
+        echo "    \$this->merge_zenodo_copy_into_local($concept_id, '$filename');\n\n";
+        return true;
+    }
+    function check_unmerged_zenodo_copies($concept_id, $filename, $local_file)
+    {   // once per run per file: if a Zenodo copy saved beside the folder hasn't been merged yet, show the merge suggestion
+        if (isset($this->unmerged_checked["$concept_id/$filename"])) return;
+        $this->unmerged_checked["$concept_id/$filename"] = true;
+        if (!($copies = $this->find_unmerged_zenodo_copies($local_file, $filename))) return;
+        if (count($copies) > 1) echo "NOTE: " . count($copies) . " unmerged Zenodo copies of [$filename]; the newest is used: [" . basename($copies[0]) . "]\n";
+        $this->suggest_zenodo_merge($concept_id, $filename, $local_file, $copies[0]);
+    }
+    private function find_unmerged_zenodo_copies($local_file, $filename)
+    {   // Zenodo copies saved by restore_protected_files() beside the dataset folder, newest first; merged ones end in _merged
+        // e.g. TB_files/22776838_References/references_from_zenodo_record23100000.tsv
+        $folder = dirname(dirname($local_file));
+        $stem = pathinfo($filename, PATHINFO_FILENAME); $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $copies = array_filter(glob("$folder/{$stem}_from_zenodo_*.$ext") ?: array(), fn($f) => !str_ends_with($f, "_merged.$ext"));
+        usort($copies, fn($a, $b) => filemtime($b) <=> filemtime($a));
+        return array_values($copies);
+    }
+    function merge_zenodo_copy_into_local($concept_id, $filename = 'references.tsv', $zenodo_copy = null)
+    {   /* Merges Zenodo's copy of a protected file into our local file, e.g. (22776838, 'references.tsv'):
+            - identifiers only on Zenodo: their rows are added to our local file
+            - identifiers in both, but Zenodo has a different value: NOT changed; listed in a conflicts TSV for review
+            - identifiers only in our local file (our additions): kept
+        $zenodo_copy: default the newest unmerged copy beside the dataset folder.
+        The local file is backed up first; the Zenodo copy is then renamed to ..._merged.tsv, so it isn't suggested again.
+        Returns array('added' => rows added, 'new_ids' => n, 'conflicts' => n, 'conflicts_file' => path or null), or false. */
+        $this->unmerged_checked["$concept_id/$filename"] = true; // no merge suggestion from get_generic_file_path() below
+        if (!($local_file = $this->get_generic_file_path($concept_id, $filename, false))) { echo "ERROR: No local [$filename] for [$concept_id]\n"; return false; }
+        if (!$zenodo_copy) {
+            if (!($copies = $this->find_unmerged_zenodo_copies($local_file, $filename))) { echo "No unmerged Zenodo copy of [$filename] found. Nothing to merge.\n"; return false; }
+            $zenodo_copy = $copies[0];
+        }
+        if (!is_file($zenodo_copy)) { echo "ERROR: No file [$zenodo_copy]\n"; return false; }
+        echo "Merging Zenodo's [" . basename($zenodo_copy) . "] into our local [$local_file]\n";
+        $diff = $this->compare_with_zenodo_copy($local_file, $zenodo_copy);
+        $stem = pathinfo($filename, PATHINFO_FILENAME); $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $count_rows = function ($file) { // non-blank rows, without the header
+            $n = 0;
+            foreach (file($file, FILE_IGNORE_NEW_LINES) as $i => $line) if (trim($line) !== '' && !($i == 0 && trim(explode("\t", $line)[0]) === 'identifier')) $n++;
+            return $n;
+        };
+        $orig = $count_rows($local_file);
+
+        if ($diff['new_rows']) {
+            $backup = CONTENT_RESOURCE_LOCAL_PATH . "{$stem}_{$concept_id}_backup_" . date("Ymd_His") . ".$ext";
+            if (!copy($local_file, $backup)) { echo "ERROR: Cannot backup [$local_file]\n"; return false; }
+            echo "Backup: [$backup]\n";
+            $contents = file_get_contents($local_file);
+            $eol = (strpos($contents, "\r\n") !== false) ? "\r\n" : "\n"; // same line endings as our file (references.tsv uses CRLF)
+            $fhandle = fopen($local_file, "a");
+            if ($contents !== '' && substr($contents, -1) !== "\n") fwrite($fhandle, $eol); // last row has no line ending
+            foreach ($diff['new_rows'] as $row) fwrite($fhandle, $row . $eol);
+            fclose($fhandle);
+        }
+        $final = $count_rows($local_file);
+        echo "orig total rows: " . number_format($orig) . "\nadded rows: " . number_format(count($diff['new_rows'])) . " (" . number_format($diff['new_ids']) . " new identifiers)\nfinal total rows: " . number_format($final) . "\n";
+        if ($orig + count($diff['new_rows']) != $final) echo "WARNING: orig + added != final\n";
+
+        $conflicts_file = null;
+        if ($diff['conflicts']) {
+            $conflicts_file = CONTENT_RESOURCE_LOCAL_PATH . "{$stem}_{$concept_id}_zenodo_conflicts_" . date("Ymd_His") . ".tsv";
+            $rows = array("identifier\tlocal_value\tzenodo_value");
+            foreach ($diff['conflicts'] as $id => $c) foreach ($c['zenodo'] as $value) $rows[] = "$id\t" . implode(" || ", $c['local']) . "\t$value";
+            file_put_contents($conflicts_file, implode("\n", $rows) . "\n");
+            echo "NOTE: " . count($diff['conflicts']) . " identifier(s) have a different value on Zenodo; our local values were kept. Review: [$conflicts_file]\n";
+        }
+        $merged = preg_replace('/\.' . preg_quote($ext, '/') . '$/', "_merged.$ext", $zenodo_copy);
+        if (rename($zenodo_copy, $merged)) echo "Zenodo's copy marked as merged: [" . basename($merged) . "]\n";
+        else echo "WARNING: Cannot rename [$zenodo_copy] to [$merged]; it may be suggested again\n";
+        return array('added' => count($diff['new_rows']), 'new_ids' => $diff['new_ids'], 'conflicts' => count($diff['conflicts']), 'conflicts_file' => $conflicts_file);
+    }
+    function upload_new_version_to_zenodo($concept_id, $local_file, $options = array())
+    {   /* Uploads $local_file to a Zenodo dataset as a new version, e.g.
+            upload_new_version_to_zenodo(22776838, '.../22776838_References/input_files/references.tsv')
+        Steps: new-version draft of the latest version -> replace the file of the same name (other files are kept, as Zenodo
+               copies them into the draft) -> publication_date = today [+ version label] -> publish only if asked.
+        $options:
+            'publish'  => false (default): stop at the draft, so it can be reviewed on Zenodo first. true: publish now -- CANNOT be undone.
+            'version'  => version label of the new version, e.g. '2026-10-27'; default: keep the label copied from the previous version
+            'filename' => file name on Zenodo; default basename($local_file)
+            'token'    => Zenodo token; default the ZENODO_TOKEN constant. Sent only in the Authorization header.
+            'domain'   => default $this->api['domain'] or https://zenodo.org; e.g. https://sandbox.zenodo.org (needs a sandbox token)
+        Returns array('draft_id', 'draft_url', 'published', 'record_id', 'doi'), or false.
+        If something fails before publishing, the new draft is discarded, so a leftover draft won't block the next run. */
+        $publish  = !empty($options['publish']);
+        $filename = $options['filename'] ?? basename($local_file);
+        $token    = $options['token'] ?? (defined('ZENODO_TOKEN') ? ZENODO_TOKEN : '');
+        if (isset($options['domain'])) $this->api['domain'] = $options['domain'];
+        $domain   = $this->api['domain'] ?? 'https://zenodo.org';
+        if (!is_file($local_file) || filesize($local_file) == 0) { echo "ERROR: No file, or empty file [$local_file]\n"; return false; }
+        if (!$token) { echo "ERROR: No Zenodo token (ZENODO_TOKEN)\n"; return false; }
+
+        // 1. latest published version of the dataset (fresh, not cached)
+        if (!($latest = $this->get_zenodo_info_using_conceptID($concept_id, 0))) { echo "ERROR: Cannot get the latest version of [$concept_id]\n"; return false; }
+        $record_id = $latest['id'];
+        echo "Dataset [$concept_id] \"{$latest['title']}\", latest version: record $record_id" . ($latest['version'] ? ", version {$latest['version']}" : '') . "\n";
+
+        // 2. new-version draft. Zenodo returns the original record, with the draft at links.latest_draft
+        [$code, $res] = $this->zenodo_api_request('POST', "$domain/api/deposit/depositions/$record_id/actions/newversion", $token);
+        if ($code != 201) { echo "ERROR: Cannot create a new version (HTTP $code): " . $this->zenodo_error_message($res) . "\n"; return false; }
+        $draft_url = $res['links']['latest_draft'] ?? null;
+        if (!$draft_url && @$res['id'] && $res['id'] != $record_id) $draft_url = "$domain/api/deposit/depositions/" . $res['id']; // in case the draft itself is returned
+        if (!$draft_url) { echo "ERROR: Zenodo did not return the new draft\n"; return false; }
+        [$code, $draft] = $this->zenodo_api_request('GET', $draft_url, $token);
+        if ($code != 200 || empty($draft['id']) || $draft['id'] == $record_id) { echo "ERROR: Cannot get the new draft (HTTP $code): " . $this->zenodo_error_message($draft) . "\n"; return false; }
+        $draft_id = $draft['id'];
+        $html     = $draft['links']['html'] ?? "$domain/deposit/$draft_id";
+        echo "New version draft: $draft_id\n";
+        $discard = function ($why) use ($domain, $draft_id, $token, $html) { // remove the unpublished draft after a failure
+            echo "ERROR: $why\n";
+            [$code] = $this->zenodo_api_request('POST', "$domain/api/deposit/depositions/$draft_id/actions/discard", $token);
+            echo ($code == 201 || $code == 204) ? "Draft $draft_id discarded, nothing was published.\n"
+                                                : "Could not discard draft $draft_id (HTTP $code); discard it by hand: $html\n";
+            return false;
+        };
+
+        // 3. replace the file: delete the copy that came from the previous version, then upload ours
+        foreach ($draft['files'] ?? array() as $f) {
+            if (($f['filename'] ?? '') !== $filename) continue;
+            [$code, $res] = $this->zenodo_api_request('DELETE', "$domain/api/deposit/depositions/$draft_id/files/" . $f['id'], $token);
+            if ($code != 204) return $discard("Cannot remove the previous [$filename] from the draft (HTTP $code): " . $this->zenodo_error_message($res));
+            echo "Removed the previous [$filename] from the draft\n";
+        }
+        if (!($bucket = $draft['links']['bucket'] ?? null)) return $discard("The draft has no upload (bucket) link");
+        [$code, $res] = $this->zenodo_api_request('PUT', "$bucket/" . rawurlencode($filename), $token, null, $local_file);
+        if ($code != 200 && $code != 201) return $discard("Upload of [$filename] failed (HTTP $code): " . $this->zenodo_error_message($res));
+        $md5 = md5_file($local_file);
+        if (strtolower((string) ($res['checksum'] ?? '')) !== "md5:$md5") return $discard("Uploaded [$filename] has the wrong checksum [" . ($res['checksum'] ?? 'none') . "], expected [md5:$md5]");
+        echo "Uploaded [$filename] (" . number_format(filesize($local_file)) . " bytes, md5 verified)\n";
+
+        // 4. metadata: the draft keeps the previous version's metadata; set today's publication date (required to publish) [+ version]
+        $metadata = $draft['metadata'] ?? array();
+        unset($metadata['prereserve_doi']); // read-only
+        $metadata['publication_date'] = date("Y-m-d");
+        if (isset($options['version'])) $metadata['version'] = (string) $options['version'];
+        [$code, $res] = $this->zenodo_api_request('PUT', "$domain/api/deposit/depositions/$draft_id", $token, array('metadata' => $metadata));
+        if ($code != 200) return $discard("Cannot update the draft's metadata (HTTP $code): " . $this->zenodo_error_message($res));
+        echo "Draft metadata: publication_date " . $metadata['publication_date'] . ", version " . ($metadata['version'] ?? '(none)') . "\n";
+
+        $ret = array('draft_id' => $draft_id, 'draft_url' => $html, 'published' => false, 'record_id' => null, 'doi' => null);
+        if (!$publish) {
+            echo "Draft ready for review, NOT published: $html\n";
+            echo "Publish it there, or run again with 'publish' => true. Until it is published or discarded, no other new version can be started.\n";
+            return $ret;
+        }
+
+        // 5. publish -- cannot be undone. On failure the draft is kept, so the error can be checked on Zenodo.
+        [$code, $res] = $this->zenodo_api_request('POST', "$domain/api/deposit/depositions/$draft_id/actions/publish", $token);
+        if ($code != 202) { echo "ERROR: Publish failed (HTTP $code): " . $this->zenodo_error_message($res) . "\nThe draft was kept: $html\n"; return false; }
+        $ret['published'] = true;
+        $ret['record_id'] = $res['record_id'] ?? $res['id'] ?? $draft_id;
+        $ret['doi']       = $res['doi'] ?? null;
+        echo "Published new version: record " . $ret['record_id'] . ($ret['doi'] ? ", DOI " . $ret['doi'] : '') . "\n";
+        return $ret;
+    }
+    private function zenodo_api_request($method, $url, $token, $json = null, $upload_file = null)
+    {   // Zenodo REST call; the token goes in the Authorization header only (never in the URL). Returns array(HTTP code, decoded JSON body).
+        $headers = array("Authorization: Bearer $token", "Accept: application/json");
+        $ch = curl_init($url);
+        $opts = array(CURLOPT_CUSTOMREQUEST => $method, CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => false,
+                      CURLOPT_USERAGENT => "EOL-Zenodo-connector/1.0", // Zenodo returns HTTP 403 when User-Agent is empty
+                      CURLOPT_CONNECTTIMEOUT => 60, CURLOPT_TIMEOUT => 0,  // no limit, uploads can be large
+                      CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2);
+        if ($json !== null) {
+            $headers[] = "Content-Type: application/json";
+            $opts[CURLOPT_POSTFIELDS] = json_encode($json);
+        }
+        if ($upload_file !== null) { // stream the file, so large files aren't loaded into memory
+            $fp = fopen($upload_file, "r");
+            $headers[] = "Content-Type: application/octet-stream";
+            $opts[CURLOPT_UPLOAD] = true;
+            $opts[CURLOPT_INFILE] = $fp;
+            $opts[CURLOPT_INFILESIZE] = filesize($upload_file);
+        }
+        $opts[CURLOPT_HTTPHEADER] = $headers;
+        curl_setopt_array($ch, $opts);
+        $body  = curl_exec($ch);
+        $code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        if (isset($fp)) fclose($fp);
+        if ($body === false) return array(0, array('message' => "connection failed: $error"));
+        $data = json_decode($body, true);
+        return array($code, is_array($data) ? $data : array('message' => substr(trim($body), 0, 300)));
+    }
+    private function zenodo_error_message($res)
+    {   // e.g. {"status": 400, "message": "...", "errors": [{"field": "metadata.title", "message": "..."}]}
+        $msg = (string) ($res['message'] ?? 'no message');
+        foreach ($res['errors'] ?? array() as $e) $msg .= " | " . (isset($e['field']) ? $e['field'] . ": " : '') . (is_array($e['messages'] ?? null) ? implode('; ', $e['messages']) : ($e['message'] ?? ''));
+        return $msg;
+    }
     private function download_url_to_file($url, $dest)
     {   // download to a .part file first, so an interrupted download is never mistaken for a complete file
         $part = $dest . ".part";
@@ -275,7 +553,15 @@ class ZenodoTraitBankAPI
         }
         $folder_name = $folder_name ?? pathinfo($zip_file, PATHINFO_FILENAME);
         $dest_dir    = dirname($zip_file) . "/$folder_name/input_files/";
+        $concept_id  = pathinfo($zip_file, PATHINFO_FILENAME); // zip is named by concept ID, e.g. 22776838.zip
 
+        $saved = $this->set_aside_protected_files($concept_id, $dest_dir);
+        $ret = $this->extract_zenodo_zip_fresh($zip_file, $folder_name, $dest_dir);
+        $this->restore_protected_files($saved, $dest_dir, $concept_id); // also after a failed extraction
+        return $ret;
+    }
+    private function extract_zenodo_zip_fresh($zip_file, $folder_name, $dest_dir)
+    {   // part of unzip_zenodo_zip_file()
         // always start fresh: delete the destination folder and its contents, then extract
         if (is_dir($dest_dir)) {
             $items = new \RecursiveIteratorIterator(
@@ -458,6 +744,9 @@ class ZenodoTraitBankAPI
             return false;
         }
         if (count($found) > 1) echo "Several of [" . implode("], [", $found) . "] exist in [$folder_name/input_files/], using [$found[0]]\n";
+        if (!$processedYN && in_array($found[0], self::PROTECTED_INPUT_FILES[(string) $concept_id] ?? array())) {
+            $this->check_unmerged_zenodo_copies($concept_id, $found[0], $dir . $found[0]); // suggests a merge if Zenodo's copy has changes we don't
+        }
         return $dir . $found[0];
     }
     private function find_versioned_file($dir, $basenames)

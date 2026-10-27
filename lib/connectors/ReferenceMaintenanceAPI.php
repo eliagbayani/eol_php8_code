@@ -81,8 +81,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
         if($task == 'refresh_unmappable_identifiers_usingItself') {
             // /* Step 5.1: also refresh our unmappable_identifiers.tsv
-            $removed = self::refresh_unmappable_identifiers_usingItself();
-            echo "\nUnmappable identifiers removed, since Data Manager added full_reference for them: [$removed]\n";
+            self::refresh_unmappable_identifiers_usingItself();
             // */
         }
 
@@ -105,7 +104,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $source1 = CONTENT_RESOURCE_LOCAL_PATH . 'unmappable_identifiers.tsv';
         $source2 = $from_GitHub;
         echo "\nsource 1: [$source1]\nsource 2: [$source2]";
-        self::compare_unmappable_identifiers_using_self($source1, $source2);
+        $ret = self::compare_unmappable_identifiers_using_self($source1, $source2);
+        print_r($ret);
     }
     private function get_file_from_github($source, $target, $expire_seconds) //e.g. unmappable_identifiers.tsv
     {

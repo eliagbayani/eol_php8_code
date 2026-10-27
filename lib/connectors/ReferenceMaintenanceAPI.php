@@ -380,6 +380,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             echo "Differences (source1 = 1st file, source2 = 2nd file):\n- " . implode("\n- ", self::explain_tsv_difference($source1, $source2)) . "\n";
             return false;
         }
+        else echo "\nFiles are identical. Proceeding...\n";
 
         // Step 2
         if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN

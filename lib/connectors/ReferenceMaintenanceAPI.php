@@ -39,28 +39,40 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if($paths) {
             print_r($paths);
             $tsv = self::save_unique_referenceIDs_2tsv($paths); //TSV with 2 columns: referenceID and concept_id
-            echo "\nTSV saved: $tsv\n"; //e.g. undefined_referenceIDs_20261023.tsv
+            echo "\nTSV saved: [$tsv]\n"; //e.g. undefined_referenceIDs_20261023.tsv
         }
         else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
+        exit("\nend: Step 1\n");
         */
-        
+
+        $basename = 'undefined_referenceIDs_20261027';
+
         /* Step 2: create a new TSV with additional columns: citation and status
-        $source_tsv = "undefined_referenceIDs_20261023.tsv";
-        $target_tsv = "undefined_referenceIDs_20261023_processed.tsv";
+        $source_tsv = $basename.".tsv";
+        $target_tsv = $basename."_processed.tsv";
         $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv);
         echo "\nProcessed TSV saved: $ret\n";
+        exit("\nend: Step 2\n");
         */
 
-        // /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and full_reference.
-        $processed_tsv = "undefined_referenceIDs_20261023_processed.tsv";
+        /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and full_reference.
+        $processed_tsv = $basename."_processed.tsv";
         $added = self::update_References_file($processed_tsv);
         echo "\nReferences added: [$added]\n";
-        // */
+        // exit("\nend: Step 3\n");
+        */
 
-        // /* Step 4: save the identifiers with no citation (status not 'OK') to unmappable_identifiers.tsv
-        $processed_tsv = "undefined_referenceIDs_20261023_processed.tsv";
+        /* Step 4: save the identifiers with no citation (status not 'OK') to unmappable_identifiers.tsv
+        $processed_tsv = $basename."_processed.tsv";
         $added = self::update_unmappable_identifiers($processed_tsv);
         echo "\nUnmappable identifiers added: [$added]\n";
+        exit("\nend: Step 4\n");
+        */
+
+        // /* Step 5: refresh our unmappable_identifiers.tsv
+        $removed = self::refresh_unmappable_identifiers();
+        echo "\nUnmappable identifiers removed: [$removed]\n";
+        exit("\nend: Step 5\n");
         // */
 
     }
@@ -207,7 +219,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(strpos($processed_tsv, '/') === false) $processed_tsv = CONTENT_RESOURCE_LOCAL_PATH . $processed_tsv;
         if(!is_file($processed_tsv)) { echo "\nERROR: No processed TSV [$processed_tsv]\n"; return false; }
         if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
-        echo "\nReferences: [$references_tsv]\n";
+        echo "\nReferences Master: [$references_tsv]\n";
+        $orig = self::count_data_rows($references_tsv);
 
         $existing = array();
         foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line) $existing[trim(explode("\t", $line)[0])] = '';
@@ -220,7 +233,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             $existing[$refID] = '';
             $rows[] = "$refID\t$citation";
         }
-        if(!$rows) { echo "\nNo new references to add.\n"; return 0; }
+        if(!$rows) { echo "\nNo new references to add.\n"; self::print_row_stats($orig, 0, $orig); return 0; }
 
         $backup = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_backup_" . date("Ymd_His") . ".tsv";
         if(!copy($references_tsv, $backup)) { echo "\nERROR: Cannot backup [$references_tsv]\n"; return false; }
@@ -231,7 +244,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(substr(file_get_contents($references_tsv, false, null, -1), -1) !== "\n") fwrite($fhandle, $eol); // last row has no line ending
         foreach($rows as $row) fwrite($fhandle, $row . $eol);
         fclose($fhandle);
-        echo "\nAdded to references.tsv: " . count($rows) . "\n";
+        echo "\nUpdated: [$references_tsv]\n";
+        self::print_row_stats($orig, count($rows), self::count_data_rows($references_tsv));
         return count($rows);
     }
     private function update_unmappable_identifiers($processed_tsv)
@@ -240,6 +254,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(strpos($processed_tsv, '/') === false) $processed_tsv = CONTENT_RESOURCE_LOCAL_PATH . $processed_tsv;
         if(!is_file($processed_tsv)) { echo "\nERROR: No processed TSV [$processed_tsv]\n"; return false; }
         $tsv = CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
+        $orig = self::count_data_rows($tsv); // 0 if the file doesn't exist yet
         $existing = array();
         if(file_exists($tsv)) {
             foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line) $existing[trim(explode("\t", $line)[0])] = '';
@@ -259,8 +274,58 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
         foreach($rows as $row) fwrite($fhandle, $row . "\n");
         fclose($fhandle);
-        echo "\nAdded to [$tsv]: " . count($rows) . "\n";
+        echo "\nUpdated: [$tsv]\n";
+        self::print_row_stats($orig, count($rows), self::count_data_rows($tsv));
         return count($rows);
+    }
+    private function refresh_unmappable_identifiers()
+    {   // remove from unmappable_identifiers.tsv the identifiers that now have a non-blank full_reference in the master references.tsv
+        // Returns no. of rows removed, or false.
+        $tsv = CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
+        if(!is_file($tsv)) { echo "\nNo [$tsv] yet.\n"; return 0; }
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        echo "\nReferences Master: [$references_tsv]\n";
+
+        $mapped = array(); // identifiers in the master with a full_reference
+        foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            [$identifier, $full_reference] = array_map('trim', explode("\t", $line) + array('', '')); // trim also drops the CRLF's \r
+            if($identifier != '' && $full_reference != '') $mapped[$identifier] = '';
+        }
+        $orig = self::count_data_rows($tsv);
+        $keep = array(); $removed = array();
+        foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) { $keep[] = $line; continue; } // header
+            if(trim($line) == '') continue;
+            $identifier = trim(explode("\t", $line)[0]);
+            if(isset($mapped[$identifier])) $removed[] = $identifier;
+            else                            $keep[] = $line;
+        }
+        if(!$removed) {
+            echo "\nNo unmappable identifiers are in the master yet.\n";
+            self::print_row_stats($orig, 0, $orig, 'removed');
+            return 0;
+        }
+        $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+        if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
+        echo "\nUpdated: [$tsv]\nRemoved (now in the master):\n" . implode("\n", $removed) . "\n";
+        self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
+        return count($removed);
+    }
+    private function count_data_rows($file)
+    {   // no. of non-blank rows, excluding the header; 0 if the file doesn't exist
+        if(!is_file($file)) return 0;
+        $n = 0;
+        foreach(file($file, FILE_IGNORE_NEW_LINES) as $line) if(trim($line) !== '') $n++;
+        return max($n - 1, 0);
+    }
+    private function print_row_stats($orig, $changed, $final, $label = 'added')
+    {   // $label: 'added' or 'removed'
+        echo "orig total rows: "  . number_format($orig)    . "\n";
+        echo "$label rows: "      . number_format($changed) . "\n";
+        echo "final total rows: " . number_format($final)   . "\n";
+        $expected = ($label == 'removed') ? $orig - $changed : $orig + $changed;
+        if($expected != $final) echo "WARNING: orig " . ($label == 'removed' ? '-' : '+') . " $label != final\n";
     }
 }
 ?>

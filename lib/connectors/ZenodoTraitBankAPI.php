@@ -291,6 +291,142 @@ class ZenodoTraitBankAPI
             if ($zenodo_copy) $this->suggest_zenodo_merge($concept_id, $filename, $file, $zenodo_copy);
         }
     }
+    /* ---------- Sync merge (3-way): applies Zenodo's additions, changes AND deletions to our local protected file ----------
+       base   = the Zenodo version we last synced with, kept beside the dataset folder, e.g.
+                TB_files/22776838_References/references_zenodo_base_record23682595.tsv
+       Zenodo = Zenodo's new copy (references_from_zenodo_record<N>.tsv); local = our master in input_files/
+       Rows are compared as (identifier, rest of the row) pairs:
+         in base, not on Zenodo  -> deleted on Zenodo  -> removed from local too
+         on Zenodo, not in base  -> added on Zenodo    -> added to local (if not there yet)
+         in local, not in base   -> our own addition   -> kept
+       A changed citation is a deletion + an addition, so Zenodo's new citation replaces the old one. */
+    function find_zenodo_base($local_file, $filename)
+    {   // newest base copy beside the dataset folder, or false
+        $folder = dirname(dirname($local_file));
+        $stem = pathinfo($filename, PATHINFO_FILENAME); $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $bases = glob("$folder/{$stem}_zenodo_base_*.$ext") ?: array();
+        usort($bases, fn($a, $b) => filemtime($b) <=> filemtime($a));
+        return $bases[0] ?? false;
+    }
+    function set_zenodo_base($local_file, $filename, $source, $label)
+    {   // saves $source as the new base (e.g. label 'record23682595'); older bases are deleted. Returns the base path, or false.
+        $folder = dirname(dirname($local_file));
+        $stem = pathinfo($filename, PATHINFO_FILENAME); $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $base = "$folder/{$stem}_zenodo_base_$label.$ext";
+        if (realpath($source) !== realpath($base)) {
+            if (!copy($source, "$base.tmp") || !rename("$base.tmp", $base)) { @unlink("$base.tmp"); echo "ERROR: Cannot save the base [$base]\n"; return false; }
+        }
+        foreach (glob("$folder/{$stem}_zenodo_base_*.$ext") ?: array() as $old) if ($old !== $base) unlink($old);
+        echo "Sync base is now: [" . basename($base) . "]\n";
+        return $base;
+    }
+    private function read_tsv_pairs($file)
+    {   // array('header' => header line or null, 'header_eol' => its line ending, 'pairs' => array("identifier\tvalue" => original line)),
+        // in file order; blank lines skipped
+        $header = null; $header_eol = null; $pairs = array();
+        foreach (file($file, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            $cr = str_ends_with($line, "\r");
+            $line = rtrim($line, "\r");
+            if (trim($line) === '') continue;
+            $tmp = explode("\t", $line, 2);
+            if ($line_no == 0 && trim($tmp[0]) === 'identifier') { $header = $line; $header_eol = $cr ? "\r\n" : "\n"; continue; }
+            $pairs[trim($tmp[0]) . "\t" . trim($tmp[1] ?? '')] = $line;
+        }
+        return array('header' => $header, 'header_eol' => $header_eol, 'pairs' => $pairs);
+    }
+    private function three_way_diff($local_file, $base_file, $zenodo_copy)
+    {   // returns array('added' => pairs to add, 'removed' => pairs to remove, 'conflicts' => identifiers changed on both sides, 'local', 'zenodo')
+        $L = $this->read_tsv_pairs($local_file); $B = $this->read_tsv_pairs($base_file); $Z = $this->read_tsv_pairs($zenodo_copy);
+        $z_added   = array_diff_key($Z['pairs'], $B['pairs']); // added/changed on Zenodo since the base
+        $z_removed = array_diff_key($B['pairs'], $Z['pairs']); // deleted/changed on Zenodo since the base
+        $added     = array_diff_key($z_added, $L['pairs']);   // not in local yet
+        $removed   = array_intersect_key($L['pairs'], $z_removed); // still in local
+        // identifiers we changed locally since the base AND Zenodo changed too -> review
+        $id = fn($key) => explode("\t", $key, 2)[0];
+        $z_ids = array_flip(array_map($id, array_keys($z_added + $z_removed)));
+        $l_ids = array_flip(array_map($id, array_keys(array_diff_key($L['pairs'], $B['pairs']) + array_diff_key($B['pairs'], $L['pairs']))));
+        $conflicts = array_keys(array_intersect_key($z_ids, $l_ids));
+        // for those identifiers Zenodo's rows win (the data managers' version), so no identifier ends up with both versions; logged as usual
+        foreach ($conflicts as $cid) {
+            foreach ($Z['pairs'] as $key => $line) if ($id($key) === $cid && !isset($L['pairs'][$key])) $added[$key] = $line;
+            foreach ($L['pairs'] as $key => $line) if ($id($key) === $cid && !isset($Z['pairs'][$key])) $removed[$key] = $line;
+        }
+        return array('added' => $added, 'removed' => $removed, 'conflicts' => $conflicts, 'local' => $L, 'zenodo' => $Z);
+    }
+    function sync_zenodo_copy_into_local($concept_id, $filename = 'references.tsv', $zenodo_copy = null, $dry_run = false)
+    {   /* Sync merge: applies Zenodo's additions, changes and deletions since the base to our local file; keeps our own additions.
+        $zenodo_copy: default the newest unmerged copy beside the dataset folder. $dry_run: only report, change nothing.
+        Our local file is backed up first and rewritten safely (tmp file, then rename). A log of every added/removed row is saved.
+        Afterwards Zenodo's copy becomes the new base, and is renamed ..._merged so it isn't suggested again.
+        Returns array('added', 'removed', 'conflicts', 'log_file'), or false. */
+        $this->unmerged_checked["$concept_id/$filename"] = true; // no merge suggestion from get_generic_file_path() below
+        if (!($local_file = $this->get_generic_file_path($concept_id, $filename, false))) { echo "ERROR: No local [$filename] for [$concept_id]\n"; return false; }
+        if (!$zenodo_copy) {
+            if (!($copies = $this->find_unmerged_zenodo_copies($local_file, $filename))) { echo "No unmerged Zenodo copy of [$filename] found. Nothing to sync.\n"; return false; }
+            $zenodo_copy = $copies[0];
+        }
+        if (!is_file($zenodo_copy)) { echo "ERROR: No file [$zenodo_copy]\n"; return false; }
+        if (!($base = $this->find_zenodo_base($local_file, $filename))) {
+            echo "ERROR: No sync base yet for [$filename], so deletions on Zenodo can't be told apart from our own additions. Nothing was changed.\n"
+               . "Set the base to the Zenodo version our local file was last in step with, e.g. if Zenodo's copy has nothing we don't have:\n"
+               . "    php do_reference_mtce.php _ '{\"task\": \"set_zenodo_base_references\"}'\n";
+            return false;
+        }
+        echo "Sync: Zenodo's [" . basename($zenodo_copy) . "] into our local [$local_file]\n      base: [" . basename($base) . "]" . ($dry_run ? " (dry run, nothing is changed)" : '') . "\n";
+        $d = $this->three_way_diff($local_file, $base, $zenodo_copy);
+        $orig = count($d['local']['pairs']); $final = $orig + count($d['added']) - count($d['removed']);
+        $id_of = fn($line) => trim(explode("\t", $line, 2)[0]);
+        foreach (array('removed', 'added') as $what) {
+            if (!$d[$what]) continue;
+            echo ucfirst($what) . " on Zenodo since the base (" . count($d[$what]) . " rows), e.g.:\n";
+            foreach (array_slice($d[$what], 0, 10) as $line) echo "    " . mb_substr($line, 0, 150) . "\n";
+        }
+        if ($d['conflicts']) echo "NOTE: " . count($d['conflicts']) . " identifier(s) were changed both by us and on Zenodo since the base; Zenodo's version replaces ours (see the log), please review: [" . implode("], [", array_slice($d['conflicts'], 0, 20)) . "]\n";
+
+        $ret = array('added' => count($d['added']), 'removed' => count($d['removed']), 'conflicts' => count($d['conflicts']), 'log_file' => null);
+        if ($dry_run || (!$d['added'] && !$d['removed'])) {
+            if (!$d['added'] && !$d['removed']) echo "Nothing to change: Zenodo's changes since the base are already in our local file.\n";
+            echo "orig total rows: " . number_format($orig) . "\nadded rows: " . number_format($ret['added']) . "\nremoved rows: " . number_format($ret['removed']) . "\nfinal total rows: " . number_format($dry_run ? $final : $orig) . ($dry_run ? " (after the sync)" : '') . "\n";
+            if ($dry_run) return $ret;
+        }
+        else {
+            $stem = pathinfo($filename, PATHINFO_FILENAME); $ext = pathinfo($filename, PATHINFO_EXTENSION); $date = date("Ymd_His");
+            $backup = CONTENT_RESOURCE_LOCAL_PATH . "{$stem}_{$concept_id}_backup_$date.$ext";
+            if (!copy($local_file, $backup)) { echo "ERROR: Cannot backup [$local_file]\n"; return false; }
+            echo "Backup: [$backup]\n";
+            // local rows in their order, minus the removed ones, then the added ones in Zenodo's order; same line endings as our file
+            $eol = (strpos(file_get_contents($local_file, false, null, 0, 100000), "\r\n") !== false) ? "\r\n" : "\n";
+            $lines = array();
+            foreach ($d['local']['pairs'] as $key => $line) if (!isset($d['removed'][$key])) $lines[] = $line;
+            foreach ($d['added'] as $line) $lines[] = $line;
+            $header = ($d['local']['header'] !== null) ? $d['local']['header'] . $d['local']['header_eol'] : ''; // header keeps its own line ending
+            $tmp = "$local_file.tmp";
+            if (file_put_contents($tmp, $header . implode($eol, $lines) . $eol) === false || !rename($tmp, $local_file)) { @unlink($tmp); echo "ERROR: Cannot update [$local_file]\n"; return false; }
+            $log = CONTENT_RESOURCE_LOCAL_PATH . "{$stem}_{$concept_id}_zenodo_sync_$date.tsv";
+            $rows = array("action\tidentifier\trow");
+            foreach ($d['removed'] as $line) $rows[] = "removed\t" . $id_of($line) . "\t" . str_replace("\t", " | ", $line);
+            foreach ($d['added'] as $line)   $rows[] = "added\t"   . $id_of($line) . "\t" . str_replace("\t", " | ", $line);
+            file_put_contents($log, implode("\n", $rows) . "\n");
+            $ret['log_file'] = $log;
+            $now = count($this->read_tsv_pairs($local_file)['pairs']);
+            echo "Updated: [$local_file]\nLog of the changes: [$log]\n";
+            echo "orig total rows: " . number_format($orig) . "\nadded rows: " . number_format($ret['added']) . "\nremoved rows: " . number_format($ret['removed']) . "\nfinal total rows: " . number_format($now) . "\n";
+            if ($now != $final) echo "WARNING: orig + added - removed != final\n";
+            $this->copy_to_github_folder($local_file);
+        }
+        // Zenodo's copy is now the base for the next sync, and is marked as merged
+        $label = preg_match('/_from_zenodo_(record\d+)/', basename($zenodo_copy), $m) ? $m[1] : date("Ymd_His");
+        if (!$this->set_zenodo_base($local_file, $filename, $zenodo_copy, $label)) return false;
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        if (str_contains(basename($zenodo_copy), '_from_zenodo_') && !str_ends_with($zenodo_copy, "_merged.$ext")) {
+            $merged = preg_replace('/\.' . preg_quote($ext, '/') . '$/', "_merged.$ext", $zenodo_copy);
+            if (rename($zenodo_copy, $merged)) echo "Zenodo's copy marked as merged: [" . basename($merged) . "]\n";
+        }
+        // identifiers still listed more than once in our local file
+        $ids = array(); foreach ($this->read_tsv_pairs($local_file)['pairs'] as $key => $line) { $i = explode("\t", $key, 2)[0]; $ids[$i] = ($ids[$i] ?? 0) + 1; }
+        echo "Identifiers listed more than once in our local file now: " . count(array_filter($ids, fn($n) => $n > 1)) . "\n";
+        return $ret;
+    }
     function copy_to_github_folder($file)
     {   // copies $file to GITHUB_COPY_FOLDER (same file name), but only if it is one of the 2 files kept there:
         //   CONTENT_RESOURCE_LOCAL_PATH/unmappable_identifiers.tsv
@@ -310,7 +446,7 @@ class ZenodoTraitBankAPI
         echo "Copied to GitHub folder: [$dest]\n";
         return $dest;
     }
-    private function compare_with_zenodo_copy($local_file, $zenodo_copy)
+    protected function compare_with_zenodo_copy($local_file, $zenodo_copy)
     {   // for protected files whose 1st column is the identifier (e.g. references.tsv: identifier, full_reference)
         // compares (identifier, rest of the row) pairs; a header row (1st field 'identifier') and blank lines are skipped
         // returns array('new_rows' => rows of identifiers we don't have, 'new_ids' => count,
@@ -338,6 +474,20 @@ class ZenodoTraitBankAPI
     }
     private function suggest_zenodo_merge($concept_id, $filename, $local_file, $zenodo_copy)
     {   // shows whether Zenodo's copy has changes our local protected file doesn't, and how to merge them
+        if ($base = $this->find_zenodo_base($local_file, $filename)) { // sync merge: also sees deletions and changed citations
+            $d = $this->three_way_diff($local_file, $base, $zenodo_copy);
+            if (!$d['added'] && !$d['removed']) {
+                echo "Zenodo's copy [" . basename($zenodo_copy) . "]: its changes since the base are already in our local [$filename]. No sync needed.\n";
+                return false;
+            }
+            echo "\nSUGGESTION: Zenodo's copy [" . basename($zenodo_copy) . "] has changes since the base [" . basename($base) . "]:\n"
+               . "  - rows to add: " . number_format(count($d['added'])) . "\n  - rows to remove (deleted or changed on Zenodo): " . number_format(count($d['removed'])) . "\n"
+               . ($d['conflicts'] ? "  - identifiers changed both by us and on Zenodo: " . count($d['conflicts']) . "\n" : '')
+               . "  To preview, then apply them to our local file, run:\n";
+            if ($filename == 'references.tsv') echo "    php do_reference_mtce.php _ '{\"task\": \"sync_zenodo_references\", \"dry_run_YN\": 1}'\n    php do_reference_mtce.php _ '{\"task\": \"sync_zenodo_references\"}'\n  or call:\n";
+            echo "    \$this->sync_zenodo_copy_into_local($concept_id, '$filename');\n\n";
+            return true;
+        }
         $diff = $this->compare_with_zenodo_copy($local_file, $zenodo_copy);
         if (!$diff['new_ids'] && !$diff['conflicts']) {
             echo "Zenodo's copy [" . basename($zenodo_copy) . "] has nothing that our local [$filename] doesn't have. No merge needed.\n";

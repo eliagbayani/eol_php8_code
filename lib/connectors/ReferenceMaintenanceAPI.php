@@ -112,6 +112,17 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             echo "\nMerge result: " . json_encode($ret) . "\n";
             // */
         }
+        if($task == 'sync_zenodo_references') {
+            // /* Sync merge: apply Zenodo's additions, changes AND deletions (since the base) to our local master; our own additions are kept
+            $ret = $this->sync_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv', null, !empty($this->param['dry_run_YN']));
+            echo "\nSync result: " . json_encode($ret) . "\n";
+            // */
+        }
+        if($task == 'set_zenodo_base_references') {
+            // /* One-time setup of the sync merge: the newest Zenodo copy becomes the base. Only if it has nothing our master doesn't have.
+            self::set_zenodo_base_references();
+            // */
+        }
     }
     private function refresh_unmappable_identifiers_usingItself()
     {
@@ -648,6 +659,27 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $expected = $minus ? $orig - $changed : $orig + $changed;
         if($expected != $final) echo "WARNING: orig " . ($minus ? '-' : '+') . " $label != final\n";
     }
+    private function set_zenodo_base_references()
+    {   // the newest Zenodo copy of references.tsv (merged or not) becomes the sync base -- only if it has no rows our master doesn't have,
+        // i.e. our master is in step with it (plus our own additions). Returns the base path, or false.
+        $concept_id = $this->main_datasets['References_conceptID'];
+        $this->unmerged_checked["$concept_id/references.tsv"] = true;
+        if(!($local_file = $this->get_generic_file_path($concept_id, 'references', false))) { echo "\nERROR: No local references.tsv\n"; return false; }
+        $copies = glob(dirname(dirname($local_file)) . "/references_from_zenodo_*.tsv") ?: array();
+        usort($copies, fn($a, $b) => filemtime($b) <=> filemtime($a));
+        if(!$copies) { echo "\nERROR: No Zenodo copy of references.tsv yet. Download it first:\nphp generate_csv_new_model.php _ '{\"task\": \"refresh_all_TraitBank_datasets\", \"only\": \"References\"}'\n"; return false; }
+        $diff = $this->compare_with_zenodo_copy($local_file, $copies[0]);
+        if($diff['new_ids'] || $diff['conflicts']) {
+            echo "\nSTOP: Zenodo's copy [" . basename($copies[0]) . "] has rows our master doesn't have (" . $diff['new_ids'] . " new identifiers, " . count($diff['conflicts']) . " different values).\n"
+               . "It can't be the base. Nothing was changed.\n";
+            return false;
+        }
+        $label = preg_match('/_from_zenodo_(record\d+)/', basename($copies[0]), $m) ? $m[1] : date("Ymd_His");
+        if(!($base = $this->set_zenodo_base($local_file, 'references.tsv', $copies[0], $label))) return false;
+        $merged = preg_replace('/\.tsv$/', '_merged.tsv', $copies[0]);
+        if(!str_ends_with($copies[0], '_merged.tsv') && rename($copies[0], $merged)) echo "Zenodo's copy marked as merged: [" . basename($merged) . "]\n";
+        return $base;
+    }
     private function upload_file_toZenodo()
     {   /* Uploads our local file of a dataset to Zenodo as a new version, using upload_new_version_to_zenodo().
         $this->param:
@@ -667,7 +699,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         // 1. Zenodo's copy saved by a download, not merged yet -> uploading would drop Zenodo's changes
         if($copies = $this->find_unmerged_zenodo_copies($local_file, basename($local_file))) {
             echo "\nSTOP: Zenodo's copy [" . basename($copies[0]) . "] hasn't been merged into our local file yet. Merge it first:\n";
-            echo "php do_reference_mtce.php _ '{\"task\": \"merge_zenodo_references\"}'\nNothing was uploaded.\n";
+            echo "php do_reference_mtce.php _ '{\"task\": \"sync_zenodo_references\"}'\nNothing was uploaded.\n";
             return false;
         }
         // 2. a newer version on Zenodo than the one we downloaded (e.g. someone else published) -> download and merge it first
@@ -686,7 +718,11 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $ret = $this->upload_new_version_to_zenodo($concept_id, $local_file, $options);
 
         // after publishing, our local file IS the latest version -> record it, so the next upload isn't stopped by check 2
-        if($ret && $ret['published'] && $ret['record_id']) file_put_contents($record_file, $ret['record_id']);
+        if($ret && $ret['published'] && $ret['record_id']) {
+            file_put_contents($record_file, $ret['record_id']);
+            if(in_array(basename($local_file), self::PROTECTED_INPUT_FILES[$concept_id] ?? array())) // what we published is now the sync base
+                $this->set_zenodo_base($local_file, basename($local_file), $local_file, "record" . $ret['record_id']);
+        }
         return $ret;
     }
 }

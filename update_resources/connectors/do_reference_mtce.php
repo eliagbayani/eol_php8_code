@@ -26,6 +26,15 @@ php do_reference_mtce.php _ '{"task": "merge_zenodo_references"}'               
     - A Zenodo download keeps our master and saves Zenodo's copy beside the folder (references_from_zenodo_record<N>.tsv).
       This adds the identifiers only Zenodo has to our master (backup made first). Different citations for the same identifier are not
       changed, but listed in a conflicts TSV for review. Zenodo's copy is then renamed ..._merged so it isn't suggested again.
+php do_reference_mtce.php _ '{"task": "sync_zenodo_references", "dry_run_YN": 1}'           //sync merge, preview only: changes nothing
+php do_reference_mtce.php _ '{"task": "sync_zenodo_references"}'                            //sync merge: use this when the data managers edit or delete references on Zenodo
+    - Like merge_zenodo_references, but compares 3 copies: the Zenodo version we last synced with (the base, kept beside the folder as
+      references_zenodo_base_record<N>.tsv), Zenodo's new copy, and our master. So it also applies Zenodo's DELETIONS and CHANGED citations:
+      rows deleted on Zenodo are removed from our master, changed citations replace ours, new rows are added, and our own additions are kept.
+      Backup made first; a log of every added/removed row is saved (references_22776838_zenodo_sync_<date>.tsv). Zenodo's copy then becomes the new base.
+php do_reference_mtce.php _ '{"task": "set_zenodo_base_references"}'                        //one-time setup of the sync merge
+    - Makes the newest downloaded Zenodo copy the base, only if it has nothing our master doesn't have. After a publish by upload_file_toZenodo,
+      the published file becomes the base automatically.
 php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838"}'                  //upload our local master as a new version on Zenodo: draft only, for review
     - Creates a new version of the dataset on Zenodo with our local file (default: references.tsv for References); other files are kept.
       Stops at a draft, to be reviewed and published on Zenodo. Optional: "file": "traits", "version": "2026-10-28".

@@ -597,6 +597,14 @@ class ZenodoTraitBankAPI
         if (!($latest = $this->get_zenodo_info_using_conceptID($concept_id, 0))) { echo "ERROR: Cannot get the latest version of [$concept_id]\n"; return false; }
         $record_id = $latest['id'];
         echo "Dataset [$concept_id] \"{$latest['title']}\", latest version: record $record_id" . ($latest['version'] ? ", version {$latest['version']}" : '') . "\n";
+        // nothing to upload if the latest version already has this exact file (same md5): a published version can't be deleted
+        $md5 = md5_file($local_file);
+        foreach ($latest['files'] as $f) {
+            if ($f['key'] === $filename && strtolower((string) $f['checksum']) === "md5:$md5") {
+                echo "Zenodo's latest version (record $record_id) already has this exact file [$filename] (md5 $md5). Nothing was uploaded.\n";
+                return false;
+            }
+        }
 
         // 2. new-version draft. Zenodo returns the original record, with the draft at links.latest_draft
         [$code, $res] = $this->zenodo_api_request('POST', "$domain/api/deposit/depositions/$record_id/actions/newversion", $token);
@@ -627,7 +635,6 @@ class ZenodoTraitBankAPI
         if (!($bucket = $draft['links']['bucket'] ?? null)) return $discard("The draft has no upload (bucket) link");
         [$code, $res] = $this->zenodo_api_request('PUT', "$bucket/" . rawurlencode($filename), $token, null, $local_file);
         if ($code != 200 && $code != 201) return $discard("Upload of [$filename] failed (HTTP $code): " . $this->zenodo_error_message($res));
-        $md5 = md5_file($local_file);
         if (strtolower((string) ($res['checksum'] ?? '')) !== "md5:$md5") return $discard("Uploaded [$filename] has the wrong checksum [" . ($res['checksum'] ?? 'none') . "], expected [md5:$md5]");
         echo "Uploaded [$filename] (" . number_format(filesize($local_file)) . " bytes, md5 verified)\n";
 

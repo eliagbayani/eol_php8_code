@@ -724,6 +724,84 @@ class ZenodoTraitBankAPI
         echo "Saved " . count($rows) . " datasets to [TraitBank_datasets.csv]\n";
         return $file;
     }
+    function refresh_all_TraitBank_datasets()
+    {   /* Refreshes our local copies (TB_files/[concept_id]_[title]/input_files/) of all datasets of the Zenodo 'traitbank' community,
+           i.e. the files found by get_generic_file_path($concept_id, 'traits|taxon|occurrences|...').
+        A dataset is downloaded only if our copy is older than Zenodo's latest version, or missing; otherwise it is skipped.
+        Default: community datasets only. $this->param options:
+            'include_Terms_YN'      => 1: also Terms (22776577)
+            'include_References_YN' => 1: also References (22776838). Our master references.tsv is kept; Zenodo's copy is saved beside it
+                                          and a merge is suggested if it has changes we don't (see merge_zenodo_references)
+            'dry_run_YN'            => 1: only report which datasets are up to date / outdated / missing; download nothing
+            'only'                  => refresh only these, e.g. "Terms", "References", "23066982", or several: "Terms,References"
+                                       (names: Terms, References, DH; or any concept_id of the community). The include_ options are then ignored.
+        DH (22776209) is never included, unless named in 'only'.
+        Returns array('up to date' => [...], 'refreshed' => [...], 'failed' => [...], 'outdated' => [...] (dry run only)), or false. */
+        $main = array('Terms' => 22776577, 'References' => 22776838, 'DH' => 22776209);
+        $skip = array($main['DH']);
+        if (empty($this->param['include_Terms_YN']))      $skip[] = $main['Terms'];
+        if (empty($this->param['include_References_YN'])) $skip[] = $main['References'];
+        $dry_run = !empty($this->param['dry_run_YN']);
+        $only = array(); // concept_ids; empty = all, except $skip
+        if (!empty($this->param['only'])) {
+            $names = array_change_key_case($main, CASE_LOWER);
+            foreach (preg_split('/\s*,\s*/', trim(implode(',', (array) $this->param['only']))) as $item) {
+                if ($item === '') continue;
+                if (isset($names[strtolower($item)])) $only[] = $names[strtolower($item)];
+                elseif (ctype_digit($item))          $only[] = (int) $item;
+                else { echo "ERROR: Unknown dataset in 'only' [$item]; use Terms, References, DH or a concept_id\n"; return false; }
+            }
+        }
+
+        // 1. dataset list, always fresh from Zenodo
+        if (!($csv = $this->generate_Zenodo_TraitBank_datasets_inCSV())) { echo "ERROR: Cannot get the TraitBank datasets list from Zenodo\n"; return false; }
+        $datasets = array(); // concept_id => array(record_id, title)
+        $fh = fopen($csv, "r");
+        $fields = fgetcsv($fh, 0, ',', '"', '');
+        while (($row = fgetcsv($fh, 0, ',', '"', '')) !== false) {
+            $rec = array_combine($fields, array_pad($row, count($fields), ''));
+            if ($only ? !in_array((int) $rec['concept_id'], $only) : in_array((int) $rec['concept_id'], $skip)) continue;
+            $datasets[$rec['concept_id']] = array('record_id' => (string) $rec['record_id'], 'title' => $rec['title']);
+        }
+        fclose($fh);
+        if ($missing = array_diff($only, array_map('intval', array_keys($datasets)))) {
+            echo "ERROR: Not in the TraitBank community on Zenodo: [" . implode("], [", $missing) . "]. Nothing was downloaded.\n";
+            return false;
+        }
+        echo "\nTraitBank datasets to refresh: " . count($datasets) . ($dry_run ? " (dry run, nothing is downloaded)" : '') . "\n";
+
+        // 2. compare each local copy with Zenodo's latest version; download only the outdated or missing ones
+        $ret = array('up to date' => array(), 'refreshed' => array(), 'failed' => array());
+        if ($dry_run) $ret['outdated'] = array();
+        $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        foreach ($datasets as $concept_id => $d) {
+            $label       = "$concept_id {$d['title']}";
+            $record_file = $dir . "$concept_id.record_id";
+            $local       = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
+            $input_dir   = $dir . $this->get_dataset_folder_name($concept_id, $d['title']) . "/input_files/";
+            $has_files   = is_dir($input_dir) && count(scandir($input_dir)) > 2;
+            if ($local === $d['record_id'] && $has_files) {
+                echo "Up to date: [$label] (record $local)\n";
+                $ret['up to date'][] = $label;
+                continue;
+            }
+            $why = !$local ? "not downloaded yet" : ($local !== $d['record_id'] ? "local record $local, latest {$d['record_id']}" : "no files in input_files/");
+            if ($dry_run) { echo "Outdated:   [$label] ($why)\n"; $ret['outdated'][] = $label; continue; }
+
+            echo "\n--- Refreshing [$label] ($why) ---\n";
+            $this->input_dir = null;
+            $this->get_zenodo_info_using_conceptID($concept_id, 0); // fresh record info, so do_zenodo_stuff() below doesn't use a cached older version
+            $this->do_zenodo_stuff($concept_id);                   // note: exits on a fatal download error
+            $now = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
+            if ($now === $d['record_id'] && $this->input_dir && count(scandir($this->input_dir)) > 2) $ret['refreshed'][] = $label;
+            else { echo "ERROR: [$label] is still not at the latest version ({$d['record_id']})\n"; $ret['failed'][] = $label; }
+        }
+
+        // 3. summary
+        echo "\n=== Summary ===\n";
+        foreach ($ret as $status => $labels) echo str_pad($status . ':', 12) . count($labels) . ($labels ? "\n    " . implode("\n    ", $labels) : '') . "\n";
+        return $ret;
+    }
     function abbreviate_title($str)
     {   // e.g. "Biochemistry and Natural Products" -> "Biochemistry_and_Natu_Prod" (1st word complete, first 4 chars of every other word, joined by "_")
         //      "Fungal ecology, trait records and taxonomic metadata" -> "Fungal_ecol_trai_reco_and_taxo_meta"

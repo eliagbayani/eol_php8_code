@@ -315,6 +315,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         foreach($rows as $row) fwrite($fhandle, $row . $eol);
         fclose($fhandle);
         echo "\nUpdated: [$references_tsv]\n";
+        $this->copy_to_github_folder($references_tsv);
         return true;
     }
     private function update_unmappable_identifiers($processed_tsv)
@@ -345,6 +346,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         foreach($rows as $row) fwrite($fhandle, $row . "\n");
         fclose($fhandle);
         echo "\nUpdated: [$tsv]\n";
+        $this->copy_to_github_folder($tsv);
         self::print_row_stats($orig, count($rows), self::count_data_rows($tsv));
         return count($rows);
     }
@@ -379,6 +381,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
         if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
         echo "\nUpdated: [$tsv]\nRemoved (now in the master):\n" . implode("\n", $removed) . "\n";
+        $this->copy_to_github_folder($tsv);
         self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
         return count($removed);
     }
@@ -473,6 +476,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
         echo "\nBackup: [$backup]\nRemoved rows saved in: [$record]\nUpdated: [$tsv]\nRemoved (no dataset cites them any more):\n";
         foreach($removed as $line) echo explode("\t", $line)[0] . "\n";
+        $this->copy_to_github_folder($tsv);
         self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
         return count($removed);
     }
@@ -544,6 +548,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             $tmp = $source1 . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
             if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $source1)) { echo "\nERROR: Cannot update [$source1]\n"; return false; }
             echo "\nUpdated: [$source1]\n";
+            $this->copy_to_github_folder($source1);
         }
         else echo "\nNo rows to delete from [$source1].\n";
         self::print_row_stats($orig1, $total_deleted, self::count_data_rows($source1), 'deleted');

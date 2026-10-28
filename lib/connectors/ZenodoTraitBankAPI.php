@@ -20,6 +20,10 @@ class ZenodoTraitBankAPI
     // To take Zenodo's copy on purpose, run with param "overwrite_protected_files_YN": 1
     const PROTECTED_INPUT_FILES = array('22776838' => array('references.tsv')); // 22776838 = References
 
+    // Local working copy of the GitHub repo EOL/unmappable_reference_identifiers. Each time our unmappable_identifiers.tsv or our
+    // master references.tsv changes, it is copied here by copy_to_github_folder().
+    const GITHUB_COPY_FOLDER = '/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/';
+
     function __construct($folder = null, $query = null)
     {
         $this->download_options = array(
@@ -268,6 +272,9 @@ class ZenodoTraitBankAPI
     private function restore_protected_files($saved, $dest_dir, $concept_id)
     {   // after extraction/download: move Zenodo's new copy (if any) beside the folder, then put our local file back
         // e.g. TB_files/22776838_References/references_from_zenodo_record23100000.tsv -- outside input_files/, so get_generic_file_path() never uses it
+        if (!empty($this->param['overwrite_protected_files_YN'])) { // our local file was replaced by Zenodo's copy on purpose
+            foreach (self::PROTECTED_INPUT_FILES[(string) $concept_id] ?? array() as $filename) $this->copy_to_github_folder($dest_dir . $filename);
+        }
         foreach ($saved as $filename => $aside) {
             if (!is_dir($dest_dir)) mkdir($dest_dir, 0775, true); // e.g. the download failed after the folder was deleted
             $file = $dest_dir . $filename;
@@ -283,6 +290,25 @@ class ZenodoTraitBankAPI
             echo "Kept our local [$filename] (protected, has local updates)\n";
             if ($zenodo_copy) $this->suggest_zenodo_merge($concept_id, $filename, $file, $zenodo_copy);
         }
+    }
+    function copy_to_github_folder($file)
+    {   // copies $file to GITHUB_COPY_FOLDER (same file name), but only if it is one of the 2 files kept there:
+        //   CONTENT_RESOURCE_LOCAL_PATH/unmappable_identifiers.tsv
+        //   our master references: CONTENT_RESOURCE_LOCAL_PATH/TB_files/22776838_*/input_files/references.tsv
+        // other files (e.g. test copies) are ignored. Returns the path of the copy, or false.
+        $real = realpath($file);
+        $base = realpath(CONTENT_RESOURCE_LOCAL_PATH);
+        if (!$real || !$base) return false;
+        $tracked = ($real === "$base/unmappable_identifiers.tsv")
+                || preg_match('#^' . preg_quote("$base/TB_files/", '#') . '22776838_[^/]+/input_files/references\.tsv$#', $real);
+        if (!$tracked) return false;
+        $dest = static::GITHUB_COPY_FOLDER . basename($real);
+        if (!is_dir(static::GITHUB_COPY_FOLDER)) { echo "NOTE: GitHub folder not found, [" . basename($real) . "] not copied: [" . static::GITHUB_COPY_FOLDER . "]\n"; return false; }
+        if (is_file($dest) && md5_file($dest) === md5_file($real)) { echo "GitHub folder copy already up to date: [$dest]\n"; return $dest; }
+        $tmp = "$dest.tmp"; // copy to a temp file first, so a failed copy can't leave a half-written file
+        if (!copy($real, $tmp) || !rename($tmp, $dest)) { @unlink($tmp); echo "ERROR: Cannot copy [$real] to [$dest]\n"; return false; }
+        echo "Copied to GitHub folder: [$dest]\n";
+        return $dest;
     }
     private function compare_with_zenodo_copy($local_file, $zenodo_copy)
     {   // for protected files whose 1st column is the identifier (e.g. references.tsv: identifier, full_reference)
@@ -377,6 +403,7 @@ class ZenodoTraitBankAPI
             if ($contents !== '' && substr($contents, -1) !== "\n") fwrite($fhandle, $eol); // last row has no line ending
             foreach ($diff['new_rows'] as $row) fwrite($fhandle, $row . $eol);
             fclose($fhandle);
+            $this->copy_to_github_folder($local_file);
         }
         $final = $count_rows($local_file);
         echo "orig total rows: " . number_format($orig) . "\nadded rows: " . number_format(count($diff['new_rows'])) . " (" . number_format($diff['new_ids']) . " new identifiers)\nfinal total rows: " . number_format($final) . "\n";

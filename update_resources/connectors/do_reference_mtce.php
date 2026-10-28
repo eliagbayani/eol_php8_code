@@ -3,14 +3,38 @@ namespace php_active_record;
 /* Maintenance of the TB References: 
 start Oct 23, 2026:
 php do_reference_mtce.php _ '{"task": "prepare_undefined_referenceIDs_list"}'               //steps 1 & 2
+    - Step 1: collects the undefined referenceIDs from the latest numbers_UndefinedRefIDs_debug_*.txt file of each dataset (older dates are deleted)
+      into undefined_referenceIDs_YYYYMMDD.tsv (referenceID, concept_id). The debug files are then renamed with an x_ prefix.
+    - Step 2: looks up each referenceID in CrossRef -> undefined_referenceIDs_YYYYMMDD_processed.tsv (referenceID, citation, status).
 php do_reference_mtce.php _ '{"task": "update_References_from_UndefinedRefIDs_files"}'      //steps 3 & 4
+    - Step 3: adds the referenceIDs that got a citation (status OK) to our master references.tsv (identifier, full_reference). Backup made first.
+    - Step 4: adds the ones with no citation to unmappable_identifiers.tsv (identifier, status, full_reference), for the Data Manager to fill in by hand.
 php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingMaster"}'        //step 5
+    - Removes from unmappable_identifiers.tsv the identifiers that now have a citation in our master references.tsv.
 php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingItself"}'        //step 5.1
+    - Downloads unmappable_identifiers.tsv from the private GitHub repo EOL/unmappable_reference_identifiers (needs GITHUB_TOKEN).
+      Stops, and explains the difference, if it isn't identical to our local copy. Otherwise the citations the Data Manager typed in
+      (full_reference column) are added to our master references.tsv, and those identifiers are removed from unmappable_identifiers.tsv.
 php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingDatasets"}'      //step 5.2
+    - Removes from unmappable_identifiers.tsv the identifiers no longer cited in the traits file of any TraitBank dataset on Zenodo
+      (except Terms, References, DH). Uses our downloaded copies; stops and removes nothing if any copy is missing or older than
+      Zenodo's latest version (prints the re-download commands). Backup and a record of the removed rows are saved.
 php do_reference_mtce.php _ '{"task": "utility_report_duplicate_identifiers_from_master"}'  //Utility : step 6
+    - Report only, changes nothing: lists the identifiers that appear more than once in our master references.tsv
+      -> references_duplicate_identifiers_YYYYMMDD.tsv, sorted by identifier.
 php do_reference_mtce.php _ '{"task": "merge_zenodo_references"}'                           //merge Zenodo's new copy of references.tsv into our local master
+    - A Zenodo download keeps our master and saves Zenodo's copy beside the folder (references_from_zenodo_record<N>.tsv).
+      This adds the identifiers only Zenodo has to our master (backup made first). Different citations for the same identifier are not
+      changed, but listed in a conflicts TSV for review. Zenodo's copy is then renamed ..._merged so it isn't suggested again.
 php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838"}'                  //upload our local master as a new version on Zenodo: draft only, for review
+    - Creates a new version of the dataset on Zenodo with our local file (default: references.tsv for References); other files are kept.
+      Stops at a draft, to be reviewed and published on Zenodo. Optional: "file": "traits", "version": "2026-10-28".
+      Stops and uploads nothing if Zenodo has changes we don't have yet (an unmerged Zenodo copy, or a newer version than our download).
 php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838", "publish": 1}'    //same, but publish now -- CANNOT be undone
+    - Same as above, but publishes the new version right away. A published Zenodo version can never be deleted.
+
+Note: every time unmappable_identifiers.tsv or our master references.tsv changes, it is also copied to
+/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

@@ -175,7 +175,7 @@ class FingersCrossedHandler extends AbstractHandler
      *
      * @return HandlerInterface
      */
-    public function getHandler(array $record = null)
+    public function getHandler(?array $record = null)
     {
         if (!$this->handler instanceof HandlerInterface) {
             $this->handler = call_user_func($this->handler, $record, $this);

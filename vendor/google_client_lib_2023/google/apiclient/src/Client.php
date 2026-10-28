@@ -279,7 +279,7 @@ class Client
      * @param ClientInterface $authHttp optional.
      * @return array access token
      */
-    public function fetchAccessTokenWithAssertion(ClientInterface $authHttp = null)
+    public function fetchAccessTokenWithAssertion(?ClientInterface $authHttp = null)
     {
         if (!$this->isUsingApplicationDefaultCredentials()) {
             throw new DomainException(
@@ -411,7 +411,7 @@ class Client
      * @param ClientInterface $http the http client object.
      * @return ClientInterface the http client object
      */
-    public function authorize(ClientInterface $http = null)
+    public function authorize(?ClientInterface $http = null)
     {
         $http = $http ?: $this->getHttpClient();
         $authHandler = $this->getAuthHandler();

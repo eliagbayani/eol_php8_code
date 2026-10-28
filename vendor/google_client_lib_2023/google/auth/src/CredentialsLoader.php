@@ -175,8 +175,8 @@ abstract class CredentialsLoader implements
     public static function makeHttpClient(
         FetchAuthTokenInterface $fetcher,
         array $httpClientOptions = [],
-        callable $httpHandler = null,
-        callable $tokenCallback = null
+        ?callable $httpHandler = null,
+        ?callable $tokenCallback = null
     ) {
         if (self::getGuzzleMajorVersion() === 5) {
             $client = new \GuzzleHttp\Client($httpClientOptions);
@@ -236,7 +236,7 @@ abstract class CredentialsLoader implements
     public function updateMetadata(
         $metadata,
         $authUri = null,
-        callable $httpHandler = null
+        ?callable $httpHandler = null
     ) {
         if (isset($metadata[self::AUTH_METADATA_KEY])) {
             // Auth metadata has already been set

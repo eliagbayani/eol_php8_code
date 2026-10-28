@@ -86,7 +86,7 @@ class SlackRecord
      */
     private $normalizerFormatter;
 
-    public function __construct($channel = null, $username = null, $useAttachment = true, $userIcon = null, $useShortAttachment = false, $includeContextAndExtra = false, array $excludeFields = array(), FormatterInterface $formatter = null)
+    public function __construct($channel = null, $username = null, $useAttachment = true, $userIcon = null, $useShortAttachment = false, $includeContextAndExtra = false, array $excludeFields = array(), ?FormatterInterface $formatter = null)
     {
         $this->channel = $channel;
         $this->username = $username;

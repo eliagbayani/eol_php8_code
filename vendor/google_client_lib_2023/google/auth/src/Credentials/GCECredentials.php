@@ -175,7 +175,7 @@ class GCECredentials extends CredentialsLoader implements
      *   account identity name to use instead of "default".
      */
     public function __construct(
-        Iam $iam = null,
+        ?Iam $iam = null,
         $scope = null,
         $targetAudience = null,
         $quotaProject = null,
@@ -308,7 +308,7 @@ class GCECredentials extends CredentialsLoader implements
      * @param callable $httpHandler callback which delivers psr7 request
      * @return bool True if this a GCEInstance, false otherwise
      */
-    public static function onGce(callable $httpHandler = null)
+    public static function onGce(?callable $httpHandler = null)
     {
         $httpHandler = $httpHandler
             ?: HttpHandlerFactory::build(HttpClientCache::getHttpClient());
@@ -362,7 +362,7 @@ class GCECredentials extends CredentialsLoader implements
      *
      * @throws \Exception
      */
-    public function fetchAuthToken(callable $httpHandler = null)
+    public function fetchAuthToken(?callable $httpHandler = null)
     {
         $httpHandler = $httpHandler
             ?: HttpHandlerFactory::build(HttpClientCache::getHttpClient());
@@ -424,7 +424,7 @@ class GCECredentials extends CredentialsLoader implements
      * @param callable $httpHandler callback which delivers psr7 request
      * @return string
      */
-    public function getClientName(callable $httpHandler = null)
+    public function getClientName(?callable $httpHandler = null)
     {
         if ($this->clientName) {
             return $this->clientName;
@@ -493,7 +493,7 @@ class GCECredentials extends CredentialsLoader implements
      * @param callable $httpHandler Callback which delivers psr7 request
      * @return string|null
      */
-    public function getProjectId(callable $httpHandler = null)
+    public function getProjectId(?callable $httpHandler = null)
     {
         if ($this->projectId) {
             return $this->projectId;

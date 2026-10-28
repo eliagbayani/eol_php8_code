@@ -333,7 +333,7 @@ class ZenodoTraitBankAPI
         if (count($copies) > 1) echo "NOTE: " . count($copies) . " unmerged Zenodo copies of [$filename]; the newest is used: [" . basename($copies[0]) . "]\n";
         $this->suggest_zenodo_merge($concept_id, $filename, $local_file, $copies[0]);
     }
-    private function find_unmerged_zenodo_copies($local_file, $filename)
+    protected function find_unmerged_zenodo_copies($local_file, $filename)
     {   // Zenodo copies saved by restore_protected_files() beside the dataset folder, newest first; merged ones end in _merged
         // e.g. TB_files/22776838_References/references_from_zenodo_record23100000.tsv
         $folder = dirname(dirname($local_file));

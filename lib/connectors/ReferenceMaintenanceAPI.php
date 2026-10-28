@@ -99,6 +99,13 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // */
         }
 
+        if($task == 'upload_file_toZenodo') {
+            // /* Upload our local file of a dataset to Zenodo as a new version. Draft only, unless "publish": 1
+            $ret = self::upload_file_toZenodo();
+            if($ret) echo "\nUpload result: " . json_encode($ret) . "\n";
+            // */
+        }
+
         if($task == 'merge_zenodo_references') {
             // /* Merge the changes in Zenodo's copy of references.tsv (saved beside the folder after a new download) into our local master
             $ret = $this->merge_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv');
@@ -637,12 +644,45 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if($expected != $final) echo "WARNING: orig " . ($minus ? '-' : '+') . " $label != final\n";
     }
     private function upload_file_toZenodo()
-    {
-        // Usage, e.g. from ReferenceMaintenanceAPI:
-        $concept_id = $this->main_datasets['References_conceptID'];   // 22776838
-        $file = $this->get_generic_file_path($concept_id, 'references', false);
-        $r = $this->upload_new_version_to_zenodo($concept_id, $file);                                            // draft only, for review
-        $r = $this->upload_new_version_to_zenodo($concept_id, $file, array('publish' => true, 'version' => date("Y-m-d"))); // publish now        
+    {   /* Uploads our local file of a dataset to Zenodo as a new version, using upload_new_version_to_zenodo().
+        $this->param:
+            'concept_id' => required, e.g. 22776838 (References)
+            'file'       => optional, name of the file in input_files/ to upload, e.g. 'references'; default: the dataset's protected file (PROTECTED_INPUT_FILES)
+            'publish'    => optional, 1 = publish now (CANNOT be undone); default 0 = stop at a draft, for review on Zenodo
+            'version'    => optional, version label, e.g. '2026-10-28'; default: keep the previous version's label
+        Stops and uploads nothing if Zenodo has changes we don't have yet: an unmerged Zenodo copy, or a newer version than the one we downloaded.
+        Returns the result of upload_new_version_to_zenodo(), or false. */
+        $concept_id = trim((string) ($this->param['concept_id'] ?? ''));
+        if(!ctype_digit($concept_id)) { echo "\nERROR: concept_id is required, e.g. php do_reference_mtce.php _ '{\"task\": \"upload_file_toZenodo\", \"concept_id\": \"22776838\"}'\n"; return false; }
+        $file = $this->param['file'] ?? (self::PROTECTED_INPUT_FILES[$concept_id][0] ?? null);
+        if(!$file) { echo "\nERROR: No default file for dataset [$concept_id]; give one, e.g. \"file\": \"traits\"\n"; return false; }
+        if(!($local_file = $this->get_generic_file_path($concept_id, $file, false))) { echo "\nERROR: No local file [$file] for dataset [$concept_id]\n"; return false; }
+        echo "\nLocal file: [$local_file]\n";
+
+        // 1. Zenodo's copy saved by a download, not merged yet -> uploading would drop Zenodo's changes
+        if($copies = $this->find_unmerged_zenodo_copies($local_file, basename($local_file))) {
+            echo "\nSTOP: Zenodo's copy [" . basename($copies[0]) . "] hasn't been merged into our local file yet. Merge it first:\n";
+            echo "php do_reference_mtce.php _ '{\"task\": \"merge_zenodo_references\"}'\nNothing was uploaded.\n";
+            return false;
+        }
+        // 2. a newer version on Zenodo than the one we downloaded (e.g. someone else published) -> download and merge it first
+        if(!($latest = $this->get_zenodo_info_using_conceptID($concept_id, 0))) { echo "\nERROR: Cannot get the latest version of [$concept_id]\n"; return false; }
+        $record_file = CONTENT_RESOURCE_LOCAL_PATH . "TB_files/$concept_id.record_id";
+        $local = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
+        if($local !== (string) $latest['id']) {
+            echo "\nSTOP: Zenodo's latest version is record {$latest['id']}, but our local copy is from record " . ($local ?: 'unknown') . ".\n";
+            echo "Download it (our local file is kept), merge it if suggested, then upload again:\n";
+            echo "php generate_csv_new_model.php _ '{\"concept_id\": \"$concept_id\", \"redownload_zip_file_YN\": 0, \"task\": \"download_only\", \"what\": \"{$latest['title']}\"}'\nNothing was uploaded.\n";
+            return false;
+        }
+
+        $options = array('publish' => !empty($this->param['publish']));
+        if(isset($this->param['version'])) $options['version'] = $this->param['version'];
+        $ret = $this->upload_new_version_to_zenodo($concept_id, $local_file, $options);
+
+        // after publishing, our local file IS the latest version -> record it, so the next upload isn't stopped by check 2
+        if($ret && $ret['published'] && $ret['record_id']) file_put_contents($record_file, $ret['record_id']);
+        return $ret;
     }
 }
 ?>

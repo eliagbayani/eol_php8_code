@@ -9,6 +9,8 @@ php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingItsel
 php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingDatasets"}'     //step 5.2
 php do_reference_mtce.php _ '{"task": "utility_report_duplicate_identifiers_from_master"}'  //Utility : step 6
 php do_reference_mtce.php _ '{"task": "merge_zenodo_references"}'                          //merge Zenodo's new copy of references.tsv into our local master
+php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838"}'                  //upload our local master as a new version on Zenodo: draft only, for review
+php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838", "publish": 1}'    //same, but publish now -- CANNOT be undone
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

@@ -53,7 +53,7 @@ php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager
       Done even if the upload stopped. 
     - Step 5: unmappable_identifiers.tsv is copied to the GitHub folder.
 
-      php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
 php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv"}'                   //uploads a draft to Zenodo
 php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
     - "file" (required): the Data Manager's list of master rows to delete (identifier, full_reference, master_row), e.g. picked from the duplicates report.

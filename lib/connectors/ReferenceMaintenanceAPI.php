@@ -101,7 +101,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 
         if($task == 'upload_file_toZenodo') {
             // /* Upload our local file of a dataset to Zenodo as a new version. Draft only, unless "publish": 1
-            $ret = self::upload_file_toZenodo();
+            $ret = $this->upload_file_toZenodo();
             if($ret) echo "\nUpload result: " . json_encode($ret) . "\n";
             // */
         }
@@ -123,6 +123,115 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             self::set_zenodo_base_references();
             // */
         }
+        if($task == 'update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers') {
+            // /* Data manager's filled-in unmappable list -> master references.tsv (+ GitHub copy, Zenodo upload) -> remove them from unmappable_identifiers.tsv (+ GitHub copy)
+            if(empty($this->param['file'])) echo "\nERROR: \"file\" is required: the path of the data manager's TSV\n";
+            else {
+                $ret = self::update_master_with_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']));
+                echo "\nResult: " . json_encode($ret) . "\n";
+            }
+            // */
+        }
+    }
+    private function update_master_with_datamanager_file($dm_file, $dry_run = false, $tsv = null)
+    {   /* $dm_file: the data manager's copy of unmappable_identifiers.tsv (identifier, status, full_reference), with full_reference filled in
+        Step 1: rows with a full_reference --> master references.tsv, if the identifier isn't there yet (else ignored)
+        Step 2: the master is copied to the GitHub folder (done by append_to_references_master())
+        Step 3: the master is uploaded to Zenodo: draft only, unless $this->param['publish']
+        Step 4: the identifiers added in step 1 are removed from our unmappable_identifiers.tsv ($tsv; a trailing '/' is ignored when matching)
+        Step 5: unmappable_identifiers.tsv is copied to the GitHub folder
+        $dry_run: report steps 1 and 4 only, change nothing.
+        Returns array('added', 'ignored', 'uploaded', 'deleted'), or false. */
+        if(!$tsv) $tsv = CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
+        if(!is_file($dm_file)) { echo "\nERROR: No file [$dm_file]\n"; return false; }
+        $lines = file($dm_file, FILE_IGNORE_NEW_LINES);
+        $header = array_map('trim', explode("\t", (string) @$lines[0]));
+        if($header !== array('identifier', 'status', 'full_reference')) { echo "\nERROR: [$dm_file] header must be: identifier, status, full_reference\n"; return false; }
+        echo "\nData manager's file: [$dm_file]\n";
+
+        // Step 1
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        echo "\nReferences Master: [$references_tsv]\n";
+        $existing = array();
+        foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line) $existing[trim(explode("\t", $line)[0])] = '';
+        $orig = self::count_data_rows($references_tsv);
+        $rows = array(); $added = array(); $seen = array(); $ignored = array(); $repeated = array(); $blank = 0;
+        foreach($lines as $line_no => $line) {
+            if($line_no == 0 || trim($line) == '') continue; // header
+            [$identifier, $status, $full_reference] = array_map('trim', explode("\t", $line) + array('', '', ''));
+            if($identifier == '' || $full_reference == '') { $blank++; continue; }
+            if(isset($seen[$identifier]))    { $repeated[] = $identifier; continue; }
+            $seen[$identifier] = '';
+            if(isset($existing[$identifier])) { $ignored[] = $identifier; continue; }
+            $added[$identifier] = '';
+            $rows[] = "$identifier\t$full_reference";
+        }
+        echo "\n" . ($dry_run ? "DRY RUN, nothing is changed.\nWould be added" : "To be added") . " to master: " . count($rows) . "\n";
+        echo "Ignored, already in master: " . count($ignored) . ($ignored ? "\n    " . implode("\n    ", $ignored) : '') . "\n";
+        if($repeated) echo "Ignored, listed again in the file: " . count($repeated) . "\n    " . implode("\n    ", $repeated) . "\n";
+        if($blank)    echo "Skipped, blank full_reference: $blank\n";
+
+        // Step 4, worked out first: rows of our unmappable list whose identifier was added (a trailing '/' is ignored)
+        $added_noslash = array();
+        foreach(array_keys($added) as $id) $added_noslash[rtrim($id, '/')] = $id;
+        $keep = array(); $deleted = array(); $slash_notes = array();
+        if(is_file($tsv)) {
+            foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+                if($line_no == 0) { $keep[] = $line; continue; } // header
+                if(trim($line) == '') continue;
+                $identifier = trim(explode("\t", $line)[0]);
+                $key = rtrim($identifier, '/');
+                if($identifier != '' && isset($added_noslash[$key])) {
+                    $deleted[] = $identifier;
+                    if(!isset($added[$identifier])) $slash_notes[] = "[$identifier] matched [{$added_noslash[$key]}] (trailing '/' ignored)";
+                }
+                else $keep[] = $line;
+            }
+        }
+        else echo "\nNo [$tsv] yet.\n";
+        $not_listed = array_diff(array_keys($added_noslash), array_map(fn($id) => rtrim($id, '/'), $deleted));
+        if($dry_run) {
+            echo "\nWould be deleted from [$tsv]: " . count($deleted) . "\n";
+            if($slash_notes) echo "NOTE:\n    " . implode("\n    ", $slash_notes) . "\n";
+            if($not_listed)  echo "Added, but not on our unmappable list: " . count($not_listed) . "\n    " . implode("\n    ", array_map(fn($k) => $added_noslash[$k], $not_listed)) . "\n";
+            return array('added' => count($rows), 'ignored' => count($ignored) + count($repeated), 'uploaded' => false, 'deleted' => count($deleted));
+        }
+        if(!$rows) {
+            echo "\nNo new references to add. Nothing was changed or uploaded.\n";
+            return array('added' => 0, 'ignored' => count($ignored) + count($repeated), 'uploaded' => false, 'deleted' => 0);
+        }
+
+        // Steps 1 & 2
+        if(!self::append_to_references_master($references_tsv, $rows)) return false; // also copies the master to the GitHub folder
+        self::print_row_stats($orig, count($rows), self::count_data_rows($references_tsv));
+
+        // Step 3
+        echo "\nUploading the master to Zenodo" . (empty($this->param['publish']) ? " (draft only)" : " (PUBLISH)") . "...\n";
+        $this->param['concept_id'] = (string) $this->main_datasets['References_conceptID'];
+        $dm_param = $this->param['file'] ?? null;
+        unset($this->param['file']); // 'file' here is the data manager's TSV; for upload_file_toZenodo() it would be the file to upload -> use its default, references.tsv
+        $uploaded = $this->upload_file_toZenodo();
+        if($dm_param !== null) $this->param['file'] = $dm_param;
+        if(!$uploaded) echo "\nNOTE: the master was updated, but NOT uploaded to Zenodo. Upload it later:\n"
+                          . "php do_reference_mtce.php _ '{\"task\": \"upload_file_toZenodo\", \"concept_id\": \"{$this->param['concept_id']}\"}'\n";
+
+        // Steps 4 & 5
+        echo "\nUnmappable identifiers: [$tsv]\n";
+        $orig1 = self::count_data_rows($tsv);
+        if($deleted) {
+            $backup = dirname($tsv) . "/unmappable_identifiers_backup_" . date("Ymd_His") . ".tsv";
+            if(!copy($tsv, $backup)) { echo "\nERROR: Cannot backup [$tsv]\n"; return false; }
+            echo "Backup: [$backup]\n";
+            $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+            if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
+            echo "Updated: [$tsv]\n";
+            if($slash_notes) echo "NOTE:\n    " . implode("\n    ", $slash_notes) . "\n";
+            $this->copy_to_github_folder($tsv);
+        }
+        else echo "No rows to delete.\n";
+        self::print_row_stats($orig1, count($deleted), self::count_data_rows($tsv), 'deleted');
+        if($not_listed) echo "Added, but not on our unmappable list: " . count($not_listed) . "\n    " . implode("\n    ", array_map(fn($k) => $added_noslash[$k], $not_listed)) . "\n";
+        return array('added' => count($rows), 'ignored' => count($ignored) + count($repeated), 'uploaded' => $uploaded, 'deleted' => count($deleted));
     }
     private function refresh_unmappable_identifiers_usingItself()
     {
@@ -680,7 +789,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(!str_ends_with($copies[0], '_merged.tsv') && rename($copies[0], $merged)) echo "Zenodo's copy marked as merged: [" . basename($merged) . "]\n";
         return $base;
     }
-    private function upload_file_toZenodo()
+    protected function upload_file_toZenodo()
     {   /* Uploads our local file of a dataset to Zenodo as a new version, using upload_new_version_to_zenodo().
         $this->param:
             'concept_id' => required, e.g. 22776838 (References)

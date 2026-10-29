@@ -608,9 +608,14 @@ class ZenodoTraitBankAPI
 
         // 2. new-version draft. Zenodo returns the original record, with the draft at links.latest_draft
         [$code, $res] = $this->zenodo_api_request('POST', "$domain/api/deposit/depositions/$record_id/actions/newversion", $token);
-        if ($code != 201) { echo "ERROR: Cannot create a new version (HTTP $code): " . $this->zenodo_error_message($res) . "\n"; return false; }
-        $draft_url = $res['links']['latest_draft'] ?? null;
-        if (!$draft_url && @$res['id'] && $res['id'] != $record_id) $draft_url = "$domain/api/deposit/depositions/" . $res['id']; // in case the draft itself is returned
+        if ($code == 201) {
+            $draft_url = $res['links']['latest_draft'] ?? null;
+            if (!$draft_url && @$res['id'] && $res['id'] != $record_id) $draft_url = "$domain/api/deposit/depositions/" . $res['id']; // in case the draft itself is returned
+        }
+        else { // e.g. an open draft is left from an earlier run (Zenodo can create the draft and still answer with an error) -> reuse it, if untouched
+            echo "Zenodo could not create a new version (HTTP $code): " . $this->zenodo_error_message($res) . "\nLooking for an open draft of this dataset...\n";
+            if (!($draft_url = $this->find_untouched_zenodo_draft($domain, $token, $concept_id, $latest))) { echo "ERROR: Cannot create a new version. Nothing was uploaded.\n"; return false; }
+        }
         if (!$draft_url) { echo "ERROR: Zenodo did not return the new draft\n"; return false; }
         [$code, $draft] = $this->zenodo_api_request('GET', $draft_url, $token);
         if ($code != 200 || empty($draft['id']) || $draft['id'] == $record_id) { echo "ERROR: Cannot get the new draft (HTTP $code): " . $this->zenodo_error_message($draft) . "\n"; return false; }
@@ -662,6 +667,26 @@ class ZenodoTraitBankAPI
         $ret['doi']       = $res['doi'] ?? null;
         echo "Published new version: record " . $ret['record_id'] . ($ret['doi'] ? ", DOI " . $ret['doi'] : '') . "\n";
         return $ret;
+    }
+    private function find_untouched_zenodo_draft($domain, $token, $concept_id, $latest)
+    {   // the open (unpublished) draft of $concept_id in our Zenodo account, only if nobody has changed its files yet,
+        // i.e. it has exactly the files of the latest published version ($latest from get_zenodo_info_using_conceptID()). Returns its API url, or false.
+        [$code, $res] = $this->zenodo_api_request('GET', "$domain/api/deposit/depositions?status=draft&sort=mostrecent&size=100", $token);
+        if ($code != 200 || !is_array($res)) { echo "Cannot list our Zenodo drafts (HTTP $code): " . $this->zenodo_error_message($res) . "\n"; return false; }
+        $drafts = array_values(array_filter($res, fn($d) => (string) ($d['conceptrecid'] ?? '') === (string) $concept_id && empty($d['submitted'])));
+        if (!$drafts) { echo "No open draft of [$concept_id] found.\n"; return false; }
+        if (count($drafts) > 1) { echo "More than one open draft of [$concept_id]: " . implode(', ', array_column($drafts, 'id')) . ". Discard the extra ones on Zenodo.\n"; return false; }
+        $url = $drafts[0]['links']['self'] ?? "$domain/api/deposit/depositions/{$drafts[0]['id']}";
+        [$code, $d] = $this->zenodo_api_request('GET', $url, $token); // the list leaves out the files
+        if ($code != 200 || empty($d['id'])) { echo "Cannot get the open draft {$drafts[0]['id']} (HTTP $code): " . $this->zenodo_error_message($d) . "\n"; return false; }
+        $html = $d['links']['html'] ?? "$domain/deposit/{$d['id']}";
+        $md5 = fn($s) => strtolower(preg_replace('/^md5:/i', '', (string) $s));
+        $have = array(); foreach ($d['files'] ?? array() as $f)  $have[$f['filename'] ?? ''] = $md5($f['checksum'] ?? '');
+        $want = array(); foreach ($latest['files'] as $f)         $want[$f['key'] ?? '']      = $md5($f['checksum'] ?? '');
+        ksort($have); ksort($want);
+        if ($have !== $want) { echo "The open draft {$d['id']} has been changed (its files differ from the latest version), so it was not touched: $html\nFinish or discard it on Zenodo, then run again.\n"; return false; }
+        echo "Reusing the open draft {$d['id']}, unchanged since it was created ({$d['created']}): $html\n";
+        return $url;
     }
     private function zenodo_api_request($method, $url, $token, $json = null, $upload_file = null)
     {   // Zenodo REST call; the token goes in the Authorization header only (never in the URL). Returns array(HTTP code, decoded JSON body).

@@ -41,15 +41,19 @@ php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "227
       Stops and uploads nothing if Zenodo has changes we don't have yet (an unmerged Zenodo copy, or a newer version than our download).
 php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838", "publish": 1}'    //same, but publish now -- CANNOT be undone
     - Same as above, but publishes the new version right away. A published Zenodo version can never be deleted.
+
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv"}'                   //uploads a draft to Zenodo
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
     - "file" (required): the Data Manager's copy of unmappable_identifiers.tsv (identifier, status, full_reference) with the citations typed in.
     - Step 1: rows with a full_reference are added to our master references.tsv (backup made first); identifiers already in the master are ignored (listed).
-    - Step 2: the master is copied to the GitHub folder. Step 3: the master is uploaded to Zenodo (same as upload_file_toZenodo, with its safety checks).
+    - Step 2: the master is copied to the GitHub folder. 
+    - Step 3: the master is uploaded to Zenodo (same as upload_file_toZenodo, with its safety checks).
     - Step 4: the added identifiers are removed from our unmappable_identifiers.tsv (backup made first; a trailing '/' is ignored when matching).
-      Done even if the upload stopped. Step 5: unmappable_identifiers.tsv is copied to the GitHub folder.
-php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
+      Done even if the upload stopped. 
+    - Step 5: unmappable_identifiers.tsv is copied to the GitHub folder.
+
+      php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
 php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv"}'                   //uploads a draft to Zenodo
 php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
     - "file" (required): the Data Manager's list of master rows to delete (identifier, full_reference, master_row), e.g. picked from the duplicates report.

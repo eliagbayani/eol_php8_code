@@ -46,12 +46,20 @@ php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv"}'                   //uploads a draft to Zenodo
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
     - "file" (required): the Data Manager's copy of unmappable_identifiers.tsv (identifier, status, full_reference) with the citations typed in.
+      A 2-column file (identifier, full_reference) is also accepted, e.g. from_Jen/references_add_template.tsv (use it with "skip_unmappable_update_YN": 1).
     - Step 1: rows with a full_reference are added to our master references.tsv (backup made first); identifiers already in the master are ignored (listed).
     - Step 2: the master is copied to the GitHub folder. 
     - Step 3: the master is uploaded to Zenodo (same as upload_file_toZenodo, with its safety checks).
+      Optional "no_upload_YN": 1 -> step 3 is not done (no Zenodo upload), e.g. when another change follows and one upload should carry both.
     - Step 4: the added identifiers are removed from our unmappable_identifiers.tsv (backup made first; a trailing '/' is ignored when matching).
       Done even if the upload stopped. 
     - Step 5: unmappable_identifiers.tsv is copied to the GitHub folder.
+    - Optional "skip_unmappable_update_YN": 1 -> stops after step 3: steps 4 & 5 are not done, our unmappable_identifiers.tsv is left as is.
+      e.g. for a file of new references that were never on our unmappable list. Works with "dry_run_YN" and "publish" too.
+    - Optional "replace_existing_YN": 1 -> an identifier already in the master with a different full_reference gets the new one, in place (same row),
+      only if it is on exactly one master row. Backup made first; the old and new citations are saved (references_22776838_replaced_citations_<date>.tsv).
+      e.g. from_Jen/references_add_template.tsv: "skip_unmappable_update_YN": 1, "replace_existing_YN": 1 (run fix_duplicate_issue_in_master_references first,
+      with "no_upload_YN": 1, so that one upload carries both changes).
 
 php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
 php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv"}'                   //uploads a draft to Zenodo
@@ -61,6 +69,7 @@ php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references"
       the identifier + full_reference match is enough. Rows that don't match are skipped and listed. Backup made first; the deleted rows are saved
       (references_22776838_removed_duplicates_<date>.tsv), and the identifiers still on more than one row are listed.
     - Step 2: the master is copied to the GitHub folder. Step 3: the master is uploaded to Zenodo (same as upload_file_toZenodo, with its safety checks).
+      Optional "no_upload_YN": 1 -> step 3 is not done (no Zenodo upload), e.g. when another change follows and one upload should carry both.
 
 Note: every time unmappable_identifiers.tsv or our master references.tsv changes, it is also copied to
 /Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/

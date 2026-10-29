@@ -49,6 +49,14 @@ php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager
     - Step 2: the master is copied to the GitHub folder. Step 3: the master is uploaded to Zenodo (same as upload_file_toZenodo, with its safety checks).
     - Step 4: the added identifiers are removed from our unmappable_identifiers.tsv (backup made first; a trailing '/' is ignored when matching).
       Done even if the upload stopped. Step 5: unmappable_identifiers.tsv is copied to the GitHub folder.
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv"}'                   //uploads a draft to Zenodo
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
+    - "file" (required): the Data Manager's list of master rows to delete (identifier, full_reference, master_row), e.g. picked from the duplicates report.
+    - Step 1: a master row is deleted only if its identifier and full_reference match exactly, at row master_row (header = row 1). If master_row is blank,
+      the identifier + full_reference match is enough. Rows that don't match are skipped and listed. Backup made first; the deleted rows are saved
+      (references_22776838_removed_duplicates_<date>.tsv), and the identifiers still on more than one row are listed.
+    - Step 2: the master is copied to the GitHub folder. Step 3: the master is uploaded to Zenodo (same as upload_file_toZenodo, with its safety checks).
 
 Note: every time unmappable_identifiers.tsv or our master references.tsv changes, it is also copied to
 /Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/

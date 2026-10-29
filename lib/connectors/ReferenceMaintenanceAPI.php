@@ -132,6 +132,104 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             }
             // */
         }
+        if($task == 'fix_duplicate_issue_in_master_references') {
+            // /* Delete from the master the rows the Data Manager listed (identifier, full_reference, master_row) -> GitHub copy -> Zenodo upload
+            if(empty($this->param['file'])) echo "\nERROR: \"file\" is required: the path of the data manager's TSV\n";
+            else {
+                $ret = self::remove_master_rows_from_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']));
+                echo "\nResult: " . json_encode($ret) . "\n";
+            }
+            // */
+        }
+    }
+    private function upload_references_master()
+    {   // uploads our master references.tsv to Zenodo with upload_file_toZenodo(): draft only, unless $this->param['publish']. Returns its result, or false.
+        echo "\nUploading the master to Zenodo" . (empty($this->param['publish']) ? " (draft only)" : " (PUBLISH)") . "...\n";
+        $this->param['concept_id'] = (string) $this->main_datasets['References_conceptID'];
+        $dm_param = $this->param['file'] ?? null;
+        unset($this->param['file']); // 'file' here is the data manager's TSV; for upload_file_toZenodo() it would be the file to upload -> use its default, references.tsv
+        $uploaded = $this->upload_file_toZenodo();
+        if($dm_param !== null) $this->param['file'] = $dm_param;
+        if(!$uploaded) echo "\nNOTE: the master was updated, but NOT uploaded to Zenodo. Upload it later:\n"
+                          . "php do_reference_mtce.php _ '{\"task\": \"upload_file_toZenodo\", \"concept_id\": \"{$this->param['concept_id']}\"}'\n";
+        return $uploaded;
+    }
+    private function remove_master_rows_from_datamanager_file($dm_file, $dry_run = false)
+    {   /* $dm_file: the data manager's list of master rows to delete (identifier, full_reference, master_row), e.g. picked from our duplicates report
+        Step 1: a master row is deleted if its identifier and full_reference are exactly those in $dm_file, at row master_row (header = row 1).
+                If master_row is blank, the identifier + full_reference match is enough: every master row with that exact pair is deleted.
+        Step 2: the master is copied to the GitHub folder
+        Step 3: the master is uploaded to Zenodo: draft only, unless $this->param['publish']
+        $dry_run: report step 1 only, change nothing.
+        Returns array('deleted', 'skipped', 'still_duplicated', 'uploaded'), or false. */
+        if(!is_file($dm_file)) { echo "\nERROR: No file [$dm_file]\n"; return false; }
+        $lines = explode("\n", file_get_contents($dm_file));
+        $header = array_map('trim', explode("\t", (string) $lines[0]));
+        if($header !== array('identifier', 'full_reference', 'master_row')) { echo "\nERROR: [$dm_file] header must be: identifier, full_reference, master_row\n"; return false; }
+        echo "\nData manager's file: [$dm_file]\n";
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        echo "\nReferences Master: [$references_tsv]\n";
+
+        // Step 1
+        $master = explode("\n", file_get_contents($references_tsv)); // each line keeps its own \r (header LF, rows CRLF), so what's kept is written back as is
+        $rows_of = array(); // "identifier\tfull_reference" => master rows (header = 1)
+        foreach($master as $i => $line) if($i > 0 && rtrim($line, "\r") !== '') $rows_of[rtrim($line, "\r")][] = $i + 1;
+        $delete = array(); $skipped = array(); $notes = array();
+        foreach($lines as $n => $line) {
+            $line = rtrim($line, "\r");
+            if($n == 0 || trim($line) == '') continue; // header
+            $c = explode("\t", $line);
+            $pair = $c[0] . "\t" . ($c[1] ?? '');
+            $row = trim($c[2] ?? '');
+            $what = "line " . ($n + 1) . " [{$c[0]}]";
+            if($row === '') { // no master_row: the exact identifier + full_reference is enough
+                if(empty($rows_of[$pair])) { $skipped[] = "$what: not in the master"; continue; }
+                foreach($rows_of[$pair] as $r) if(!isset($delete[$r])) $delete[$r] = "$what (no master_row)";
+                $notes[] = "$what had no master_row: matched at row " . implode(', ', $rows_of[$pair]) . (count($rows_of[$pair]) > 1 ? " (all its copies)" : '');
+                continue;
+            }
+            if(!ctype_digit($row))                  { $skipped[] = "$what: bad master_row [$row]"; continue; }
+            $row = (int) $row;
+            if($row < 2 || $row > count($master))   { $skipped[] = "$what: row $row out of range"; continue; }
+            if(isset($delete[$row]))                { $skipped[] = "$what: row $row listed twice"; continue; }
+            if(rtrim($master[$row - 1], "\r") === $pair) { $delete[$row] = $what; continue; }
+            $elsewhere = $rows_of[$pair] ?? array();
+            $skipped[] = "$what: doesn't match the master at row $row" . ($elsewhere ? " (that row is at " . implode(', ', $elsewhere) . ")" : " (not in the master)");
+        }
+        $count = array(); // identifiers still on more than one row after deletion
+        foreach($master as $i => $line) {
+            if($i == 0 || isset($delete[$i + 1]) || rtrim($line, "\r") === '') continue;
+            $id = trim(explode("\t", $line)[0]);
+            if($id != '') @$count[$id]++;
+        }
+        $still = array_keys(array_filter($count, fn($k) => $k > 1));
+        echo "\n" . ($dry_run ? "DRY RUN, nothing is changed.\nWould be deleted" : "To be deleted") . " from master: " . count($delete) . "\n";
+        if($notes)   echo "NOTE:\n    " . implode("\n    ", $notes) . "\n";
+        echo "Skipped: " . count($skipped) . ($skipped ? "\n    " . implode("\n    ", $skipped) : '') . "\n";
+        echo "Identifiers still on more than one row afterwards: " . count($still) . ($still ? "\n    " . implode("\n    ", $still) : '') . "\n";
+        $ret = array('deleted' => count($delete), 'skipped' => count($skipped), 'still_duplicated' => count($still), 'uploaded' => false);
+        if($dry_run) return $ret;
+        if(!$delete) { echo "\nNothing to delete. Nothing was changed or uploaded.\n"; return $ret; }
+
+        $backup = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_backup_" . date("Ymd_His") . ".tsv";
+        if(!copy($references_tsv, $backup)) { echo "\nERROR: Cannot backup [$references_tsv]\n"; return false; }
+        echo "\nBackup: [$backup]\n";
+        $orig = self::count_data_rows($references_tsv);
+        $log = array("master_row\tidentifier\tfull_reference");
+        ksort($delete);
+        foreach(array_keys($delete) as $r) { $log[] = "$r\t" . rtrim($master[$r - 1], "\r"); unset($master[$r - 1]); }
+        $tmp = $references_tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+        if(file_put_contents($tmp, implode("\n", $master)) === false || !rename($tmp, $references_tsv)) { echo "\nERROR: Cannot update [$references_tsv]\n"; return false; }
+        echo "Updated: [$references_tsv]\n";
+        $log_file = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_removed_duplicates_" . date("Ymd_His") . ".tsv";
+        if(file_put_contents($log_file, implode("\n", $log) . "\n") !== false) echo "Deleted rows saved in: [$log_file]\n";
+        self::print_row_stats($orig, count($delete), self::count_data_rows($references_tsv), 'deleted');
+
+        // Step 2
+        $this->copy_to_github_folder($references_tsv);
+        // Step 3
+        $ret['uploaded'] = self::upload_references_master();
+        return $ret;
     }
     private function update_master_with_datamanager_file($dm_file, $dry_run = false, $tsv = null)
     {   /* $dm_file: the data manager's copy of unmappable_identifiers.tsv (identifier, status, full_reference), with full_reference filled in
@@ -206,14 +304,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         self::print_row_stats($orig, count($rows), self::count_data_rows($references_tsv));
 
         // Step 3
-        echo "\nUploading the master to Zenodo" . (empty($this->param['publish']) ? " (draft only)" : " (PUBLISH)") . "...\n";
-        $this->param['concept_id'] = (string) $this->main_datasets['References_conceptID'];
-        $dm_param = $this->param['file'] ?? null;
-        unset($this->param['file']); // 'file' here is the data manager's TSV; for upload_file_toZenodo() it would be the file to upload -> use its default, references.tsv
-        $uploaded = $this->upload_file_toZenodo();
-        if($dm_param !== null) $this->param['file'] = $dm_param;
-        if(!$uploaded) echo "\nNOTE: the master was updated, but NOT uploaded to Zenodo. Upload it later:\n"
-                          . "php do_reference_mtce.php _ '{\"task\": \"upload_file_toZenodo\", \"concept_id\": \"{$this->param['concept_id']}\"}'\n";
+        $uploaded = self::upload_references_master();
 
         // Steps 4 & 5
         echo "\nUnmappable identifiers: [$tsv]\n";

@@ -42,9 +42,10 @@ php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "227
 php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838", "publish": 1}'    //same, but publish now -- CANNOT be undone
     - Same as above, but publishes the new version right away. A published Zenodo version can never be deleted.
 
-php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
-php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv"}'                   //uploads a draft to Zenodo
-php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
+unmappable_file = "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv"
+php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": $unmappable_file, "dry_run_YN": 1}'  //preview only: changes nothing
+php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": $unmappable_file}'                   //uploads a draft to Zenodo
+php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": $unmappable_file, "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
     - "file" (required): the Data Manager's copy of unmappable_identifiers.tsv (identifier, status, full_reference) with the citations typed in.
       A 2-column file (identifier, full_reference) is also accepted, e.g. from_Jen/references_add_template.tsv (use it with "skip_unmappable_update_YN": 1).
     - Step 1: rows with a full_reference are added to our master references.tsv (backup made first); identifiers already in the master are ignored (listed).
@@ -61,15 +62,30 @@ php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager
       e.g. from_Jen/references_add_template.tsv: "skip_unmappable_update_YN": 1, "replace_existing_YN": 1 (run fix_duplicate_issue_in_master_references first,
       with "no_upload_YN": 1, so that one upload carries both changes).
 
-php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "dry_run_YN": 1}'  //preview only: changes nothing
-php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv"}'                   //uploads a draft to Zenodo
-php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
+$remove_file = "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv"
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": $remove_file, "dry_run_YN": 1}'  //preview only: changes nothing
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": $remove_file}'                   //uploads a draft to Zenodo
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": $remove_file, "publish": 1}'     //publishes on Zenodo -- CANNOT be undone
     - "file" (required): the Data Manager's list of master rows to delete (identifier, full_reference, master_row), e.g. picked from the duplicates report.
     - Step 1: a master row is deleted only if its identifier and full_reference match exactly, at row master_row (header = row 1). If master_row is blank,
       the identifier + full_reference match is enough. Rows that don't match are skipped and listed. Backup made first; the deleted rows are saved
       (references_22776838_removed_duplicates_<date>.tsv), and the identifiers still on more than one row are listed.
     - Step 2: the master is copied to the GitHub folder. Step 3: the master is uploaded to Zenodo (same as upload_file_toZenodo, with its safety checks).
       Optional "no_upload_YN": 1 -> step 3 is not done (no Zenodo upload), e.g. when another change follows and one upload should carry both.
+
+The real sequence is now:
+# 1. delete the duplicates, no upload yet
+$remove_file = "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_remove_template.tsv"
+php do_reference_mtce.php _ '{"task": "fix_duplicate_issue_in_master_references", "file": $remove_file, "no_upload_YN": 1}'
+
+# 2. corrected citations + the one new reference, then ONE upload carrying both changes
+add_file = "/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/from_Jen/references_add_template.tsv"
+php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": $add_file, "skip_unmappable_update_YN": 1, "replace_existing_YN": 1, "publish": 1}'
+
+Add "dry_run_YN": 1 to either command to preview it first. 
+Leaving out "publish": 1 in step 2 stops at a draft for review on Zenodo.
+
+
 
 Note: every time unmappable_identifiers.tsv or our master references.tsv changes, it is also copied to
 /Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/
@@ -84,7 +100,13 @@ ini_set('memory_limit','8096M'); //required for GloBI
 $timestart = time_elapsed();
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
-$param                     = json_decode(@$argv[2], true); //print_r($param); exit;
+$param                     = json_decode((string)@$argv[2], true); //print_r($param); exit;
+if(!is_array($param) || empty($param['task'])) {
+    echo "\nERROR: the parameters aren't valid JSON with a \"task\". Got: [" . @$argv[2] . "]";
+    echo "\nPut the JSON in single quotes, e.g. php do_reference_mtce.php _ '{\"task\": \"...\"}'";
+    echo "\nTo use a shell variable, close the quotes around it: '{\"task\": \"...\", \"file\": \"'\"\$file\"'\"}'\n";
+    exit(1);
+}
 
 require_library('connectors/ZenodoTraitBankAPI');
 require_library('connectors/GenerateTB_Files_Functions');    

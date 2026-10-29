@@ -646,7 +646,7 @@ class ZenodoTraitBankAPI
         // 4. metadata: the draft keeps the previous version's metadata; set today's publication date (required to publish) [+ version]
         $metadata = $draft['metadata'] ?? array();
         unset($metadata['prereserve_doi']); // read-only
-        $metadata['publication_date'] = date("Y-m-d");
+        $metadata['publication_date'] = gmdate("Y-m-d"); // UTC, as Zenodo dates its records
         if (isset($options['version'])) $metadata['version'] = (string) $options['version'];
         [$code, $res] = $this->zenodo_api_request('PUT', "$domain/api/deposit/depositions/$draft_id", $token, array('metadata' => $metadata));
         if ($code != 200) return $discard("Cannot update the draft's metadata (HTTP $code): " . $this->zenodo_error_message($res));

@@ -11,8 +11,9 @@ ini_set('max_execution_time', 60*60*24*15); // 15 days | 21600 = 6 hours
 ini_set('display_errors', false);
 
 /* Default Environment */
-if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = 'development';
-// if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = 'production';
+// In Docker, MY_ENV comes from MY_ENVIRONMENT in .env: 'development' on the Mac, 'production' on eol-archive.
+// Outside Docker (no MY_ENV), stays 'development'.
+if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = getenv('MY_ENV') ?: 'development';
 
 echo("\nEnv: ".$GLOBALS['ENV_NAME']."\n");
 

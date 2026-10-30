@@ -9,12 +9,12 @@ has not yet been implemented here. Maybe by design but we'll know.
 */
 class SummaryDataResourcesAllAPI
 {
-    
+    /* TODO (was plain text here, which stopped PHP 8 from parsing this file):
     IMPLEMENT FIRST THE YML TO CSV FORMAT BEFORE I CAN PROCEED...
     https://github.com/EOL/eol_terms/blob/main/resources/terms.yml
     FOLDER TO START: [OpenData terms backup]
     AND CHECK THE ATTACHED notes.txt in: https://eol-jira.bibalex.org/browse/DATA-1888
-    
+    */
     public function __construct($folder, $folder_date, $complex_consolid8)
     {
         $this->resource_id = $folder;

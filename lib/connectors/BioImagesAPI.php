@@ -9,6 +9,7 @@ class BioImagesAPI
 {
     function __construct($resource_id = false)
     {
+        exit("\nNo longer used. Fix [/Volumes] path first (4).\n");
         // for testing:
         // $this->data_dump_url = WEB_ROOT."/update_resources/connectors/files/BioImages/Nov2012/Malcolm_Storey_images_test.TXT";
         // $this->data_dump_url = WEB_ROOT."/update_resources/connectors/files/BioImages/Nov2012/Malcolm_Storey_images.TXT";
@@ -268,8 +269,6 @@ class BioImagesAPI
     }
     function download_img_then_use_local_file_as_path($url)
     {   // "http://www.discoverlife.org/mp/20p?img=I_MWS10894&res=mx"
-        $destination_folder = "/Volumes/Crucial_2TB/DiscoverLife_images/";  //local Mac Studio
-        $destination_folder = "/html/other_files/DiscoverLife_images/";     //eol-archive
         $destination_folder = "/var/www/html/other_files/DiscoverLife_images/";     //eol-archive
 
         if(preg_match("/discoverlife.org\/mp\/20p\?img\=I_MWS(.*?)\&res\=mx/ims", $url, $arr)) {

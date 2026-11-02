@@ -4,6 +4,7 @@ namespace php_active_record;
 start of many iterations:
 */
 
+exit("\nNo longer used. Fix [/Volumes] path first.\n");
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // $GLOBALS['ENV_DEBUG'] = false;
 require_library('connectors/Functions_Memoirs');

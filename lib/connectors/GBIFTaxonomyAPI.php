@@ -14,6 +14,7 @@ class GBIFTaxonomyAPI
 {
     function __construct($what = false) //$what can be: 
     {
+        exit("\nNo longer used. Fix [/Volumes] path first (1).\n");
         $this->download_options = array('resource_id' => "gbif_ctry_checklists", 'expire_seconds' => 60*60*24*30*3, 'download_wait_time' => 1000000/2, 
         'timeout' => 10800*2, 'download_attempts' => 3, 'delay_in_minutes' => 5); //3 months to expire
         // https://docs.google.com/spreadsheets/d/1WB8nX4gaHv0naxg6tkXxMRGaLQIU4kYiuk57KXk9EAg/edit?gid=0#gid=0

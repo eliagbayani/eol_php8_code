@@ -5,6 +5,7 @@ class GBIF_classificationAPI
 {
     function __construct($folder, $archive_builder = false)
     {
+        exit("\nNo longer used. Fix [/Volumes] path first (2).\n");
         exit("\nObsolete use gbif_classification_v2.php instead\n");
         $this->resource_id = $folder;
         if($archive_builder) { //coming from DwCA_Utility.php. For creating gbif_classification.tar.gz. Created second.

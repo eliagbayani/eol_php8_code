@@ -4,7 +4,9 @@ namespace php_active_record;
 class ParseUnstructuredTextAPI_Memoirs extends ParseListTypeAPI_Memoirs
 {
     function __construct($resource_name, $pdf_id = "")
-    {   //exit("\n[$pdf_id]\n");
+    {   
+        exit("\nNo longer used. Fix [/Volumes] path first (5).\n");
+        //exit("\n[$pdf_id]\n");
         $this->resource_name = $resource_name;
         $this->download_options = array('resource_id' => 'unstructured_text', 'expire_seconds' => 60*60*24, 
             'download_wait_time' => 2000000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);

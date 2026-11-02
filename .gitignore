@@ -246,3 +246,17 @@ applications/content_server/neo4j_stats/*.tsv
 
 schema.cypher copy
 plans.txt
+
+# Links to the Mac's own drives, untracked 2026-11-02: each machine keeps its own here (Mac: links, server: real folders)
+/applications/BOLD2iNAT/temp
+/applications/BOLD2iNAT_csv/temp
+/applications/branch_graft/temp
+/applications/content_server/resources
+/applications/content_server/tmp
+/applications/specimen_image_export/temp
+/applications/taxonomic_validation/temp
+/applications/trait_data_import/temp
+/applications/xls2dwca_jenkins/temp
+/temp
+/temp_dev
+/tmp/cache

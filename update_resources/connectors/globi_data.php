@@ -139,7 +139,7 @@ Do we need to truncate this resource before reharvest-republish steps?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ end
 
 ----------------------------------------------------------------- Jenkins entry: as of Jan 2, 2024
-cd /html/eol_php_code/update_resources/connectors
+cd /var/www/html/eol_php_code/update_resources/connectors
 
 # step 1: OK
 php5.6 globi_data.php jenkins
@@ -161,14 +161,14 @@ php5.6 remove_unused_occurrences.php jenkins '{"resource_id": "globi_association
 # generates globi_associations_tmp2.tar.gz
 
 # === LAST STEP: copy globi_associations_tmp2.tar.gz to globi_assoc.tar.gz OK
-cd /html/eol_php_code/applications/content_server/resources
+cd /var/www/html/eol_php_code/applications/content_server/resources
 cp globi_associations_tmp2.tar.gz globi_assoc.tar.gz
 ls -lt globi_associations_tmp2.tar.gz
 ls -lt globi_assoc.tar.gz
 # then delete globi_associations_tmp2.tar.gz
 rm -f globi_associations_tmp2.tar.gz
 
-cd /html/eol_php_code/update_resources/connectors
+cd /var/www/html/eol_php_code/update_resources/connectors
 php5.6 ckan_api_access.php jenkins "c8392978-16c2-453b-8f0e-668fbf284b61"
 ----------------------------------------------------------------- Jenkins entry end
 

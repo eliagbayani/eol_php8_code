@@ -171,7 +171,7 @@ below removed "ice", thus decrease in number.
 wikipedia_en_traits_tmp4	Sat 2023-07-08 04:29:05 PM	{"MoF.tab":213688, "occurrence.tab":213688, "taxon.tab":167897, "time_elapsed":{"sec":233.63, "min":3.89, "hr":0.06}}
 
 ---------------Jenkins entry in eol-archive
-cd /html/eol_php_code/update_resources/connectors
+cd /var/www/html/eol_php_code/update_resources/connectors
 
 php5.6 environments_2_eol.php jenkins '{"task": "generate_eol_tags_pensoft", "resource":"MoftheAES 1st", "resource_id":"118935", "subjects":"Description|Uses"}'
 php5.6 environments_2_eol.php jenkins '{"task": "generate_eol_tags_pensoft", "resource":"MoftheAES 2nd", "resource_id":"120081", "subjects":"Description|Uses"}'
@@ -304,7 +304,7 @@ php5.6 rem_marine_terr_desc.php jenkins '{"resource_id":"wikipedia_en_traits_tmp
 #generates: wikipedia_en_traits_tmp3.tar.gz
 
 #LAST STEP: copy wikipedia_en_traits_tmp3.tar.gz to wikipedia_en_traits.tar.gz OK
-cd /html/eol_php_code/applications/content_server/resources
+cd /var/www/html/eol_php_code/applications/content_server/resources
 cp wikipedia_en_traits_tmp3.tar.gz wikipedia_en_traits.tar.gz 
 ====================================================================================================== AmphibiaWeb
 21_ENV	Wed 2020-12-02 07:01:55 PM	{"agent.tab":743, "MoF":2202, "media_resource.tab":8138, "occurrence.tab":2202, "reference.tab":5353, "taxon.tab":2283, "vernacular_name.tab":2090, "time_elapsed":false}

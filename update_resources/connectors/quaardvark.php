@@ -24,7 +24,7 @@ Note: Quaardvark path doesn't use Pensoft annotations.
 */
 /* Jenkins entry:
 #cd /Library/WebServer/Documents/eol_php_code/update_resources/connectors
-cd /html/eol_php_code/update_resources/connectors
+cd /var/www/html/eol_php_code/update_resources/connectors
 #php5.6 22.php jenkins --- OBSOLETE
 
 #OK
@@ -36,7 +36,7 @@ php5.6 rem_marine_terr_desc.php jenkins '{"resource_id":"22"}'
 # generates 22_cleaned_MoF_habitat.tar.gz
 
 #LAST STEP: OK
-cd /html/eol_php_code/applications/content_server/resources
+cd /var/www/html/eol_php_code/applications/content_server/resources
 cp 22_cleaned_MoF_habitat.tar.gz AnimalDiversityWeb.tar.gz
 ls -lt 22_cleaned_MoF_habitat.tar.gz
 ls -lt AnimalDiversityWeb.tar.gz

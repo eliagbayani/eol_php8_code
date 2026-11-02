@@ -39,7 +39,7 @@ class Environments2EOLfinal extends ContributorsMapAPI
         else                                $this->modulo = 2000;
         
         // /* Utility: reports for WoRMS
-        if(Functions::is_production()) $this->source_tsv = '/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv'; //'/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';
+        if(Functions::is_production()) $this->source_tsv = '/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv'; //'/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';
         else {
             // $this->source_tsv = '/opt/homebrew/var/www/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';    //OBSOLETE only for PHP 5.6
             $this->source_tsv = '/var/www/html/Pensoft_annotator/26/eol_tags/eol_tags_noParentTerms.tsv';               //for PHP 8.2

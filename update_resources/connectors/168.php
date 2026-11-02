@@ -26,7 +26,7 @@ Below removed < 200 bytes size images (blank images) - Eli's initiative.
 */
 
 /* Jenkins entry:
-cd /html/eol_php_code/update_resources/connectors
+cd /var/www/html/eol_php_code/update_resources/connectors
 
 ### this will generate 168.tar.gz
 php5.6 168.php jenkins
@@ -35,13 +35,13 @@ php5.6 168.php jenkins
 php5.6 resource_utility.php jenkins '{"resource_id": "168_meta_recoded", "task": "metadata_recoding"}'
 
 #LAST STEP: copy last transactional DwCA to Bioimages.tar.gz OK
-cd /html/eol_php_code/applications/content_server/resources
+cd /var/www/html/eol_php_code/applications/content_server/resources
 cp 168_meta_recoded.tar.gz Bioimages.tar.gz
 ls -lt 168_meta_recoded.tar.gz
 ls -lt Bioimages.tar.gz
 rm -f 168_meta_recoded.tar.gz
 
-cd /html/eol_php_code/update_resources/connectors
+cd /var/www/html/eol_php_code/update_resources/connectors
 php5.6 ckan_api_access.php jenkins "5b1ebec7-efd0-47b5-860e-5c841d88d366"
 */
 

@@ -60,7 +60,7 @@ php5.6 georgia_cntry_vs_state.php jenkins '{"resource_id": "TreatmentBank_adjust
 -> generates TreatmentBank_adjustment_03.tar.gz
 
 # === LAST STEP: copy TreatmentBank_adjustment_03.tar.gz to TreatmentBank_final.tar.gz OK
-cd /html/eol_php_code/applications/content_server/resources
+cd /var/www/html/eol_php_code/applications/content_server/resources
 cp TreatmentBank_adjustment_03.tar.gz TreatmentBank_final.tar.gz
 ls -lt TreatmentBank_adjustment_03.tar.gz
 ls -lt TreatmentBank_final.tar.gz

@@ -70,7 +70,7 @@ class Pensoft2EOLAPI extends Functions_Pensoft
         */
         /*-----------------------Paths----------------------*/
         // echo "<hr>DOC_ROOT: ".DOC_ROOT."<hr>"; exit;
-        if(Functions::is_production()) $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/html/Pensoft_annotator/';
+        if(Functions::is_production()) $this->root_path = '/var/www/html/Pensoft_annotator/'; //'/var/www/html/Pensoft_annotator/';
         else {
             // $this->root_path = '/opt/homebrew/var/www/Pensoft_annotator/';                               //obsolete - orig PHP 5.6
             // $this->root_path = '/Volumes/Macintosh HD/opt/homebrew/var/www/Pensoft_annotator/';          //might work but not used

@@ -492,9 +492,9 @@ class Functions
     }
     public static function fromJenkinsYN()
     {
-        // Old eol-archive Jenkins checkout, or the Docker containers (web + jenkins mount the code at /var/www/html).
+        // Docker containers (web + jenkins mount the code at /var/www/html); /html is no longer used.
         // Callers use this to skip the old EOL v2 `resources` table, which Docker's MySQL doesn't have.
-        if(in_array(DOC_ROOT, array("/html/eol_php8_code/", "/var/www/html/eol_php8_code/"))) return true;
+        if(DOC_ROOT == "/var/www/html/eol_php8_code/") return true;
         else return false;
     }
     public static function delete_if_exists($file_path)

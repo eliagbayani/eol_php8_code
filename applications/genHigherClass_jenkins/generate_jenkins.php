@@ -66,7 +66,7 @@ else
     // $file = "/var/www/html/eol_php_code/applications/genHigherClass_jenkins/" . $file;
     // if(file_exists($file)) echo "\nOK: $file\n";
     // 
-    // $file = "/html/eol_php_code/applications/genHigherClass_jenkins/" . $file;
+    // $file = "/var/www/html/eol_php_code/applications/genHigherClass_jenkins/" . $file;
     // if(file_exists($file)) echo "\nOK: $file\n";
 
     // $file = dirname(__FILE__)."/".$file;

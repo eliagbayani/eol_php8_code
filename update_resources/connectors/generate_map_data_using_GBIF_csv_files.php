@@ -2,7 +2,7 @@
 namespace php_active_record;
 
 /* utility to run multiple connectors:
-cd /html/eol_php_code/update_resources/connectors
+cd /var/www/html/eol_php_code/update_resources/connectors
 php5.6 generate_map_data_using_GBIF_csv_files.php jenkins '{"group":false,"range":[554050,554053],"ctr":1,"rank":""}'
 */
 

@@ -55,7 +55,8 @@ class MetaRecodingAPI
                                               '707_meta_recoded', 'test3_meta_recoded', '26_meta_recoded',
                                               'try_dbase_2024_meta_recoded', 'AnAge_meta_recoded', 'Smith_et_al_2011_meta_recoded', 
             '22943003_PalmTraits_meta_recoded', '23066259_Circadian_Rhyt_meta_recoded', '23073232_TRY_plan_trai_meta_recoded', 
-            '23073052_Sensory_meta_recoded', '23072941_Locomotion_meta_recoded', '23072612_Aquatic_Ecol_meta_recoded'))) self::task_67($tables);
+            '23073052_Sensory_meta_recoded', '23072941_Locomotion_meta_recoded', '23072612_Aquatic_Ecol_meta_recoded',
+            '23072351_Corals_meta_recoded'))) self::task_67($tables);
         /* http://rs.tdwg.org/dwc/terms/lifeStage - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
            http://rs.tdwg.org/dwc/terms/sex       - from a column in MoF (or possibly a child record?), this should move to a column in occurrences
            bodyPart                               - from a column in MoF (or possibly a child record?), this should move to a column in occurrences

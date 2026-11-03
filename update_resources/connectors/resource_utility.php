@@ -413,6 +413,12 @@ elseif($task == 'metadata_recoding') {
     elseif($resource_id == '23072612_Aquatic_Ecol_meta_recoded') { //task_67: lifeStage | bodyPart
         $dwca_file = DOC_ROOT . "/applications/content_server/resources/23072612_Aquatic_Ecol.tar.gz";
     }
+
+    elseif($resource_id == '23072351_Corals_meta_recoded') { //task_67: lifeStage | sex
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23072351_Corals.tar.gz";
+    }
+
+
     // ---------------- end of TraitBank datasets ----------------
 
     // /* Unrecognized_fields

@@ -781,7 +781,7 @@ class DwCA_Utility
         if(in_array($this->resource_id, array('23067562_Biochemistry_and_Natu_Prod-with-hC', '22943466_Sexual_Syst_and_Char-with-hC', '23072529_Algae-with-hC'
             , '23072941_Locomotion-with-hC', '23073097_Reef_Dwel-with-hC', '23073232_TRY_plan_trai-with-hC', '23073330_Botany_Lite-with-hC'
             , '23073052_Sensory-with-hC', '23072612_Aquatic_Ecol-with-hC'))) {}         //only if higherClassification is blank then we will compute the hC.
-        elseif($this->params['todo_with_hC'] == 'compute hC only if it is blank') {}    //only if higherClassification is blank then we will compute the hC.
+        elseif(@$this->params['todo_with_hC'] == 'compute hC only if it is blank') {}    //only if higherClassification is blank then we will compute the hC.
         else {
             if($resource_type == 'TB_dwca') {
                 if(isset($records[0]['hC'])) {      //has higherClassification

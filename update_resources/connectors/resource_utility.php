@@ -393,13 +393,27 @@ elseif($task == 'metadata_recoding') {
         if(Functions::is_production())  $dwca_file = "https://editors.eol.org/eol_php_code/applications/content_server/resources/26_meta_recoded_1.tar.gz";
         else                            $dwca_file = DOC_ROOT . "/applications/content_server/resources/26_meta_recoded_1.tar.gz";
     }
-
+    // ---------------- start of TraitBank datasets ----------------
+    /* ----- SampleSize & Standard_Deviation -> remain as columns in MoF ----- */
     elseif($resource_id == '22943003_PalmTraits_meta_recoded') { //task_67: bodyPart
         $dwca_file = DOC_ROOT . "/applications/content_server/resources/22943003_PalmTraits.tar.gz";
     }
-
-
-
+    elseif($resource_id == '23066259_Circadian_Rhyt_meta_recoded') { //task_67: lifeStage | sex
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23066259_Circadian_Rhyt.tar.gz";
+    }
+    elseif($resource_id == '23073232_TRY_plan_trai_meta_recoded') { //task_67: lifeStage|bodyPart
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23073232_TRY_plan_trai.tar.gz";
+    }
+    elseif($resource_id == '23073052_Sensory_meta_recoded') { //task_67: lifeStage | sex
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23073052_Sensory.tar.gz";
+    }
+    elseif($resource_id == '23072941_Locomotion_meta_recoded') { //task_67: lifeStage | bodyPart
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23072941_Locomotion.tar.gz";
+    }
+    elseif($resource_id == '23072612_Aquatic_Ecol_meta_recoded') { //task_67: lifeStage | bodyPart
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23072612_Aquatic_Ecol.tar.gz";
+    }
+    // ---------------- end of TraitBank datasets ----------------
 
     // /* Unrecognized_fields
     elseif($resource_id == 'Cicadellinae_meta_recoded') { //task_200: contributor, creator, publisher from Document to Agents

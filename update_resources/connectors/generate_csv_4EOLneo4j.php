@@ -44,6 +44,7 @@ require_library('connectors/GenerateCSV_4EOLNeo4j');
 $func = new GenerateCSV_4EOLNeo4j($param); 
 */
 // /* for the New TraitBank data model
+require_library('connectors/ZenodoTraitBankAPI');
 require_library('connectors/GenerateCSVnm_4EOLNeo4j');
 $func = new GenerateCSVnm_4EOLNeo4j($param);
 // */

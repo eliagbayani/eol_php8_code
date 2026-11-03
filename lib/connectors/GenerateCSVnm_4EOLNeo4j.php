@@ -42,6 +42,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         // $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //4old trait schema
         $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/TraitBank_datasets.csv';
         $this->is_first_resourceYN = ($this->resource_id == '22948922_Body_type_TraitBank') ? true: false; //AmphibiaWeb_TraitBank_1_0
+        $this->main_datasets = array('Terms' => 22776577, 'References' => 22776838, 'DH' => 22776209);
     }
     private function initialize()
     {
@@ -498,10 +499,12 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         fwrite($WRITE, $csv."\n"); fclose($WRITE);
     }
     private function prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
-    {
+    {   /* obsolete
         require_library('connectors/EOLterms_ymlAPI');
         $func = new EOLterms_ymlAPI(false, false);
         $eol_terms = $func->use_yaml_parse_and_oldOrig();
+        */
+        $eol_terms = $this->build_eol_terms_from_Zenodo_dataset(); //exit("\nelix 3\n");
         echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
         // /*
         // ===== Term node
@@ -1912,7 +1915,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         }
         return $csv;
     }
-    private function small_field($uri)
+    function small_field($uri)
     {
         return pathinfo($uri, PATHINFO_FILENAME);
     }

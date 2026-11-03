@@ -31,6 +31,9 @@ class ZenodoTraitBankAPI
             'expire_seconds'     => 60*60*24*1, //maybe 1 day to expire
             'download_wait_time' => 1000000, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 0.5);
         $this->api['domain'] = 'https://zenodo.org';
+
+        // $this->main_datasets = array('Terms' => 22776577, 'References' => 22776838, 'DH' => 22776209);
+
     }
     function do_zenodo_stuff($concept_id)
     {
@@ -1178,6 +1181,67 @@ class ZenodoTraitBankAPI
         // URI with a #fragment: the name is after the '#', e.g. 'http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#Standard_Deviation' -> 'Standard_Deviation' (not 'Thesaurus')
         if (($pos = strrpos($uri, '#')) !== false && $pos < strlen($uri) - 1) return trim(substr($uri, $pos + 1));
         return trim(pathinfo($uri, PATHINFO_FILENAME));
+    }
+    function build_eol_terms_from_Zenodo_dataset()
+    {
+        if(!($tsv_file = $this->get_generic_file_path($this->main_datasets['Terms'], 'terms', false))) exit("\nERROR: Cannot access terms file\n");
+        $ret = self::process_tsv_file($tsv_file, 'build_eol_terms');
+        return $ret;        
+    }
+    function process_tsv_file($tsv_file, $task)
+    {
+        $unique = array(); $final = array();
+        echo "\nprocess_table: [$task] [$tsv_file]...\n"; $i = 0;
+        foreach(new FileIterator($tsv_file) as $line => $row) { $i++;
+            if(($i % 500000) == 0) echo "\n".number_format($i)." - ";
+            if(!$row) continue;
+            $tmp = explode("\t", $row);
+            $rec = array(); $k = 0;
+            if($i == 1) { $fields = $tmp; continue; }
+            foreach($fields as $field) {
+                $field = $this->small_field($field);
+                if(!$field) continue;
+                $rec[$field] = @$tmp[$k]; //echo "\n<-".$rec[$field].'|'.$tmp[$k]."->";
+                $k++;
+            }
+            /*Array(
+                [attribution] => 
+                [definition] => can be directly disassembled into into multiple similar parts, including this
+                [name] => has component
+                [type] => measurement
+                [uri] => http://purl.obolibrary.org/obo/RO_0002180
+                [parent uris] => 
+                [synonym of uri] => 
+                [units term] => 
+                [symmetrical assoc] => 
+                [inverse of] => 
+                [incompatible with clade] => 
+                [exclusive to clade] => 
+            )            
+            */
+            if($task == 'build_eol_terms') {
+                $rec['parent_uris'] = array();
+                $rec['synonym_of_uri'] = array();
+                if($val = $rec['parent uris'])      $rec['parent_uris']    = self::format_pipe_delimited_string($val);
+                if($val = $rec['synonym of uri'])   $rec['synonym_of_uri'] = self::format_pipe_delimited_string($val);
+                unset($rec['parent uris']);
+                unset($rec['synonym of uri']);
+
+                $md5 = md5($rec['name'].$rec['type'].$rec['uri']);
+                if(!isset($unique[$md5])) {
+                    $final['terms'][] = $rec;
+                    $unique[$md5] = '';
+                    // if($rec['uri'] == 'http://eol.org/schema/terms/TrophicGuild') {print_r($rec); exit("\nelix 2\n");}
+                }
+            }
+        }
+        return $final;
+    }
+    private function format_pipe_delimited_string($str)
+    {
+        $arr = explode("|", $str);
+        $arr = array_map('trim', $arr);
+        return $arr;
     }
 }
 ?>

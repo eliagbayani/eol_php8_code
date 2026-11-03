@@ -355,7 +355,10 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $header_names = array_map('strtolower', $headers);
         $id_names = array('taxonid', 'measurementid', 'occurrenceid', 'scientificname');
 
-        $lines = array(); $header_rows = array(); $line_no = 0; $header_done = false;
+        //traits only: a blank measurementValue is dropped by MetaRecodingAPI (strlen == 0, so 0 is kept), e.g. Locomotion 23072941: Hatt_4
+        $value_index = ($basename == 'traits') ? array_search('measurementValue', $headers, true) : false;
+
+        $lines = array(); $header_rows = array(); $blank_values = array(); $line_no = 0; $header_done = false;
         $fh = fopen($file, "r");
         while(($line = fgets($fh)) !== false) {
             $line_no++;
@@ -370,6 +373,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
                 $header_rows[$line_no] = $line;
                 continue; //not counted as a duplicate ID
             }
+            if($value_index !== false && strlen((string) @$values[$value_index]) == 0) $blank_values[$line_no] = $id;
             if($id === '') continue;
             $lines[$id][] = $line_no;
         }
@@ -381,6 +385,14 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
             $topic = "$warning -- concept_id $concept_id";
             foreach($header_rows as $no => $row) $this->debug[$topic]["line $no"][str_replace("\t", " | ", $row)] = '';
         }
+
+        if($blank_values) {
+            $warning = "WARNING: ".count($blank_values)." row(s) with a blank measurementValue in [".basename($file)."], not written to Traits.tsv";
+            echo "\n$warning. See checkErrors.txt.\n";
+            $topic = "$warning -- concept_id $concept_id";
+            foreach($blank_values as $no => $id) $this->debug[$topic]["line $no"]["measurementID: ".($id === '' ? '(blank)' : $id)] = '';
+        }
+        elseif($value_index !== false) echo "\nNo blank measurementValue in [".basename($file)."]\n";
 
         $dups = array_filter($lines, fn($a) => count($a) > 1);
         if($dups) {

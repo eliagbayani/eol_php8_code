@@ -39,7 +39,8 @@ class GenerateCSVnm_4EOLNeo4j
         $this->EOL_resources['globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
         $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
         ========== */
-        $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv';
+        // $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/resources.csv'; //4old trait schema
+        $this->files['EOL resources'] = 'https://raw.githubusercontent.com/eliagbayani/EOL-connector-data-files/refs/heads/master/EOL/TraitBank_datasets.csv';
         $this->is_first_resourceYN = ($this->resource_id == '22948922_Body_type_TraitBank') ? true: false; //AmphibiaWeb_TraitBank_1_0
     }
     private function initialize()
@@ -48,7 +49,7 @@ class GenerateCSVnm_4EOLNeo4j
         else                           echo "\nNot the first resource";
 
         // Reads resources.csv from EOL's RDBMS.
-        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*30))) {
+        if($this->local_csv = Functions::save_remote_file_to_local($this->files['EOL resources'], array('expire_seconds' => 60*60*24*1))) {
             if($READ = Functions::file_open($this->local_csv, 'r')) {
                 $param = array('task' => 'read_eol_resources_csv', 'fhandle' => $READ);
                 $ret = self::do_things_in_a_csv($param);
@@ -1740,38 +1741,40 @@ class GenerateCSVnm_4EOLNeo4j
                 }
                 if($task == 'read_eol_resources_csv') {
                     /*Array(
-                        [id] => 1
-                        [partner_id] => 1
-                        [name] => EOL Dynamic Hierarchy April 2022
-                        [url] => 
-                        [description] => 
-                        [notes] => 
-                        [nodes_count] => 2404791
-                        [is_browsable] => true
-                        [has_duplicate_nodes] => false
-                        [node_source_url_template] => http://eol.org/$PK&but=not_really
-                        [last_published_at] => 2022-05-13 08:08:44 -0400
-                        [last_publish_seconds] => 
-                        [dataset_license_id] => 
-                        [dataset_rights_holder] => 
-                        [dataset_rights_statement] => 
-                        [created_at] => 2017-11-22 09:54:58 -0500
-                        [updated_at] => 2022-05-13 10:43:13 -0400
-                        [icon_file_name] => 
-                        [icon_content_type] => 
-                        [icon_file_size] => 
-                        [icon_updated_at] => 
-                        [abbr] => dhv2_1
-                        [repository_id] => 1
-                        [classification] => true
-                        [native] => true
+                        [concept_id] => 22776838
+                        [record_id] => 23107385
+                        [title] => References
+                        [version] => 
+                        [publication_date] => 2026-10-02
+                        [created] => 2026-10-02T17:19:11.969035+00:00
+                        [updated] => 2026-10-02T17:19:12.152187+00:00
+                        [doi] => 10.5281/zenodo.23107385
+                        [concept_doi] => 10.5281/zenodo.22776838
+                        [resource_type] => dataset
+                        [access_right] => open
+                        [license] => 
+                        [creators] => Hammock, Jennifer; Schulz, Katja
+                        [related_identifiers] => 
+                        [file_count] => 1
+                        [file_names] => references.tsv
+                        [total_size_bytes] => 4956219
+                        [record_url] => https://zenodo.org/records/23107385
+                        [concept_url] => https://zenodo.org/records/22776838
+                        [archive_url] => https://zenodo.org/api/records/23107385/files-archive
+                        [views] => 106
+                        [unique_views] => 90
+                        [downloads] => 33
+                        [unique_downloads] => 33
+                        [description] => Scientific works cited by trait records
                     )
                     $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
                     $this->EOL_resources['Globi']       = array('eol_resource_id' => 'globi',     'resource_name' => 'Global Biotic Interactions');
                     $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
                     */
-                    $repo_id = 'R'.$rec['repository_id'];
-                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $rec['name']);
+                    $id = isset($rec['concept_id']) ? $rec['concept_id'] : $rec['repository_id'];
+                    $repo_id = 'R'.$id;
+                    $name = isset($rec['title']) ? $rec['title'] : $rec['name'];
+                    $this->EOL_resources[$repo_id] = array('eol_resource_id' => $repo_id, 'resource_name' => $name);
                 }
             } //end main records
         } //end while()

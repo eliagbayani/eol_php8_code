@@ -377,7 +377,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
 
         if($header_rows) {
             $warning = "ERROR: ".count($header_rows)." header-like row(s) found inside the data of [".basename($file)."]";
-            echo "\n$warning\n";
+            echo "\n$warning See checkErrors.txt.\n";
             $topic = "$warning -- concept_id $concept_id";
             foreach($header_rows as $no => $row) $this->debug[$topic]["line $no"][str_replace("\t", " | ", $row)] = '';
         }
@@ -385,7 +385,7 @@ class GenerateTB_Files_Functions extends ZenodoTraitBankAPI
         $dups = array_filter($lines, fn($a) => count($a) > 1);
         if($dups) {
             $warning = "WARNING: ".count($dups)." duplicate $column value(s) in [".basename($file)."]";
-            echo "\n$warning\n";
+            echo "\n$warning See checkErrors.txt.\n";
             $topic = "$warning -- concept_id $concept_id"; //same text as the screen warning, so it can be searched in the debug file
             foreach($dups as $id => $nos) $this->debug[$topic][$id]["lines: ".implode(", ", $nos)] = '';
         }

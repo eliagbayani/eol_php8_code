@@ -24,7 +24,7 @@ Will I be able to run these sh files: import_dataset.sh, import_append_dataset.s
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
-class GenerateCSVnm_4EOLNeo4j
+class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
 {
     function __construct($param) {
         $this->resource_id = $param['resource_id'];
@@ -70,17 +70,17 @@ class GenerateCSVnm_4EOLNeo4j
         $tables = $ret['tables'];
         $extensions = array_keys($tables); print_r($extensions);
 
+        /* main operation
         if($this->is_first_resourceYN) {
             // Step -2: generate the VernacularPageID node
-            // self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
+            self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
 
             // Step -1: generate supplementary nodes: AppUser, AppSettings, AuditEvent
             self::prepareAppUserNode_csv(); //users of the system e.g. Eli Agbayani (eagbayani) eagbayani173@gmail.com - 'admin' role
             self::prepareAppSettingsNode_csv();
             self::prepareAuditEventNode_csv();
-            exit("\nelix 2\n");
-
         }
+        */
 
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
@@ -88,6 +88,8 @@ class GenerateCSVnm_4EOLNeo4j
 
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
+        exit("\nelix 2\n");
+
 
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
@@ -553,7 +555,6 @@ class GenerateCSVnm_4EOLNeo4j
         $func = new EOLterms_ymlAPI(false, false);
         $eol_terms = $func->use_yaml_parse_and_oldOrig();
         echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
-
         // /*
         // ===== Term node
         $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');

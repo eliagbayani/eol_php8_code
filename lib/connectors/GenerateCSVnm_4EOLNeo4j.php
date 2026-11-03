@@ -86,14 +86,16 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
 
+        /* main operation
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
-        exit("\nelix 2\n");
-
+        */
 
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+        exit("\nelix 2\n");
+
 
         /* is now replaced by: prepare_PageNode_csv_from_DH()
         self::prepare_PageNode_csv_from_resource($meta); //OBSOLETE      // step 1b: 

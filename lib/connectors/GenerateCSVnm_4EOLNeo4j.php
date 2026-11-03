@@ -94,16 +94,10 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
-        exit("\nelix 2\n");
-
-
-        /* is now replaced by: prepare_PageNode_csv_from_DH()
-        self::prepare_PageNode_csv_from_resource($meta); //OBSOLETE      // step 1b: 
-        self::prepare_ParentEdge_csv($meta);             //OBSOLETE
-        */
         unset($meta);
 
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
+        exit("\nelix 2\n"); dito na tayo...
 
         // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -1068,35 +1062,6 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         }
     }
     */
-    /*
-    private function prepare_PageNode_csv_from_resource($meta)
-    {   
-        // Array(
-        //     [taxonID] => 44475
-        //     [source] => https://www.wikidata.org/wiki/Q25243
-        //     [parentNameUsageID] => Q4085525
-        //     [scientificName] => Betula
-        //     [higherClassification] => Biota|Eukaryota|Plantae|Viridiplantae|Streptophyta|Embryophytes|Tracheophytes|Spermatophytes|Magnoliophyta|Magnoliopsida|Hamamelididae|Juglandanae|Corylales|Betulaceae|Betuloideae|
-        //     [taxonRank] => genus
-        //     [scientificNameAuthorship] => Carl Linnaeus, 1753
-        //     [vernacularName] => birches
-        //     [taxonRemarks] => With higherClassification but cannot be mapped to any index group.
-        //     [canonicalName] => Betula
-        //     [EOLid] => 44475
-        // )
-        // nodes/Page.csv
-        // page_id:ID(Page-ID),canonical,rank,:LABEL
-        // gadus_m,Gadus morhua,species,page
-        // chanos_c,Chanos chanos,species,page
-        // gadus,Gadus,genus,page
-        // chanos,Chanos,genus,page
-        
-        $this->WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');
-        // fwrite($this->WRITE, "page_id:ID(Page-ID){label:Page},canonical,rank,:LABEL"."\n"); //old
-        fwrite($this->WRITE, "page_id:ID(Page-ID){id-type:long},canonical,rank,:LABEL"."\n");
-        self::process_table($meta, 'generate-PageNode-csv');
-        fclose($this->WRITE);
-    } */
     private function prepare_PageNode_csv_from_DH()
     {
         require_library('connectors/DHConnLib');
@@ -1799,16 +1764,6 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         }
         fclose($this->WRITE);
     }
-    /* OBSOLETE
-    private function prepare_ParentEdge_csv($meta)
-    {   //  page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE
-        //  gadus_m,gadus,parent
-        //  chanos_c,chanos,parent
-        $this->WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
-        fwrite($this->WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
-        self::process_table($meta, 'generate-ParentEdge-csv');
-        fclose($this->WRITE);
-    } */
     private function prepare_VernacularEdge_csv($meta)
     {   /*  personId:START_ID(Person-ID),posterId:END_ID(Poster-ID),:TYPE
             page_id:START_ID(Page-ID),vernacular_id:END_ID(Vernacular-ID),:TYPE

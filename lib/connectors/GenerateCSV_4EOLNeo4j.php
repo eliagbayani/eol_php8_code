@@ -26,6 +26,7 @@ use \AllowDynamicProperties; //for PHP 8.2
 class GenerateCSV_4EOLNeo4j
 {
     function __construct($param) {
+        exit("\nWorking but use GenerateCSVnm_4EOLNeo4j class instead.\n");
         $this->resource_id = $param['resource_id'];
         $this->param = $param;
         $this->download_options = array('resource_id' => 'neo4j', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1, 'resource_id' => 26);

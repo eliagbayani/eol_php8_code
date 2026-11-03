@@ -413,11 +413,30 @@ elseif($task == 'metadata_recoding') {
     elseif($resource_id == '23072612_Aquatic_Ecol_meta_recoded') { //task_67: lifeStage | bodyPart
         $dwca_file = DOC_ROOT . "/applications/content_server/resources/23072612_Aquatic_Ecol.tar.gz";
     }
-
     elseif($resource_id == '23072351_Corals_meta_recoded') { //task_67: lifeStage | sex
         $dwca_file = DOC_ROOT . "/applications/content_server/resources/23072351_Corals.tar.gz";
     }
-
+    elseif($resource_id == '23067266_Cultivation_and_Use_meta_recoded') { //task_67: bodyPart
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23067266_Cultivation_and_Use.tar.gz";
+    }
+    elseif($resource_id == '23066982_Body_Size_meta_recoded') { //task_67: bodyPart lifeStage sex
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/23066982_Body_Size.tar.gz";
+    }
+    elseif($resource_id == '22948922_Body_type_meta_recoded') { //task_67: lifeStage
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22948922_Body_type.tar.gz";
+    }
+    elseif($resource_id == '22948871_Life_Hist_meta_recoded') { //task_67: lifeStage
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22948871_Life_Hist.tar.gz";
+    }
+    elseif($resource_id == '22948711_Dietary_Trai_meta_recoded') { //task_67: bodyPart
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22948711_Dietary_Trai.tar.gz";
+    }
+    elseif($resource_id == '22943466_Sexual_Syst_and_Char_meta_recoded') { //task_67: sex
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22943466_Sexual_Syst_and_Char.tar.gz";
+    }
+    elseif($resource_id == '22777311_Brusca_and_Brus_trai_reco_and_taxo_meta_meta_recoded') { //task_67: lifeStage sex
+        $dwca_file = DOC_ROOT . "/applications/content_server/resources/22777311_Brusca_and_Brus_trai_reco_and_taxo_meta.tar.gz";
+    }
 
     // ---------------- end of TraitBank datasets ----------------
 

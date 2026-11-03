@@ -84,7 +84,6 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
 
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
-        // self::prepareTermNode_csv(); //OBSOLETE
 
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
@@ -498,57 +497,6 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         $csv .= 'AuditEvent'; //Labels are preferred to be singular nouns
         fwrite($WRITE, $csv."\n"); fclose($WRITE);
     }
-    private function prepareTermNode_csv()
-    {   return; //moved to: prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
-        require_library('connectors/EOLterms_ymlAPI');
-        $func = new EOLterms_ymlAPI(false, false);
-        $terms = $func->get_terms_yml_4Neo4j(); //from EOL terms file.
-        /*[1413] => Array(
-            [uri] => http://eol.org/schema/terms/determinateGrowth
-            [name] => determinate growth
-            [type] => value
-            [definition] => determinate growth stops once a genetically pre-determined structure has completely formed
-            [comment] => 
-            [attribution] => https://en.wikipedia.org/wiki/Indeterminate_growth
-            [section_ids] => 
-            [is_hidden_from_overview] => false
-            [is_hidden_from_glossary] => false
-            [position] => 
-            [trait_row_count] => 
-            [distinct_page_count] => 
-            [exclusive_to_clade] => 
-            [incompatible_with_clade] => 
-            [parent_term] => 
-            [synonym_of] => 
-            [object_for_predicate] => 
-        )*/
-        unset($func);
-        // ===== start to create the csv
-        /*  nodes/Term.csv
-            uri:ID(Term-ID),name, type, definition, comment, attribution, section_ids, is_hidden_from_overview, is_hidden_from_glossary, position, trait_row_count, distinct_page_count, exclusive_to_clade, incompatible_with_clade, parent_term, synonym_of, object_for_predicate,:LABEL   */
-        $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
-        fwrite($WRITE, "uri:ID(Term-ID),name,type,definition,comment,attribution,section_ids,is_hidden_from_overview,is_hidden_from_glossary,position,trait_row_count,distinct_page_count,exclusive_to_clade,incompatible_with_clade,parent_term,synonym_of,object_for_predicate,:LABEL"."\n");
-        foreach($terms as $rec) {
-            $fields = array('uri', 'name', 'type', 'definition', 'comment', 'attribution', 'section_ids', 'is_hidden_from_overview', 'is_hidden_from_glossary', 'position', 'trait_row_count', 'distinct_page_count', 'exclusive_to_clade', 'incompatible_with_clade', 'parent_term', 'synonym_of', 'object_for_predicate');
-            $csv = self::format_csv_entry($rec, $fields);
-            $csv .= 'Term'; //Labels are preferred to be singular nouns
-            fwrite($WRITE, $csv."\n");
-        }
-        fclose($WRITE);        
-    }
-    // private function remove_quote_delimiters($str)
-    // {
-    //     if($str) {
-    //         // $str = "'123456'"; // $str = '"123456"';
-    //         $str = trim($str); // echo("\norig: [$str]\n");
-    //         $first = substr($str,0,1);
-    //         $last = substr($str, -1); // echo("\n[$first] [$last]\n");
-    //         if($first == "'" && $last == "'") $str = substr($str, 1, strlen($str)-2);
-    //         if($first == '"' && $last == '"') $str = substr($str, 1, strlen($str)-2);
-    //         // exit("\nfinal: [$str]\n");
-    //     }
-    //     return $str;
-    // }
     private function prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv()
     {
         require_library('connectors/EOLterms_ymlAPI');

@@ -91,13 +91,15 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
         */
 
+        /* main operation
         // Step 1: generate Page node; PARENT edge
         $meta = $tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         self::process_table($meta, 'generate_taxon_info');    // step 1a: generate_taxon_info = all taxa with EOLid
+        */
         unset($meta);
 
+
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
-        exit("\nelix 2\n");
 
         // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -105,6 +107,8 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
         self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
         unset($vernacular_meta);
+        exit("\nelix 2\n");
+
         
         // Step 3: generate Resource node
         if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
@@ -1075,7 +1079,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         $ret = $func->do_things_from_DH($param);
         fclose($WRITE);
 
-        // start Parent Edge
+        // start PARENT Edge
         $WRITE = Functions::file_open($this->path.'/edges/PARENT.csv', 'w');
         fwrite($WRITE, "page_id:START_ID(Page-ID),page_id:END_ID(Page-ID),:TYPE"."\n");
         $param = array('task' => 'generate_ParentEdge_csv', 'fhandle' => $WRITE);

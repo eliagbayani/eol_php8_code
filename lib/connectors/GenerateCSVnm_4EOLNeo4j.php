@@ -97,7 +97,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         unset($meta);
 
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
-        exit("\nelix 2\n"); dito na tayo...
+        exit("\nelix 2\n");
 
         // /*
         // Step 2: generate Vernacular node; VERNACULAR edge
@@ -1064,8 +1064,8 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
     */
     private function prepare_PageNode_csv_from_DH()
     {
-        require_library('connectors/DHConnLib');
-        $func = new DHConnLib();
+        // require_library('connectors/DHConnLib');    $func = new DHConnLib(); -- OBSOLETE
+        require_library('connectors/DHConnLib_TB'); $func = new DHConnLib_TB();
 
         // Page Node
         $WRITE = Functions::file_open($this->path.'/nodes/Page.csv', 'w');

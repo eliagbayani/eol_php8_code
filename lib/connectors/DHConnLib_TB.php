@@ -793,8 +793,12 @@ class DHConnLib_TB
         // ---------- start customize part ----------
         if(in_array($task, array('generate_PageNode_csv', 'generate_ParentEdge_csv'))) {
             $fhandle = $param['fhandle'];
+            /* obsolete
             require_library('connectors/GenerateCSV_4EOLNeo4j');
             $func = new GenerateCSV_4EOLNeo4j(array('resource_id' => 'wala lang'));
+            */
+            require_library('connectors/GenerateCSVnm_4EOLNeo4j');
+            $func = new GenerateCSVnm_4EOLNeo4j(array('resource_id' => 'wala lang'));
         }
         // ---------- end customize part ----------
         $txtfile = $this->main_path; //default value

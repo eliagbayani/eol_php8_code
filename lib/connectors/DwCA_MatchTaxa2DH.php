@@ -662,7 +662,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         if($this->AncestryIndexVer == 'new') { //using regex index
             // /* using the regex index:
             @$this->debug['call ancestry index']['new index']++;
-            if($this->run_debug4_YN) $this->debug4[$this->AncestryIndexVer.' - index ATTEMPTS'][$hc_str] = '';
+            // if($this->run_debug4_YN) $this->debug4[$this->AncestryIndexVer.' - index ATTEMPTS'][$hc_str] = ''; //commented 4Nov2026
             if($ret = self::search_hc_string_from_AncestryIndex_regex($hc_str)) {
                 /*Array(
                     [IndexGroup] => Odonata
@@ -671,7 +671,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     [posOfLastItem] => 5
                 )*/
                 @$this->debug['call ancestry index']['new index success']++;
-                if($this->run_debug3_YN) $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = '';
+                // if($this->run_debug3_YN) $this->debug3[$this->AncestryIndexVer.' - index'][$hc_str] = ''; //commented 4Nov2026
                 return $ret;
             }
             // */

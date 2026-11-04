@@ -947,6 +947,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             'file'       => optional, name of the file in input_files/ to upload, e.g. 'references'; default: the dataset's protected file (PROTECTED_INPUT_FILES)
             'publish'    => optional, 1 = publish now (CANNOT be undone); default 0 = stop at a draft, for review on Zenodo
             'version'    => optional, version label, e.g. '2026-10-28'; default: keep the previous version's label
+            'remove_files' => optional, file names to remove from the new version, e.g. ["terms_0.9.tsv"] when uploading the renamed terms_1.0.tsv
         Stops and uploads nothing if Zenodo has changes we don't have yet: an unmerged Zenodo copy, or a newer version than the one we downloaded.
         Returns the result of upload_new_version_to_zenodo(), or false. */
         $concept_id = trim((string) ($this->param['concept_id'] ?? ''));
@@ -975,6 +976,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 
         $options = array('publish' => !empty($this->param['publish']));
         if(isset($this->param['version'])) $options['version'] = $this->param['version'];
+        if(isset($this->param['remove_files'])) $options['remove_files'] = (array) $this->param['remove_files'];
         $ret = $this->upload_new_version_to_zenodo($concept_id, $local_file, $options);
 
         // after publishing, our local file IS the latest version -> record it, so the next upload isn't stopped by check 2

@@ -584,6 +584,8 @@ class ZenodoTraitBankAPI
             'publish'  => false (default): stop at the draft, so it can be reviewed on Zenodo first. true: publish now -- CANNOT be undone.
             'version'  => version label of the new version, e.g. '2026-10-27'; default: keep the label copied from the previous version
             'filename' => file name on Zenodo; default basename($local_file)
+            'remove_files' => other file names to remove from the new version, e.g. array('terms_0.9.tsv') when uploading terms_1.0.tsv
+                          (a renamed file isn't replaced by the same-name rule). Each one must be in the draft, or nothing is published.
             'token'    => Zenodo token; default the ZENODO_TOKEN constant. Sent only in the Authorization header.
             'domain'   => default $this->api['domain'] or https://zenodo.org; e.g. https://sandbox.zenodo.org (needs a sandbox token)
         Returns array('draft_id', 'draft_url', 'published', 'record_id', 'doi'), or false.
@@ -632,6 +634,16 @@ class ZenodoTraitBankAPI
                                                 : "Could not discard draft $draft_id (HTTP $code); discard it by hand: $html\n";
             return false;
         };
+
+        // 2b. remove other files asked for ('remove_files'), e.g. the old name of a renamed file
+        $remove = array_values(array_diff((array) ($options['remove_files'] ?? array()), array($filename)));
+        foreach ($remove as $old) {
+            $hit = array_values(array_filter($draft['files'] ?? array(), fn($f) => ($f['filename'] ?? '') === $old));
+            if (!$hit) return $discard("[$old] (remove_files) is not in the draft");
+            [$code, $res] = $this->zenodo_api_request('DELETE', "$domain/api/deposit/depositions/$draft_id/files/" . $hit[0]['id'], $token);
+            if ($code != 204) return $discard("Cannot remove [$old] from the draft (HTTP $code): " . $this->zenodo_error_message($res));
+            echo "Removed [$old] from the draft (remove_files)\n";
+        }
 
         // 3. replace the file: delete the copy that came from the previous version, then upload ours
         foreach ($draft['files'] ?? array() as $f) {

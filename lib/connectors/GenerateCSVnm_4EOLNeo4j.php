@@ -102,17 +102,18 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
         */
 
-        // /*
+        /* main operation
         // Step 2: generate Vernacular node; VERNACULAR edge
         $vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
         self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
         self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
         unset($vernacular_meta);
-        exit("\nelix 2\n");
+        */
 
-        
+        // /*
         // Step 3: generate Resource node
         if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
+        exit("\nelix 1\n");
         // */
 
         // Step 4: generate Trait node
@@ -1762,6 +1763,11 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         // $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         // $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
         foreach($this->EOL_resources as $eol_resource_id => $rec) {
+            /*Array( ditox
+                [eol_resource_id] => R22776838
+                [resource_name] => References
+            )*/
+            if(in_array(substr($rec['eol_resource_id'], 1), $this->main_datasets)) continue; //exclude References DH and Terms
             $fields = array('eol_resource_id', 'resource_name');
             $csv = self::format_csv_entry($rec, $fields);
             $csv .= 'Resource'; //Labels are preferred to be singular nouns

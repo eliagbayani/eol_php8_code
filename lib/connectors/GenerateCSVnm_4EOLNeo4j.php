@@ -71,7 +71,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         $tables = $ret['tables'];
         $extensions = array_keys($tables); print_r($extensions);
 
-        /* main operation
+        // /* main operation
         if($this->is_first_resourceYN) {
             // Step -2: generate the VernacularPageID node
             self::prepareVernacularPageIDNode_csv(); //this will be used in full-text search in web app. [page_id]\t[vernacularName]\n
@@ -81,15 +81,15 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
             self::prepareAppSettingsNode_csv();
             self::prepareAuditEventNode_csv();
         }
-        */
+        // */
 
         // /* ========== start Jan 27, 2026 ==========
         // Step 0: generate a Term node
 
-        /* main operation
+        // /* main operation
         // Step 0.1: generate relationships: PARENT_TERM & SYNONYM_OF ; also generates Term Node
         if($this->is_first_resourceYN) self::prepare_Parent_Term_and_Synonym_Of_Edges_and_TermNodecsv(); //using EOL Terms file
-        */
+        // */
 
         // /* main operation
         // Step 1: generate Page node; PARENT edge
@@ -98,29 +98,28 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         // */
         unset($meta);
 
-        /* main operation
+        // /* main operation
         if($this->is_first_resourceYN) self::prepare_PageNode_csv_from_DH(); //part of main operation; using our DH file
-        */
+        // */
 
-        /* main operation
+        // /* main operation
         // Step 2: generate Vernacular node; VERNACULAR edge
         $vernacular_meta = @$tables['http://rs.gbif.org/terms/1.0/vernacularname'][0];
         self::prepare_VernacularNode_csv($vernacular_meta);         // step 2a
         self::prepare_VernacularEdge_csv($vernacular_meta);         // step 2b
         unset($vernacular_meta);
-        */
-
-        // /*
-        // Step 3: generate Resource node
-        if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
-        exit("\nelix 1\n");
         // */
 
-        // Step 4: generate Trait node
+        // /* main operation
+        // Step 3: generate Resource node
+        if($this->is_first_resourceYN) self::prepare_ResourceNode_csv();                        // step 3a: 
+        // */
+
+        // /* Step 4: generate Trait node - main operation
         $meta = $tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
         self::process_table($meta, 'generate_occur_info');
 
-        // /* for Trait node
+        // for Trait node
         $this->WRITEx = Functions::file_open($this->path.'/nodes/Trait.csv', 'w');
         if($meta = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0]) self::process_table($meta, 'build_info_MoF_children');
         $this->writtenHeaderAlreadyYN['Trait node'] = false;
@@ -507,7 +506,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         $eol_terms = $func->use_yaml_parse_and_oldOrig();
         */
         $eol_terms = $this->build_eol_terms_from_Zenodo_dataset(); //exit("\nelix 3\n");
-        echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix 123\n");
+        echo "\nTerms count from EOL Terms file: [".count($eol_terms['terms'])."]\n"; //print_r($eol_terms['terms'][525]); exit("\nelix\n");
         // /*
         // ===== Term node
         $WRITE = Functions::file_open($this->path.'/nodes/Term.csv', 'w');
@@ -1051,7 +1050,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
                     fwrite($this->WRITE, implode("\t", $rec)."\n");
                 }
                 // ==================================================================================================
-                if($task == 'gen_allowed_uri_predicates') { // print_r($rec); exit("\nelix 1\n");
+                if($task == 'gen_allowed_uri_predicates') { // print_r($rec); exit("\nelix\n");
                     // Array(
                     //     [EOL_predicate_id] => 12748
                     //     [Label] => Body symmetry
@@ -1763,7 +1762,7 @@ class GenerateCSVnm_4EOLNeo4j extends ZenodoTraitBankAPI
         // $this->EOL_resources['worms']       = array('eol_resource_id' => 'worms',     'resource_name' => 'World Register of Marine Species');
         // $this->EOL_resources['wikipedia']   = array('eol_resource_id' => 'wikipedia', 'resource_name' => 'Wikipedia English - traits (inferred records)');
         foreach($this->EOL_resources as $eol_resource_id => $rec) {
-            /*Array( ditox
+            /*Array(
                 [eol_resource_id] => R22776838
                 [resource_name] => References
             )*/

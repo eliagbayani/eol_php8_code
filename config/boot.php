@@ -126,29 +126,8 @@ function environment_defined($environment_name)
 
 function prepare_jenkins($argv, $root)
 {
-    // echo 'Current PHP version: ' . phpversion()."<br>";
-    // echo "<hr>root 1: $root<hr>"; //debug only
-    // print_r($argv); //good debug
-    if($jenkins_or_cron = @$argv[1]) {
-        if($jenkins_or_cron == "jenkins") {
-            if($root == '/opt/homebrew/var/www/eol_php_code/') { //means Jenkins in Mac mini (no Docker) is running
-                $GLOBALS['ENV_NAME'] = 'jenkins_development';
-            }
-            elseif($root == '/var/www/html/eol_php8_code/') { //means Jenkins in Docker: MY_ENV is 'development' on the Mac, 'production' on eol-archive
-                $GLOBALS['ENV_NAME'] = 'jenkins_' . (getenv('MY_ENV') ?: 'development');
-            }
-            else { //means Jenkins in eol-archive is running
-                $GLOBALS['ENV_NAME'] = 'jenkins_production';
-                $root = '/var/www/html/eol_php8_code/';
-            }
-        }
-        else {} //means NOT Jenkins
-    }
-    else {}
-    /* good debug
-    echo "<hr>root 2: $root<hr>";
-    echo "<hr>cache_path: $cache_path<hr>";
-    */
+    // Jenkins jobs (php x.php jenkins ...) use the same settings and the same database.yml section as the
+    // website: ENV_NAME stays MY_ENV ('development' on the Mac, 'production' on eol-archive).
     $cache_path = '/var/www/html/eol_php8_code/applications/content_server/resources/cache/';
     if(!is_dir($cache_path)) mkdir($cache_path);
     return array($root, $cache_path);

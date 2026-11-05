@@ -110,7 +110,7 @@ class Functions
     }
     public static function is_production()
     {
-        if(in_array($GLOBALS['ENV_NAME'], array('production', 'jenkins_production'))) return true;
+        if($GLOBALS['ENV_NAME'] == 'production') return true;
         else return false;
     }
     public static function lookup_with_cache($url, $options = array())

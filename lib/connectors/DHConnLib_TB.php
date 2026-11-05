@@ -855,7 +855,7 @@ class DHConnLib_TB
                     //new tb data model - Eli removed scientificNameID as it it questionable?
                     fwrite($WRITE, "taxonID:ID(Taxon-ID){id-type:long},scientificName,rank,status,:LABEL"."\n"); //new tb data model
                 */
-                if($rec['taxonomicStatus'] == 'accepted') {
+                // if($rec['taxonomicStatus'] == 'accepted') {
                     $rec['eolID'] = $rec['taxonID']; //new
                     if($eolID = $rec['eolID']) { //e.g. 2913056
                         if(is_numeric($eolID)) {
@@ -864,12 +864,13 @@ class DHConnLib_TB
                                 // $fieldz = array('eolID', 'canonicalName', 'taxonRank', 'taxonomicStatus'); //old
                                 $fieldz = array('taxonID', 'scientificName', 'taxonRank', 'taxonomicStatus'); //new tb data model
                                 $csv = $func->format_csv_entry($rec, $fieldz);
-                                $csv .= 'Taxon'; //Labels are preferred to be singular nouns
+                                $csv .= 'Page'; //Labels are preferred to be singular nouns
+                                // $csv .= 'Taxon'; //Labels are preferred to be singular nouns
                                 fwrite($fhandle, $csv."\n");                
                             }
                         }
                     }
-                }
+                // }
             }
             elseif($task == 'build_taxonID_EOLid_info') {
                 $rec['eolID'] = $rec['taxonID']; //new

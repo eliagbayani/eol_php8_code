@@ -16,7 +16,7 @@ $timestart = time_elapsed();
 $resource_id = 1;
 
 $auth_token = NULL;
-if(FlickrAPI::valid_auth_token(FLICKR_PLEARY_AUTH_TOKEN)) $auth_token = FLICKR_PLEARY_AUTH_TOKEN;
+if(defined('FLICKR_PLEARY_AUTH_TOKEN') && FlickrAPI::valid_auth_token(FLICKR_PLEARY_AUTH_TOKEN)) $auth_token = FLICKR_PLEARY_AUTH_TOKEN; // token removed from the config files (Nov 2026): runs without it
 
 // create new _temp file
 $resource_file = fopen(CONTENT_RESOURCE_LOCAL_PATH . $resource_id . "_temp.xml", "w+");
@@ -33,7 +33,7 @@ fclose($resource_file);
 
 // cache the previous version and make this new version the current version
 @unlink(CONTENT_RESOURCE_LOCAL_PATH . $resource_id . "_previous.xml");
-Functions::file_rename((CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".xml", CONTENT_RESOURCE_LOCAL_PATH . $resource_id . "_previous.xml");
+Functions::file_rename(CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".xml", CONTENT_RESOURCE_LOCAL_PATH . $resource_id . "_previous.xml");
 Functions::file_rename(CONTENT_RESOURCE_LOCAL_PATH . $resource_id . "_temp.xml", CONTENT_RESOURCE_LOCAL_PATH . $resource_id . ".xml");
 
 Functions::set_resource_status_to_force_harvest($resource_id);

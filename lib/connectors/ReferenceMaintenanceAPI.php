@@ -33,9 +33,10 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     {
         $task = $this->param['task'];
         $basename = 'undefined_referenceIDs_20261027';
+        $basename = 'undefined_referenceIDs_20261106';
 
         if($task == 'prepare_undefined_referenceIDs_list') {
-            // /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
+            /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
             $paths = self::get_all_UndefinedRefIDs_files();
             $paths = self::delete_and_leave_only_the_latest_dates($paths);
             if($paths) {
@@ -45,12 +46,12 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             }
             else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
             // exit("\nend: Step 1\n");
-            // */
+            */
 
             // /* Step 2: create a new TSV with additional columns: citation and status
             $source_tsv = $basename.".tsv";
             $target_tsv = $basename."_processed.tsv";
-            $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv);
+            $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv); //this is the one that calls CrossRef
             echo "\nProcessed TSV saved: $ret\n"; //e.g. undefined_referenceIDs_20261023_processed.tsv
             exit("\nend: Steps 1 & 2\n");
             // */
@@ -416,7 +417,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(!preg_match('#^10\.\d{4,}/\S+$#', $doi)) { echo "\nNot a DOI: [$doi]\n"; $this->crossref_status = 'Not a DOI'; return false; }
 
         $options = array('resource_id' => 'crossref', 'expire_seconds' => false, // a published record rarely changes; cache never expires
-                         'timeout' => 60, 'download_attempts' => 2, 'download_wait_time' => 3000000,
+                         'timeout' => 60, 'download_attempts' => 2, 'download_wait_time' => 3000000, //3 seconds interval between calls
                          'user_agent' => 'EOL-connector/1.0',
                          'validation_regex' => '"status":"ok"'); // only use cache if it is a real CrossRef record
         $url = "https://api.crossref.org/works/" . rawurlencode($doi);

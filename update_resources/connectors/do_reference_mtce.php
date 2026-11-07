@@ -22,10 +22,12 @@ php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingDatas
 php do_reference_mtce.php _ '{"task": "utility_report_duplicate_identifiers_from_master"}'  //Utility : step 6
     - Report only, changes nothing: lists the identifiers that appear more than once in our master references.tsv
       -> references_duplicate_identifiers_YYYYMMDD.tsv, sorted by identifier.
+
 php do_reference_mtce.php _ '{"task": "merge_zenodo_references"}'                           //merge Zenodo's new copy of references.tsv into our local master
     - A Zenodo download keeps our master and saves Zenodo's copy beside the folder (references_from_zenodo_record<N>.tsv).
       This adds the identifiers only Zenodo has to our master (backup made first). Different citations for the same identifier are not
       changed, but listed in a conflicts TSV for review. Zenodo's copy is then renamed ..._merged so it isn't suggested again.
+
 php do_reference_mtce.php _ '{"task": "sync_zenodo_references", "dry_run_YN": 1}'           //sync merge, preview only: changes nothing
 php do_reference_mtce.php _ '{"task": "sync_zenodo_references"}'                            //sync merge: use this when the data managers edit or delete references on Zenodo
     - Like merge_zenodo_references, but compares 3 copies: the Zenodo version we last synced with (the base, kept beside the folder as
@@ -43,6 +45,7 @@ php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "227
     - Same as above, but publishes the new version right away. A published Zenodo version can never be deleted.
 
 unmappable_file="/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/unmappable_identifiers_oct28_2026.tsv"
+unmappable_file="/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/mapping_nov6_2026.tsv"
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "'"$unmappable_file"'", "dry_run_YN": 1}'  //preview only: changes nothing
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "'"$unmappable_file"'"}'                   //uploads a draft to Zenodo
 php do_reference_mtce.php _ '{"task": "update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers", "file": "'"$unmappable_file"'", "publish": 1}'     //publishes on Zenodo -- CANNOT be undone

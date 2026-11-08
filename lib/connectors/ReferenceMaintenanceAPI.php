@@ -688,7 +688,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             foreach($problems as $concept_id => $why) {
                 $title = $datasets[$concept_id]['title'];
                 echo "- $concept_id \"$title\": $why\n"
-                   . "    php generate_csv_new_model.php _ '{\"concept_id\": \"$concept_id\", \"redownload_zip_file_YN\": 0, \"task\": \"download_only\", \"what\": \"" . str_replace(array('"', "'"), '', $title) . "\"}'\n";
+                   . "    php generate_csv_new_model.php _ '{\"concept_id\": \"$concept_id\", \"redownload_zip_file_YN\": 1, \"task\": \"download_only\", \"what\": \"" . str_replace(array('"', "'"), '', $title) . "\"}'\n";
             }
             echo "Nothing was removed.\n";
             return false;
@@ -996,7 +996,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if($local !== (string) $latest['id']) {
             echo "\nSTOP: Zenodo's latest version is record {$latest['id']}, but our local copy is from record " . ($local ?: 'unknown') . ".\n";
             echo "Download it (our local file is kept), merge it if suggested, then upload again:\n";
-            echo "php generate_csv_new_model.php _ '{\"concept_id\": \"$concept_id\", \"redownload_zip_file_YN\": 0, \"task\": \"download_only\", \"what\": \"{$latest['title']}\"}'\nNothing was uploaded.\n";
+            echo "php generate_csv_new_model.php _ '{\"concept_id\": \"$concept_id\", \"redownload_zip_file_YN\": 1, \"task\": \"download_only\", \"what\": \"{$latest['title']}\"}'\nNothing was uploaded.\n";
             return false;
         }
 

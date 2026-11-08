@@ -73,7 +73,8 @@ class ZenodoTraitBankAPI
         $domain = $this->api['domain'] ?? 'https://zenodo.org';
         if ($expire_seconds === null) {
             // redownload_zip_file_YN = 1 or true: get fresh record info from Zenodo (expire_seconds = 0), once per concept ID per run;
-            // later calls in the same run (e.g. from get_generic_file_path()) use the just-refreshed cache
+            // later calls in the same run (e.g. from get_generic_file_path()) use the just-refreshed cache.
+            // The files are then downloaded only if Zenodo's latest version differs from ours (see download_zenodo_zip_file())
             if (!empty($this->param['redownload_zip_file_YN']) && !isset($this->zenodo_info_refreshed[$conceptId])) {
                 $expire_seconds = 0;
                 $this->zenodo_info_refreshed[$conceptId] = true;
@@ -151,18 +152,20 @@ class ZenodoTraitBankAPI
         $dest        = $dir . $filename;
         $record_file = $dir . "{$concept_id}.record_id";
 
+        // downloads only if Zenodo's latest version differs from ours (or we have no zip): the same version is never downloaded again,
+        // even with redownload_zip_file_YN = 1 -- that param makes get_zenodo_info_using_conceptID() get Zenodo's latest version fresh
+        // (not from the 1-day cache), so a new version is never missed
         $this->zip_freshly_downloaded = false; // set to true only after a successful download below
-        $redownload = !empty($this->param['redownload_zip_file_YN']); // missing param = 0
         if (is_file($dest) && filesize($dest) > 0) {
             $local_record_id = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
             if ($local_record_id !== $record_id) {
                 echo "New version on Zenodo [record $record_id, local was " . ($local_record_id ?: 'unknown') . "], re-downloading [$filename]\n";
             }
-            elseif (!$redownload) {
-                echo "Zip file already exists [$filename] (record $record_id)\n";
+            else {
+                echo "Zip file already exists [$filename] (record $record_id), same version as Zenodo's latest: no download"
+                   . (!empty($this->param['redownload_zip_file_YN']) ? " (redownload_zip_file_YN ignored)" : '') . "\n";
                 return $dest;
             }
-            else echo "Zip file already exists, re-downloading [$filename]\n";
         }
         if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
             echo "Cannot create folder [$dir]\n";
@@ -184,11 +187,11 @@ class ZenodoTraitBankAPI
         $dest_dir    = $dir . "$folder_name/input_files/";
         $record_file = $dir . "{$concept_id}.record_id";
 
-        // skip downloading if same version and all files are already there (non-empty)
+        // skip downloading if same version and all files are already there (non-empty), even with redownload_zip_file_YN = 1
+        // (that param only makes sure Zenodo's latest version is fetched fresh, see get_zenodo_info_using_conceptID())
         // -- not compared to Zenodo's size: add_missing_header_rows() may have added a header row since;
         //    partial downloads never get the real name anyway (.part file in download_url_to_file())
         $this->files_freshly_downloaded = false; // set to true only after a successful download below
-        $redownload      = !empty($this->param['redownload_zip_file_YN']); // missing param = 0
         $local_record_id = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
         $complete = true;
         foreach ($arr['files'] as $f) {
@@ -198,10 +201,12 @@ class ZenodoTraitBankAPI
         if ($local_record_id !== $record_id) {
             echo "New version on Zenodo [record $record_id, local was " . ($local_record_id ?: 'unknown') . "], downloading files individually\n";
         }
-        elseif ($complete && !$redownload) {
-            echo "Files already exist in [$folder_name/input_files/] (record $record_id)\n";
+        elseif ($complete) {
+            echo "Files already exist in [$folder_name/input_files/] (record $record_id), same version as Zenodo's latest: no download"
+               . (!empty($this->param['redownload_zip_file_YN']) ? " (redownload_zip_file_YN ignored)" : '') . "\n";
             return $dest_dir;
         }
+        else echo "Same version as Zenodo's latest (record $record_id), but some files are missing or empty: downloading again\n";
         $saved = $this->set_aside_protected_files($concept_id, $dest_dir);
         $ret = $this->download_zenodo_files_fresh($arr, $folder_name, $dest_dir, $record_file, $record_id);
         $this->restore_protected_files($saved, $dest_dir, $concept_id); // also after a failed download

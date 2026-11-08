@@ -86,7 +86,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // */
         }
         if($task == 'refresh_unmappable_identifiers_usingDatasets') {
-            // /* Step 5.2: remove from unmappable_identifiers.tsv the identifiers no TraitBank dataset cites any more (local copies, must be up to date)
+            // /* Step 5.2: remove from unmappable_identifiers.tsv the identifiers no TraitBank dataset cites any more, in /referenceID or /source (local copies, must be up to date)
             $removed = self::refresh_unmappable_identifiers_usingDatasets();
             if($removed !== false) echo "\nUnmappable identifiers removed, since no dataset cites them any more: [$removed]\n";
             // */
@@ -653,7 +653,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     private function refresh_unmappable_identifiers_usingDatasets($tsv = null)
     {   // remove from unmappable_identifiers.tsv the identifiers that no TraitBank dataset cites any more
         // datasets: the Zenodo 'traitbank' community, except $this->main_datasets (Terms, References, DH)
-        // cited IDs: the referenceID column of each dataset's local traits file (get_generic_file_path(), no download)
+        // cited IDs: the referenceID and source columns of each dataset's local traits file (get_generic_file_path(), no download),
+        //             and of its taxon file, if it has one with these columns (e.g. Kubitzki: source in taxon.tsv)
         // stops and removes nothing if a local copy is missing or older than Zenodo's latest version
         // Returns no. of rows removed, or false.
         $tsv = $tsv ?? CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
@@ -693,28 +694,52 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             return false;
         }
 
-        // 3. all referenceIDs cited in the traits files; a cell may hold several, e.g. "id1|id2"
-        $cited = array();
+        // 3. all IDs cited in the datasets: the referenceID column (a cell may hold several, e.g. "id1|id2") and the source column
+        //    (one value per cell; ConvertNewModel_2DwCA reports a source missing from the master as an undefined referenceID too).
+        //    Files: traits, and taxon where it has one of these columns (e.g. Kubitzki 22777078 has a source column in taxon.tsv)
+        $cited = array(); $cited_ref = array(); $cited_src = array();
         foreach($traits_files as $concept_id => $file) {
-            $fh = fopen($file, "r");
-            $fields = explode("\t", rtrim((string) fgets($fh), "\r\n"));
-            $col = false;
-            foreach($fields as $i => $field) if(pathinfo(trim($field), PATHINFO_FILENAME) == 'referenceID') { $col = $i; break; } // e.g. http://rs.tdwg.org/dwc/terms/referenceID
-            if($col === false) { fclose($fh); echo "$concept_id: no referenceID column\n"; continue; }
-            $rows = 0; $ids = array();
-            while(($line = fgets($fh)) !== false) {
-                $rows++;
-                $value = explode("\t", rtrim($line, "\r\n"))[$col] ?? '';
-                foreach(explode("|", $value) as $id) {
-                    $id = trim($id, " \t\"'"); // same as in save_unique_referenceIDs_2tsv(), e.g. '"http://dx.doi.org/...' -> 'http://dx.doi.org/...'
-                    if($id !== '') $ids[$id] = '';
+            $files = array($file);
+            foreach(array('taxon.tsv', 'taxon.txt') as $name) if(is_file(dirname($file) . "/$name")) { $files[] = dirname($file) . "/$name"; break; }
+            foreach($files as $f) {
+                $fh = fopen($f, "r");
+                $fields = explode("\t", rtrim((string) fgets($fh), "\r\n"));
+                $ref_col = false; $src_col = false;
+                foreach($fields as $i => $field) {
+                    $name = pathinfo(trim($field), PATHINFO_FILENAME); // e.g. http://rs.tdwg.org/dwc/terms/referenceID, http://purl.org/dc/terms/source
+                    if($name == 'referenceID' && $ref_col === false) $ref_col = $i;
+                    if($name == 'source'      && $src_col === false) $src_col = $i;
                 }
+                if($ref_col === false && $src_col === false) {
+                    fclose($fh);
+                    if($f === $file) echo "$concept_id: no referenceID or source column in [" . basename($f) . "]\n";
+                    continue;
+                }
+                $rows = 0; $ref_ids = array(); $src_ids = array();
+                while(($line = fgets($fh)) !== false) {
+                    $rows++;
+                    $values = explode("\t", rtrim($line, "\r\n"));
+                    if($ref_col !== false) {
+                        foreach(explode("|", $values[$ref_col] ?? '') as $id) {
+                            $id = trim($id, " \t\"'"); // same as in save_unique_referenceIDs_2tsv(), e.g. '"http://dx.doi.org/...' -> 'http://dx.doi.org/...'
+                            if($id !== '') $ref_ids[$id] = '';
+                        }
+                    }
+                    if($src_col !== false) {
+                        $id = trim($values[$src_col] ?? '', " \t\"'");
+                        if($id !== '') $src_ids[$id] = '';
+                    }
+                }
+                fclose($fh);
+                $cited += $ref_ids + $src_ids; $cited_ref += $ref_ids; $cited_src += $src_ids;
+                echo "$concept_id " . basename($f) . ": " . number_format($rows) . " rows, "
+                   . ($ref_col !== false ? number_format(count($ref_ids)) . " distinct referenceIDs" : "no referenceID column") . ", "
+                   . ($src_col !== false ? number_format(count($src_ids)) . " distinct sources" : "no source column") . "\n";
             }
-            fclose($fh);
-            $cited += $ids;
-            echo "$concept_id: " . number_format($rows) . " rows, " . number_format(count($ids)) . " distinct referenceIDs\n";
         }
-        echo "Distinct referenceIDs cited in all datasets: " . number_format(count($cited)) . "\n";
+        echo "Distinct IDs cited in all datasets: " . number_format(count($cited))
+           . " (referenceID: " . number_format(count($cited_ref)) . ", source: " . number_format(count($cited_src)) . ")\n";
+        if(!$cited) { echo "\nERROR: no referenceID or source found in any dataset. Nothing was removed.\n"; return false; } // never empty the whole list by mistake
 
         // 4. keep the identifiers that are still cited
         $orig = self::count_data_rows($tsv);

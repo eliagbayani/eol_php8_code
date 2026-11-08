@@ -16,8 +16,8 @@ php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingItsel
       Stops, and explains the difference, if it isn't identical to our local copy. Otherwise the citations the Data Manager typed in
       (full_reference column) are added to our master references.tsv, and those identifiers are removed from unmappable_identifiers.tsv.
 php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingDatasets"}'      //step 5.2
-    - Removes from unmappable_identifiers.tsv the identifiers no longer cited in the traits file of any TraitBank dataset on Zenodo
-      (except Terms, References, DH). Uses our downloaded copies; stops and removes nothing if any copy is missing or older than
+    - Removes from unmappable_identifiers.tsv the identifiers no longer cited in any TraitBank dataset on Zenodo (except Terms, References, DH):
+      in the referenceID or source column of its traits file, or of its taxon file (e.g. Kubitzki has source in taxon.tsv). Uses our downloaded copies; stops and removes nothing if any copy is missing or older than
       Zenodo's latest version (prints the re-download commands). Backup and a record of the removed rows are saved.
 php do_reference_mtce.php _ '{"task": "utility_report_duplicate_identifiers_from_master"}'  //Utility : step 6
     - Report only, changes nothing: lists the identifiers that appear more than once in our master references.tsv

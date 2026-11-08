@@ -184,6 +184,13 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         }
         // */
 
+        // /* check /source if in master references.tsv -- per Jen: https://github.com/EOL/ContentImport/issues/52#issuecomment-6662636355
+        if($source = @$rec['source']) {
+            if($full_ref = @$this->references_info[$source]) {}
+            else $this->debug['referenceIDs']['undefined referenceID'][$source] = '';
+        }
+        // */
+
         /* NO LONGER NEEDED
         $meta = array('taxonKey' => @$rec['taxonKey'], 'infer' => @$rec['infer'], 'exclude' => @$rec['exclude']);
         $meta = json_encode($meta);

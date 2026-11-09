@@ -36,7 +36,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $basename = 'undefined_referenceIDs_20261106';
 
         if($task == 'prepare_undefined_referenceIDs_list') {
-            /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
+            // /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
             $paths = self::get_all_UndefinedRefIDs_files();
             $paths = self::delete_and_leave_only_the_latest_dates($paths);
             if($paths) {
@@ -46,7 +46,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             }
             else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
             // exit("\nend: Step 1\n");
-            */
+            // */
 
             // /* Step 2: create a new TSV with additional columns: citation and status
             $source_tsv = $basename.".tsv";

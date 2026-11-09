@@ -32,8 +32,9 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     function start()
     {
         $task = $this->param['task'];
-        $basename = 'undefined_referenceIDs_20261027';
-        $basename = 'undefined_referenceIDs_20261106';
+        // the undefined_referenceIDs_YYYYMMDD.tsv used by steps 2, 3 & 4: the one given ("basename": "undefined_referenceIDs_20261106"),
+        // else the newest one in CONTENT_RESOURCE_LOCAL_PATH (step 1 below makes today's). No longer typed in here by hand.
+        $basename = self::undefined_referenceIDs_basename();
 
         if($task == 'prepare_undefined_referenceIDs_list') {
             // /* Step 1: prepare the source TSV with undefined referenceIDs or identifiers
@@ -43,12 +44,15 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
                 print_r($paths);
                 $tsv = self::save_unique_referenceIDs_2tsv($paths); //TSV with 2 columns: referenceID and concept_id
                 echo "\nTSV saved: [$tsv]\n"; //e.g. undefined_referenceIDs_20261023.tsv
+                $basename = pathinfo($tsv, PATHINFO_FILENAME); // step 2 uses the file just made
             }
             else echo "\nNo undefined referenceIDs recorded on files at the moment.\n";
             // exit("\nend: Step 1\n");
             // */
 
             // /* Step 2: create a new TSV with additional columns: citation and status
+            if(!$basename) exit("\nERROR: No undefined_referenceIDs_YYYYMMDD.tsv to process.\n");
+            echo "\nStep 2 uses: [$basename.tsv]\n";
             $source_tsv = $basename.".tsv";
             $target_tsv = $basename."_processed.tsv";
             $ret = self::process_undefined_reference_IDs_file($source_tsv, $target_tsv); //this is the one that calls CrossRef
@@ -59,6 +63,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 
         if($task == 'update_References_from_UndefinedRefIDs_files') {
             // /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and full_reference.
+            if(!$basename) exit("\nERROR: No undefined_referenceIDs_YYYYMMDD.tsv found. Run prepare_undefined_referenceIDs_list first.\n");
+            echo "\nSteps 3 & 4 use: [{$basename}_processed.tsv]\n";
             $processed_tsv = $basename."_processed.tsv";
             $added = self::update_References_file($processed_tsv);
             echo "\nReferences added: [$added]\n";
@@ -89,6 +95,13 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // /* Step 5.2: remove from unmappable_identifiers.tsv the identifiers no TraitBank dataset cites any more, in /referenceID or /source (local copies, must be up to date)
             $removed = self::refresh_unmappable_identifiers_usingDatasets();
             if($removed !== false) echo "\nUnmappable identifiers removed, since no dataset cites them any more: [$removed]\n";
+            // */
+        }
+        if($task == 'sync_unmappable_identifiers_with_datasets') {
+            // /* One step, reading the datasets directly: add the cited IDs (/referenceID or /source) the master doesn't have; remove those now in the master
+            //    or no longer cited. Optional "crossref_YN": 1 (look the new ones up in CrossRef first), "dry_run_YN": 1 (report only)
+            $ret = self::sync_unmappable_identifiers_with_datasets(null, !empty($this->param['dry_run_YN']), !empty($this->param['crossref_YN']));
+            if($ret !== false) echo "\nSync result: " . json_encode($ret) . "\n";
             // */
         }
 
@@ -667,6 +680,143 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $tsv = $tsv ?? CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
         if(!is_file($tsv)) { echo "\nERROR: No file [$tsv]\n"; return false; }
 
+        if(($cited = self::get_cited_ids_from_datasets()) === false) return false; // steps 1-3, nothing is removed if it fails
+
+
+        // 4. keep the identifiers that are still cited
+        $orig = self::count_data_rows($tsv);
+        $keep = array(); $removed = array();
+        foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) { $keep[] = $line; continue; } // header
+            if(trim($line) == '') continue;
+            if(isset($cited[trim(explode("\t", $line)[0])])) $keep[] = $line;
+            else                                              $removed[] = $line;
+        }
+        if(!$removed) {
+            echo "\nAll unmappable identifiers are still cited in some dataset. Nothing to remove.\n";
+            self::print_row_stats($orig, 0, $orig, 'removed');
+            return 0;
+        }
+
+        // 5. backup, record of the removed rows, then rewrite the list safely
+        $dir = dirname($tsv) . "/"; $date = date("Ymd_His");
+        $backup = $dir . "unmappable_identifiers_backup_$date.tsv";
+        if(!copy($tsv, $backup)) { echo "\nERROR: Cannot backup [$tsv]\n"; return false; }
+        $record = $dir . "unmappable_identifiers_removed_notInDatasets_$date.tsv";
+        file_put_contents($record, $keep[0] . "\n" . implode("\n", $removed) . "\n");
+        $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+        if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
+        echo "\nBackup: [$backup]\nRemoved rows saved in: [$record]\nUpdated: [$tsv]\nRemoved (no dataset cites them any more):\n";
+        foreach($removed as $line) echo explode("\t", $line)[0] . "\n";
+        $this->copy_to_github_folder($tsv);
+        self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
+        return count($removed);
+    }
+    private function sync_unmappable_identifiers_with_datasets($tsv = null, $dry_run = false, $crossref = false)
+    {   /* One step: makes unmappable_identifiers.tsv = the IDs cited in the TraitBank datasets (/referenceID or /source) that our master doesn't have.
+           Reads the datasets directly (get_cited_ids_from_datasets()), not the converter's UndefinedRefIDs debug files, so no conversion is needed first.
+        - added:   cited IDs that aren't in the master (with a full_reference) and aren't on the list yet; status "Not in master", blank full_reference
+                   ('#N/A', a spreadsheet's "no value", is never added)
+        - removed: IDs now in the master (with a full_reference), and IDs no dataset cites any more
+        - $crossref: the IDs to add are first looked up in CrossRef; those found go to the master (backup first) instead, the rest get CrossRef's status
+        - $dry_run: report only, change nothing
+        Stops and changes nothing if a dataset's local copy is missing or older than Zenodo's latest version.
+        Backup first; a record of every added/removed row is saved (unmappable_identifiers_sync_<date>.tsv); both files are copied to the GitHub folder.
+        Returns array('added', 'to_master', 'removed_in_master', 'removed_not_cited'), or false. */
+        $tsv = $tsv ?? CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
+        if(($cited = self::get_cited_ids_from_datasets()) === false) return false;
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; }
+        echo "\nReferences Master: [$references_tsv]\nUnmappable list:   [$tsv]" . ($dry_run ? " (dry run, nothing is changed)" : '') . "\n";
+        $mapped = array(); // identifiers in the master with a full_reference -- what the converter counts as defined
+        foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+            if($line_no == 0) continue; // header
+            [$identifier, $full_reference] = array_map('trim', explode("\t", $line) + array('', ''));
+            if($identifier != '' && $full_reference != '') $mapped[$identifier] = '';
+        }
+
+        // the list now: keep, or remove (in the master / not cited any more)
+        $header = "identifier\tstatus\tfull_reference"; $keep = array(); $existing = array(); $removed = array(); // $removed: array(line, reason)
+        if(is_file($tsv)) {
+            foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+                if($line_no == 0) { $header = $line; continue; }
+                if(trim($line) == '') continue;
+                $id = trim(explode("\t", $line)[0]);
+                $existing[$id] = '';
+                if(isset($mapped[$id]))     $removed[] = array($line, 'now in the master');
+                elseif(!isset($cited[$id])) $removed[] = array($line, 'no dataset cites it any more');
+                else                        $keep[] = $line;
+            }
+        }
+        // to add: cited, not in the master, not on the list yet
+        $to_add = array();
+        foreach($cited as $id => $concept_ids) {
+            if($id === '#N/A' || isset($mapped[$id]) || isset($existing[$id])) continue;
+            $to_add[$id] = array_keys($concept_ids);
+        }
+        $new_rows = array(); $master_rows = array(); $status_of = array();
+        foreach($to_add as $id => $concept_ids) {
+            if($crossref) {
+                $citation = self::get_citation_from_CrossRef($id);
+                if($citation) { $master_rows[] = "$id\t" . preg_replace('/[\t\r\n]+/', ' ', $citation); $status_of[$id] = 'found in CrossRef, added to the master'; continue; }
+                $status_of[$id] = $this->crossref_status ?: 'Not in master';
+            }
+            else $status_of[$id] = 'Not in master';
+            $new_rows[] = "$id\t{$status_of[$id]}\t"; // blank full_reference, for the Data Manager
+        }
+
+        // report
+        $n_in_master = count(array_filter($removed, fn($r) => $r[1] == 'now in the master'));
+        $ret = array('added' => count($new_rows), 'to_master' => count($master_rows), 'removed_in_master' => $n_in_master, 'removed_not_cited' => count($removed) - $n_in_master);
+        echo "\nOn the list now: " . number_format(count($existing)) . "\n";
+        echo "To remove, now in the master: " . number_format($ret['removed_in_master']) . "\n";
+        echo "To remove, no dataset cites them any more: " . number_format($ret['removed_not_cited']) . "\n";
+        echo "To add, cited but not in the master: " . number_format(count($new_rows)) . "\n";
+        if($crossref) echo "To add to the master, found in CrossRef: " . number_format(count($master_rows)) . "\n";
+        foreach(array_slice($removed, 0, 10) as [$line, $why]) echo "    remove: " . mb_substr(trim(explode("\t", $line)[0]), 0, 120) . "  ($why)\n";
+        foreach(array_slice(array_keys($to_add), 0, 10) as $id) echo "    add:    " . mb_substr($id, 0, 120) . "  (" . implode(", ", $to_add[$id]) . ")\n";
+        $final = count($keep) + count($new_rows);
+        echo "List rows: " . number_format(count($existing)) . " -> " . number_format($final) . ($dry_run ? " (after the sync)" : '') . "\n";
+        if($dry_run) return $ret;
+        if(!$removed && !$new_rows && !$master_rows) { echo "\nThe list is already in step with the datasets and the master. Nothing was changed.\n"; return $ret; }
+
+        // write: master first (if CrossRef found any), then the list
+        if($master_rows) {
+            if(!self::append_to_references_master($references_tsv, $master_rows)) return false; // backup + GitHub copy
+            echo "Added to the master (found in CrossRef): " . count($master_rows) . ". Upload it to Zenodo when ready (upload_file_toZenodo).\n";
+        }
+        $date = date("Ymd_His"); $dir = dirname($tsv) . "/";
+        if(is_file($tsv)) {
+            $backup = $dir . "unmappable_identifiers_backup_$date.tsv";
+            if(!copy($tsv, $backup)) { echo "\nERROR: Cannot backup [$tsv]\n"; return false; }
+            echo "Backup: [$backup]\n";
+        }
+        $record = array("action\tidentifier\treason\tconcept_ids\trow");
+        foreach($removed as [$line, $why]) $record[] = "removed\t" . trim(explode("\t", $line)[0]) . "\t$why\t\t" . str_replace("\t", " | ", $line);
+        foreach($to_add as $id => $concept_ids) $record[] = (str_starts_with($status_of[$id], 'found in CrossRef') ? "to master" : "added") . "\t$id\t{$status_of[$id]}\t" . implode(",", $concept_ids) . "\t";
+        $record_file = $dir . "unmappable_identifiers_sync_$date.tsv";
+        file_put_contents($record_file, implode("\n", $record) . "\n");
+        $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+        if(file_put_contents($tmp, implode("\n", array_merge(array($header), $keep, $new_rows)) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
+        echo "Updated: [$tsv]\nRecord of the changes: [$record_file]\n";
+        $this->copy_to_github_folder($tsv);
+        echo "orig total rows: " . number_format(count($existing)) . "\nadded rows: " . number_format(count($new_rows))
+           . "\nremoved rows: " . number_format(count($removed)) . "\nfinal total rows: " . number_format(self::count_data_rows($tsv)) . "\n";
+        return $ret;
+    }
+    private function undefined_referenceIDs_basename()
+    {   // the undefined_referenceIDs_YYYYMMDD.tsv for steps 2-4, without .tsv: the one given in "basename" (with or without .tsv), else the newest one; or ''
+        if(!empty($this->param['basename'])) return preg_replace('/(_processed)?\.tsv$/', '', basename($this->param['basename']));
+        $files = glob(CONTENT_RESOURCE_LOCAL_PATH . "undefined_referenceIDs_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].tsv") ?: array();
+        rsort($files); // the date is in the name, so the newest sorts first
+        return $files ? pathinfo($files[0], PATHINFO_FILENAME) : '';
+    }
+    private function get_cited_ids_from_datasets()
+    {   /* All IDs cited in the TraitBank datasets: array(identifier => array(concept_id => '')), or false (and nothing should be changed).
+        datasets: the Zenodo 'traitbank' community, except $this->main_datasets (Terms, References, DH)
+        cited IDs: the referenceID and source columns of each dataset's local traits file (get_generic_file_path(), no download),
+                   and of its taxon file, if it has one with these columns (e.g. Kubitzki: source in taxon.tsv)
+        returns false if a local copy is missing or older than Zenodo's latest version (prints the re-download commands),
+        or if no ID is found at all. Used by refresh_unmappable_identifiers_usingDatasets() and sync_unmappable_identifiers_with_datasets(). */
         // 1. dataset list from Zenodo
         if(!($csv = $this->generate_Zenodo_TraitBank_datasets_inCSV())) { echo "\nERROR: Cannot get the TraitBank datasets list from Zenodo\n"; return false; }
         $datasets = array(); // concept_id => array(record_id, title)
@@ -697,7 +847,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
                 echo "- $concept_id \"$title\": $why\n"
                    . "    php generate_csv_new_model.php _ '{\"concept_id\": \"$concept_id\", \"redownload_zip_file_YN\": 1, \"task\": \"download_only\", \"what\": \"" . str_replace(array('"', "'"), '', $title) . "\"}'\n";
             }
-            echo "Nothing was removed.\n";
+            echo "Nothing was changed.\n";
             return false;
         }
 
@@ -728,17 +878,20 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
                     $values = explode("\t", rtrim($line, "\r\n"));
                     if($ref_col !== false) {
                         foreach(explode("|", $values[$ref_col] ?? '') as $id) {
-                            $id = trim($id, " \t\"'"); // same as in save_unique_referenceIDs_2tsv(), e.g. '"http://dx.doi.org/...' -> 'http://dx.doi.org/...'
+                            // only spaces trimmed, never quotes: the converter looks the value up in the master as it is, and a quote can be
+                            // part of a real ID, e.g. https://collections.si.edu/search/results.htm?q=598559&fq=tax_class:"Mammalia"
+                            $id = trim($id);
                             if($id !== '') $ref_ids[$id] = '';
                         }
                     }
                     if($src_col !== false) {
-                        $id = trim($values[$src_col] ?? '', " \t\"'");
+                        $id = trim($values[$src_col] ?? ''); // same: no quotes trimmed
                         if($id !== '') $src_ids[$id] = '';
                     }
                 }
                 fclose($fh);
-                $cited += $ref_ids + $src_ids; $cited_ref += $ref_ids; $cited_src += $src_ids;
+                foreach($ref_ids + $src_ids as $id => $x) $cited[$id][$concept_id] = '';
+                $cited_ref += $ref_ids; $cited_src += $src_ids;
                 echo "$concept_id " . basename($f) . ": " . number_format($rows) . " rows, "
                    . ($ref_col !== false ? number_format(count($ref_ids)) . " distinct referenceIDs" : "no referenceID column") . ", "
                    . ($src_col !== false ? number_format(count($src_ids)) . " distinct sources" : "no source column") . "\n";
@@ -746,36 +899,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
         echo "Distinct IDs cited in all datasets: " . number_format(count($cited))
            . " (referenceID: " . number_format(count($cited_ref)) . ", source: " . number_format(count($cited_src)) . ")\n";
-        if(!$cited) { echo "\nERROR: no referenceID or source found in any dataset. Nothing was removed.\n"; return false; } // never empty the whole list by mistake
-
-        // 4. keep the identifiers that are still cited
-        $orig = self::count_data_rows($tsv);
-        $keep = array(); $removed = array();
-        foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
-            if($line_no == 0) { $keep[] = $line; continue; } // header
-            if(trim($line) == '') continue;
-            if(isset($cited[trim(explode("\t", $line)[0])])) $keep[] = $line;
-            else                                              $removed[] = $line;
-        }
-        if(!$removed) {
-            echo "\nAll unmappable identifiers are still cited in some dataset. Nothing to remove.\n";
-            self::print_row_stats($orig, 0, $orig, 'removed');
-            return 0;
-        }
-
-        // 5. backup, record of the removed rows, then rewrite the list safely
-        $dir = dirname($tsv) . "/"; $date = date("Ymd_His");
-        $backup = $dir . "unmappable_identifiers_backup_$date.tsv";
-        if(!copy($tsv, $backup)) { echo "\nERROR: Cannot backup [$tsv]\n"; return false; }
-        $record = $dir . "unmappable_identifiers_removed_notInDatasets_$date.tsv";
-        file_put_contents($record, $keep[0] . "\n" . implode("\n", $removed) . "\n");
-        $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
-        if(file_put_contents($tmp, implode("\n", $keep) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot update [$tsv]\n"; return false; }
-        echo "\nBackup: [$backup]\nRemoved rows saved in: [$record]\nUpdated: [$tsv]\nRemoved (no dataset cites them any more):\n";
-        foreach($removed as $line) echo explode("\t", $line)[0] . "\n";
-        $this->copy_to_github_folder($tsv);
-        self::print_row_stats($orig, count($removed), self::count_data_rows($tsv), 'removed');
-        return count($removed);
+        if(!$cited) { echo "\nERROR: no referenceID or source found in any dataset. Nothing was changed.\n"; return false; } // never empty the whole list by mistake
+        return $cited;
     }
     private function compare_unmappable_identifiers_using_self($source1, $source2)
     {   // $source1, $source2: two copies of unmappable_identifiers.tsv (identifier, status, full_reference), e.g. local and from GitHub

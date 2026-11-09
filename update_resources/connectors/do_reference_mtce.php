@@ -19,6 +19,21 @@ php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingDatas
     - Removes from unmappable_identifiers.tsv the identifiers no longer cited in any TraitBank dataset on Zenodo (except Terms, References, DH):
       in the referenceID or source column of its traits file, or of its taxon file (e.g. Kubitzki has source in taxon.tsv). Uses our downloaded copies; stops and removes nothing if any copy is missing or older than
       Zenodo's latest version (prints the re-download commands). Backup and a record of the removed rows are saved.
+    Steps 2, 3 & 4 use the newest undefined_referenceIDs_YYYYMMDD.tsv (step 1 makes today's); to use another one, add e.g.
+      "basename": "undefined_referenceIDs_20261106"
+
+php do_reference_mtce.php _ '{"task": "sync_unmappable_identifiers_with_datasets", "dry_run_YN": 1}'   //ONE STEP instead of steps 1-5.2, preview only: changes nothing
+php do_reference_mtce.php _ '{"task": "sync_unmappable_identifiers_with_datasets"}'
+php do_reference_mtce.php _ '{"task": "sync_unmappable_identifiers_with_datasets", "crossref_YN": 1}'
+    - Reads the referenceID and source columns of all TraitBank datasets directly (our downloaded copies; no conversion needed first) and makes
+      unmappable_identifiers.tsv = the cited IDs our master references.tsv doesn't have:
+        adds the cited IDs not in the master and not on the list yet (status "Not in master", blank full_reference, for the Data Manager);
+        removes the IDs now in the master, and those no dataset cites any more.
+    - Optional "crossref_YN": 1 -> the new IDs are looked up in CrossRef first: those found are added to the master (backup first; then upload it
+      to Zenodo when ready), the rest go to the list with CrossRef's status (e.g. "Not a DOI").
+    - Stops and changes nothing if any copy is missing or older than Zenodo's latest version (prints the re-download commands).
+      Backup and a record of every added/removed row are saved (unmappable_identifiers_sync_<date>.tsv); the list is copied to the GitHub folder.
+
 php do_reference_mtce.php _ '{"task": "utility_report_duplicate_identifiers_from_master"}'  //Utility : step 6
     - Report only, changes nothing: lists the identifiers that appear more than once in our master references.tsv
       -> references_duplicate_identifiers_YYYYMMDD.tsv, sorted by identifier.

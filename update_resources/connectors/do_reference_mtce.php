@@ -22,6 +22,11 @@ php do_reference_mtce.php _ '{"task": "refresh_unmappable_identifiers_usingDatas
 php do_reference_mtce.php _ '{"task": "utility_report_duplicate_identifiers_from_master"}'  //Utility : step 6
     - Report only, changes nothing: lists the identifiers that appear more than once in our master references.tsv
       -> references_duplicate_identifiers_YYYYMMDD.tsv, sorted by identifier.
+php do_reference_mtce.php _ '{"task": "compare_master_with_zenodo"}'                        //Utility: is our master the same as Zenodo's?
+    - Report only, changes nothing: compares our local master references.tsv with the one in Zenodo's latest version.
+      Shows both versions (record IDs) and both md5s. If the files aren't identical, Zenodo's file is downloaded to a temp file and
+      compared row by row: rows only in our master, rows only on Zenodo, identifiers whose citation differs
+      -> references_22776838_compare_zenodo_record<N>_<date>.tsv
 
 php do_reference_mtce.php _ '{"task": "merge_zenodo_references"}'                           //merge Zenodo's new copy of references.tsv into our local master
     - A Zenodo download keeps our master and saves Zenodo's copy beside the folder (references_from_zenodo_record<N>.tsv).

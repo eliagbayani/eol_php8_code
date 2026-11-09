@@ -107,6 +107,13 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // */
         }
 
+        if($task == 'compare_master_with_zenodo') {
+            // /* Report only, changes nothing: is our local master references.tsv the same as the one in Zenodo's latest version?
+            $ret = self::compare_master_with_zenodo();
+            if($ret) echo "\nCompare result: " . json_encode($ret) . "\n";
+            // */
+        }
+
         if($task == 'merge_zenodo_references') {
             // /* Merge the changes in Zenodo's copy of references.tsv (saved beside the folder after a new download) into our local master
             $ret = $this->merge_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv');
@@ -921,6 +928,86 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $ids = count(array_unique(array_column($dups, 0)));
         echo "\nSaved: [$tsv]\nduplicate identifiers: " . number_format($ids) . "\nrows involved: " . number_format(count($dups)) . "\n";
         return $tsv;
+    }
+    private function compare_master_with_zenodo()
+    {   /* Report only, changes nothing in our files: compares our local master references.tsv with the one in Zenodo's latest version.
+        1. versions: Zenodo's latest record (fresh, not cached) vs ours in TB_files/22776838.record_id
+        2. files: md5 of our master vs Zenodo's checksum -> identical, or not
+        3. if not identical: Zenodo's file is downloaded to a temp file (deleted afterwards) and compared row by row,
+           as (identifier, full_reference) pairs; a header row and blank lines are ignored, and so are line endings (CRLF/LF)
+           -> rows only in our master, rows only on Zenodo, identifiers whose citation differs; all saved in a TSV
+        Returns array('zenodo_record', 'local_record', 'same_version', 'identical', 'only_local', 'only_zenodo', 'different_citation', 'report'), or false. */
+        $concept_id = $this->main_datasets['References_conceptID'];
+        if(!($local_file = $this->get_generic_file_path($concept_id, 'references', false))) { echo "\nERROR: No local references.tsv\n"; return false; }
+        if(!($latest = $this->get_zenodo_info_using_conceptID($concept_id, 0))) { echo "\nERROR: Cannot get the latest version of [$concept_id] from Zenodo\n"; return false; }
+        $zfile = null;
+        foreach($latest['files'] as $f) if(basename($f['key']) == 'references.tsv') { $zfile = $f; break; }
+        if(!$zfile) { echo "\nERROR: Zenodo's latest version (record {$latest['id']}) has no references.tsv\n"; return false; }
+
+        // 1. versions
+        $record_file  = CONTENT_RESOURCE_LOCAL_PATH . "TB_files/$concept_id.record_id";
+        $local_record = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
+        $same_version = ($local_record === (string) $latest['id']);
+        echo "\nOur master:      [$local_file]\n";
+        echo "Zenodo's latest: record {$latest['id']}" . ($latest['version'] ? ", version {$latest['version']}" : '') . "\n";
+        echo "Our version:     record " . ($local_record ?: 'unknown') . ($same_version ? " (same as Zenodo's latest)" : " (NOT Zenodo's latest)") . "\n";
+
+        // 2. files
+        $local_md5  = md5_file($local_file);
+        $zenodo_md5 = preg_match('/^md5:([0-9a-f]{32})$/i', (string) $zfile['checksum'], $m) ? strtolower($m[1]) : '';
+        echo "md5 ours:        $local_md5\nmd5 Zenodo:      " . ($zenodo_md5 ?: 'unknown') . "\n";
+        $ret = array('zenodo_record' => (string) $latest['id'], 'local_record' => $local_record, 'same_version' => $same_version,
+                     'identical' => ($zenodo_md5 !== '' && $local_md5 === $zenodo_md5),
+                     'only_local' => 0, 'only_zenodo' => 0, 'different_citation' => 0, 'report' => null);
+        if($ret['identical']) {
+            echo "\nIDENTICAL: our master is the same file as Zenodo's latest version. Rows: " . number_format(self::count_data_rows($local_file)) . "\n";
+            return $ret;
+        }
+
+        // 3. row by row, using a temp copy of Zenodo's file
+        echo "\nNOT identical. Downloading Zenodo's file to compare row by row...\n";
+        $tmp = tempnam(sys_get_temp_dir(), 'references_zenodo_');
+        if(!$this->download_url_to_file($zfile['url'], $tmp)) { @unlink($tmp); echo "ERROR: Cannot download Zenodo's references.tsv\n"; return false; }
+        $read = function($file) { // array(identifier => array(full_reference => ''))
+            $rows = array();
+            foreach(file($file, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+                $line = rtrim($line, "\r");
+                if(trim($line) === '') continue;
+                $c = explode("\t", $line, 2);
+                $id = trim($c[0]);
+                if($line_no == 0 && $id === 'identifier') continue; // header
+                $rows[$id][trim($c[1] ?? '')] = '';
+            }
+            return $rows;
+        };
+        $L = $read($local_file); $Z = $read($tmp);
+        unlink($tmp);
+        $report = array(); $only_local = 0; $only_zenodo = 0; $diff_ids = array();
+        foreach(array(array($L, $Z, 'only in our master'), array($Z, $L, 'only on Zenodo')) as [$a, $b, $where]) {
+            foreach($a as $id => $refs) {
+                foreach($refs as $ref => $x) {
+                    if(isset($b[$id][$ref])) continue;
+                    $report[] = "$where\t$id\t$ref";
+                    if($where == 'only in our master') $only_local++; else $only_zenodo++;
+                    if(isset($b[$id])) $diff_ids[$id] = ''; // the identifier is on both sides, with a different citation
+                }
+            }
+        }
+        $ret['only_local'] = $only_local; $ret['only_zenodo'] = $only_zenodo; $ret['different_citation'] = count($diff_ids);
+        $n_local = array_sum(array_map('count', $L)); $n_zenodo = array_sum(array_map('count', $Z));
+        echo "Rows ours: " . number_format($n_local) . ", Zenodo: " . number_format($n_zenodo) . "\n";
+        echo "Rows only in our master: " . number_format($only_local) . "\n";
+        echo "Rows only on Zenodo:     " . number_format($only_zenodo) . "\n";
+        echo "Identifiers on both, with a different citation: " . number_format(count($diff_ids)) . "\n";
+        if(!$report) { echo "Same rows: the files differ only in their header, row order or line endings.\n"; return $ret; }
+        foreach(array_slice($report, 0, 10) as $line) echo "    " . mb_substr($line, 0, 150) . "\n";
+        $ret['report'] = CONTENT_RESOURCE_LOCAL_PATH . "references_{$concept_id}_compare_zenodo_record{$latest['id']}_" . date("Ymd_His") . ".tsv";
+        file_put_contents($ret['report'], "where\tidentifier\tfull_reference\n" . implode("\n", $report) . "\n");
+        echo "All differences saved in: [{$ret['report']}]\n";
+        if(!$same_version) echo "Zenodo has a newer version than ours: download it and sync before uploading (see sync_zenodo_references).\n";
+        else echo "Zenodo hasn't changed since our download, so these are our own changes (rows added, changed or deleted): "
+                . "upload our master when ready (see upload_file_toZenodo).\n";
+        return $ret;
     }
     private function master_backup_path()
     {   // references_22776838_backup_<Ymd_His>.tsv; never an existing one (two backups in the same second get _2, _3, ...)

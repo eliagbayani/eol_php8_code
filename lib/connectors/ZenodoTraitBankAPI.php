@@ -744,7 +744,7 @@ class ZenodoTraitBankAPI
         foreach ($res['errors'] ?? array() as $e) $msg .= " | " . (isset($e['field']) ? $e['field'] . ": " : '') . (is_array($e['messages'] ?? null) ? implode('; ', $e['messages']) : ($e['message'] ?? ''));
         return $msg;
     }
-    private function download_url_to_file($url, $dest)
+    protected function download_url_to_file($url, $dest) // protected: also used by ReferenceMaintenanceAPI::compare_master_with_zenodo()
     {   // download to a .part file first, so an interrupted download is never mistaken for a complete file
         $part = $dest . ".part";
         if (!($fp = fopen($part, "w"))) {

@@ -6,7 +6,7 @@ namespace php_active_record;
     */
 ?>
 
-<form name="validator_form" action="index.php" method="post" enctype="multipart/form-data">
+<form name="validator_form" action="main.php" method="post" enctype="multipart/form-data">
 <table align="center">
     <tr>
         <td>XML File URL:</td>
@@ -21,7 +21,7 @@ namespace php_active_record;
             <br/>
             <input type="submit" value="Submit">
             <br/><br/>
-            You might also want to try our <a href='../dwc_validator/index.php'>Archive and Spreadsheet Validator</a>
+            You might also want to try our <a href='../dwc_validator/main.php'>Archive and Spreadsheet Validator</a>
         </td>
     </tr>
 </table>

@@ -18,6 +18,8 @@ php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "publish": 1}
         5. [parent uris]: several values only separated by | (no , or ; or empty values)
         6. [uri], [parent uris], [synonym of uri], [units term], [inverse of] are valid URIs (http:// or https://, no spaces or hidden characters)
         7. boolean fields, e.g. [symmetrical assoc]: TRUE, FALSE or blank
+        8. [type] is one of: association, measurement, value, metadata
+        9. [parent uris]: each parent is a [uri] in the Terms file, of the same [type] as the row (e.g. an association's parents are associations)
         also: all 12 columns present, every row has as many fields as the header, no leading/trailing spaces in the checked fields
     - Step 4: any ERROR -> report CONTENT_RESOURCE_LOCAL_PATH/Terms_file_errors_YYYY-MM-DD-HH-MM.tsv
       (severity, check, sheet_row, uri, name, type, field, value, message; sheet_row as in the Google Sheet, header = row 1),

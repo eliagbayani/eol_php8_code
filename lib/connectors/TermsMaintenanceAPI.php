@@ -21,6 +21,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
     const URI_FIELDS       = array('uri', 'parent uris', 'synonym of uri', 'units term', 'inverse of');      // must be valid URIs ('parent uris': each part)
     const MULTI_URI_FIELDS = array('parent uris');                                                          // several values, separated by '|' only
     const BOOLEAN_FIELDS   = array('symmetrical assoc');                                                    // TRUE, FALSE or blank
+    const TYPES            = array('association', 'measurement', 'value', 'metadata');                      // the only valid [type] values
 
     function __construct($param) {
         $this->param = $param; print_r($param);
@@ -126,6 +127,8 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
             }
             // #7 boolean fields
             foreach(self::BOOLEAN_FIELDS as $f) if(!in_array($rec[$f], array('', 'TRUE', 'FALSE'), true)) self::add('ERROR', 'boolean', $r, $uri, $name, $type, $f, $rec[$f], "[$f] must be TRUE, FALSE or blank");
+            // #8 [type] is one of the valid types (exact match; a blank type is already reported above)
+            if(trim($type) !== '' && !in_array($type, self::TYPES, true)) self::add('ERROR', 'invalid type', $r, $uri, $name, $type, 'type', $type, "[type] must be one of: " . implode(", ", self::TYPES));
             if($uri !== '') $by_uri[$uri][] = $r;
             if($name !== '' && $type !== '') $by_name_type["$name\t$type"][] = $r;
         }
@@ -133,6 +136,20 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         foreach($by_uri as $uri => $rs) {
             if(count($rs) < 2) continue;
             foreach($rs as $r) self::add('ERROR', 'duplicate uri', $r, $uri, $rows[$r]['name'], $rows[$r]['type'], 'uri', $uri, "[uri] is on " . count($rs) . " rows: " . implode(", ", $rs));
+        }
+        // #9 [parent uris]: a parent must be a term in this file, of the same [type] as the row
+        foreach($rows as $r => $rec) {
+            if(trim($rec['parent uris']) === '' || trim($rec['type']) === '') continue;
+            foreach(explode("|", $rec['parent uris']) as $part) {
+                if($part === '') continue; // already reported as a separator error
+                if(!isset($by_uri[$part])) {
+                    self::add('ERROR', 'parent uri not in the Terms file', $r, $rec['uri'], $rec['name'], $rec['type'], 'parent uris', $part, "parent [$part] is not a [uri] in the Terms file, so its type can't be checked");
+                    continue;
+                }
+                $parent_types = array_values(array_unique(array_map(fn($pr) => $rows[$pr]['type'], $by_uri[$part])));
+                if($parent_types != array($rec['type'])) self::add('ERROR', 'parent of a different type', $r, $rec['uri'], $rec['name'], $rec['type'], 'parent uris', $part,
+                    "parent [$part] (row " . implode(", ", $by_uri[$part]) . ") is of type [" . implode("/", $parent_types) . "], this row is [{$rec['type']}]: parents must be of the same type");
+            }
         }
         // #2 name + type unique; a duplicate already in Zenodo's latest file (same group, no new uri) is only a warning
         foreach($by_name_type as $key => $rs) {

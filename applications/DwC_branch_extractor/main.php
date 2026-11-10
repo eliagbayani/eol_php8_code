@@ -13,7 +13,7 @@
 --->
 <tr align="center">
     <td>
-        <a href="../genHigherClass/sample/taxon.tab">Download</a> a sample <i>taxon.tab</i> here.<br>
+        <a href="https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/sample_taxon_4DwCBranchExtractor/taxon.tab.txt.zip">Download</a> a sample <i>taxon.tab</i> here.<br>
     </td>
 </tr>
 <tr>

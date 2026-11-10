@@ -28,6 +28,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         $this->download_options = array('resource_id' => 'neo4j_tb', 'cache' => 1, 'download_wait_time' => 1000000, 'expire_seconds' => 60*60*24*1, 'timeout' => 60*3, 'download_attempts' => 1, 'delay_in_minutes' => 1);
         $this->debug = array();
         $this->main_datasets = array('Terms_conceptID' => 22776577, 'References_conceptID' => 22776838, 'DH_conceptID' => 22776209);
+        $this->work_dir = CONTENT_RESOURCE_LOCAL_PATH . "Terms_maintenance/"; // all our files: the sheet downloads, terms.tsv, the error reports
         $this->report = array(); // QC findings: array(severity, check, sheet_row, uri, name, type, field, value, message)
     }
     function start()
@@ -43,12 +44,13 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
     }
     private function update_terms_from_googlesheet()
     {   /* 1. download the Google Sheet as TSV (or use "file": a local TSV, e.g. for tests)
-           2. build CONTENT_RESOURCE_LOCAL_PATH/terms.tsv: the 12 published columns, all rows, CRLF, no trailing newline (= the published format,
+           2. build CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/terms.tsv: the 12 published columns, all rows, CRLF, no trailing newline (= the published format,
               so an unchanged sheet gives a byte-identical file, and nothing is uploaded)
            3. QC; 4. errors -> report, nothing uploaded; 5. no errors -> upload (not in a dry run)
            Returns array('rows', 'errors', 'warnings', 'report', 'uploaded'), or false. */
         $dry_run = !empty($this->param['dry_run_YN']);
         $publish = !empty($this->param['publish']);
+        if(!is_dir($this->work_dir) && !mkdir($this->work_dir, 0755, true) && !is_dir($this->work_dir)) { echo "\nERROR: Cannot create the folder [$this->work_dir]\n"; return false; }
         // 1.
         if(!empty($this->param['file'])) {
             $source = $this->param['file'];
@@ -56,7 +58,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
             echo "\nUsing the local file: [$source]\n";
         }
         else {
-            $source = CONTENT_RESOURCE_LOCAL_PATH . "terms_googlesheet_" . date("Ymd_His") . ".tsv";
+            $source = $this->work_dir . "terms_googlesheet_" . date("Ymd_His") . ".tsv";
             $url = "https://docs.google.com/spreadsheets/d/" . self::GOOGLE_SHEET_ID . "/export?format=tsv";
             echo "\nDownloading the Google Sheet: [$url]\n";
             if(!$this->download_url_to_file($url, $source)) { echo "ERROR: Cannot download the Google Sheet. Nothing was uploaded.\n"; return false; }
@@ -90,7 +92,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         }
         $out = array(implode("\t", self::COLUMNS));
         foreach($rows as $rec) $out[] = implode("\t", $rec);
-        $terms_tsv = CONTENT_RESOURCE_LOCAL_PATH . "terms.tsv";
+        $terms_tsv = $this->work_dir . "terms.tsv";
         $tmp = "$terms_tsv.tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
         if(file_put_contents($tmp, implode("\r\n", $out)) === false || !rename($tmp, $terms_tsv)) { @unlink($tmp); echo "ERROR: Cannot write [$terms_tsv]\n"; return false; }
         echo "Built: [$terms_tsv] (" . number_format(count($rows)) . " rows, " . count(self::COLUMNS) . " columns)\n";
@@ -210,7 +212,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         echo "\nQC:\n"; if(!$by_check) echo "    no problems found\n";
         foreach($by_check as $k => $n) echo "    $k: " . number_format($n) . " row(s)\n";
         if($errors) {
-            $ret['report'] = CONTENT_RESOURCE_LOCAL_PATH . "Terms_file_errors_" . date("Y-m-d-H-i") . ".tsv";
+            $ret['report'] = $this->work_dir . "Terms_file_errors_" . date("Y-m-d-H-i") . ".tsv";
             $lines = array("severity\tcheck\tsheet_row\turi\tname\ttype\tfield\tvalue\tmessage");
             foreach(array_merge($errors, $warnings) as $x) $lines[] = implode("\t", $x);
             file_put_contents($ret['report'], implode("\n", $lines) . "\n");

@@ -8,8 +8,9 @@ The master of the Terms is a Google Sheet, edited by the data managers:
 php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "dry_run_YN": 1}'   //download + build + QC only: never uploads
 php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet"}'                    //... + upload a Zenodo DRAFT if QC passes, for review on Zenodo
 php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "publish": 1}'      //... + publish on Zenodo -- CANNOT be undone
-    - Step 1: downloads the Google Sheet as TSV -> CONTENT_RESOURCE_LOCAL_PATH/terms_googlesheet_<date>.tsv
-    - Step 2: builds CONTENT_RESOURCE_LOCAL_PATH/terms.tsv: the 12 published columns (the sheet's working columns delete?, new term for dataset
+    All files go in the folder CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/ (created if it doesn't exist).
+    - Step 1: downloads the Google Sheet as TSV -> CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/terms_googlesheet_<date>.tsv
+    - Step 2: builds CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/terms.tsv: the 12 published columns (the sheet's working columns delete?, new term for dataset
       and notes are left out), all rows, in the published format (CRLF). An unchanged sheet gives the same file, and nothing is uploaded.
     - Step 3: quality control (QC):
         1. [uri] is unique
@@ -21,7 +22,7 @@ php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "publish": 1}
         8. [type] is one of: association, measurement, value, metadata
         9. [parent uris]: each parent is a [uri] in the Terms file, of the same [type] as the row (e.g. an association's parents are associations)
         also: all 12 columns present, every row has as many fields as the header, no leading/trailing spaces in the checked fields
-    - Step 4: any ERROR -> report CONTENT_RESOURCE_LOCAL_PATH/Terms_file_errors_YYYY-MM-DD-HH-MM.tsv
+    - Step 4: any ERROR -> report CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/Terms_file_errors_YYYY-MM-DD-HH-MM.tsv
       (severity, check, sheet_row, uri, name, type, field, value, message; sheet_row as in the Google Sheet, header = row 1),
       to be emailed to the data manager. Nothing is uploaded.
     - Step 5: QC passed -> terms.tsv is uploaded to Zenodo as terms_1.0.tsv, a new version (draft unless "publish": 1).

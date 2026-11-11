@@ -63,10 +63,7 @@ if($action == 'check') {
         $out .= "<pre>" . h(part($log, "QC:", "QC ")) . "</pre>";
         if($ret['errors']) {
             $name = basename((string) $ret['report']);
-            $out .= "<form method='post' action='main.php' onsubmit=\"this.querySelector('input[type=submit]').disabled = true; this.querySelector('span').style.display = 'inline';\">"
-                  . "<input type='hidden' name='action' value='check'>"
-                  . "Once you've fixed the error(s), you can <input type='submit' value='Check Terms from Google Sheets'> again."
-                  . "<span style='display:none'> Checking... this takes about a minute.</span></form>";
+            $out .= "<p>Once you've fixed the error(s), you can [Check Terms from Google Sheets] again.</p>";
             $out .= "<p class='bad'><b>QC failed: " . number_format($ret['errors']) . " error(s).</b> Report: [" . h($name) . "] "
                   . "<a class='button' href='main.php?download=" . rawurlencode($name) . "'>Download</a><br>Nothing was uploaded.</p>";
         }

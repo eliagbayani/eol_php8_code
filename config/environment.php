@@ -15,7 +15,7 @@ ini_set('display_errors', false);
 // Outside Docker (no MY_ENV), stays 'development'.
 if(!isset($GLOBALS['ENV_NAME'])) $GLOBALS['ENV_NAME'] = getenv('MY_ENV') ?: 'development';
 
-echo("\nEnv: ".$GLOBALS['ENV_NAME']."\n");
+// echo("\nEnv: ".$GLOBALS['ENV_NAME']."\n");
 
 // passing in the CLI arguments
 set_and_load_proper_environment($argv);

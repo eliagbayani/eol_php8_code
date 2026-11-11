@@ -63,12 +63,21 @@ if($action == 'check') {
         $out .= "<pre>" . h(part($log, "QC:", "QC ")) . "</pre>";
         if($ret['errors']) {
             $name = basename((string) $ret['report']);
+            $out .= "<form method='post' action='main.php' onsubmit=\"this.querySelector('input[type=submit]').disabled = true; this.querySelector('span').style.display = 'inline';\">"
+                  . "<input type='hidden' name='action' value='check'>"
+                  . "Once you've fixed the error(s), you can <input type='submit' value='Check Terms from Google Sheets'> again."
+                  . "<span style='display:none'> Checking... this takes about a minute.</span></form>";
             $out .= "<p class='bad'><b>QC failed: " . number_format($ret['errors']) . " error(s).</b> Report: [" . h($name) . "] "
                   . "<a class='button' href='main.php?download=" . rawurlencode($name) . "'>Download</a><br>Nothing was uploaded.</p>";
         }
         else {
             $out .= "<p class='good'><b>There are no errors</b>" . ($ret['warnings'] ? " (" . number_format($ret['warnings']) . " warning(s): name+type duplicates already on Zenodo)" : "") . ".</p>";
-            if(!$has_password) $out .= "<p class='bad'>Uploading is disabled: TERMS_MTCE_PASSWORD isn't set in config/environments/" . h($GLOBALS['ENV_NAME'] ?? '') . ".php</p>";
+            if(!empty($ret['identical_to_zenodo'])) {
+                $out .= "<p><b>The Zenodo file is already identical to the Google Sheets file.</b> There's nothing to upload. "
+                      . "<a href='" . h($zenodo_url) . "' target='_blank'>See it on Zenodo</a></p>"
+                      . "<input type='submit' value='Upload to Zenodo' disabled title='The Zenodo file is already identical to the Google Sheets file'>";
+            }
+            elseif(!$has_password) $out .= "<p class='bad'>Uploading is disabled: TERMS_MTCE_PASSWORD isn't set in config/environments/" . h($GLOBALS['ENV_NAME'] ?? '') . ".php</p>";
             else {
                 $out .= "<form method='post' action='main.php' onsubmit=\"return confirm('Publish this Terms file to Zenodo?\\n\\nThis creates a new published version and CANNOT be undone.');\">"
                       . "Do you want to proceed uploading this Terms file to Zenodo: "

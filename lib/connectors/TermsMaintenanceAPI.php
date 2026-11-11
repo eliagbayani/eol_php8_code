@@ -53,6 +53,10 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         $dry_run = !empty($this->param['dry_run_YN']);
         $publish = !empty($this->param['publish']);
         if(!is_dir($this->work_dir) && !mkdir($this->work_dir, 0755, true) && !is_dir($this->work_dir)) { echo "\nERROR: Cannot create the folder [$this->work_dir]\n"; return false; }
+        // one run at a time (e.g. two clicks on the web page): a second run waits here until the first one is done.
+        // Otherwise both would use the same file names (same second) and get in each other's way. The lock is released when this function returns.
+        $lock = fopen($this->work_dir . ".terms_mtce.lock", 'c');
+        if(!$lock || !flock($lock, LOCK_EX)) { echo "\nERROR: Cannot lock [{$this->work_dir}.terms_mtce.lock]\n"; return false; }
         // 1.
         if(!empty($this->param['file'])) {
             $source = $this->param['file'];
@@ -95,7 +99,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         $out = array(implode("\t", self::COLUMNS));
         foreach($rows as $rec) $out[] = implode("\t", $rec);
         $terms_tsv = $this->work_dir . "terms.tsv";
-        $tmp = "$terms_tsv.tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
+        $tmp = "$terms_tsv.tmp." . getmypid(); // write to a temp file first, so a failed write can't leave a half-written TSV
         if(file_put_contents($tmp, implode("\r\n", $out)) === false || !rename($tmp, $terms_tsv)) { @unlink($tmp); echo "ERROR: Cannot write [$terms_tsv]\n"; return false; }
         echo "Built: [$terms_tsv] (" . number_format(count($rows)) . " rows, " . count(self::COLUMNS) . " columns)\n";
 
@@ -210,7 +214,8 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
     {   // 4. report if any ERROR; 5. else upload (not in a dry run)
         $errors   = array_values(array_filter($this->report, fn($x) => $x[0] == 'ERROR'));
         $warnings = array_values(array_filter($this->report, fn($x) => $x[0] == 'WARNING'));
-        $ret = array('rows' => $n_rows, 'errors' => count($errors), 'warnings' => count($warnings), 'report' => null, 'uploaded' => false);
+        $ret = array('rows' => $n_rows, 'errors' => count($errors), 'warnings' => count($warnings), 'report' => null, 'uploaded' => false,
+                     'identical_to_zenodo' => $zenodo && $terms_tsv && $zenodo['checksum'] === "md5:" . md5_file($terms_tsv)); // our terms.tsv = Zenodo's latest file
         $by_check = array(); foreach($this->report as $x) @$by_check["$x[0]: $x[1]"]++;
         ksort($by_check);
         echo "\nQC:\n"; if(!$by_check) echo "    no problems found\n";
@@ -225,10 +230,9 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
             return $ret;
         }
         echo "\nQC passed" . ($warnings ? " (" . number_format(count($warnings)) . " warning(s): name+type duplicates already in Zenodo's latest file)" : '') . ".\n";
+        if($ret['identical_to_zenodo']) echo "The file is identical to Zenodo's latest version (record {$zenodo['record_id']}): there's nothing to upload.\n";
         if($dry_run) { echo "Dry run: nothing was uploaded.\n"; return $ret; }
-        if($zenodo && $zenodo['checksum'] === "md5:" . md5_file($terms_tsv)) {
-            echo "Zenodo's latest version (record {$zenodo['record_id']}) already has this exact file. Nothing to upload.\n"; return $ret;
-        }
+        if($ret['identical_to_zenodo']) return $ret;
         $options = array('filename' => self::ZENODO_FILENAME, 'publish' => $publish);
         if(isset($this->param['version'])) $options['version'] = (string) $this->param['version'];
         $up = $this->upload_new_version_to_zenodo($this->main_datasets['Terms_conceptID'], $terms_tsv, $options);

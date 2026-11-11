@@ -27,6 +27,8 @@ php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "publish": 1}
       to be emailed to the data manager. Nothing is uploaded.
     - Step 5: QC passed -> terms.tsv is uploaded to Zenodo as terms_1.0.tsv, a new version (draft unless "publish": 1).
       Then refresh our local copy: php generate_csv_new_model.php _ '{"concept_id": "22776577", "redownload_zip_file_YN": 1, "task": "download_only", "what": "Main:Terms file"}'
+    - Web page (check + [Download] the report + [Upload to Zenodo], which publishes; the upload needs TERMS_MTCE_PASSWORD from config/environments/<env>.php):
+        http://localhost:81/eol_php8_code/applications/terms_maintenance/main.php
     - Options: "version": "v3" (version label on Zenodo; default: the previous one is kept)
                "file": "<path>" (QC a local TSV instead of downloading the sheet, e.g. a re-check)
 */

@@ -38,16 +38,18 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
             // /* Google Sheet -> terms.tsv -> QC -> error report, or upload to Zenodo (draft, unless "publish": 1). "dry_run_YN": 1 = QC only
             $ret = self::update_terms_from_googlesheet();
             if($ret) echo "\nResult: " . json_encode($ret) . "\n";
+            return $ret; // used by applications/terms_maintenance/main.php
             // */
         }
         else echo "\nERROR: Unknown task [$task]\n";
+        return false;
     }
     private function update_terms_from_googlesheet()
     {   /* 1. download the Google Sheet as TSV (or use "file": a local TSV, e.g. for tests)
            2. build CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/terms.tsv: the 12 published columns, all rows, CRLF, no trailing newline (= the published format,
               so an unchanged sheet gives a byte-identical file, and nothing is uploaded)
            3. QC; 4. errors -> report, nothing uploaded; 5. no errors -> upload (not in a dry run)
-           Returns array('rows', 'errors', 'warnings', 'report', 'uploaded'), or false. */
+           Returns array('rows', 'errors', 'warnings', 'report', 'uploaded', 'source'), or false. 'source' = the sheet download (or "file") used. */
         $dry_run = !empty($this->param['dry_run_YN']);
         $publish = !empty($this->param['publish']);
         if(!is_dir($this->work_dir) && !mkdir($this->work_dir, 0755, true) && !is_dir($this->work_dir)) { echo "\nERROR: Cannot create the folder [$this->work_dir]\n"; return false; }
@@ -100,7 +102,9 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         // 3. QC
         if(($zenodo = self::get_zenodo_terms()) === false) return false;
         self::qc($rows, $zenodo['dup_groups']);
-        return self::finish(count($rows), $terms_tsv, $dry_run, $publish, $zenodo);
+        $ret = self::finish(count($rows), $terms_tsv, $dry_run, $publish, $zenodo);
+        if($ret) $ret['source'] = $source;
+        return $ret;
     }
     private function qc($rows, $zenodo_dup_groups)
     {

@@ -13,4 +13,7 @@ define('SOLR_SERVER', 'http://localhost:8983/solr/');
 
 define('LOGGING_DB', 'eol_logging_development');
 
+// password for [Upload to Zenodo] on applications/terms_maintenance/main.php (no password = uploading from the page is disabled)
+// define('TERMS_MTCE_PASSWORD', 'choose-a-password');
+
 ?>

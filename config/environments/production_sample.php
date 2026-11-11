@@ -30,4 +30,7 @@ define('GOOGLE_API_ACCOUNT_NAME', 'xxx');
 define('GOOGLE_API_KEY_FILE', 'xxx/google-privatekey.p12');
 
 
+// password for [Upload to Zenodo] on applications/terms_maintenance/main.php (no password = uploading from the page is disabled)
+// define('TERMS_MTCE_PASSWORD', 'choose-a-password');
+
 ?>

@@ -63,7 +63,7 @@ if($action == 'check') {
         $out .= "<pre>" . h(part($log, "QC:", "QC ")) . "</pre>";
         if($ret['errors']) {
             $name = basename((string) $ret['report']);
-            $out .= "<p>Once you've fixed the error(s), you can [Check Terms from Google Sheets] again.</p>";
+            $out .= "<p>Once you've fixed the error(s) in Google Sheets, you can click button [Check Terms from Google Sheets] again.</p>";
             $out .= "<p class='bad'><b>QC failed: " . number_format($ret['errors']) . " error(s).</b> Report: [" . h($name) . "] "
                   . "<a class='button' href='main.php?download=" . rawurlencode($name) . "'>Download</a><br>Nothing was uploaded.</p>";
         }

@@ -5,6 +5,7 @@ namespace php_active_record;
    - [Check Terms from Google Sheets] = php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "dry_run_YN": 1}'
        QC failed: the stats + [Download] the error report (Terms_file_errors_YYYY-MM-DD-HH-MM.tsv)
        QC passed: the stats + [Upload to Zenodo] (needs the password TERMS_MTCE_PASSWORD, defined in config/environments/<env>.php)
+   - Available error reports: the reports kept in Terms_maintenance/ (newest first), each with [Download]
    - [Upload to Zenodo] = php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "publish": 1, "file": "<the checked sheet download>"}'
        i.e. exactly the sheet download that was checked is QC'd again and published -- CANNOT be undone.
 */
@@ -120,7 +121,9 @@ elseif($action == 'upload') {
         <small>The master TraitBank Terms file is in <a href="<?php echo h($sheet_url) ?>" target="_blank">Google Sheets</a>, edited by the data managers.<br><br>
         The button below <b>[Check Terms from Google Sheets]</b>, downloads the file from Google Sheets, builds the Terms file and runs the quality checks (QC). It never uploads anything.<br><br>
         If there are errors, download the report: each problem has its row number in the Google Sheets.<br><br>
-        If there are none, you can publish the file on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (Terms, concept 22776577). See also: <a href="../reference_maintenance/main.php">References Maintenance</a>.</small>
+        If there are none, you can publish the file on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (Terms, concept 22776577). 
+        <!--- See also: <a href="../reference_maintenance/main.php">References Maintenance</a>. --->
+    </small>
     </td></tr>
     <tr><td style="text-align:center">
         <form method="post" action="main.php" onsubmit="this.querySelector('input[type=submit]').disabled = true; this.querySelector('span').style.display = 'inline';">
@@ -130,5 +133,22 @@ elseif($action == 'upload') {
         </form>
     </td></tr>
     <?php if($out) echo "<tr><td>$out</td></tr>"; ?>
+    <tr><td>
+        <b>Available error reports</b> <small>(newest first; only the newest <?php echo TermsMaintenanceAPI::KEEP_LATEST ?> are kept)</small>
+        <?php
+        $reports = is_dir($work_dir) ? array_values(array_filter(scandir($work_dir) ?: array(), fn($f) => preg_match($report_re, $f) && is_file($work_dir . $f))) : array();
+        rsort($reports, SORT_STRING); // the timestamp in the name: newest first
+        if(!$reports) echo "<p>There are no error reports.</p>";
+        else {
+            echo "<table cellpadding='4' style='margin-top:8px'>";
+            foreach($reports as $f) {
+                preg_match('/(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/', $f, $m);
+                echo "<tr><td>" . h($f) . "</td><td>$m[1]-$m[2]-$m[3] $m[4]:$m[5]</td><td>" . number_format(filesize($work_dir . $f) / 1024) . " KB</td>"
+                   . "<td><a class='button' href='main.php?download=" . rawurlencode($f) . "'>Download</a></td></tr>";
+            }
+            echo "</table>";
+        }
+        ?>
+    </td></tr>
 </table>
 </body></html>

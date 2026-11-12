@@ -26,6 +26,7 @@ $zenodo_url   = "https://zenodo.org/records/" . REF_CONCEPT_ID;               //
 $github_url   = "https://github.com/EOL/unmappable_reference_identifiers";
 $terms_page   = "../terms_maintenance/main.php";
 $api_class    = defined('REFERENCES_MTCE_TEST_CLASS') ? REFERENCES_MTCE_TEST_CLASS : __NAMESPACE__ . '\ReferenceMaintenanceAPI'; // tests only: a stand-in
+$check_class  = defined('DATASETS_CHECK_TEST_CLASS') ? DATASETS_CHECK_TEST_CLASS : __NAMESPACE__ . '\ZenodoTraitBankAPI'; // tests only: a stand-in
 $has_password = defined('TERMS_MTCE_PASSWORD') && TERMS_MTCE_PASSWORD !== ''; // one "maintenance tools" password for the Terms and References pages
 $download_re  = array( // the only files [Download] serves, all in the resources folder
     '/^references_22776838_compare_zenodo_record\d+_\d{8}_\d{6}\.tsv$/',
@@ -132,7 +133,37 @@ function status()
 $action = $_POST['action'] ?? '';
 $out = '';
 // ---------- reports: no password ----------
-if($action == 'compare') {
+if($action == 'datasets') {
+    // = php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "dry_run_YN": 1, "include_Terms_YN": 1, "include_References_YN": 1}'
+    set_time_limit(0);
+    ob_start();
+    try { $func = new $check_class(); $func->param = array('task' => 'refresh_all_TraitBank_datasets', 'dry_run_YN' => 1, 'include_Terms_YN' => 1, 'include_References_YN' => 1);
+          $ret = $func->refresh_all_TraitBank_datasets(); }
+    catch(\Throwable $e) { $ret = false; echo "\nERROR: " . $e->getMessage() . "\n"; }
+    $log = trim(strip_tags(str_replace(array('<br>', '<br/>', '<br />'), "\n", ob_get_clean())));
+    if(!$ret) $out .= "<p class='bad'><b>The check could not run.</b> See the log.</p>";
+    else {
+        $n_ok = count($ret['up to date'] ?? array()); $n_out = count($ret['outdated'] ?? array());
+        if(!$n_out) $out .= "<p class='good'><b>All " . number_format($n_ok) . " datasets are up to date:</b> our copies are Zenodo's latest versions (the TraitBank datasets, plus Terms and References).</p>";
+        else {
+            $out .= "<p class='bad'><b>" . number_format($n_out) . " dataset(s) out of date or missing</b> (" . number_format($n_ok) . " up to date):</p><pre>";
+            preg_match_all('/^Outdated:\s+\[(\d+) (.*)\] \((.*)\)$/m', $log, $m, PREG_SET_ORDER);
+            $cmds = array();
+            foreach($m as $x) {
+                $out .= h("$x[1] $x[2]: $x[3]") . "\n";
+                $json = json_encode(array('concept_id' => $x[1], 'redownload_zip_file_YN' => 1, 'task' => 'download_only', 'what' => $x[2]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_APOS);
+                $cmds[] = "php generate_csv_new_model.php _ '" . str_replace(array('{"', '":', ',"'), array('{"', '": ', ', "'), $json) . "'";
+            }
+            $out .= "</pre>";
+            if(count($m) > 1) $cmds[] = "php generate_csv_new_model.php _ '{\"task\": \"refresh_all_TraitBank_datasets\", \"include_Terms_YN\": 1, \"include_References_YN\": 1}'";
+            $out .= command_boxes(implode("\n", $cmds))
+                  . (count($m) > 1 ? "<p><small>The last command downloads all the outdated ones in one go. Downloading References keeps our master; if Zenodo's copy has changes, use [Check Zenodo for changes].</small></p>"
+                                   : "<p><small>Downloading References keeps our master; if Zenodo's copy has changes, use [Check Zenodo for changes].</small></p>");
+        }
+    }
+    $out .= log_box($log);
+}
+elseif($action == 'compare') {
     [$ret, $log] = run_task(array('task' => 'compare_master_with_zenodo'));
     if(!$ret) $out .= "<p class='bad'><b>The comparison could not run.</b> See the log.</p>";
     elseif($ret['identical']) $out .= "<p class='good'><b>Identical:</b> our master is the same as Zenodo's latest version (record " . h($ret['zenodo_record']) . ").</p>";
@@ -308,6 +339,7 @@ function copyCmd(btn) {
 
     <tr><td><b>Reports</b> (change nothing)
         <form method="post" action="main.php" onsubmit="return busy(this);">
+            <button type="submit" name="action" value="datasets">Check all datasets against Zenodo</button>
             <button type="submit" name="action" value="compare">Compare our master with Zenodo</button>
             <button type="submit" name="action" value="missing">Find missing references (preview)</button>
             <button type="submit" name="action" value="zenodo_changes">Check Zenodo for changes (preview)</button>

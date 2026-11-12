@@ -133,7 +133,40 @@ function status()
 $action = $_POST['action'] ?? '';
 $out = '';
 // ---------- reports: no password ----------
-if($action == 'datasets') {
+if($action == 'processed') {
+    // = php generate_csv_new_model.php _ '{"task": "check_processed_TraitBank_datasets"}'
+    set_time_limit(0);
+    ob_start();
+    try { $func = new $check_class(); $func->param = array('task' => 'check_processed_TraitBank_datasets'); $ret = $func->check_processed_TraitBank_datasets(); }
+    catch(\Throwable $e) { $ret = false; echo "\nERROR: " . $e->getMessage() . "\n"; }
+    $log = trim(strip_tags(str_replace(array('<br>', '<br/>', '<br />'), "\n", ob_get_clean())));
+    if(!$ret) $out .= "<p class='bad'><b>The check could not run.</b> See the log.</p>";
+    else {
+        $n_ok = count($ret['up to date']); $todo = array_filter($ret['details'], fn($x) => $x['status'] != 'up to date');
+        if(!$todo) $out .= "<p class='good'><b>All " . number_format($n_ok) . " processed datasets are up to date:</b> each was built from the latest raw files from Zenodo.</p>";
+        else {
+            $out .= "<p class='bad'><b>" . count($todo) . " dataset(s) need attention</b> (" . number_format($n_ok) . " up to date):</p>"
+                  . "<table border='1' cellpadding='4' cellspacing='0' style='font-size:13px'><tr><th>Dataset</th><th>Status</th><th>Raw copy</th><th>Processed</th><th>Why</th></tr>";
+            $cmds = array();
+            foreach($todo as $label => $x) {
+                $out .= "<tr><td>" . h($label) . "</td><td><b>" . h($x['status']) . "</b></td><td>" . h($x['raw_record'] ? "record {$x['raw_record']}" : '-') . ($x['raw_date'] ? "<br>" . h($x['raw_date']) : '')
+                      . "</td><td>" . h($x['processed_date'] ?: '-') . "</td><td>" . h($x['why']) . "</td></tr>";
+                if($x['status'] == 'download first') {
+                    $json = json_encode(array('concept_id' => $x['concept_id'], 'redownload_zip_file_YN' => 1, 'task' => 'download_only', 'what' => $x['title']), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_APOS);
+                    $cmds[] = "php generate_csv_new_model.php _ '" . str_replace(array('":', ',"'), array('": ', ', "'), $json) . "'";
+                }
+            }
+            $out .= "</table>";
+            if(array_filter($todo, fn($x) => in_array($x['status'], array('re-process', 'not processed yet'))))
+                $out .= "<p><b>re-process / not processed yet:</b> run the dataset's Jenkins job in <i>03 Generate TB Files</i> (it builds the <code>_TraitBank</code> folder).</p>";
+            if($cmds) $out .= "<p><b>download first:</b> download the raw files again, then run its Jenkins job.</p>" . command_boxes(implode("\n", $cmds));
+        }
+        $out .= "<p><small>\"By file dates\": the processed files are compared with the raw files' download time. From the next run of each Jenkins job on,
+                 the exact raw version used is recorded (<code>TB_files/&lt;concept_id&gt;.processed_record_id</code>) and used instead. Times are server time.</small></p>";
+    }
+    $out .= log_box($log);
+}
+elseif($action == 'datasets') {
     // = php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "dry_run_YN": 1, "include_Terms_YN": 1, "include_References_YN": 1}'
     set_time_limit(0);
     ob_start();
@@ -340,6 +373,7 @@ function copyCmd(btn) {
     <tr><td><b>Reports</b> (change nothing)
         <form method="post" action="main.php" onsubmit="return busy(this);">
             <button type="submit" name="action" value="datasets">Check all datasets against Zenodo</button>
+            <button type="submit" name="action" value="processed">Check all processed datasets</button>
             <button type="submit" name="action" value="compare">Compare our master with Zenodo</button>
             <button type="submit" name="action" value="missing">Find missing references (preview)</button>
             <button type="submit" name="action" value="zenodo_changes">Check Zenodo for changes (preview)</button>

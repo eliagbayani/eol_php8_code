@@ -1004,6 +1004,71 @@ class ZenodoTraitBankAPI
         foreach ($ret as $status => $labels) echo str_pad($status . ':', 12) . count($labels) . ($labels ? "\n    " . implode("\n    ", $labels) : '') . "\n";
         return $ret;
     }
+    function check_processed_TraitBank_datasets()
+    {   /* Report only, changes nothing: was each processed copy (TB_files/<concept_id>_<abbr>_TraitBank/input_files/, made by the dataset's
+           Jenkins job in "03 Generate TB Files" -> generate_TB_files.php) built from the latest raw files from Zenodo?
+           For all datasets of the Zenodo 'traitbank' community, except Terms, References and DH (they aren't processed).
+           Status per dataset:
+             'up to date'        the processed copy was built from the raw version that is Zenodo's latest
+             're-process'        our raw copy is Zenodo's latest, but the processed copy was built from an older raw version
+             'download first'    our raw copy is older than Zenodo's latest, or missing (then re-process)
+             'not processed yet' no _TraitBank/input_files/
+           "Built from": TB_files/<concept_id>.processed_record_id (written by generate_TB_files.php at the end of a run), else by file dates:
+           the newest processed file vs the newest raw file (raw files keep their download time).
+           Returns array(status => [labels], 'details' => array(label => array(...))), or false. */
+        $main = array(22776577, 22776838, 22776209); // Terms, References, DH
+        if (!($csv = $this->generate_Zenodo_TraitBank_datasets_inCSV())) { echo "ERROR: Cannot get the TraitBank datasets list from Zenodo\n"; return false; }
+        $datasets = array();
+        $fh = fopen($csv, "r");
+        $fields = fgetcsv($fh, 0, ',', '"', '');
+        while (($row = fgetcsv($fh, 0, ',', '"', '')) !== false) {
+            $rec = array_combine($fields, array_pad($row, count($fields), ''));
+            if (in_array((int) $rec['concept_id'], $main)) continue;
+            $datasets[$rec['concept_id']] = array('record_id' => (string) $rec['record_id'], 'title' => $rec['title']);
+        }
+        fclose($fh);
+        echo "\nTraitBank datasets to check: " . count($datasets) . " (report only, nothing is changed)\n";
+        $newest = function ($dir) { // newest file time in $dir, or 0 if no files
+            $t = 0;
+            if (is_dir($dir)) foreach (scandir($dir) as $f) if ($f[0] !== '.' && is_file("$dir/$f")) $t = max($t, filemtime("$dir/$f"));
+            return $t;
+        };
+        $dir = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $ret = array('up to date' => array(), 're-process' => array(), 'download first' => array(), 'not processed yet' => array(), 'details' => array());
+        foreach ($datasets as $concept_id => $d) {
+            $label   = "$concept_id {$d['title']}";
+            $folder  = $this->get_dataset_folder_name($concept_id, $d['title']);
+            $raw     = is_file($dir . "$concept_id.record_id") ? trim(file_get_contents($dir . "$concept_id.record_id")) : '';
+            $stamp   = is_file($dir . "$concept_id.processed_record_id") ? trim(file_get_contents($dir . "$concept_id.processed_record_id")) : '';
+            $t_raw   = $newest($dir . "$folder/input_files");
+            $t_proc  = $newest($dir . "{$folder}_TraitBank/input_files");
+            $x = array('latest' => $d['record_id'], 'raw_record' => $raw, 'stamp' => $stamp, 'basis' => '',
+                       'raw_date' => $t_raw ? date('Y-m-d H:i', $t_raw) : '', 'processed_date' => $t_proc ? date('Y-m-d H:i', $t_proc) : '', 'why' => '');
+            if ($raw === '' || $raw !== $d['record_id'] || !$t_raw) {
+                $status = 'download first';
+                $x['why'] = !$t_raw || $raw === '' ? "raw copy not downloaded" : "raw copy is record $raw, Zenodo's latest is {$d['record_id']}";
+            }
+            elseif (!$t_proc) { $status = 'not processed yet'; $x['why'] = "no {$folder}_TraitBank/input_files/"; }
+            elseif ($stamp !== '') {
+                $x['basis'] = 'stamp';
+                $status = ($stamp === $raw) ? 'up to date' : 're-process';
+                $x['why'] = "built from record $stamp" . ($status == 'up to date' ? '' : ", latest raw is record $raw");
+            }
+            else {
+                $x['basis'] = 'file dates';
+                $status = ($t_proc >= $t_raw) ? 'up to date' : 're-process';
+                $x['why'] = "processed " . $x['processed_date'] . ($status == 'up to date' ? ", after" : ", before") . " the raw download " . $x['raw_date'] . " (by file dates)";
+            }
+            echo str_pad(ucfirst($status) . ':', 20) . "[$label] ({$x['why']})\n";
+            $ret[$status][] = $label;
+            $ret['details'][$label] = $x + array('status' => $status, 'concept_id' => (string) $concept_id, 'title' => $d['title']);
+        }
+        echo "\n=== Summary ===\n";
+        foreach ($ret as $status => $labels) if ($status != 'details') echo str_pad($status . ':', 20) . count($labels) . ($labels && $status != 'up to date' ? "\n    " . implode("\n    ", $labels) : '') . "\n";
+        if ($ret['re-process']) echo "Re-process: re-run the dataset's Jenkins job in \"03 Generate TB Files\".\n";
+        if ($ret['download first']) echo "Download first: php generate_csv_new_model.php _ '{\"task\": \"refresh_all_TraitBank_datasets\"}', then re-process.\n";
+        return $ret;
+    }
     function abbreviate_title($str)
     {   // e.g. "Biochemistry and Natural Products" -> "Biochemistry_and_Natu_Prod" (1st word complete, first 4 chars of every other word, joined by "_")
         //      "Fungal ecology, trait records and taxonomic metadata" -> "Fungal_ecol_trai_reco_and_taxo_meta"

@@ -36,6 +36,10 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
     }
     function start($info)
     {   
+        // the raw version (Zenodo record) this run is built from, as downloaded: TB_files/<concept_id>.record_id. Written to
+        // TB_files/<concept_id>.processed_record_id at the end of a successful run (see check_processed_TraitBank_datasets())
+        $raw_record_file = $this->concept_id ? $this->TB_folder . "/$this->concept_id.record_id" : '';
+        $raw_record = ($raw_record_file && is_file($raw_record_file)) ? trim(file_get_contents($raw_record_file)) : '';
         self::initial(); //exit("\ncheck initial...\n");
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
@@ -83,6 +87,11 @@ class GenerateTB_FilesAPI extends GenerateTB_Files_Functions
         if($this->debug) Functions::start_print_debug($this->debug, $this->concept_id.'_checkErrors', $this->TB_folder);
         unset($this->debug);
         $this->zip_TB_folder($this->resource_id); //e.g. TB_files/22943003_Palm_TraitBank.zip
+        // "built from" stamp: the processed _TraitBank folder now holds the data of raw version $raw_record
+        if($this->concept_id && $raw_record !== '') {
+            file_put_contents($this->TB_folder . "/$this->concept_id.processed_record_id", $raw_record);
+            echo "\nProcessed from raw version: record $raw_record -> [$this->concept_id.processed_record_id]\n";
+        }
     }
     private function process_table($meta, $what, $class = false)
     {   echo "\nprocess_table TB: [$what] [$meta->file_uri]...\n"; $i = 0;

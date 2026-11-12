@@ -18,6 +18,12 @@ php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "on
     - "only": refresh only the named datasets: Terms, References, DH, or concept_ids e.g. "23066982"; several separated by commas.
       Same check as above: downloaded only if Zenodo has a newer version (always checked fresh, no 1-day cache).
 
+php generate_csv_new_model.php _ '{"task": "check_processed_TraitBank_datasets"}'
+    - Report only, changes nothing: was each processed copy (TB_files/<concept_id>_<abbr>_TraitBank/input_files/) built from the latest raw
+      files from Zenodo? Per dataset: up to date / re-process (re-run its Jenkins job in "03 Generate TB Files") / download first / not processed yet.
+      Uses TB_files/<concept_id>.processed_record_id (written by generate_TB_files.php), else the file dates. Also a button on
+      applications/reference_maintenance/main.php.
+
 php generate_csv_new_model.php _ '{"concept_id": "22776577", "redownload_zip_file_YN": 0, "task": "download_only", "what": "Main:Terms file"}'
 php generate_csv_new_model.php _ '{"concept_id": "22776838", "redownload_zip_file_YN": 0, "task": "download_only", "what": "Main:References"}'
 ======================================================================
@@ -56,6 +62,12 @@ if(@$param['task'] == 'generate_Zenodo_TraitBank_datasets_inCSV') {
     $func = new ZenodoTraitBankAPI();
     $func->generate_Zenodo_TraitBank_datasets_inCSV(); //single report: https://github.com/eliagbayani/EOL-connector-data-files/blob/master/EOL/TraitBank_datasets.csv
     exit("\nGenerated TraitBank datasets in TSV file.\n");
+}
+if(@$param['task'] == 'check_processed_TraitBank_datasets') {
+    $func = new ZenodoTraitBankAPI();
+    $func->param = $param;
+    $func->check_processed_TraitBank_datasets();
+    exit("\nDone checking the processed TraitBank datasets.\n");
 }
 if(@$param['task'] == 'refresh_all_TraitBank_datasets') {
     $func = new ZenodoTraitBankAPI();

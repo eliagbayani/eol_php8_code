@@ -357,7 +357,8 @@ function copyCmd(btn) {
         <small>All TraitBank datasets share one master list of references, published on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (References, concept <?php echo REF_CONCEPT_ID ?>).
         This page keeps it complete and in step with Zenodo. <br><br>
         Reports change nothing. Changes need the maintenance tools password.<br><br>
-        Everything here can also be run from the command line (do_reference_mtce.php). See also: <a href="<?php echo h($terms_page) ?>">Terms Maintenance</a>.</small>
+        Everything here can also be run from the command line (do_reference_mtce.php).
+        &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;See also: <a href="<?php echo h($terms_page) ?>">Terms Maintenance</a>.</small>
     </td></tr>
 
     <tr><td><b>Status</b>

@@ -22,7 +22,8 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
     const MULTI_URI_FIELDS = array('parent uris');                                                          // several values, separated by '|' only
     const BOOLEAN_FIELDS   = array('symmetrical assoc');                                                    // TRUE, FALSE or blank
     const TYPES            = array('association', 'measurement', 'value', 'metadata');                      // the only valid [type] values
-    const KEEP_LATEST      = 5;                                                                             // keep only the newest 5 sheet downloads and 5 error reports
+    const KEEP_LATEST      = 5;                                                                             // keep only the newest 5 sheet downloads
+    const KEEP_REPORTS     = 10;                                                                            // keep only the newest 10 error reports
     const SHEET_RE         = '/^terms_googlesheet_\d{8}_\d{6}\.tsv$/';                                     // the sheet downloads in work_dir
     const REPORT_RE        = '/^Terms_file_errors_\d{4}-\d{2}-\d{2}-\d{2}-\d{2}\.tsv$/';                   // the error reports in work_dir
 
@@ -72,7 +73,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
             echo "\nDownloading the Google Sheet: [$url]\n";
             if(!$this->download_url_to_file($url, $source)) { echo "ERROR: Cannot download the Google Sheet. Nothing was uploaded.\n"; return false; }
             echo "Saved as: [$source]\n";
-            self::keep_latest(self::SHEET_RE);
+            self::keep_latest(self::SHEET_RE, self::KEEP_LATEST);
         }
         $text = file_get_contents($source);
         if(ltrim($text) !== '' && ltrim($text)[0] === '<') { // e.g. a Google login page, if the sheet is no longer shared
@@ -214,14 +215,14 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         $clean = fn($s) => str_replace(array("\t", "\r", "\n"), ' ', (string) $s);
         $this->report[] = array_map($clean, array($severity, $check, $row, $uri, $name, $type, $field, $value, $message));
     }
-    private function keep_latest($regex)
-    {   // delete all but the newest KEEP_LATEST files in work_dir whose names match $regex exactly (the timestamps in the names sort oldest -> newest).
+    private function keep_latest($regex, $keep)
+    {   // delete all but the newest $keep files in work_dir whose names match $regex exactly (the timestamps in the names sort oldest -> newest).
         // Called while the run holds the lock.
         $files = array_values(array_filter(scandir($this->work_dir) ?: array(), fn($f) => preg_match($regex, $f) && is_file($this->work_dir . $f)));
         sort($files, SORT_STRING);
-        $old = array_slice($files, 0, max(0, count($files) - self::KEEP_LATEST));
+        $old = array_slice($files, 0, max(0, count($files) - $keep));
         $n = 0; foreach($old as $f) if(unlink($this->work_dir . $f)) $n++;
-        if($n) echo "Removed $n old file(s) like [" . $old[0] . "]: only the newest " . self::KEEP_LATEST . " are kept.\n";
+        if($n) echo "Removed $n old file(s) like [" . $old[0] . "]: only the newest $keep are kept.\n";
     }
     private function finish($n_rows, $terms_tsv, $dry_run, $publish, $zenodo = null)
     {   // 4. report if any ERROR; 5. else upload (not in a dry run)
@@ -238,7 +239,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
             $lines = array("severity\tcheck\tsheet_row\turi\tname\ttype\tfield\tvalue\tmessage");
             foreach(array_merge($errors, $warnings) as $x) $lines[] = implode("\t", $x);
             file_put_contents($ret['report'], implode("\n", $lines) . "\n");
-            self::keep_latest(self::REPORT_RE);
+            self::keep_latest(self::REPORT_RE, self::KEEP_REPORTS);
             foreach(array_slice($errors, 0, 10) as $x) echo "    row $x[2]: $x[8]\n";
             echo "\nQC failed: " . number_format(count($errors)) . " error(s). Report: [{$ret['report']}]\nNothing was uploaded.\n";
             return $ret;

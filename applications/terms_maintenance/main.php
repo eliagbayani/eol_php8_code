@@ -134,7 +134,7 @@ elseif($action == 'upload') {
     </td></tr>
     <?php if($out) echo "<tr><td>$out</td></tr>"; ?>
     <tr><td>
-        <b>Available error reports</b> <small>(newest first; only the newest <?php echo TermsMaintenanceAPI::KEEP_LATEST ?> are kept)</small>
+        <b>Available error reports</b> <small>(newest first; only the newest <?php echo TermsMaintenanceAPI::KEEP_REPORTS ?> are kept)</small>
         <?php
         $reports = is_dir($work_dir) ? array_values(array_filter(scandir($work_dir) ?: array(), fn($f) => preg_match($report_re, $f) && is_file($work_dir . $f))) : array();
         rsort($reports, SORT_STRING); // the timestamp in the name: newest first

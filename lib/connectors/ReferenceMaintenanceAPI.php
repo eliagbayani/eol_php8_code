@@ -30,8 +30,14 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     private function initialize($concept_id)
     {}
     function start()
-    {
+    {   // Runs the task; also returns its result (used by applications/reference_maintenance/main.php). What each task prints is unchanged.
         $task = $this->param['task'];
+        // one run at a time (command line or web page): a second run waits here until the first one is done. Released when this function returns.
+        $lock_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
+        if(!is_dir($lock_dir)) @mkdir($lock_dir, 0777, true);
+        $lock = @fopen($lock_dir . ".reference_mtce.lock", 'c');
+        if($lock) { @chmod($lock_dir . ".reference_mtce.lock", 0666); flock($lock, LOCK_EX); }
+        $result = null;
         // the undefined_referenceIDs_YYYYMMDD.tsv used by steps 2, 3 & 4: the one given ("basename": "undefined_referenceIDs_20261106"),
         // else the newest one in CONTENT_RESOURCE_LOCAL_PATH (step 1 below makes today's). No longer typed in here by hand.
         $basename = self::undefined_referenceIDs_basename();
@@ -81,7 +87,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 
         if($task == 'refresh_unmappable_identifiers_usingMaster') {
             // /* Step 5: refresh our unmappable_identifiers.tsv
-            $removed = self::refresh_unmappable_identifiers_usingMaster();
+            $removed = $result = self::refresh_unmappable_identifiers_usingMaster();
             echo "\nUnmappable identifiers removed, since master already have them: [$removed]\n";
             // exit("\nend: Step 5\n");
             // */
@@ -93,21 +99,21 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
         if($task == 'refresh_unmappable_identifiers_usingDatasets') {
             // /* Step 5.2: remove from unmappable_identifiers.tsv the identifiers no TraitBank dataset cites any more, in /referenceID or /source (local copies, must be up to date)
-            $removed = self::refresh_unmappable_identifiers_usingDatasets();
+            $removed = $result = self::refresh_unmappable_identifiers_usingDatasets();
             if($removed !== false) echo "\nUnmappable identifiers removed, since no dataset cites them any more: [$removed]\n";
             // */
         }
         if($task == 'sync_unmappable_identifiers_with_datasets') {
             // /* One step, reading the datasets directly: add the cited IDs (/referenceID or /source) the master doesn't have; remove those now in the master
             //    or no longer cited. Optional "crossref_YN": 1 (look the new ones up in CrossRef first), "dry_run_YN": 1 (report only)
-            $ret = self::sync_unmappable_identifiers_with_datasets(null, !empty($this->param['dry_run_YN']), !empty($this->param['crossref_YN']));
+            $ret = $result = self::sync_unmappable_identifiers_with_datasets(null, !empty($this->param['dry_run_YN']), !empty($this->param['crossref_YN']));
             if($ret !== false) echo "\nSync result: " . json_encode($ret) . "\n";
             // */
         }
 
         if($task == 'utility_report_duplicate_identifiers_from_master') {
             // /* Step 6: A utility. Report the identifiers that appear more than once in the master References file
-            $tsv = self::save_duplicate_identifiers_2tsv();
+            $tsv = $result = self::save_duplicate_identifiers_2tsv();
             echo "\nDuplicate identifiers TSV: [$tsv]\n";
             // exit("\nend: Step 6\n");
             // */
@@ -115,40 +121,40 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 
         if($task == 'upload_file_toZenodo') {
             // /* Upload our local file of a dataset to Zenodo as a new version. Draft only, unless "publish": 1
-            $ret = $this->upload_file_toZenodo();
+            $ret = $result = $this->upload_file_toZenodo();
             if($ret) echo "\nUpload result: " . json_encode($ret) . "\n";
             // */
         }
 
         if($task == 'compare_master_with_zenodo') {
             // /* Report only, changes nothing: is our local master references.tsv the same as the one in Zenodo's latest version?
-            $ret = self::compare_master_with_zenodo();
+            $ret = $result = self::compare_master_with_zenodo();
             if($ret) echo "\nCompare result: " . json_encode($ret) . "\n";
             // */
         }
 
         if($task == 'merge_zenodo_references') {
             // /* Merge the changes in Zenodo's copy of references.tsv (saved beside the folder after a new download) into our local master
-            $ret = $this->merge_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv');
+            $ret = $result = $this->merge_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv');
             echo "\nMerge result: " . json_encode($ret) . "\n";
             // */
         }
         if($task == 'sync_zenodo_references') {
             // /* Sync merge: apply Zenodo's additions, changes AND deletions (since the base) to our local master; our own additions are kept
-            $ret = $this->sync_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv', null, !empty($this->param['dry_run_YN']));
+            $ret = $result = $this->sync_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv', null, !empty($this->param['dry_run_YN']));
             echo "\nSync result: " . json_encode($ret) . "\n";
             // */
         }
         if($task == 'set_zenodo_base_references') {
             // /* One-time setup of the sync merge: the newest Zenodo copy becomes the base. Only if it has nothing our master doesn't have.
-            self::set_zenodo_base_references();
+            $result = self::set_zenodo_base_references();
             // */
         }
         if($task == 'update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers') {
             // /* Data manager's filled-in unmappable list -> master references.tsv (+ GitHub copy, Zenodo upload) -> remove them from unmappable_identifiers.tsv (+ GitHub copy)
             if(empty($this->param['file'])) echo "\nERROR: \"file\" is required: the path of the data manager's TSV\n";
             else {
-                $ret = self::update_master_with_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']), null, !empty($this->param['skip_unmappable_update_YN']), !empty($this->param['replace_existing_YN']));
+                $ret = $result = self::update_master_with_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']), null, !empty($this->param['skip_unmappable_update_YN']), !empty($this->param['replace_existing_YN']));
                 echo "\nResult: " . json_encode($ret) . "\n";
             }
             // */
@@ -157,11 +163,12 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // /* Delete from the master the rows the Data Manager listed (identifier, full_reference, master_row) -> GitHub copy -> Zenodo upload
             if(empty($this->param['file'])) echo "\nERROR: \"file\" is required: the path of the data manager's TSV\n";
             else {
-                $ret = self::remove_master_rows_from_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']));
+                $ret = $result = self::remove_master_rows_from_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']));
                 echo "\nResult: " . json_encode($ret) . "\n";
             }
             // */
         }
+        return $result;
     }
     private function upload_references_master()
     {   // uploads our master references.tsv to Zenodo with upload_file_toZenodo(): draft only, unless $this->param['publish']. Returns its result, or false.

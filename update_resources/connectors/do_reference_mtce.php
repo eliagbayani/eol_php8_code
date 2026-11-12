@@ -1,6 +1,8 @@
 <?php 
 namespace php_active_record;
 /* Maintenance of the TB References: 
+Web page (status, reports, previews, changes with the maintenance tools password TERMS_MTCE_PASSWORD, Data Manager file uploads):
+    http://localhost:81/eol_php8_code/applications/reference_maintenance/main.php -- runs the same tasks; every command below still works as before.
 start Oct 23, 2026:
 php do_reference_mtce.php _ '{"task": "prepare_undefined_referenceIDs_list"}'               //steps 1 & 2
     - Step 1: collects the undefined referenceIDs from the latest numbers_UndefinedRefIDs_debug_*.txt file of each dataset (older dates are deleted)

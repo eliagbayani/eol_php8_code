@@ -120,13 +120,13 @@ elseif($action == 'upload') {
         <small>The master TraitBank Terms file is in <a href="<?php echo h($sheet_url) ?>" target="_blank">Google Sheets</a>, edited by the data managers.<br><br>
         The button below <b>[Check Terms from Google Sheets]</b>, downloads the file from Google Sheets, builds the Terms file and runs the quality checks (QC). It never uploads anything.<br><br>
         If there are errors, download the report: each problem has its row number in the Google Sheets.<br><br>
-        If there are none, you can publish the file on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (Terms, concept 22776577).</small>
+        If there are none, you can publish the file on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (Terms, concept 22776577). See also: <a href="../reference_maintenance/main.php">References Maintenance</a>.</small>
     </td></tr>
     <tr><td style="text-align:center">
         <form method="post" action="main.php" onsubmit="this.querySelector('input[type=submit]').disabled = true; this.querySelector('span').style.display = 'inline';">
             <input type="hidden" name="action" value="check">
             <input type="submit" value="Check Terms from Google Sheets">
-            <span style="display:none"> Checking... this takes about a minute.</span>
+            <span style="display:none; color:#008000; font-weight:bold"> Checking... this takes about a minute.</span>
         </form>
     </td></tr>
     <?php if($out) echo "<tr><td>$out</td></tr>"; ?>

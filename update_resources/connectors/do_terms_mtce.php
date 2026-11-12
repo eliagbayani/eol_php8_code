@@ -9,6 +9,7 @@ php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "dry_run_YN":
 php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet"}'                    //... + upload a Zenodo DRAFT if QC passes, for review on Zenodo
 php do_terms_mtce.php _ '{"task": "update_terms_from_googlesheet", "publish": 1}'      //... + publish on Zenodo -- CANNOT be undone
     All files go in the folder CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/ (created if it doesn't exist).
+    Only the newest 5 sheet downloads (terms_googlesheet_*.tsv) and the newest 5 error reports (Terms_file_errors_*.tsv) are kept; older ones are deleted.
     - Step 1: downloads the Google Sheet as TSV -> CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/terms_googlesheet_<date>.tsv
     - Step 2: builds CONTENT_RESOURCE_LOCAL_PATH/Terms_maintenance/terms.tsv: the 12 published columns (the sheet's working columns delete?, new term for dataset
       and notes are left out), all rows, in the published format (CRLF). An unchanged sheet gives the same file, and nothing is uploaded.

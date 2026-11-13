@@ -122,7 +122,7 @@ elseif($action == 'upload') {
         The button below <b>[Check Terms from Google Sheets]</b>, downloads the file from Google Sheets, builds the Terms file and runs the quality checks (QC). It never uploads anything.<br><br>
         If there are errors, download the report: each problem has its row number in the Google Sheets.<br><br>
         If there are none, you can publish the file on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (Terms, concept 22776577). 
-        &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;See also: <a href="../reference_maintenance/main.php">References Maintenance</a>.
+        <!--- &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;See also: <a href="../reference_maintenance/main.php">References Maintenance</a>. --->
     </small>
     </td></tr>
     <tr><td style="text-align:center">

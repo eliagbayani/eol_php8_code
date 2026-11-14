@@ -177,13 +177,43 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         return $ref;
     }
+    private function crossref_url($full_reference, $year)
+    {   // the CrossRef search for one full_reference; also the key of its cached answer
+        $q = array('query.bibliographic' => $full_reference, 'rows' => 5, 'select' => 'DOI,score,title,container-title,volume,issue,page,issued,published,type');
+        if($year) $q['filter'] = "from-pub-date:" . ($year - 1) . ",until-pub-date:" . ($year + 1);
+        return $this->crossref_works_url . "?" . http_build_query($q);
+    }
+    function count_rows_to_search($file, $start = 1, $limit = 0)
+    {   /* For an estimate before a search: of the rows a search of $file would do (same start/limit rules), how many are
+             'new'     -> sent to CrossRef (about 3 seconds each),
+             'cached'  -> searched before: their answer comes from the cache, instantly,
+             'skipped' -> too short to search.
+           Makes no call. Returns array('rows' => n, 'new' => n, 'cached' => n, 'skipped' => n), or false. */
+        if(!($in = @fopen($file, 'r'))) return false;
+        $header = explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets($in)), "\r\n"));
+        $col_ref = array_search('full_reference', $header);
+        if($col_ref === false) { fclose($in); return false; }
+        $n = array('rows' => 0, 'new' => 0, 'cached' => 0, 'skipped' => 0); $row_no = 0; $start = max(1, (int) $start); $seen = array();
+        while(($line = fgets($in)) !== false) {
+            if(trim($line) === '') continue;
+            $row_no++;
+            if($row_no < $start) continue;
+            if($limit && $n['rows'] >= $limit) break;
+            $n['rows']++;
+            $ref = trim((string) (explode("\t", rtrim($line, "\r\n"))[$col_ref] ?? ''));
+            if(mb_strlen($ref) < self::MIN_LENGTH) { $n['skipped']++; continue; }
+            $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
+            if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat in the same file is asked only once
+            else { $n['new']++; $seen[$url] = 1; }
+        }
+        fclose($in);
+        return $n;
+    }
     private function search_crossref($full_reference, $year)
     {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.
            false = this row failed (marked 'error', tried again on the next run); 'stop' = CrossRef keeps asking us to slow down: stop the search.
            A cached answer is used as is: the same full_reference is never sent twice. */
-        $q = array('query.bibliographic' => $full_reference, 'rows' => 5, 'select' => 'DOI,score,title,container-title,volume,issue,page,issued,published,type');
-        if($year) $q['filter'] = "from-pub-date:" . ($year - 1) . ",until-pub-date:" . ($year + 1);
-        $url = $this->crossref_works_url . "?" . http_build_query($q);
+        $url = $this->crossref_url($full_reference, $year);
         if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options); // read from the cache, no call
         else {
             $json = $this->call_crossref($url);

@@ -24,7 +24,19 @@ $refs_page   = "../reference_maintenance/main.php";
 $report_re   = '/^[A-Za-z0-9._-]+_DOIs_\d{8}_\d{6}(\.tsv|_guide\.txt)$/';      // the only files [Download] serves
 const MAX_UPLOAD_MB = 20;
 const PROGRESS_EVERY = 20; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
-const KEEP_REPORTS = 20;   // = FullReferenceSearchAPI::KEEP_REPORTS: the script deletes older reports when a search starts
+const SECONDS_PER_NEW = 3; // about 3 seconds per new reference: CrossRef's answer + FullReferenceSearchAPI::PAUSE_SECONDS (1 s)
+require_library('connectors/ZenodoTraitBankAPI');
+require_library('connectors/GenerateTB_Files_Functions');
+require_library('connectors/FullReferenceSearchAPI'); // only for the estimate (count_rows_to_search); the search itself runs as the command-line script
+function duration_text($s)
+{   // 45 -> "1 minute", 600 -> "10 minutes", 9000 -> "2.5 hours", 165000 -> "1.9 days"
+    if($s < 60)     return "less than a minute";
+    if($s < 90)     return "1 minute";
+    if($s < 5400)   return round($s / 60) . " minutes";
+    if($s < 172800) return rtrim(rtrim(number_format($s / 3600, 1), '0'), '.') . " hours";
+    return rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
+}
+const KEEP_REPORTS = 20;  // = FullReferenceSearchAPI::KEEP_REPORTS: the script deletes older reports when a search starts
 if(!is_dir($work_dir)) @mkdir($work_dir, 0777, true);
 
 function h($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
@@ -111,8 +123,12 @@ if($action == 'search') {
             $rows = 0; $fh = fopen($saved, 'r'); fgets($fh); while(($l = fgets($fh)) !== false) if(trim($l) !== '') $rows++; fclose($fh);
             $first = $start !== '' ? (int) $start : 1;
             $to_do = max(0, min($limit !== '' ? (int) $limit : PHP_INT_MAX, $rows - $first + 1));
-            file_put_contents($pending_file, json_encode(array('ts' => $ts, 'name' => $f['name'], 'saved' => $saved, 'rows' => $rows,
-                                                               'limit' => $limit, 'start' => $start, 'to_do' => $to_do)));
+            $pend = array('ts' => $ts, 'name' => $f['name'], 'saved' => $saved, 'rows' => $rows, 'limit' => $limit, 'start' => $start, 'to_do' => $to_do);
+            // the estimate: how many of these rows are new (sent to CrossRef) and how many were searched before (cached). No call to CrossRef.
+            try { ob_start(); $api = new FullReferenceSearchAPI(array()); ob_end_clean();
+                  if($e = $api->count_rows_to_search($saved, $first, $limit !== '' ? (int) $limit : 0)) $pend['estimate'] = $e; }
+            catch(\Throwable $ex) { @ob_end_clean(); }
+            file_put_contents($pending_file, json_encode($pend));
             header("Location: main.php"); exit; // shows the file with [Proceed] [Cancel]; a reload doesn't upload again
         }
     }
@@ -215,9 +231,14 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
                         <button type="submit" name="action" value="cancel" formnovalidate>Cancel</button>
                         <span class="wait"> Starting...</span>
                     </form>
-                    <br><small>[Proceed] searches <?php echo v(number_format($pending['to_do'])) ?> row(s) in CrossRef<?php
-                        echo $pending['to_do'] > 300 ? " (new ones take about 3 seconds each: about " . v(($m = round($pending['to_do'] * 3 / 60)) >= 120 ? round($m / 60) . " hours" : "$m minutes") . " at most)" : '' ?>.
-                        [Cancel] removes the uploaded file.</small>
+                    <br><small>[Proceed] searches <?php echo v(number_format($pending['to_do'])) ?> row(s) in CrossRef. [Cancel] removes the uploaded file.</small>
+                    <?php if(isset($pending['estimate'])): $e = $pending['estimate']; ?>
+                    <br><small>Estimate: <?php echo ($e['new'] * SECONDS_PER_NEW < 60 ? '' : 'about ') . v(duration_text($e['new'] * SECONDS_PER_NEW)) ?>.
+                        <?php echo v(number_format($e['new'])) ?> new reference(s) to send to CrossRef, at about <?php echo SECONDS_PER_NEW ?> seconds each;
+                        <?php echo v(number_format($e['cached'])) ?> searched before (instant, from the cache)<?php
+                        if($e['skipped']) echo "; " . v(number_format($e['skipped'])) . " too short to search" ?>.
+                        <?php if($e['new'] * SECONDS_PER_NEW > 3600) echo "It can be stopped at any time and resumed later with <b>start</b>." ?></small>
+                    <?php endif; ?>
                 </td></tr>
             </table>
         <?php else: ?>

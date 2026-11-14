@@ -14,6 +14,8 @@ if($GLOBALS['ENV_NAME'] == 'development') echo '(dev only) <a href="../genHigher
 echo '<a href="../genHigherClass_jenkins/main.php">Generate highClassification Tool (Jenkins)</a> | <br>';
 
 echo '<a href="../DwC_branch_extractor/main.php">Darwin Core Branch Extractor (Jenkins)</a> | <br><br>';
-echo '<a href="../terms_maintenance/main.php">Terms Maintenance (TraitBank)</a> | ';
+echo '<a href="../terms_maintenance/main.php">Terms Maintenance (TraitBank)</a> | <br><br>';
+if($GLOBALS['ENV_NAME'] == 'development') echo '(dev only) <a href="../reference_maintenance/main.php">Reference Maintenance (TraitBank)</a> | ';
+
 echo "{".$GLOBALS['ENV_NAME']."}";
 ?>

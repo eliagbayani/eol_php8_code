@@ -46,6 +46,12 @@ function is_running()
     fclose($fp);
     return !$free;
 }
+function process_alive($state)
+{   // true while the search started from this page is still a live do_full_reference_search.php process -- also in its first seconds,
+    // before the script takes its lock and writes its first log line
+    $pid = (int) ($state['pid'] ?? 0);
+    return $pid > 0 && str_contains((string) @file_get_contents("/proc/$pid/cmdline"), 'do_full_reference_search.php');
+}
 function read_state() { $s = @json_decode((string) @file_get_contents($GLOBALS['state_file']), true); return is_array($s) ? $s : null; }
 function read_pending() { $s = @json_decode((string) @file_get_contents($GLOBALS['pending_file']), true); return is_array($s) ? $s : null; }
 function discard_pending()
@@ -75,7 +81,7 @@ $action = $_POST['action'] ?? '';
 if($action == 'search') {
     $f = $_FILES['ref_file'] ?? null; $err = '';
     $limit = trim((string) ($_POST['limit'] ?? '')); $start = trim((string) ($_POST['start'] ?? ''));
-    if(is_running()) $err = "A search is already running. Wait for it to finish, or stop it, then start again.";
+    if(is_running() || (($st = read_state()) && process_alive($st))) $err = "A search is already running. Wait for it to finish, or stop it, then start again.";
     elseif(!$f || $f['error'] !== UPLOAD_ERR_OK) $err = "No file was uploaded" . ($f && $f['error'] !== UPLOAD_ERR_NO_FILE ? " (upload error " . (int) $f['error'] . ")" : '') . ".";
     elseif(!preg_match('/\.(tsv|tab|txt)$/i', $f['name'])) $err = "The file must be tab-separated: .tsv, .tab or .txt. Got: [" . h($f['name']) . "]";
     elseif($f['size'] > MAX_UPLOAD_MB * 1024 * 1024) $err = "The file is larger than " . MAX_UPLOAD_MB . " MB.";
@@ -108,7 +114,7 @@ elseif($action == 'proceed') {
     // start the search of the uploaded file: the same command as on the command line, in the background; $! = its process id, to stop it
     $p = read_pending();
     if(!$p || ($_POST['ts'] ?? '') !== $p['ts'] || !is_file($p['saved'])) $out .= "<p class='bad'>The uploaded file wasn't found. Please upload it again.</p>";
-    elseif(is_running()) $out .= "<p class='bad'>A search is already running. Wait for it to finish, or stop it, then proceed.</p>";
+    elseif(is_running() || (($st = read_state()) && process_alive($st))) $out .= "<p class='bad'>A search is already running. Wait for it to finish, or stop it, then proceed.</p>";
     else {
         $param = array('task' => 'search_DOIs_for_full_references', 'file' => $p['saved']);
         if($p['limit'] !== '') $param['limit'] = (int) $p['limit'];
@@ -132,10 +138,9 @@ elseif($action == 'cancel') {
 }
 elseif($action == 'stop') {
     $st = read_state();
-    if($st && $st['pid'] && is_running()) {
+    if($st && (is_running() || process_alive($st))) {
         // only our own search: the process must still be do_full_reference_search.php
-        $cmdline = (string) @file_get_contents("/proc/" . (int) $st['pid'] . "/cmdline");
-        if(str_contains($cmdline, 'do_full_reference_search.php') && posix_kill((int) $st['pid'], 15)) {
+        if(process_alive($st) && posix_kill((int) $st['pid'], 15)) {
             $st['stopped'] = date("Y-m-d H:i:s"); file_put_contents($state_file, json_encode($st));
             $out .= "<p><b>The search was stopped.</b> The report keeps the rows done so far. To go on, start again with the same file and <b>start</b> = the next row: the rows already searched come back instantly anyway.</p>";
         }
@@ -145,8 +150,8 @@ elseif($action == 'stop') {
 }
 if(isset($_GET['started'])) $out .= "<p class='good'><b>Search started.</b> Its progress is shown below; this page refreshes itself while it runs.</p>";
 
-$running = is_running();
 $state = read_state();
+$running = is_running() || ($state && process_alive($state));
 $pending = read_pending();
 $prog = $state ? progress($state) : null;
 // the reports: newest first

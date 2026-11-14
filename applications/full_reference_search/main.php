@@ -41,6 +41,16 @@ if(!is_dir($work_dir)) @mkdir($work_dir, 0777, true);
 
 function h($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 function v($s) { return "<span class='val'>" . h($s) . "</span>"; } // a value that changes (green), next to text that doesn't
+function report_counts($path)
+{   // a report's rows and the count of each status, read from the report itself (exact, also for a stopped search)
+    if(!($fh = @fopen($path, 'r'))) return false;
+    $header = explode("\t", rtrim((string) fgets($fh), "\r\n")); $col = array_search('status', $header);
+    if($col === false) { fclose($fh); return false; }
+    $c = array('matched' => 0, 'possible' => 0, 'not found' => 0, 'skipped' => 0, 'error' => 0); $rows = 0;
+    while(($l = fgets($fh)) !== false) { if(trim($l) === '') continue; $rows++; $s = explode("\t", $l)[$col] ?? ''; if(isset($c[$s])) $c[$s]++; }
+    fclose($fh);
+    return array('rows' => $rows, 'counts' => implode(', ', array_map(fn($k, $v) => "$k $v", array_keys($c), $c)));
+}
 function counts_html($counts)
 {   // "matched 11, possible 7, ..." -> the numbers in green, the words as they are
     return preg_replace('/(\d+)/', "<span class='val'>$1</span>", h($counts));
@@ -188,6 +198,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
     .bad { color: #b00000; } .good { color: #006400; }
+    .todo { color: #c05000; } /* something waiting for the user, e.g. "Not started yet: click [Proceed]" */
     .val { color: #008000; font-weight: bold; } /* values that change (file, rows, progress, counts, dates); labels stay black */
     /* every button the same size: [Upload file], [Proceed], [Cancel], [Stop the search], [Download], [Guide] */
     a.button, button, input[type=submit] { display: inline-block; box-sizing: border-box; width: 125px; height: 28px; line-height: 26px; padding: 0 6px;
@@ -224,6 +235,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         <?php elseif($pending): ?>
             <table class="params">
                 <tr><td>File:</td><td><?php echo v($pending['name']) ?> (<?php echo v(number_format($pending['rows'])) ?> rows; limit <?php echo v($pending['limit'] !== '' ? $pending['limit'] : 'none') ?>, start <?php echo v($pending['start'] !== '' ? $pending['start'] : '1') ?>)</td></tr>
+                <tr><td></td><td><span class="todo"><b>Not started yet:</b> click [Proceed] to start the search.</span></td></tr>
                 <tr><td></td><td>
                     <form method="post" action="main.php" style="display:inline" onsubmit="return busy(this);">
                         <input type="hidden" name="ts" value="<?php echo h($pending['ts']) ?>">
@@ -259,15 +271,24 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         <?php endif; ?>
     </td></tr>
 
-    <?php if($state): $pct = $state['to_do'] ? min(100, round(100 * $prog['done'] / $state['to_do'])) : 0; ?>
-    <tr><td><b><?php echo $running ? "Search running" : "Last search" ?></b>
+    <?php if($state):
+        $stopped = !$running && !$prog['finished'] && !empty($state['stopped']);
+        $ended   = !$running && !$prog['finished'];                 // stopped, or ended before the last row
+        if($ended && $prog['report'] && ($rc = report_counts($work_dir . $prog['report']))) { $prog['done'] = $rc['rows']; $prog['counts'] = $rc['counts']; } // the real rows done, not the last progress line
+        $pct = $state['to_do'] ? min(100, round(100 * $prog['done'] / $state['to_do'])) : 0;
+        $title = $running ? "Search running" : ($pending ? "Previous search" : "Last search");
+        if($stopped) $title .= " (stopped)"; elseif($ended) $title .= " (ended early)"; ?>
+    <tr><td><b><?php echo $title ?></b>
         <table class="params">
             <tr><td>File:</td><td colspan="2"><?php echo v($state['name']) ?> (<?php echo v(number_format($state['rows'])) ?> rows; limit <?php echo v($state['limit'] !== '' ? $state['limit'] : 'none') ?>, start <?php echo v($state['start'] !== '' ? $state['start'] : '1') ?>)</td></tr>
             <tr><td>Started:</td><td colspan="2"><?php echo v($state['started']) ?><?php if(!empty($state['stopped'])) echo " &mdash; <span class='bad'>stopped " . h($state['stopped']) . "</span>" ?></td></tr>
-            <tr><td>Progress:</td><td colspan="2"><progress value="<?php echo $prog['done'] ?>" max="<?php echo max(1, $state['to_do']) ?>"></progress>
-                <?php echo v(number_format($prog['done'])) . " of " . v(number_format($state['to_do'])) . " rows (" . v("$pct%") . ")" ?>
+            <tr><td><?php echo $ended ? "Rows done:" : "Progress:" ?></td><td colspan="2">
+                <?php if($ended) // no progress bar for a search that isn't going on
+                          echo v(number_format($prog['done'])) . " of " . v(number_format($state['to_do'])) . " rows done before it " . ($stopped ? "was stopped" : "ended") . ".";
+                      else echo "<progress value='" . $prog['done'] . "' max='" . max(1, $state['to_do']) . "'></progress> "
+                              . v(number_format($prog['done'])) . " of " . v(number_format($state['to_do'])) . " rows (" . v("$pct%") . ")"; ?>
                 <?php if($prog['done'] < PROGRESS_EVERY && !$prog['finished'] && $running) echo "<br><small>Progress is counted every " . PROGRESS_EVERY . " rows.</small>" ?></td></tr>
-            <?php if($prog['counts']) echo "<tr><td>So far:</td><td colspan='2'>" . counts_html($prog['counts']) . "</td></tr>"; ?>
+            <?php if($prog['counts']) echo "<tr><td>" . ($running ? "So far:" : "Results:") . "</td><td colspan='2'>" . counts_html($prog['counts']) . "</td></tr>"; ?>
             <?php if($prog['finished']) echo "<tr><td>Finished:</td><td colspan='2'>" . v("done") . " in " . v($prog['time']) . "</td></tr>";
                   elseif(!$running && empty($state['stopped'])) echo "<tr><td>Finished:</td><td colspan='2' class='bad'>it ended before the last row" . ($prog['error'] ? ": " . h($prog['error']) : '; see the log') . "</td></tr>"; ?>
             <?php if($prog['report'] && is_file($work_dir . $prog['report'])) echo "<tr><td>Report:</td><td>" . v($prog['report']) . "</td><td><a class='button' href='main.php?download=" . rawurlencode($prog['report']) . "'>Download</a>"

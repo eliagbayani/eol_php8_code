@@ -10,6 +10,7 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
     - Report: Reference_maintenance/<file name>_DOIs_<YYYYmmdd_HHMMSS>.tsv, written row by row:
       identifier, full_reference, status, DOI, review_note, parsed_* (what was read from the citation), crossref_* (the candidate), checks
       plus <same name>_guide.txt: the results and how to review them, for the Data Managers.
+      Only the newest 20 reports (with their guides) are kept; older ones are deleted when a search starts.
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)
       DOI is filled only for matched and possible; review_note says what was found, in plain words.
     - Changes nothing else. CrossRef answers are cached (never expire), so a re-run or a resumed run is instant for rows already searched.

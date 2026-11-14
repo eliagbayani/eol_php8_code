@@ -23,9 +23,16 @@ $connectors  = realpath(dirname(__FILE__) . "/../../update_resources/connectors"
 $refs_page   = "../reference_maintenance/main.php";
 $report_re   = '/^[A-Za-z0-9._-]+_DOIs_\d{8}_\d{6}(\.tsv|_guide\.txt)$/';      // the only files [Download] serves
 const MAX_UPLOAD_MB = 20;
+const PROGRESS_EVERY = 20; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
+const KEEP_REPORTS = 20;   // = FullReferenceSearchAPI::KEEP_REPORTS: the script deletes older reports when a search starts
 if(!is_dir($work_dir)) @mkdir($work_dir, 0777, true);
 
 function h($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
+function v($s) { return "<span class='val'>" . h($s) . "</span>"; } // a value that changes (green), next to text that doesn't
+function counts_html($counts)
+{   // "matched 11, possible 7, ..." -> the numbers in green, the words as they are
+    return preg_replace('/(\d+)/', "<span class='val'>$1</span>", h($counts));
+}
 
 // [Download]: only the reports and guides
 if(isset($_GET['download'])) {
@@ -165,7 +172,14 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
     .bad { color: #b00000; } .good { color: #006400; }
-    a.button { padding: 2px 10px; border: 1px solid #888; border-radius: 3px; background: #eee; color: #000; text-decoration: none; }
+    .val { color: #008000; font-weight: bold; } /* values that change (file, rows, progress, counts, dates); labels stay black */
+    /* every button the same size: [Upload file], [Proceed], [Cancel], [Stop the search], [Download], [Guide] */
+    a.button, button, input[type=submit] { display: inline-block; box-sizing: border-box; width: 125px; height: 28px; line-height: 26px; padding: 0 6px;
+        font: 14px Arial, sans-serif; text-align: center; vertical-align: middle; border: 1px solid #888; border-radius: 3px;
+        background: #eee; color: #000; text-decoration: none; cursor: pointer; }
+    a.button { display: inline-flex; align-items: center; justify-content: center; line-height: normal; } /* links: text centered up and down, like the real buttons */
+    a.button:hover, button:hover, input[type=submit]:hover { background: #ddd; }
+    button:disabled, input[type=submit]:disabled { color: #888; cursor: default; }
     td { text-align: left; vertical-align: top; }
     .wait { display: none; color: #008000; font-weight: bold; } form { margin: 6px 0; }
     table.list td, table.list th { border: none; border-bottom: 1px solid #ddd; padding: 3px 12px 3px 0; text-align: left; font-size: 14px; }
@@ -193,7 +207,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
             <p>A search is running. A new one can start when it's done, or after you stop it.</p>
         <?php elseif($pending): ?>
             <table class="params">
-                <tr><td>File:</td><td><?php echo h($pending['name']) ?> (<?php echo number_format($pending['rows']) ?> rows; limit <?php echo h($pending['limit'] !== '' ? $pending['limit'] : 'none') ?>, start <?php echo h($pending['start'] !== '' ? $pending['start'] : '1') ?>)</td></tr>
+                <tr><td>File:</td><td><?php echo v($pending['name']) ?> (<?php echo v(number_format($pending['rows'])) ?> rows; limit <?php echo v($pending['limit'] !== '' ? $pending['limit'] : 'none') ?>, start <?php echo v($pending['start'] !== '' ? $pending['start'] : '1') ?>)</td></tr>
                 <tr><td></td><td>
                     <form method="post" action="main.php" style="display:inline" onsubmit="return busy(this);">
                         <input type="hidden" name="ts" value="<?php echo h($pending['ts']) ?>">
@@ -201,8 +215,8 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
                         <button type="submit" name="action" value="cancel" formnovalidate>Cancel</button>
                         <span class="wait"> Starting...</span>
                     </form>
-                    <br><small>[Proceed] searches <?php echo number_format($pending['to_do']) ?> row(s) in CrossRef<?php
-                        echo $pending['to_do'] > 300 ? " (new ones take about 1 second each: about " . h(($m = round($pending['to_do'] / 60)) >= 120 ? round($m / 60) . " hours" : "$m minutes") . " at most)" : '' ?>.
+                    <br><small>[Proceed] searches <?php echo v(number_format($pending['to_do'])) ?> row(s) in CrossRef<?php
+                        echo $pending['to_do'] > 300 ? " (new ones take about 1 second each: about " . v(($m = round($pending['to_do'] / 60)) >= 120 ? round($m / 60) . " hours" : "$m minutes") . " at most)" : '' ?>.
                         [Cancel] removes the uploaded file.</small>
                 </td></tr>
             </table>
@@ -225,17 +239,17 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     <?php if($state): $pct = $state['to_do'] ? min(100, round(100 * $prog['done'] / $state['to_do'])) : 0; ?>
     <tr><td><b><?php echo $running ? "Search running" : "Last search" ?></b>
         <table class="params">
-            <tr><td>File:</td><td><?php echo h($state['name']) ?> (<?php echo number_format($state['rows']) ?> rows; limit <?php echo h($state['limit'] !== '' ? $state['limit'] : 'none') ?>, start <?php echo h($state['start'] !== '' ? $state['start'] : '1') ?>)</td></tr>
-            <tr><td>Started:</td><td><?php echo h($state['started']) ?><?php if(!empty($state['stopped'])) echo " &mdash; <span class='bad'>stopped " . h($state['stopped']) . "</span>" ?></td></tr>
-            <tr><td>Progress:</td><td><progress value="<?php echo $prog['done'] ?>" max="<?php echo max(1, $state['to_do']) ?>"></progress>
-                <?php echo number_format($prog['done']) . " of " . number_format($state['to_do']) . " rows ($pct%)" ?>
-                <?php if($prog['done'] < 100 && !$prog['finished'] && $running) echo "<br><small>Progress is counted every 100 rows.</small>" ?></td></tr>
-            <?php if($prog['counts']) echo "<tr><td>So far:</td><td>" . h($prog['counts']) . "</td></tr>"; ?>
-            <?php if($prog['finished']) echo "<tr><td>Finished:</td><td class='good'><b>done</b> in " . h($prog['time']) . "</td></tr>";
-                  elseif(!$running && empty($state['stopped'])) echo "<tr><td>Finished:</td><td class='bad'>it ended before the last row" . ($prog['error'] ? ": " . h($prog['error']) : '; see the log') . "</td></tr>"; ?>
-            <?php if($prog['report'] && is_file($work_dir . $prog['report'])) echo "<tr><td>Report:</td><td>" . h($prog['report']) . " <a class='button' href='main.php?download=" . rawurlencode($prog['report']) . "'>Download</a>"
+            <tr><td>File:</td><td colspan="2"><?php echo v($state['name']) ?> (<?php echo v(number_format($state['rows'])) ?> rows; limit <?php echo v($state['limit'] !== '' ? $state['limit'] : 'none') ?>, start <?php echo v($state['start'] !== '' ? $state['start'] : '1') ?>)</td></tr>
+            <tr><td>Started:</td><td colspan="2"><?php echo v($state['started']) ?><?php if(!empty($state['stopped'])) echo " &mdash; <span class='bad'>stopped " . h($state['stopped']) . "</span>" ?></td></tr>
+            <tr><td>Progress:</td><td colspan="2"><progress value="<?php echo $prog['done'] ?>" max="<?php echo max(1, $state['to_do']) ?>"></progress>
+                <?php echo v(number_format($prog['done'])) . " of " . v(number_format($state['to_do'])) . " rows (" . v("$pct%") . ")" ?>
+                <?php if($prog['done'] < PROGRESS_EVERY && !$prog['finished'] && $running) echo "<br><small>Progress is counted every " . PROGRESS_EVERY . " rows.</small>" ?></td></tr>
+            <?php if($prog['counts']) echo "<tr><td>So far:</td><td colspan='2'>" . counts_html($prog['counts']) . "</td></tr>"; ?>
+            <?php if($prog['finished']) echo "<tr><td>Finished:</td><td colspan='2'>" . v("done") . " in " . v($prog['time']) . "</td></tr>";
+                  elseif(!$running && empty($state['stopped'])) echo "<tr><td>Finished:</td><td colspan='2' class='bad'>it ended before the last row" . ($prog['error'] ? ": " . h($prog['error']) : '; see the log') . "</td></tr>"; ?>
+            <?php if($prog['report'] && is_file($work_dir . $prog['report'])) echo "<tr><td>Report:</td><td>" . v($prog['report']) . "</td><td><a class='button' href='main.php?download=" . rawurlencode($prog['report']) . "'>Download</a>"
                   . ($prog['finished'] ? '' : " <small>(the rows done so far)</small>") . "</td></tr>"; ?>
-            <?php if($prog['guide'] && is_file($work_dir . $prog['guide'])) echo "<tr><td>Guide:</td><td>" . h($prog['guide']) . " <a class='button' href='main.php?download=" . rawurlencode($prog['guide']) . "'>Download</a></td></tr>"; ?>
+            <?php if($prog['guide'] && is_file($work_dir . $prog['guide'])) echo "<tr><td>Guide:</td><td>" . v($prog['guide']) . "</td><td><a class='button' href='main.php?download=" . rawurlencode($prog['guide']) . "'>Download</a></td></tr>"; ?>
         </table>
         <?php if($running): ?>
             <form method="post" action="main.php" onsubmit="if(!confirm('Stop the search? The report keeps the rows done so far.')) return false; return busy(this);">
@@ -249,14 +263,15 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 
     <?php if($out) echo "<tr><td><b>Result</b><br>$out</td></tr>"; ?>
 
-    <tr><td><b>Available reports</b> (newest first)
+    <tr><td><b>Available reports</b> (newest first)<br>
+        <small>Only the newest <?php echo KEEP_REPORTS ?> reports are kept: older ones, with their guides, are deleted when a new search starts.</small>
         <?php if(!$reports) echo "<p>There are no reports yet.</p>";
         else {
             echo "<table class='list'><tr><th>Report</th><th>Date</th><th>Rows</th><th>Size</th><th></th></tr>";
             foreach($reports as $r) {
                 $path = $work_dir . $r; $guide = preg_replace('/\.tsv$/', '_guide.txt', $r);
                 $n = max(0, count(file($path, FILE_SKIP_EMPTY_LINES)) - 1);
-                echo "<tr><td>" . h($r) . "</td><td>" . date("Y-m-d H:i", filemtime($path)) . "</td><td>" . number_format($n) . "</td><td>" . number_format(filesize($path) / 1024, 0) . " KB</td>"
+                echo "<tr><td>" . v($r) . "</td><td>" . v(date("Y-m-d H:i", filemtime($path))) . "</td><td>" . v(number_format($n)) . "</td><td>" . v(number_format(filesize($path) / 1024, 0)) . " KB</td>"
                    . "<td><a class='button' href='main.php?download=" . rawurlencode($r) . "'>Download</a>"
                    . (is_file($work_dir . $guide) ? " <a class='button' href='main.php?download=" . rawurlencode($guide) . "'>Guide</a>" : " <small>(no guide: the search was stopped before the end)</small>") . "</td></tr>";
             }

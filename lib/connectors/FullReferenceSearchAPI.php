@@ -27,6 +27,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
+    const PROGRESS_EVERY = 20; // a progress line ("N rows done ...") every this many rows; the web page reads it
+    const KEEP_REPORTS = 20;   // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
+    const REPORT_RE = '/^[A-Za-z0-9._-]+_DOIs_(\d{8}_\d{6})\.tsv$/'; // e.g. reference_DOIs_20261114_013451.tsv; the time it was made sorts them
     // CrossRef record types that are a whole issue/volume/journal or a part of an article, not an article: never the answer
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
     function __construct($param) {
@@ -73,6 +76,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $out = fopen($out_file, 'w');
         fwrite($out, implode("\t", self::OUTPUT_COLUMNS) . "\n");
         echo "\nInput: [$file]\nOutput: [$out_file]\nRows: from " . $start . ($limit ? ", at most $limit" : ', to the end') . "\n";
+        $this->keep_latest_reports(); // here, not at the end, so stopped searches are counted too; the new report is one of the 20
         $counts = array('matched' => 0, 'possible' => 0, 'not found' => 0, 'skipped' => 0, 'error' => 0);
         $time = time(); $row_no = 0; $done = 0;
         while(($line = fgets($in)) !== false) {
@@ -87,12 +91,26 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $counts[$r['status']]++; $done++;
             $row = array_merge(array('identifier' => $identifier, 'full_reference' => $full_reference), $r);
             fwrite($out, implode("\t", array_map(fn($c) => str_replace(array("\t", "\r", "\n"), ' ', (string) ($row[$c] ?? '')), self::OUTPUT_COLUMNS)) . "\n");
-            if($done % 100 == 0) { fflush($out); echo "  $done rows done (row $row_no): " . self::counts_str($counts) . "\n"; }
+            if($done % self::PROGRESS_EVERY == 0) { fflush($out); echo "  $done rows done (row $row_no): " . self::counts_str($counts) . "\n"; }
         }
         fclose($in); fclose($out);
         $guide = $this->write_guide($out_file, $file, $start, $row_no, $done, $counts);
         echo "\nDone: $done rows in " . gmdate("H:i:s", time() - $time) . " -- " . self::counts_str($counts) . "\nReport: [$out_file]\nGuide for the Data Managers: [$guide]\n";
         return array('file' => $out_file, 'guide' => $guide, 'counts' => $counts);
+    }
+    private function keep_latest_reports()
+    {   // deletes all but the newest KEEP_REPORTS reports (by the time in their name), each with its _guide.txt
+        $reports = array();
+        foreach(scandir($this->work_dir) ?: array() as $f) if(preg_match(self::REPORT_RE, $f, $m) && is_file($this->work_dir . $f)) $reports[$f] = $m[1];
+        asort($reports, SORT_STRING); // oldest first
+        $old = array_slice(array_keys($reports), 0, max(0, count($reports) - self::KEEP_REPORTS));
+        $n = 0;
+        foreach($old as $f) {
+            if(unlink($this->work_dir . $f)) $n++;
+            $guide = preg_replace('/\.tsv$/', '_guide.txt', $f);
+            if(is_file($this->work_dir . $guide)) unlink($this->work_dir . $guide);
+        }
+        if($n) echo "Removed $n old report(s) like [" . $old[0] . "], with their guides: only the newest " . self::KEEP_REPORTS . " are kept.\n";
     }
     private static function counts_str($counts)
     {   return implode(', ', array_map(fn($k, $v) => "$k $v", array_keys($counts), $counts));

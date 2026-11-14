@@ -3,7 +3,8 @@ namespace php_active_record;
 /* Full Reference Search: a web page for update_resources/connectors/do_full_reference_search.php (lib/connectors/FullReferenceSearchAPI.php)
    http://localhost:81/eol_php8_code/applications/full_reference_search/main.php
    Finds the DOI of references that have only a full_reference text, using CrossRef. The command line keeps working as before.
-   - [Browse File] + limit + start = the command line's "file", "limit" and "start".
+   - [Browse File] + limit + start = the command line's "file", "limit" and "start". [Upload file] checks and saves the file and shows
+     its rows; then [Proceed] starts the search, or [Cancel] removes the uploaded file.
    - A search can take hours (about 1 second per new reference), so it runs in the background, as the same command-line script;
      this page shows its progress, can stop it, and lists the reports with [Download].
    - One search at a time (the script's own lock). It changes nothing: it only writes a report and a guide for the Data Managers.
@@ -16,6 +17,7 @@ $GLOBALS['ENV_DEBUG'] = false;
 $work_dir    = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";        // where the script writes its reports (as on the command line)
 $upload_dir  = $work_dir . "full_reference_search_uploads/";                  // the files uploaded on this page, one folder per search
 $state_file  = $work_dir . "full_reference_search_last_run.json";             // the search started from this page: its log, process, rows
+$pending_file = $work_dir . "full_reference_search_pending.json";             // an uploaded file waiting for [Proceed] or [Cancel]
 $lock_file   = $work_dir . ".full_reference_search.lock";                     // held by the script while it runs
 $connectors  = realpath(dirname(__FILE__) . "/../../update_resources/connectors");
 $refs_page   = "../reference_maintenance/main.php";
@@ -45,6 +47,16 @@ function is_running()
     return !$free;
 }
 function read_state() { $s = @json_decode((string) @file_get_contents($GLOBALS['state_file']), true); return is_array($s) ? $s : null; }
+function read_pending() { $s = @json_decode((string) @file_get_contents($GLOBALS['pending_file']), true); return is_array($s) ? $s : null; }
+function discard_pending()
+{   // removes an uploaded file that is waiting for [Proceed]: only its own file and folder in full_reference_search_uploads/<YYYYmmdd_HHMMSS>/
+    $p = read_pending();
+    @unlink($GLOBALS['pending_file']);
+    if(!$p || !preg_match('/^\d{8}_\d{6}$/', (string) $p['ts'])) return;
+    $dir = $GLOBALS['upload_dir'] . $p['ts'] . "/";
+    if(dirname((string) $p['saved']) . "/" === $dir && is_file($p['saved'])) @unlink($p['saved']);
+    if(is_dir($dir) && count(scandir($dir)) == 2) @rmdir($dir); // only when empty
+}
 function progress($state)
 {   // from the log: rows done so far, the latest counts, the report and guide names, whether it finished
     $p = array('done' => 0, 'counts' => '', 'report' => '', 'guide' => '', 'finished' => false, 'error' => '');
@@ -74,8 +86,9 @@ if($action == 'search') {
         if(!in_array('identifier', $header) || !in_array('full_reference', $header))
             $err = "The file's header is [" . h(implode(", ", $header)) . "]. It must have the columns <b>identifier</b> and <b>full_reference</b> (others are ignored).";
     }
-    if($err) $out .= "<p class='bad'><b>The search was not started.</b> $err</p>";
+    if($err) $out .= "<p class='bad'><b>The file was not accepted.</b> $err</p>";
     else {
+        discard_pending(); // a newer upload replaces one that was never started
         $ts = date("Ymd_His");
         $dir = $upload_dir . "$ts/"; @mkdir($dir, 0777, true);
         $stem = preg_replace('/[^A-Za-z0-9._-]+/', '_', pathinfo($f['name'], PATHINFO_FILENAME)) ?: 'references'; // the report is named after it
@@ -83,22 +96,39 @@ if($action == 'search') {
         if(!move_uploaded_file($f['tmp_name'], $saved)) $out .= "<p class='bad'><b>The file could not be saved.</b></p>";
         else {
             $rows = 0; $fh = fopen($saved, 'r'); fgets($fh); while(($l = fgets($fh)) !== false) if(trim($l) !== '') $rows++; fclose($fh);
-            $param = array('task' => 'search_DOIs_for_full_references', 'file' => $saved);
-            if($limit !== '') $param['limit'] = (int) $limit;
-            if($start !== '') $param['start'] = (int) $start;
-            $log = "full_reference_search_$ts.log";
-            // the same command as on the command line, in the background; $! = its process id, to stop it
-            $cmd = "cd " . escapeshellarg($connectors) . " && nohup " . escapeshellarg(PHP_BINDIR . "/php") . " do_full_reference_search.php _ "
-                 . escapeshellarg(json_encode($param, JSON_UNESCAPED_SLASHES)) . " > " . escapeshellarg($work_dir . $log) . " 2>&1 & echo $!";
-            $pid = (int) trim((string) shell_exec($cmd));
             $first = $start !== '' ? (int) $start : 1;
             $to_do = max(0, min($limit !== '' ? (int) $limit : PHP_INT_MAX, $rows - $first + 1));
-            file_put_contents($state_file, json_encode(array('ts' => $ts, 'name' => $f['name'], 'rows' => $rows, 'limit' => $limit, 'start' => $start,
-                                                             'to_do' => $to_do, 'log' => $log, 'pid' => $pid, 'started' => date("Y-m-d H:i:s"))));
-            if($pid) { header("Location: main.php?started=1"); exit; } // so a reload doesn't upload again
-            $out .= "<p class='bad'><b>The search could not be started.</b></p>";
+            file_put_contents($pending_file, json_encode(array('ts' => $ts, 'name' => $f['name'], 'saved' => $saved, 'rows' => $rows,
+                                                               'limit' => $limit, 'start' => $start, 'to_do' => $to_do)));
+            header("Location: main.php"); exit; // shows the file with [Proceed] [Cancel]; a reload doesn't upload again
         }
     }
+}
+elseif($action == 'proceed') {
+    // start the search of the uploaded file: the same command as on the command line, in the background; $! = its process id, to stop it
+    $p = read_pending();
+    if(!$p || ($_POST['ts'] ?? '') !== $p['ts'] || !is_file($p['saved'])) $out .= "<p class='bad'>The uploaded file wasn't found. Please upload it again.</p>";
+    elseif(is_running()) $out .= "<p class='bad'>A search is already running. Wait for it to finish, or stop it, then proceed.</p>";
+    else {
+        $param = array('task' => 'search_DOIs_for_full_references', 'file' => $p['saved']);
+        if($p['limit'] !== '') $param['limit'] = (int) $p['limit'];
+        if($p['start'] !== '') $param['start'] = (int) $p['start'];
+        $log = "full_reference_search_{$p['ts']}.log";
+        $cmd = "cd " . escapeshellarg($connectors) . " && nohup " . escapeshellarg(PHP_BINDIR . "/php") . " do_full_reference_search.php _ "
+             . escapeshellarg(json_encode($param, JSON_UNESCAPED_SLASHES)) . " > " . escapeshellarg($work_dir . $log) . " 2>&1 & echo $!";
+        $pid = (int) trim((string) shell_exec($cmd));
+        if($pid) {
+            file_put_contents($state_file, json_encode(array_merge($p, array('log' => $log, 'pid' => $pid, 'started' => date("Y-m-d H:i:s")))));
+            @unlink($pending_file); // the upload is kept (it's the search's input); only "waiting for Proceed" ends
+            header("Location: main.php?started=1"); exit;
+        }
+        $out .= "<p class='bad'><b>The search could not be started.</b></p>";
+    }
+}
+elseif($action == 'cancel') {
+    $p = read_pending();
+    if($p && ($_POST['ts'] ?? '') === $p['ts']) { discard_pending(); $out .= "<p>Cancelled: [" . h($p['name']) . "] was removed. Nothing was searched.</p>"; }
+    else $out .= "<p>There is no uploaded file waiting.</p>";
 }
 elseif($action == 'stop') {
     $st = read_state();
@@ -117,6 +147,7 @@ if(isset($_GET['started'])) $out .= "<p class='good'><b>Search started.</b> Its 
 
 $running = is_running();
 $state = read_state();
+$pending = read_pending();
 $prog = $state ? progress($state) : null;
 // the reports: newest first
 $reports = array_values(array_filter(scandir($work_dir) ?: array(), fn($n) => preg_match('/_DOIs_\d{8}_\d{6}\.tsv$/', $n) && preg_match($report_re, $n)));
@@ -155,6 +186,21 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     <tr><td><b>Search a file</b>
         <?php if($running): ?>
             <p>A search is running. A new one can start when it's done, or after you stop it.</p>
+        <?php elseif($pending): ?>
+            <table class="params">
+                <tr><td>File:</td><td><?php echo h($pending['name']) ?> (<?php echo number_format($pending['rows']) ?> rows; limit <?php echo h($pending['limit'] !== '' ? $pending['limit'] : 'none') ?>, start <?php echo h($pending['start'] !== '' ? $pending['start'] : '1') ?>)</td></tr>
+                <tr><td></td><td>
+                    <form method="post" action="main.php" style="display:inline" onsubmit="return busy(this);">
+                        <input type="hidden" name="ts" value="<?php echo h($pending['ts']) ?>">
+                        <button type="submit" name="action" value="proceed">Proceed</button>
+                        <button type="submit" name="action" value="cancel" formnovalidate>Cancel</button>
+                        <span class="wait"> Starting...</span>
+                    </form>
+                    <br><small>[Proceed] searches <?php echo number_format($pending['to_do']) ?> row(s) in CrossRef<?php
+                        echo $pending['to_do'] > 300 ? " (new ones take about 1 second each: about " . h(($m = round($pending['to_do'] / 60)) >= 120 ? round($m / 60) . " hours" : "$m minutes") . " at most)" : '' ?>.
+                        [Cancel] removes the uploaded file.</small>
+                </td></tr>
+            </table>
         <?php else: ?>
         <form method="post" action="main.php" enctype="multipart/form-data" onsubmit="return busy(this);">
             <table class="params">
@@ -164,7 +210,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
                 <tr><td>start:</td><td><input type="number" name="start" min="1" step="1" style="width:100px"> <small>begin at this row (1 = the first row after the header); blank = 1</small></td></tr>
             </table>
             <input type="hidden" name="action" value="search">
-            <input type="submit" value="Upload file and search">
+            <input type="submit" value="Upload file">
             <span class="wait"> Uploading...</span>
         </form>
         <small>New references take about 1 second each (e.g. 55,000 rows: about a day). References already searched are never sent to CrossRef again: they come back instantly.</small>

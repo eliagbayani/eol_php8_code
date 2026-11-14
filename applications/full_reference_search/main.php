@@ -198,6 +198,13 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
     .bad { color: #b00000; } .good { color: #006400; }
+    /* "Search running..." : the three dots hop one after the other, like running steps */
+    .dots { display: inline-block; font-weight: bold; }
+    .dots span { display: inline-block; animation: hop 1.2s ease-in-out infinite; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes hop { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: 1; } }
     .todo { color: #c05000; } /* something waiting for the user, e.g. "Not started yet: click [Proceed]" */
     .val { color: #008000; font-weight: bold; } /* values that change (file, rows, progress, counts, dates); labels stay black */
     /* every button the same size: [Upload file], [Proceed], [Cancel], [Stop the search], [Download], [Guide] */
@@ -278,7 +285,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         $pct = $state['to_do'] ? min(100, round(100 * $prog['done'] / $state['to_do'])) : 0;
         $title = $running ? "Search running" : ($pending ? "Previous search" : "Last search");
         if($stopped) $title .= " (stopped)"; elseif($ended) $title .= " (ended early)"; ?>
-    <tr><td><b><?php echo $title ?></b>
+    <tr><td><b><?php echo $title ?></b><?php if($running) echo "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>" ?>
         <table class="params">
             <tr><td>File:</td><td colspan="2"><?php echo v($state['name']) ?> (<?php echo v(number_format($state['rows'])) ?> rows; limit <?php echo v($state['limit'] !== '' ? $state['limit'] : 'none') ?>, start <?php echo v($state['start'] !== '' ? $state['start'] : '1') ?>)</td></tr>
             <tr><td>Started:</td><td colspan="2"><?php echo v($state['started']) ?><?php if(!empty($state['stopped'])) echo " &mdash; <span class='bad'>stopped " . h($state['stopped']) . "</span>" ?></td></tr>

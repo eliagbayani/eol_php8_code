@@ -28,7 +28,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
     const PROGRESS_EVERY = 20; // a progress line ("N rows done ...") every this many rows; the web page reads it
-    const KEEP_REPORTS = 20;   // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
+    const PAUSE_SECONDS = 1;    // the pause after every CrossRef call (calls are one at a time); cached answers need no call and no pause
+    const THROTTLE_LIMIT = 5;   // after this many "429 too many requests" / "503 busy" answers in a row (with waits of 1, 2, 4, 8 minutes), the search stops
+    const KEEP_REPORTS = 20;  // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
     const REPORT_RE = '/^[A-Za-z0-9._-]+_DOIs_(\d{8}_\d{6})\.tsv$/'; // e.g. reference_DOIs_20261114_013451.tsv; the time it was made sorts them
     // CrossRef record types that are a whole issue/volume/journal or a part of an article, not an article: never the answer
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
@@ -39,8 +41,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // CrossRef's "polite pool" (twice the rate limit) needs an email: optional constant CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub).
         // It goes in the User-Agent, not the URL, so the cache doesn't depend on it.
         $user_agent = 'EOL-connector/1.0' . (defined('CROSSREF_MAILTO') && CROSSREF_MAILTO ? ' (mailto:' . CROSSREF_MAILTO . ')' : '');
+        $this->crossref_works_url = "https://api.crossref.org/works"; // tests only may point it elsewhere
+        // the cache (read with lookup_with_cache, written by call_crossref); the calls themselves are made by call_crossref(), which sees HTTP 429/503
         $this->crossref_options = array('resource_id' => 'crossref', 'expire_seconds' => false, // never expires: the same full_reference is never asked twice
-                                        'timeout' => 60, 'download_attempts' => 3, 'download_wait_time' => 500000, // 0.5 second between calls
+                                        'timeout' => 60,
                                         'user_agent' => $user_agent,
                                         'validation_regex' => '"status":"ok"'); // a failed call isn't kept as a valid cache
     }
@@ -88,12 +92,20 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $f = explode("\t", $line);
             $identifier = (string) ($f[$col_id] ?? ''); $full_reference = trim((string) ($f[$col_ref] ?? ''));
             $r = $this->find_DOI($full_reference);
+            if($r['status'] == 'stop') { $stopped_at = $row_no; break; }
             $counts[$r['status']]++; $done++;
             $row = array_merge(array('identifier' => $identifier, 'full_reference' => $full_reference), $r);
             fwrite($out, implode("\t", array_map(fn($c) => str_replace(array("\t", "\r", "\n"), ' ', (string) ($row[$c] ?? '')), self::OUTPUT_COLUMNS)) . "\n");
             if($done % self::PROGRESS_EVERY == 0) { fflush($out); echo "  $done rows done (row $row_no): " . self::counts_str($counts) . "\n"; }
         }
         fclose($in); fclose($out);
+        if(isset($stopped_at)) { // CrossRef kept answering 429/503: stop politely; the report keeps the rows done so far
+            $guide = $this->write_guide($out_file, $file, $start, $stopped_at - 1, $done, $counts);
+            echo "\nERROR: CrossRef kept asking us to slow down (HTTP 429/503, " . self::THROTTLE_LIMIT . " times in a row), so the search stopped at row $stopped_at"
+               . " after $done rows (" . self::counts_str($counts) . ").\nReport (the rows done so far): [$out_file]\nGuide for the Data Managers: [$guide]\n"
+               . "To go on later, run again with \"start\": $stopped_at (and the same file).\n";
+            return array('file' => $out_file, 'guide' => $guide, 'counts' => $counts, 'stopped_at' => $stopped_at);
+        }
         $guide = $this->write_guide($out_file, $file, $start, $row_no, $done, $counts);
         echo "\nDone: $done rows in " . gmdate("H:i:s", time() - $time) . " -- " . self::counts_str($counts) . "\nReport: [$out_file]\nGuide for the Data Managers: [$guide]\n";
         return array('file' => $out_file, 'guide' => $guide, 'counts' => $counts);
@@ -123,6 +135,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
         $items = $this->search_crossref($full_reference, $ref['year']);
+        if($items === 'stop') return array('status' => 'stop'); // CrossRef keeps asking us to slow down: the search stops before this row
         if($items === false) return array_merge($row, array('status' => 'error', 'review_note' => 'CrossRef could not be reached. Run again: this row will be searched again.'));
         if(!$items) return array_merge($row, array('status' => 'not found', 'review_note' => $this->note_no_candidates($ref)));
 
@@ -165,14 +178,62 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         return $ref;
     }
     private function search_crossref($full_reference, $year)
-    {   // the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read. false = CrossRef unreachable.
+    {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.
+           false = this row failed (marked 'error', tried again on the next run); 'stop' = CrossRef keeps asking us to slow down: stop the search.
+           A cached answer is used as is: the same full_reference is never sent twice. */
         $q = array('query.bibliographic' => $full_reference, 'rows' => 5, 'select' => 'DOI,score,title,container-title,volume,issue,page,issued,published,type');
         if($year) $q['filter'] = "from-pub-date:" . ($year - 1) . ",until-pub-date:" . ($year + 1);
-        $url = "https://api.crossref.org/works?" . http_build_query($q);
-        if(!($json = Functions::lookup_with_cache($url, $this->crossref_options))) return false;
-        $d = @json_decode($json, true);
+        $url = $this->crossref_works_url . "?" . http_build_query($q);
+        if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options); // read from the cache, no call
+        else {
+            $json = $this->call_crossref($url);
+            if($json === 'stop' || $json === false) return $json;
+        }
+        $d = @json_decode((string) $json, true);
         if(($d['status'] ?? '') !== 'ok') return false;
         return $d['message']['items'] ?? array();
+    }
+    private function call_crossref($url)
+    {   /* One CrossRef call, politely: one at a time, a PAUSE after each call, and our contact email in the User-Agent (CROSSREF_MAILTO).
+           - 200: the answer is saved in the same cache lookup_with_cache() uses (so it's never asked again) and returned.
+           - 429 (too many requests) or 503 (busy): wait -- CrossRef's Retry-After, else 1, 2, 4, 8 minutes -- and try again.
+             After THROTTLE_LIMIT such answers in a row, returns 'stop': the search stops cleanly and can be resumed with "start".
+           - anything else (no connection, 5xx, ...): tried 3 times, 5 seconds apart; then false (this row = 'error'). */
+        for($attempt = 1, $other_failures = 0; ; $attempt++) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, array(CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => true, CURLOPT_FOLLOWLOCATION => true,
+                                         CURLOPT_CONNECTTIMEOUT => 30, CURLOPT_TIMEOUT => 60, CURLOPT_USERAGENT => $this->crossref_options['user_agent']));
+            $res = curl_exec($ch);
+            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $header_size = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+            curl_close($ch);
+            usleep(self::PAUSE_SECONDS * 1000000); // the pause between calls, whatever the answer
+            $headers = $res === false ? '' : substr($res, 0, $header_size);
+            $body    = $res === false ? '' : substr($res, $header_size);
+            if($code == 200 && str_contains($body, '"status":"ok"')) {
+                $this->throttled_in_a_row = 0;
+                $this->save_to_cache($url, $body);
+                return $body;
+            }
+            if($code == 429 || $code == 503) {
+                $this->throttled_in_a_row = ($this->throttled_in_a_row ?? 0) + 1;
+                if($this->throttled_in_a_row >= self::THROTTLE_LIMIT) return 'stop';
+                $wait = preg_match('/^Retry-After:\s*(\d+)/mi', $headers, $m) ? min((int) $m[1], 600) : 60 * (2 ** ($this->throttled_in_a_row - 1));
+                echo "CrossRef answered HTTP $code (" . ($code == 429 ? 'too many requests' : 'busy') . "): waiting " . $wait . " seconds, then trying again"
+                   . " ($this->throttled_in_a_row of " . self::THROTTLE_LIMIT . " before stopping).\n";
+                sleep(max(1, $wait));
+                continue;
+            }
+            if(++$other_failures >= 3) { echo "CrossRef call failed (HTTP $code) 3 times; this row is marked 'error' and will be tried again on the next run.\n"; return false; }
+            sleep(5);
+        }
+    }
+    private function save_to_cache($url, $body)
+    {   // the same file lookup_with_cache($url, crossref_options) reads: <cache>/crossref/ab/cd/<md5>.cache
+        $md5 = md5($url);
+        $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . $this->crossref_options['resource_id'] . "/" . substr($md5, 0, 2) . "/" . substr($md5, 2, 2) . "/";
+        if(!is_dir($dir)) @mkdir($dir, 0777, true);
+        @file_put_contents($dir . "$md5.cache", $body);
     }
     private static function item_year($item)
     {   return (string) (@$item['issued']['date-parts'][0][0] ?: @$item['published']['date-parts'][0][0]);

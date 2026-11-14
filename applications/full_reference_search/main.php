@@ -216,7 +216,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
                         <span class="wait"> Starting...</span>
                     </form>
                     <br><small>[Proceed] searches <?php echo v(number_format($pending['to_do'])) ?> row(s) in CrossRef<?php
-                        echo $pending['to_do'] > 300 ? " (new ones take about 1 second each: about " . v(($m = round($pending['to_do'] / 60)) >= 120 ? round($m / 60) . " hours" : "$m minutes") . " at most)" : '' ?>.
+                        echo $pending['to_do'] > 300 ? " (new ones take about 3 seconds each: about " . v(($m = round($pending['to_do'] * 3 / 60)) >= 120 ? round($m / 60) . " hours" : "$m minutes") . " at most)" : '' ?>.
                         [Cancel] removes the uploaded file.</small>
                 </td></tr>
             </table>
@@ -232,7 +232,9 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
             <input type="submit" value="Upload file">
             <span class="wait"> Uploading...</span>
         </form>
-        <small>New references take about 1 second each (e.g. 55,000 rows: about a day). References already searched are never sent to CrossRef again: they come back instantly.</small>
+        <small>New references take about 3 seconds each: CrossRef is asked politely, one at a time, with a 1-second pause after each call
+        (e.g. 55,000 rows: about 2 days). References already searched are never sent to CrossRef again: they come back instantly.
+        If CrossRef asks us to slow down, the search waits; if it keeps asking, the search stops and can be resumed with <b>start</b>.</small>
         <?php endif; ?>
     </td></tr>
 

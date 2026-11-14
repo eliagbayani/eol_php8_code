@@ -14,7 +14,9 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)
       DOI is filled only for matched and possible; review_note says what was found, in plain words.
     - Changes nothing else. CrossRef answers are cached (never expire), so a re-run or a resumed run is instant for rows already searched.
-    - Optional: CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub) -> CrossRef's "polite pool", twice the rate limit.
+    - CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub): our contact email, sent with every call as CrossRef asks ("polite pool").
+    - Polite: one call at a time, a 1-second pause after each (about 3 seconds per new reference). On HTTP 429 (too many requests) or
+      503 (busy) it waits (CrossRef's Retry-After, else 1, 2, 4, 8 minutes); after 5 in a row it stops cleanly and prints the "start" to resume with.
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

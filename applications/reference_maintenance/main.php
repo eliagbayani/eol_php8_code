@@ -421,7 +421,7 @@ function copyCmd(btn) {
         Reports change nothing. Changes need the maintenance tools password.<br><br>
         <span style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
             <span>Everything here can also be run from the command line (do_reference_mtce.php).</span>
-            <span>See also: <a href="<?php echo h($terms_page) ?>">Terms Maintenance</a>.</span></span></small>
+            <span>See also: <a href="../full_reference_search/main.php">Full Reference Search</a> | <a href="<?php echo h($terms_page) ?>">Terms Maintenance</a>.</span></span></small>
     </td></tr>
 
     <tr><td><b>Status</b>

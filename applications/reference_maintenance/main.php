@@ -130,8 +130,63 @@ function status()
     return $s;
 }
 
+function dataset_folders()
+{   /* the TraitBank datasets' raw folders in TB_files/ (<concept_id>_<name>), not counting Terms and References.
+       A server without them (none at all) can't run the reports that read the datasets, so those buttons aren't shown. */
+    $skip = array('22776577', REF_CONCEPT_ID); // Terms, References
+    $n = 0;
+    foreach(glob(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/*_*", GLOB_ONLYDIR) ?: array() as $d) {
+        $b = basename($d);
+        if(preg_match('/^(\d+)_/', $b, $m) && !in_array($m[1], $skip) && !str_ends_with($b, '_TraitBank')) $n++;
+    }
+    return $n;
+}
+function master_file()
+{   // our local master: TB_files/22776838_References/input_files/references.tsv, or null when this server has no copy yet
+    $files = glob(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . "_*/input_files/references.tsv");
+    return $files ? $files[0] : null;
+}
+$n_datasets   = dataset_folders();
+$has_master   = (bool) master_file();
+$dataset_acts = array('datasets' => 'Check all datasets against Zenodo', 'processed' => 'Check all processed datasets', 'missing' => 'Find missing references (preview)', 'missing_apply' => 'Find missing references');
+$master_acts  = array('compare' => 'Compare our master with Zenodo', 'zenodo_changes' => 'Check Zenodo for changes (preview)', 'zenodo_changes_apply' => 'Check Zenodo for changes',
+                      'duplicates' => 'List duplicate references', 'missing' => 'Find missing references (preview)', 'missing_apply' => 'Find missing references');
+
 $action = $_POST['action'] ?? '';
 $out = '';
+if(!$n_datasets && isset($dataset_acts[$action])) { // e.g. an old form posted again: these need the datasets
+    $out .= "<p class='bad'>[" . h($dataset_acts[$action]) . "] needs the TraitBank datasets in TB_files/, and this server doesn't have them. Nothing was done.</p>";
+    $action = '';
+}
+elseif(!$has_master && isset($master_acts[$action])) { // these need our local master
+    $out .= "<p class='bad'>[" . h($master_acts[$action]) . "] needs our local master (references.tsv), and this server doesn't have it yet. Click [Download References from Zenodo] first. Nothing was done.</p>";
+    $action = '';
+}
+if($action == 'download_refs') {
+    // = php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "only": "References"}'
+    // Only when there's no local master yet: it never replaces one. Zenodo's latest references.tsv becomes our master, and also the sync base
+    // (the Zenodo version our master is in step with), so [Check Zenodo for changes] works from then on.
+    if($has_master) $out .= "<p>Our master is already here. Nothing was downloaded. To see what's new on Zenodo, use [Check Zenodo for changes].</p>";
+    else {
+        set_time_limit(0);
+        $cmd = "cd " . escapeshellarg(dirname(__FILE__) . "/../../update_resources/connectors") . " && " . escapeshellarg(PHP_BINDIR . "/php")
+             . " generate_csv_new_model.php _ " . escapeshellarg('{"task": "refresh_all_TraitBank_datasets", "only": "References"}') . " 2>&1";
+        $log = trim(strip_tags(str_replace(array('<br>', '<br/>', '<br />'), "\n", (string) shell_exec($cmd))));
+        if($master = master_file()) {
+            $rec = trim((string) @file_get_contents(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . ".record_id"));
+            ob_start();
+            try { $z = new ZenodoTraitBankAPI(); if(!$z->find_zenodo_base($master, 'references.tsv')) $z->set_zenodo_base($master, 'references.tsv', $master, $rec ? "record$rec" : date("Ymd_His")); }
+            catch(\Throwable $e) { echo "\nERROR: " . $e->getMessage() . "\n"; }
+            $log .= "\n" . trim(ob_get_clean());
+            $has_master = true;
+            $out .= "<p class='good'><b>Downloaded:</b> our master is now Zenodo's latest References" . ($rec ? " (record " . h($rec) . ")" : '') . ", "
+                  . number_format(max(0, count(file($master, FILE_SKIP_EMPTY_LINES)) - 1)) . " references. The reports below can now be used.</p>";
+        }
+        else $out .= "<p class='bad'><b>The download didn't work:</b> there's still no local references.tsv. See the log.</p>";
+        $out .= log_box($log);
+    }
+    $action = '';
+}
 // ---------- reports: no password ----------
 if($action == 'processed') {
     // = php generate_csv_new_model.php _ '{"task": "check_processed_TraitBank_datasets"}'
@@ -381,15 +436,31 @@ function copyCmd(btn) {
 
     <tr><td><b>Reports</b> (change nothing)
         <form method="post" action="main.php" onsubmit="return busy(this);">
+            <?php if($n_datasets): // these 3 read the TraitBank datasets in TB_files/ ?>
             <button type="submit" name="action" value="datasets">Check all datasets against Zenodo</button>
             <button type="submit" name="action" value="processed">Check all processed datasets</button>
+            <?php endif; ?>
+            <?php if($has_master): // these 4 need our local master (references.tsv) ?>
             <button type="submit" name="action" value="compare">Compare our master with Zenodo</button>
+            <?php if($n_datasets): ?>
             <button type="submit" name="action" value="missing">Find missing references (preview)</button>
+            <?php endif; ?>
             <button type="submit" name="action" value="zenodo_changes">Check Zenodo for changes (preview)</button>
             <button type="submit" name="action" value="duplicates">List duplicate references</button>
+            <?php else: ?>
+            <button type="submit" name="action" value="download_refs">Download References from Zenodo</button>
+            <?php endif; ?>
             <span class="wait"> Working<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span> this can take a few minutes.</span>
         </form>
-        <small>"Find missing references" and "Check Zenodo for changes" show a preview first; the button to apply it appears below the preview.</small>
+        <?php if($has_master): ?>
+        <small><?php echo $n_datasets ? '"Find missing references" and "Check Zenodo for changes" show' : '"Check Zenodo for changes" shows' ?> a preview first; the button to apply it appears below the preview.</small>
+        <?php else: ?>
+        <small class="bad">This server doesn't have our master (references.tsv) yet, so the reports that use it aren't shown: [Compare our master with Zenodo],
+        <?php if($n_datasets) echo "[Find missing references], " ?>[Check Zenodo for changes] and [List duplicate references].
+        [Download References from Zenodo] gets Zenodo's latest version as our master; they appear after that.</small>
+        <?php endif; ?>
+        <?php if(!$n_datasets) echo "<br><small class='bad'>This server doesn't have the TraitBank datasets (in TB_files/), so the reports that read them aren't shown: "
+            . "[Check all datasets against Zenodo], [Check all processed datasets] and [Find missing references]. Run them where the datasets are.</small>"; ?>
     </td></tr>
 
     <tr><td><b>Publish our master to Zenodo</b> (can't be undone)<br>

@@ -106,6 +106,7 @@ function progress($state)
 }
 
 $out = '';
+$upload_msg = ''; // why an uploaded file wasn't accepted: shown next to the upload form, not at the bottom
 $action = $_POST['action'] ?? '';
 if($action == 'search') {
     $f = $_FILES['ref_file'] ?? null; $err = '';
@@ -121,14 +122,14 @@ if($action == 'search') {
         if(!in_array('identifier', $header) || !in_array('full_reference', $header))
             $err = "The file's header is [" . h(implode(", ", $header)) . "]. It must have the columns <b>identifier</b> and <b>full_reference</b> (others are ignored).";
     }
-    if($err) $out .= "<p class='bad'><b>The file was not accepted.</b> $err</p>";
+    if($err) $upload_msg = "<b>The file" . ($f && ($f['name'] ?? '') !== '' ? " [" . h($f['name']) . "]" : '') . " was not accepted, so nothing was searched.</b><br>$err";
     else {
         discard_pending(); // a newer upload replaces one that was never started
         $ts = date("Ymd_His");
         $dir = $upload_dir . "$ts/"; @mkdir($dir, 0777, true);
         $stem = preg_replace('/[^A-Za-z0-9._-]+/', '_', pathinfo($f['name'], PATHINFO_FILENAME)) ?: 'references'; // the report is named after it
         $saved = $dir . $stem . "." . strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
-        if(!move_uploaded_file($f['tmp_name'], $saved)) $out .= "<p class='bad'><b>The file could not be saved.</b></p>";
+        if(!move_uploaded_file($f['tmp_name'], $saved)) $upload_msg = "<b>The file could not be saved, so nothing was searched.</b> Please try again.";
         else {
             $rows = 0; $fh = fopen($saved, 'r'); fgets($fh); while(($l = fgets($fh)) !== false) if(trim($l) !== '') $rows++; fclose($fh);
             $first = $start !== '' ? (int) $start : 1;
@@ -205,6 +206,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     .dots span:nth-child(3) { animation-delay: 0.4s; }
     @keyframes hop { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
     @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: 1; } }
+    .notice { border: 1px solid #e0a0a0; background: #fff3f3; padding: 8px 10px; margin: 8px 0; }
     .todo { color: #c05000; } /* something waiting for the user, e.g. "Not started yet: click [Proceed]" */
     .val { color: #008000; font-weight: bold; } /* values that change (file, rows, progress, counts, dates); labels stay black */
     /* every button the same size: [Upload file], [Proceed], [Cancel], [Stop the search], [Download], [Guide] */
@@ -238,6 +240,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 
     <tr><td><b>Search a file</b>
         <?php if($running): ?>
+            <?php if($upload_msg) echo "<div class='notice bad'>$upload_msg</div>"; ?>
             <p>A search is running. A new one can start when it's done, or after you stop it.</p>
         <?php elseif($pending): ?>
             <table class="params">
@@ -261,12 +264,13 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
                 </td></tr>
             </table>
         <?php else: ?>
+        <?php if($upload_msg) echo "<div class='notice bad'>$upload_msg<br>Please choose the right file and click [Upload file] again.</div>"; ?>
         <form method="post" action="main.php" enctype="multipart/form-data" onsubmit="return busy(this);">
             <table class="params">
                 <tr><td>file:</td><td><input type="file" name="ref_file" accept=".tsv,.tab,.txt" required>
                     <small>tab-separated, with the columns <b>identifier</b> and <b>full_reference</b> (at most <?php echo MAX_UPLOAD_MB ?> MB)</small></td></tr>
-                <tr><td>limit:</td><td><input type="number" name="limit" min="0" step="1" style="width:100px"> <small>search only this many rows; blank = all rows (e.g. 200 for a test)</small></td></tr>
-                <tr><td>start:</td><td><input type="number" name="start" min="1" step="1" style="width:100px"> <small>begin at this row (1 = the first row after the header); blank = 1</small></td></tr>
+                <tr><td>limit:</td><td><input type="number" name="limit" min="0" step="1" style="width:100px" value="<?php echo $upload_msg ? h($_POST['limit'] ?? '') : '' ?>"> <small>search only this many rows; blank = all rows (e.g. 200 for a test)</small></td></tr>
+                <tr><td>start:</td><td><input type="number" name="start" min="1" step="1" style="width:100px" value="<?php echo $upload_msg ? h($_POST['start'] ?? '') : '' ?>"> <small>begin at this row (1 = the first row after the header); blank = 1</small></td></tr>
             </table>
             <input type="hidden" name="action" value="search">
             <input type="submit" value="Upload file">

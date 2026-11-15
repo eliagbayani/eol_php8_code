@@ -104,7 +104,7 @@ function change_form($action, $button, $confirm, $hidden = array(), $extra = '')
     foreach($hidden as $k => $v) $h .= "<input type='hidden' name='" . h($k) . "' value='" . h($v) . "'>";
     return "<form method='post' action='main.php' class='change' onsubmit=\"if(!confirm(" . h(json_encode($confirm)) . ")) return false; busy(this);\">$h$extra"
          . "<input type='password' name='password' placeholder='maintenance tools password' required autocomplete='off'> "
-         . "<input type='submit' value='" . h($button) . "'><span class='wait'> Working... please wait.</span></form>";
+         . "<input type='submit' value='" . h($button) . "'><span class='wait'> Working<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span> please wait.</span></form>";
 }
 function status()
 {   // our master vs Zenodo's latest version, and the unmappable list; reads files + one Zenodo look-up, changes nothing
@@ -333,6 +333,13 @@ $st = status(); // after any change, so it shows the new state
     a.button { padding: 2px 10px; border: 1px solid #888; border-radius: 3px; background: #eee; color: #000; text-decoration: none; }
     td { text-align: left; vertical-align: top; }
     .wait { display: none; color: #008000; font-weight: bold; } form { margin: 6px 0; }
+    /* "Working...": the three dots hop one after the other, like running steps */
+    .dots { display: inline-block; }
+    .dots span { display: inline-block; animation: hop 1.2s ease-in-out infinite; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes hop { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: 1; } }
     table.status td { border: none; padding: 2px 10px 2px 0; }
     .cmd { margin: 4px 0; padding: 6px; background: #f4f4f4; border: 1px solid #ddd; font-size: 13px; word-break: break-all; }
     .cmd button { margin-right: 6px; }
@@ -379,7 +386,7 @@ function copyCmd(btn) {
             <button type="submit" name="action" value="missing">Find missing references (preview)</button>
             <button type="submit" name="action" value="zenodo_changes">Check Zenodo for changes (preview)</button>
             <button type="submit" name="action" value="duplicates">List duplicate references</button>
-            <span class="wait"> Working... this can take a few minutes.</span>
+            <span class="wait"> Working<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span> this can take a few minutes.</span>
         </form>
         <small>"Find missing references" and "Check Zenodo for changes" show a preview first; the button to apply it appears below the preview.</small>
     </td></tr>
@@ -398,7 +405,7 @@ function copyCmd(btn) {
             <br>Browse File: <input type="file" name="dm_file" accept=".tsv" required>
             <input type="hidden" name="action" value="dm_upload">
             <input type="submit" value="Upload file and preview">
-            <span class="wait"> Working... please wait.</span>
+            <span class="wait"> Working<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span> please wait.</span>
         </form>
         <small>The preview changes nothing. To fix duplicates and corrected citations with one Zenodo upload: first "Rows to delete" with
         "don't upload to Zenodo yet" ticked, then "Citations to add" (which publishes both changes).</small>

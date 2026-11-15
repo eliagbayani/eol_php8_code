@@ -137,7 +137,7 @@ elseif($action == 'upload') {
         <form method="post" action="main.php" onsubmit="this.querySelector('input[type=submit]').disabled = true; this.querySelector('span').style.display = 'inline';">
             <input type="hidden" name="action" value="check">
             <input type="submit" value="Check Terms from Google Sheets">
-            <span style="display:none; color:#008000; font-weight:bold"> Checking<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span> this takes about a minute.</span>
+            <span style="display:none; color:#008000; font-weight:bold"> This takes about a minute. Checking<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></span>
         </form>
     </td></tr>
     <?php if($out) echo "<tr><td>$out</td></tr>"; ?>

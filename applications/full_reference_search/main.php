@@ -258,6 +258,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     .banner.stopped { background: #fff4e0; border-color: #d08a00; color: #6b4500; }
     .banner.ended   { background: #fdeaea; border-color: #c03030; color: #7a1414; }
     .banner .x { width: auto; padding: 0 10px; }
+    details.reports > summary { cursor: pointer; } /* "Available reports": hidden until its title is clicked; a click again hides it */
 </style>
 <script>function busy(f) { f.querySelectorAll('input[type=submit]').forEach(function(b){ b.disabled = true; }); var w = f.querySelector('.wait'); if(w) w.style.display = 'inline'; return true; }</script>
 </head>
@@ -390,7 +391,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 
     <?php if($out) echo "<tr><td><b>Result</b><br>$out</td></tr>"; ?>
 
-    <tr><td><b>Available reports</b> (newest first)<br>
+    <tr><td><details class="reports"><summary><b>Available reports</b> (newest first) <small>(<?php echo count($reports) ?>)</small></summary>
         <small>Only the newest <?php echo KEEP_REPORTS ?> reports are kept: older ones, with their guides, are deleted when a new search starts.</small>
         <?php if(!$reports) echo "<p>There are no reports yet.</p>";
         else {
@@ -404,7 +405,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
             }
             echo "</table>";
         } ?>
-    </td></tr>
+    </details></td></tr>
 </table>
 <script>
 // The banner and the desktop notice. Browser storage only remembers this viewer's choices; the page works without it.

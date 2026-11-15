@@ -12,9 +12,9 @@ namespace php_active_record;
      update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers, fix_duplicate_issue_in_master_references
    For now this page runs only on the Mac (local), not on eol-archive (editors.eol.org): see the check below. The command line works everywhere.
 */
-// Mac only, for now: anywhere else (eol-archive) the page doesn't exist (404). MY_ENV comes from the Docker .env: 'development' on the Mac,
+// Mac only, for now: anywhere else (eol-archive) the page only says it isn't available (404). MY_ENV comes from the Docker .env: 'development' on the Mac,
 // 'production' on eol-archive. Read directly, not $GLOBALS['ENV_NAME'], which a web request can override (?ENV_NAME=...).
-if(getenv('MY_ENV') !== 'development') { http_response_code(404); exit("<!DOCTYPE html><html><head><title>Not Found</title></head><body><h1>Not Found</h1><p>The requested URL was not found on this server.</p></body></html>"); }
+if(getenv('MY_ENV') !== 'development') { http_response_code(404); exit("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>References Maintenance</title></head><body><p>This page is not available in production.</p></body></html>"); }
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 ini_set('error_reporting', false);
 ini_set('display_errors', false);

@@ -304,7 +304,9 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         and a guide, for the Data Managers' final check.<br><br>
         <span style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
             <span>Also on the command line (do_full_reference_search.php).</span>
-            <span>See also: <a href="<?php echo h($refs_page) ?>">References Maintenance</a>.</span></span></small>
+            <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?>
+            <span>See also: <a href="<?php echo h($refs_page) ?>">References Maintenance</a>.</span>
+            <?php endif; ?></span></small>
     </td></tr>
 
     <tr><td><div class="jobs <?php echo $jobs ? 'busy' : 'idle' ?>"><b>Running jobs</b><br>

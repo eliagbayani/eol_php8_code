@@ -131,7 +131,9 @@ elseif($action == 'upload') {
         If there are errors, download the report: each problem has its row number in the Google Sheets.<br><br>
         <span style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
             <span>If there are none, you can publish the file on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (Terms, concept 22776577).</span>
-            <span>See also: <a href="../reference_maintenance/main.php">References Maintenance</a>.</span></span>
+            <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?>
+            <span>See also: <a href="../reference_maintenance/main.php">References Maintenance</a>.</span>
+            <?php endif; ?></span>
     </small>
     </td></tr>
     <tr><td style="text-align:center">

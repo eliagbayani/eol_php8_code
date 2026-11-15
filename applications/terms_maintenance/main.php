@@ -111,7 +111,14 @@ elseif($action == 'upload') {
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
     .bad { color: #b00000; } .good { color: #006400; }
-    a.button { padding: 2px 10px; border: 1px solid #888; border-radius: 3px; background: #eee; color: #000; text-decoration: none; }
+    /* buttons: one shape; [Download] links gray; form submissions blue, so "this runs something" stands apart */
+    a.button, button, input[type=submit] { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 28px; padding: 0 12px;
+        font: 14px Arial, sans-serif; vertical-align: middle; border: 1px solid #888; border-radius: 3px;
+        background: #eee; color: #000; text-decoration: none; cursor: pointer; }
+    a.button:hover, button:hover { background: #ddd; }
+    input[type=submit], button[type=submit] { background: #2f6db5; color: #fff; border-color: #25578f; font-weight: bold; margin: 2px 0; }
+    input[type=submit]:hover, button[type=submit]:hover { background: #25578f; }
+    input[type=submit]:disabled, button[type=submit]:disabled { background: #e4e4e4; color: #888; border-color: #bbb; cursor: default; }
     td { text-align: left; }
     /* "Checking...": the three dots hop one after the other, like on the other maintenance pages */
     .dots { display: inline-block; }

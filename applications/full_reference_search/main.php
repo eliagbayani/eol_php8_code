@@ -242,6 +242,10 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     a.button { display: inline-flex; align-items: center; justify-content: center; line-height: normal; } /* links: text centered up and down, like the real buttons */
     a.button:hover, button:hover, input[type=submit]:hover { background: #ddd; }
     button:disabled, input[type=submit]:disabled { color: #888; cursor: default; }
+    /* form submissions ([Upload file], [Proceed], [Cancel], [Stop the search]): blue, so "this runs something" stands apart from [Download] / [Guide] (gray) */
+    input[type=submit], button[type=submit] { background: #2f6db5; color: #fff; border-color: #25578f; font-weight: bold; }
+    input[type=submit]:hover, button[type=submit]:hover { background: #25578f; }
+    input[type=submit]:disabled, button[type=submit]:disabled { background: #e4e4e4; color: #888; border-color: #bbb; }
     td { text-align: left; vertical-align: top; }
     .wait { display: none; color: #008000; font-weight: bold; } form { margin: 6px 0; }
     table.list td, table.list th { border: none; border-bottom: 1px solid #ddd; padding: 3px 12px 3px 0; text-align: left; font-size: 14px; }

@@ -56,6 +56,18 @@ function counts_html($counts)
     return preg_replace('/(\d+)/', "<span class='val'>$1</span>", h($counts));
 }
 
+// [Download a sample input file]: our sample on GitHub, sent as a download (GitHub shows raw files as plain text, so the browser would open it instead)
+const SAMPLE_URL = "https://github.com/eliagbayani/EOL-connector-data-files/raw/refs/heads/master/EOL/sample_reference_4FullReferenceSearch/sample_reference.tab";
+if(isset($_GET['sample'])) {
+    $body = @file_get_contents(SAMPLE_URL, false, stream_context_create(array('http' => array('timeout' => 30, 'follow_location' => 1, 'user_agent' => 'EOL-connector/1.0'))));
+    if($body === false || $body === '') { header("Location: " . SAMPLE_URL); exit; } // GitHub not reachable from here: let the browser get it
+    header('Content-Type: text/tab-separated-values; charset=utf-8');
+    header('Content-Disposition: attachment; filename="sample_reference.tab"');
+    header('Content-Length: ' . strlen($body));
+    echo $body;
+    exit;
+}
+
 // [Download]: only the reports and guides
 if(isset($_GET['download'])) {
     $name = (string) $_GET['download'];
@@ -358,7 +370,8 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         <form method="post" action="main.php" enctype="multipart/form-data" onsubmit="return busy(this);">
             <table class="params">
                 <tr><td>file:</td><td><input type="file" name="ref_file" accept=".tsv,.tab,.txt" required>
-                    <small>tab-separated, with the columns <b>identifier</b> and <b>full_reference</b> (at most <?php echo MAX_UPLOAD_MB ?> MB)</small></td></tr>
+                    <small>tab-separated, with the columns <b>identifier</b> and <b>full_reference</b> (at most <?php echo MAX_UPLOAD_MB ?> MB)</small>
+                    <a class="button" href="main.php?sample=1" style="width:auto; margin-left:6em" title="sample_reference.tab: an example of the input file">Download a sample input file</a></td></tr>
                 <tr><td>limit:</td><td><input type="number" name="limit" min="0" step="1" style="width:100px" value="<?php echo $upload_msg ? h($_POST['limit'] ?? '') : '' ?>"> <small>search only this many rows; blank = all rows (e.g. 200 for a test)</small></td></tr>
                 <tr><td>start:</td><td><input type="number" name="start" min="1" step="1" style="width:100px" value="<?php echo $upload_msg ? h($_POST['start'] ?? '') : '' ?>"> <small>begin at this row (1 = the first row after the header); blank = 1</small></td></tr>
             </table>

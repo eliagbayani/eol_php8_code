@@ -81,6 +81,23 @@ function process_alive($state)
     $pid = (int) ($state['pid'] ?? 0);
     return $pid > 0 && str_contains((string) @file_get_contents("/proc/$pid/cmdline"), 'do_full_reference_search.php');
 }
+function running_jobs()
+{   // every live do_full_reference_search.php process, whether started from this page or the command line: from /proc, read only
+    $jobs = array();
+    $btime = preg_match('/^btime (\d+)/m', (string) @file_get_contents('/proc/stat'), $m) ? (int) $m[1] : 0;
+    foreach(glob('/proc/[0-9]*', GLOB_ONLYDIR) ?: array() as $dir) {
+        $argv = explode("\0", rtrim((string) @file_get_contents("$dir/cmdline"), "\0"));
+        if(count($argv) < 2 || !preg_match('#(^|/)php[\d.]*$#', $argv[0])) continue;                 // the php process itself, not its sh wrapper
+        if(!in_array('do_full_reference_search.php', array_map('basename', $argv))) continue;
+        $pid = (int) basename($dir);
+        $param = json_decode((string) end($argv), true);
+        $started = 0; // /proc/<pid>/stat field 22: start time in clock ticks (100 a second) after boot
+        if($btime && preg_match('/\)\s+(.*)$/', (string) @file_get_contents("$dir/stat"), $m)) $started = $btime + intdiv((int) (explode(' ', $m[1])[19] ?? 0), 100);
+        $jobs[] = array('pid' => $pid, 'param' => is_array($param) ? $param : array(), 'started' => $started);
+    }
+    usort($jobs, fn($a, $b) => $a['started'] <=> $b['started']);
+    return $jobs;
+}
 function read_state() { $s = @json_decode((string) @file_get_contents($GLOBALS['state_file']), true); return is_array($s) ? $s : null; }
 function read_pending() { $s = @json_decode((string) @file_get_contents($GLOBALS['pending_file']), true); return is_array($s) ? $s : null; }
 function discard_pending()
@@ -185,16 +202,25 @@ elseif($action == 'stop') {
 if(isset($_GET['started'])) $out .= "<p class='good'><b>Search started.</b> Its progress is shown below; this page refreshes itself while it runs.</p>";
 
 $state = read_state();
+$jobs = running_jobs();
 $running = is_running() || ($state && process_alive($state));
 $pending = read_pending();
 $prog = $state ? progress($state) : null;
+// the banner at the top: how the last search ended (finished / stopped / ended early), until a new file is uploaded or it's dismissed
+$banner = null;
+if($state && !$running && !$pending) {
+    $at = @filemtime($work_dir . $state['log']);
+    $banner = array('kind' => $prog['finished'] ? 'done' : (!empty($state['stopped']) ? 'stopped' : 'ended'), 'at' => $at ? date("Y-m-d H:i:s", $at) : '');
+}
+$tab_title = $running && $state && $state['to_do'] ? "(" . min(100, round(100 * $prog['done'] / $state['to_do'])) . "%) Running: Full Reference Search"
+           : ($banner ? array('done' => "✔ Finished", 'stopped' => "■ Stopped", 'ended' => "⚠ Ended early")[$banner['kind']] . ": Full Reference Search" : "Full Reference Search");
 // the reports: newest first
 $reports = array_values(array_filter(scandir($work_dir) ?: array(), fn($n) => preg_match('/_DOIs_\d{8}_\d{6}\.tsv$/', $n) && preg_match($report_re, $n)));
 usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir . $a));
 ?>
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Full Reference Search</title>
-<?php if($running) echo '<meta http-equiv="refresh" content="15;url=main.php">'; ?>
+<html><head><meta charset="utf-8"><title><?php echo h($tab_title) ?></title>
+<?php if($running || $jobs) echo '<meta http-equiv="refresh" content="15;url=main.php">'; ?>
 <style>
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
@@ -221,12 +247,42 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     table.list td, table.list th { border: none; border-bottom: 1px solid #ddd; padding: 3px 12px 3px 0; text-align: left; font-size: 14px; }
     table.params td { border: none; padding: 3px 10px 3px 0; }
     progress { width: 300px; }
+    /* "Running jobs": its own font and color, so it stands apart from the rest of the page */
+    .jobs { font-family: "Courier New", Courier, monospace; font-size: 14px; color: #1a3d8f; background: #eef3fc; border: 1px solid #b8c8ea; padding: 8px 10px; }
+    .jobs b { color: #0d2766; } .jobs small { font-size: 12px; }
+    /* the banner when a search is over: big, colored, at the very top */
+    .banner { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 6px; border: 2px solid; font-size: 15px; }
+    .banner .icon { font-size: 30px; line-height: 1; }
+    .banner .msg { flex: 1; } .banner .msg big { font-size: 19px; font-weight: bold; }
+    .banner.done    { background: #e6f6e6; border-color: #2e8b2e; color: #145214; }
+    .banner.stopped { background: #fff4e0; border-color: #d08a00; color: #6b4500; }
+    .banner.ended   { background: #fdeaea; border-color: #c03030; color: #7a1414; }
+    .banner .x { width: auto; padding: 0 10px; }
 </style>
 <script>function busy(f) { f.querySelectorAll('input[type=submit]').forEach(function(b){ b.disabled = true; }); var w = f.querySelector('.wait'); if(w) w.style.display = 'inline'; return true; }</script>
 </head>
 <body>
 <table border="1" cellpadding="15" cellspacing="1" align="center" width="75%">
     <tr><td style="text-align:center"><b>Full Reference Search</b><br><br></td></tr>
+
+    <?php if($banner):
+        $icon = array('done' => '&#10004;', 'stopped' => '&#9632;', 'ended' => '&#9888;')[$banner['kind']];
+        $head = array('done' => 'The search has finished.', 'stopped' => 'The search was stopped.', 'ended' => 'The search ended before the last row.')[$banner['kind']]; ?>
+    <tr id="banner-row" data-log="<?php echo h($state['log']) ?>"><td>
+        <div class="banner <?php echo $banner['kind'] ?>" role="status">
+            <span class="icon" aria-hidden="true"><?php echo $icon ?></span>
+            <span class="msg"><big><?php echo $head ?></big><br>
+                <?php echo h($state['name']) ?>: <?php echo number_format($prog['done']) ?> of <?php echo number_format($state['to_do']) ?> rows<?php
+                if($prog['finished']) echo " in " . h($prog['time']); if($banner['at']) echo ", " . ($prog['finished'] ? "finished" : "last written") . " " . h($banner['at']); ?>.
+                <?php if($prog['counts']) echo "<br>" . h($prog['counts']) . "."; ?>
+                <?php if($banner['kind'] == 'done') echo "<br>Download the report and its guide below, and send them to the Data Managers for review.";
+                      elseif($banner['kind'] == 'stopped') echo "<br>The report keeps the rows done. To go on, upload the same file with <b>start</b> = the next row.";
+                      else echo "<br>" . ($prog['error'] ? h($prog['error']) : "See the log below.") . " The rows done are in the report; run again with <b>start</b> to go on."; ?></span>
+            <?php if($prog['report'] && is_file($work_dir . $prog['report'])) echo "<a class='button' href='main.php?download=" . rawurlencode($prog['report']) . "'>Download</a>"; ?>
+            <button type="button" class="x" title="Hide this message" onclick="dismissBanner()">&times;</button>
+        </div>
+    </td></tr>
+    <?php endif; ?>
 
     <tr><td>
         <small>Finds the <b>DOI</b> of references that have only a <b>full_reference</b> text, using CrossRef
@@ -237,6 +293,20 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         Also on the command line (do_full_reference_search.php).
         &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;See also: <a href="<?php echo h($refs_page) ?>">References Maintenance</a>.</small>
     </td></tr>
+
+    <tr><td><div class="jobs"><b>Running jobs</b><br>
+        <?php if(!$jobs) echo "None: no search is running now (from this page or the command line).";
+        else foreach($jobs as $j) {
+            $p = $j['param'];
+            $from_page = $state && (int) ($state['pid'] ?? 0) === $j['pid'];
+            $what = $from_page ? $state['name'] : basename((string) ($p['file'] ?? '?'));
+            echo "&bull; " . h($p['task'] ?? 'do_full_reference_search.php') . ": " . h($what)
+               . (isset($p['limit']) ? ", limit " . h($p['limit']) : '') . (isset($p['start']) ? ", start " . h($p['start']) : '')
+               . "<br>&nbsp;&nbsp;process " . $j['pid'] . ", started from " . ($from_page ? "this page" : "the command line")
+               . ($j['started'] ? ", " . date("Y-m-d H:i:s", $j['started']) . ", running for " . h(duration_text(time() - $j['started'])) . "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>" : '')
+               . ($from_page ? '' : "<br>&nbsp;&nbsp;<small>(not from this page: its progress isn't shown below and it can only be stopped on the command line)</small>") . "<br>";
+        } ?>
+    </div></td></tr>
 
     <tr><td><b>Search a file</b>
         <?php if($running): ?>
@@ -309,7 +379,8 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         <?php if($running): ?>
             <form method="post" action="main.php" onsubmit="if(!confirm('Stop the search? The report keeps the rows done so far.')) return false; return busy(this);">
                 <input type="hidden" name="action" value="stop"><input type="submit" value="Stop the search">
-                <small>This page refreshes itself every 15 seconds.</small>
+                <button type="button" id="notify-btn" onclick="askNotify()">Notify me</button>
+                <small>This page refreshes itself every 15 seconds. <span id="notify-note">[Notify me]: a desktop notice when the search ends, while this page stays open (any tab).</span></small>
             </form>
         <?php endif; ?>
         <details><summary>Log (the last lines)</summary><pre><?php echo h($prog['tail']) ?></pre></details>
@@ -334,4 +405,29 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         } ?>
     </td></tr>
 </table>
+<script>
+// The banner and the desktop notice. Browser storage only remembers this viewer's choices; the page works without it.
+var RUNNING_LOG = <?php echo json_encode($running && $state ? $state['log'] : null) ?>;
+var TAB_TITLE = <?php echo json_encode($tab_title) ?>;
+function store(k, v) { try { if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(e) { return null; } }
+function dismissBanner() { var r = document.getElementById('banner-row'); if(r) { store('frs_dismissed', r.dataset.log); r.style.display = 'none'; } }
+function askNotify() {
+    if(!('Notification' in window)) { document.getElementById('notify-note').textContent = 'This browser cannot show desktop notices.'; return; }
+    Notification.requestPermission().then(function(p) {
+        if(p === 'granted') { store('frs_notify', RUNNING_LOG); document.getElementById('notify-btn').disabled = true; document.getElementById('notify-note').textContent = 'You will get a desktop notice when it ends.'; }
+        else document.getElementById('notify-note').textContent = 'Desktop notices are blocked for this page in the browser settings.';
+    });
+}
+(function() {
+    var r = document.getElementById('banner-row');
+    if(r && store('frs_dismissed') === r.dataset.log) r.style.display = 'none';           // hidden before, for this same search
+    if(RUNNING_LOG && store('frs_notify') === RUNNING_LOG && document.getElementById('notify-btn')) {   // already asked for this search
+        document.getElementById('notify-btn').disabled = true; document.getElementById('notify-note').textContent = 'You will get a desktop notice when it ends.';
+    }
+    if(r && store('frs_notify') === r.dataset.log) {                                      // the search we were waiting for has ended: tell once
+        store('frs_notify', null);
+        try { if('Notification' in window && Notification.permission === 'granted') new Notification(TAB_TITLE, { body: r.querySelector('.msg').innerText.split('\n').slice(0, 3).join('\n') }); } catch(e) {}
+    }
+})();
+</script>
 </body></html>

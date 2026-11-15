@@ -104,7 +104,7 @@ function change_form($action, $button, $confirm, $hidden = array(), $extra = '')
     foreach($hidden as $k => $v) $h .= "<input type='hidden' name='" . h($k) . "' value='" . h($v) . "'>";
     return "<form method='post' action='main.php' class='change' onsubmit=\"if(!confirm(" . h(json_encode($confirm)) . ")) return false; busy(this);\">$h$extra"
          . "<input type='password' name='password' placeholder='maintenance tools password' required autocomplete='off'> "
-         . "<input type='submit' value='" . h($button) . "'><span class='wait'> Working<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span> please wait.</span></form>";
+         . "<input type='submit' value='" . h($button) . "'><span class='wait'> Please wait. Working<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span></span></form>";
 }
 function status()
 {   // our master vs Zenodo's latest version, and the unmappable list; reads files + one Zenodo look-up, changes nothing
@@ -450,7 +450,7 @@ function copyCmd(btn) {
             <?php else: ?>
             <button type="submit" name="action" value="download_refs">Download References from Zenodo</button>
             <?php endif; ?>
-            <span class="wait"> Working<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span> this can take a few minutes.</span>
+            <span class="wait"> This can take a few minutes. Working<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></span>
         </form>
         <?php if($has_master): ?>
         <small><?php echo $n_datasets ? '"Find missing references" and "Check Zenodo for changes" show' : '"Check Zenodo for changes" shows' ?> a preview first; the button to apply it appears below the preview.</small>
@@ -477,7 +477,7 @@ function copyCmd(btn) {
             <br>Browse File: <input type="file" name="dm_file" accept=".tsv" required>
             <input type="hidden" name="action" value="dm_upload">
             <input type="submit" value="Upload file and preview">
-            <span class="wait"> Working<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span> please wait.</span>
+            <span class="wait"> Please wait. Working<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></span>
         </form>
         <small>The preview changes nothing. To fix duplicates and corrected citations with one Zenodo upload: first "Rows to delete" with
         "don't upload to Zenodo yet" ticked, then "Citations to add" (which publishes both changes).</small>

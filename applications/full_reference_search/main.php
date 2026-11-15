@@ -263,6 +263,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     .banner.stopped { background: #fff4e0; border-color: #d08a00; color: #6b4500; }
     .banner.ended   { background: #fdeaea; border-color: #c03030; color: #7a1414; }
     .banner .x { width: auto; padding: 0 10px; }
+    .banner .btns { display: flex; flex-direction: column; gap: 6px; } /* [Download] with [Guide] below it */
     details.reports > summary { cursor: pointer; } /* "Available reports": hidden until its title is clicked; a click again hides it */
 </style>
 <script>function busy(f) { f.querySelectorAll('input[type=submit]').forEach(function(b){ b.disabled = true; }); var w = f.querySelector('.wait'); if(w) w.style.display = 'inline'; return true; }</script>
@@ -284,7 +285,12 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
                 <?php if($banner['kind'] == 'done') echo "<br>Download the report and its guide below, and send them to the Data Managers for review.";
                       elseif($banner['kind'] == 'stopped') echo "<br>The report keeps the rows done. To go on, upload the same file with <b>start</b> = the next row.";
                       else echo "<br>" . ($prog['error'] ? h($prog['error']) : "See the log below.") . " The rows done are in the report; run again with <b>start</b> to go on."; ?></span>
-            <?php if($prog['report'] && is_file($work_dir . $prog['report'])) echo "<a class='button' href='main.php?download=" . rawurlencode($prog['report']) . "'>Download</a>"; ?>
+            <?php // [Download] the report, and [Guide] below it (the guide is written only when a search runs to the end)
+            $has_report = $prog['report'] && is_file($work_dir . $prog['report']); $has_guide = $prog['guide'] && is_file($work_dir . $prog['guide']);
+            if($has_report || $has_guide) echo "<span class='btns'>"
+                . ($has_report ? "<a class='button' href='main.php?download=" . rawurlencode($prog['report']) . "' title='The report (TSV)'>Download</a>" : '')
+                . ($has_guide ? "<a class='button' href='main.php?download=" . rawurlencode($prog['guide']) . "' title='The guide for the Data Managers (text)'>Guide</a>" : '')
+                . "</span>"; ?>
             <button type="button" class="x" title="Hide this message" onclick="dismissBanner()">&times;</button>
         </div>
     </td></tr>

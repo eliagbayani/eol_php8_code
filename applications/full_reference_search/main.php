@@ -290,8 +290,9 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         Each of CrossRef's top 5 candidates is checked against the year, journal, volume, issue and page read from the citation.<br><br>
         It changes nothing: it writes a report (<b>matched</b> / <b>possible</b> / <b>not found</b>, with a review note for each row)
         and a guide, for the Data Managers' final check.<br><br>
-        Also on the command line (do_full_reference_search.php).
-        &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;See also: <a href="<?php echo h($refs_page) ?>">References Maintenance</a>.</small>
+        <span style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
+            <span>Also on the command line (do_full_reference_search.php).</span>
+            <span>See also: <a href="<?php echo h($refs_page) ?>">References Maintenance</a>.</span></span></small>
     </td></tr>
 
     <tr><td><div class="jobs"><b>Running jobs</b><br>

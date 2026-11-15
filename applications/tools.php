@@ -15,7 +15,10 @@ echo '<a href="../genHigherClass_jenkins/main.php">Generate highClassification T
 
 echo '<a href="../DwC_branch_extractor/main.php">Darwin Core Branch Extractor (Jenkins)</a> | <br><br>';
 echo '<a href="../terms_maintenance/main.php">Terms Maintenance (TraitBank)</a> | <br><br>';
-if($GLOBALS['ENV_NAME'] == 'development') echo '(dev only) <a href="../reference_maintenance/main.php">Reference Maintenance (TraitBank)</a> | ';
+if($GLOBALS['ENV_NAME'] == 'development') echo '(dev only) <a href="../reference_maintenance/main.php">Reference Maintenance (TraitBank)</a> | <br><br>';
+
+
+echo '<a href="../full_reference_search/main.php">Full Reference Search</a> | <br><br>';
 
 echo "{".$GLOBALS['ENV_NAME']."}";
 ?>

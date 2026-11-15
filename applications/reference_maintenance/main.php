@@ -398,6 +398,7 @@ $st = status(); // after any change, so it shows the new state
     table.status td { border: none; padding: 2px 10px 2px 0; }
     .cmd { margin: 4px 0; padding: 6px; background: #f4f4f4; border: 1px solid #ddd; font-size: 13px; word-break: break-all; }
     .cmd button { margin-right: 6px; }
+    details.section > summary { cursor: pointer; } /* e.g. "Data Manager files": hidden until its title is clicked; a click again hides it */
 </style>
 <script>
 function copyCmd(btn) {
@@ -468,7 +469,7 @@ function copyCmd(btn) {
               else echo change_form('publish', 'Publish our master to Zenodo', "Publish our master references.tsv on Zenodo as a new version?\n\nThis CANNOT be undone."); ?>
     </td></tr>
 
-    <tr><td><b>Data Manager files</b>
+    <tr><td><details class="section"><summary><b>Data Manager files</b></summary>
         <form method="post" action="main.php" enctype="multipart/form-data" onsubmit="return busy(this);">
             <?php foreach($dm_kinds as $k => $kd) {
                 echo "<label><input type='radio' name='kind' value='" . h($k) . "' required> <b>" . h($kd['label']) . "</b></label><br>";
@@ -481,7 +482,7 @@ function copyCmd(btn) {
         </form>
         <small>The preview changes nothing. To fix duplicates and corrected citations with one Zenodo upload: first "Rows to delete" with
         "don't upload to Zenodo yet" ticked, then "Citations to add" (which publishes both changes).</small>
-    </td></tr>
+    </details></td></tr>
 
     <?php if($out) echo "<tr><td><b>Result</b><br>$out</td></tr>"; ?>
 </table>

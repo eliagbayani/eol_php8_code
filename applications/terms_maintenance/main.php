@@ -113,6 +113,14 @@ elseif($action == 'upload') {
     .bad { color: #b00000; } .good { color: #006400; }
     a.button { padding: 2px 10px; border: 1px solid #888; border-radius: 3px; background: #eee; color: #000; text-decoration: none; }
     td { text-align: left; }
+    /* "Checking...": the three dots hop one after the other, like on the other maintenance pages */
+    .dots { display: inline-block; }
+    .dots span { display: inline-block; animation: hop 1.2s ease-in-out infinite; }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes hop { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: 1; } }
+    details.reports > summary { cursor: pointer; } /* "Available error reports": hidden until its title is clicked; a click again hides it */
 </style></head>
 <body>
 <table border="1" cellpadding="15" cellspacing="1" align="center" width="70%">
@@ -129,15 +137,17 @@ elseif($action == 'upload') {
         <form method="post" action="main.php" onsubmit="this.querySelector('input[type=submit]').disabled = true; this.querySelector('span').style.display = 'inline';">
             <input type="hidden" name="action" value="check">
             <input type="submit" value="Check Terms from Google Sheets">
-            <span style="display:none; color:#008000; font-weight:bold"> Checking... this takes about a minute.</span>
+            <span style="display:none; color:#008000; font-weight:bold"> Checking<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span> this takes about a minute.</span>
         </form>
     </td></tr>
     <?php if($out) echo "<tr><td>$out</td></tr>"; ?>
     <tr><td>
-        <b>Available error reports</b> <small>(newest first; only the newest <?php echo TermsMaintenanceAPI::KEEP_REPORTS ?> are kept)</small>
         <?php
         $reports = is_dir($work_dir) ? array_values(array_filter(scandir($work_dir) ?: array(), fn($f) => preg_match($report_re, $f) && is_file($work_dir . $f))) : array();
         rsort($reports, SORT_STRING); // the timestamp in the name: newest first
+        ?>
+        <details class="reports"><summary><b>Available error reports</b> <small>(newest first; only the newest <?php echo TermsMaintenanceAPI::KEEP_REPORTS ?> are kept) (<?php echo count($reports) ?>)</small></summary>
+        <?php
         if(!$reports) echo "<p>There are no error reports.</p>";
         else {
             echo "<table cellpadding='4' style='margin-top:8px'>";
@@ -149,6 +159,7 @@ elseif($action == 'upload') {
             echo "</table>";
         }
         ?>
+        </details>
     </td></tr>
 </table>
 </body></html>

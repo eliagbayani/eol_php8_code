@@ -250,6 +250,11 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     /* "Running jobs": its own font and color, so it stands apart from the rest of the page */
     .jobs { font-family: "Courier New", Courier, monospace; font-size: 14px; color: #1a3d8f; background: #eef3fc; border: 1px solid #b8c8ea; padding: 8px 10px; }
     .jobs b { color: #0d2766; } .jobs small { font-size: 12px; }
+    /* busy (a search is running): bright blue, thicker border; idle (none, or the last one is over): gray */
+    .jobs.busy { color: #0047c7; background: #e3edff; border: 2px solid #0047c7; }
+    .jobs.busy b { color: #00308a; }
+    .jobs.idle { color: #6b6b6b; background: #f3f3f3; border-color: #cfcfcf; }
+    .jobs.idle b { color: #555; }
     /* the banner when a search is over: big, colored, at the very top */
     .banner { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 6px; border: 2px solid; font-size: 15px; }
     .banner .icon { font-size: 30px; line-height: 1; }
@@ -296,8 +301,9 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
             <span>See also: <a href="<?php echo h($refs_page) ?>">References Maintenance</a>.</span></span></small>
     </td></tr>
 
-    <tr><td><div class="jobs"><b>Running jobs</b><br>
-        <?php if(!$jobs) echo "None: no search is running now (from this page or the command line).";
+    <tr><td><div class="jobs <?php echo $jobs ? 'busy' : 'idle' ?>"><b>Running jobs</b><br>
+        <?php if(!$jobs) echo "None: no search is running now (from this page or the command line)."
+                             . ($banner ? " The last search " . array('done' => "has finished", 'stopped' => "was stopped", 'ended' => "ended early")[$banner['kind']] . ($banner['at'] ? " (" . h($banner['at']) . ")" : '') . "." : '');
         else foreach($jobs as $j) {
             $p = $j['param'];
             $from_page = $state && (int) ($state['pid'] ?? 0) === $j['pid'];

@@ -394,7 +394,8 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         $pct = $state['to_do'] ? min(100, round(100 * $prog['done'] / $state['to_do'])) : 0;
         $title = $running ? "Search running" : ($pending ? "Previous search" : "Last search");
         if($stopped) $title .= " (stopped)"; elseif($ended) $title .= " (ended early)"; ?>
-    <tr><td><b><?php echo $title ?></b><?php if($running) echo "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>" ?>
+    <?php // hidden by default; open while a search runs, and when one has just ended (its banner is showing: closed again in the script below once the banner is dismissed) ?>
+    <tr><td><details class="reports" id="last-search"<?php if($running || $banner) echo " open" ?>><summary><b><?php echo $title ?></b><?php if($running) echo "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>" ?></summary>
         <table class="params last">
             <tr><td>File:</td><td colspan="2"><?php echo v($state['name']) ?> (<?php echo v(number_format($state['rows'])) ?> rows; limit <?php echo v($state['limit'] !== '' ? $state['limit'] : 'none') ?>, start <?php echo v($state['start'] !== '' ? $state['start'] : '1') ?>)</td></tr>
             <tr><td>Started:</td><td colspan="2"><?php echo v($state['started']) ?><?php if(!empty($state['stopped'])) echo " &mdash; <span class='bad'>stopped " . h($state['stopped']) . "</span>" ?></td></tr>
@@ -419,7 +420,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
             </form>
         <?php endif; ?>
         <details><summary>Log (the last lines)</summary><pre><?php echo h($prog['tail']) ?></pre></details>
-    </td></tr>
+    </details></td></tr>
     <?php endif; ?>
 
     <?php if($out) echo "<tr><td><b>Result</b><br>$out</td></tr>"; ?>
@@ -455,7 +456,10 @@ function askNotify() {
 }
 (function() {
     var r = document.getElementById('banner-row');
-    if(r && store('frs_dismissed') === r.dataset.log) r.style.display = 'none';           // hidden before, for this same search
+    if(r && store('frs_dismissed') === r.dataset.log) {                                   // hidden before, for this same search
+        r.style.display = 'none';
+        var ls = document.getElementById('last-search'); if(ls) ls.open = false;           // ... so the Last search section starts hidden too
+    }
     if(RUNNING_LOG && store('frs_notify') === RUNNING_LOG && document.getElementById('notify-btn')) {   // already asked for this search
         document.getElementById('notify-btn').disabled = true; document.getElementById('notify-note').textContent = 'You will get a desktop notice when it ends.';
     }

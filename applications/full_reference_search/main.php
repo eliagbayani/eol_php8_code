@@ -286,7 +286,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 </head>
 <body>
 <table border="1" cellpadding="15" cellspacing="1" align="center" width="75%">
-    <tr><td style="text-align:center"><b>Full Reference Search</b><br><br></td></tr>
+    <tr><td style="text-align:center"><b>Full Reference Search</b></td></tr>
 
     <?php if($banner):
         $icon = array('done' => '&#10004;', 'stopped' => '&#9632;', 'ended' => '&#9888;')[$banner['kind']];

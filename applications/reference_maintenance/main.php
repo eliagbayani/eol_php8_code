@@ -424,8 +424,7 @@ function copyCmd(btn) {
 </head>
 <body>
 <table border="1" cellpadding="15" cellspacing="1" align="center" width="75%">
-    <tr><td style="text-align:center"><b>References Maintenance</b><br><br>
-    </td></tr>
+    <tr><td style="text-align:center"><b>References Maintenance</b></td></tr>
 
     <tr><td>
         <small>All TraitBank datasets share one master list of references, published on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (References, concept <?php echo REF_CONCEPT_ID ?>).

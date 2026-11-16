@@ -22,6 +22,7 @@ $lock_file   = $work_dir . ".full_reference_search.lock";                     //
 $connectors  = realpath(dirname(__FILE__) . "/../../update_resources/connectors");
 $refs_page   = "../reference_maintenance/main.php";
 $terms_page  = "../terms_maintenance/main.php";
+$has_password = defined('TERMS_MTCE_PASSWORD') && TERMS_MTCE_PASSWORD !== ''; // [Stop the search] needs the maintenance tools password, as on the Terms and References pages
 $report_re   = '/^[A-Za-z0-9._-]+_DOIs_\d{8}_\d{6}(\.tsv|_guide\.txt)$/';      // the only files [Download] serves
 const MAX_UPLOAD_MB = 20;
 const PROGRESS_EVERY = 20; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
@@ -202,7 +203,9 @@ elseif($action == 'cancel') {
 }
 elseif($action == 'stop') {
     $st = read_state();
-    if($st && (is_running() || process_alive($st))) {
+    if(!$has_password) $out .= "<p class='bad'>Stopping is disabled: the maintenance tools password (TERMS_MTCE_PASSWORD) isn't set in config/environments/" . h($GLOBALS['ENV_NAME'] ?? '') . ".php. Nothing was stopped.</p>";
+    elseif(!hash_equals(TERMS_MTCE_PASSWORD, (string) ($_POST['password'] ?? ''))) $out .= "<p class='bad'>Wrong password. The search was not stopped.</p>";
+    elseif($st && (is_running() || process_alive($st))) {
         // only our own search: the process must still be do_full_reference_search.php
         if(process_alive($st) && posix_kill((int) $st['pid'], 15)) {
             $st['stopped'] = date("Y-m-d H:i:s"); file_put_contents($state_file, json_encode($st));
@@ -233,7 +236,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 ?>
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><title><?php echo h($tab_title) ?></title>
-<?php if($running || $jobs) echo '<meta http-equiv="refresh" content="15;url=main.php">'; ?>
+<?php if($running || $jobs) echo '<noscript><meta http-equiv="refresh" content="15;url=main.php"></noscript>'; // with JS: the refresh in the script at the end, which waits while the password is being typed ?>
 <style>
     /* text links: one fixed color, visited or not (buttons keep their own colors) */
     a:not(.button), a:not(.button):visited { color: #0645ad; }
@@ -414,7 +417,9 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         </table>
         <?php if($running): ?>
             <form method="post" action="main.php" onsubmit="if(!confirm('Stop the search? The report keeps the rows done so far.')) return false; return busy(this);">
-                <input type="hidden" name="action" value="stop"><input type="submit" value="Stop the search">
+                <input type="hidden" name="action" value="stop">
+                <input type="password" name="password" id="stop-pw" placeholder="maintenance tools password" required autocomplete="off" style="height:28px; box-sizing:border-box; vertical-align:middle">
+                <input type="submit" value="Stop the search">
                 <button type="button" id="notify-btn" onclick="askNotify()">Notify me</button>
                 <small>This page refreshes itself every 15 seconds. <span id="notify-note">[Notify me]: a desktop notice when the search ends, while this page stays open (any tab).</span></small>
             </form>
@@ -445,6 +450,13 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 // The banner and the desktop notice. Browser storage only remembers this viewer's choices; the page works without it.
 var RUNNING_LOG = <?php echo json_encode($running && $state ? $state['log'] : null) ?>;
 var TAB_TITLE = <?php echo json_encode($tab_title) ?>;
+<?php if($running || $jobs): ?>
+setInterval(function() {   // refresh every 15 seconds, but not while the password for [Stop the search] is being typed or the form is being sent
+    var p = document.getElementById('stop-pw');
+    if(p && (p.value !== '' || document.activeElement === p || p.form.querySelector('input[type=submit]').disabled)) return;
+    location.href = 'main.php';
+}, 15000);
+<?php endif; ?>
 function store(k, v) { try { if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(e) { return null; } }
 function dismissBanner() { var r = document.getElementById('banner-row'); if(r) { store('frs_dismissed', r.dataset.log); r.style.display = 'none'; } }
 function askNotify() {

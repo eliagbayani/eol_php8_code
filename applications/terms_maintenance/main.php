@@ -108,6 +108,8 @@ elseif($action == 'upload') {
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Terms Maintenance</title>
 <style>
+    /* text links: one fixed color, visited or not (buttons keep their own colors) */
+    a:not(.button), a:not(.button):visited { color: #0645ad; }
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
     .bad { color: #b00000; } .good { color: #006400; }
@@ -138,9 +140,7 @@ elseif($action == 'upload') {
         If there are errors, download the report: each problem has its row number in the Google Sheets.<br><br>
         <span style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
             <span>If there are none, you can publish the file on <a href="<?php echo h($zenodo_url) ?>" target="_blank">Zenodo</a> (Terms, concept 22776577).</span>
-            <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?>
-            <span>See also: <a href="../reference_maintenance/main.php">References Maintenance</a>.</span>
-            <?php endif; ?></span>
+            <span>See also: <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?><a href="../reference_maintenance/main.php">References Maintenance</a> | <?php endif; ?><a href="../full_reference_search/main.php">Full Reference Search</a>.</span></span>
     </small>
     </td></tr>
     <tr><td style="text-align:center">

@@ -21,6 +21,7 @@ $pending_file = $work_dir . "full_reference_search_pending.json";             //
 $lock_file   = $work_dir . ".full_reference_search.lock";                     // held by the script while it runs
 $connectors  = realpath(dirname(__FILE__) . "/../../update_resources/connectors");
 $refs_page   = "../reference_maintenance/main.php";
+$terms_page  = "../terms_maintenance/main.php";
 $report_re   = '/^[A-Za-z0-9._-]+_DOIs_\d{8}_\d{6}(\.tsv|_guide\.txt)$/';      // the only files [Download] serves
 const MAX_UPLOAD_MB = 20;
 const PROGRESS_EVERY = 20; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
@@ -234,6 +235,8 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 <html><head><meta charset="utf-8"><title><?php echo h($tab_title) ?></title>
 <?php if($running || $jobs) echo '<meta http-equiv="refresh" content="15;url=main.php">'; ?>
 <style>
+    /* text links: one fixed color, visited or not (buttons keep their own colors) */
+    a:not(.button), a:not(.button):visited { color: #0645ad; }
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
     .bad { color: #b00000; } .good { color: #006400; }
@@ -321,9 +324,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         and a guide, for the Data Managers' final check.<br><br>
         <span style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
             <span>Also on the command line (do_full_reference_search.php).</span>
-            <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?>
-            <span>See also: <a href="<?php echo h($refs_page) ?>">References Maintenance</a>.</span>
-            <?php endif; ?></span></small>
+            <span>See also: <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?><a href="<?php echo h($refs_page) ?>">References Maintenance</a> | <?php endif; ?><a href="<?php echo h($terms_page) ?>">Terms Maintenance</a>.</span></span></small>
     </td></tr>
 
     <tr><td><div class="jobs <?php echo $jobs ? 'busy' : 'idle' ?>"><b>Running jobs</b><br>

@@ -386,6 +386,8 @@ $st = status(); // after any change, so it shows the new state
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>References Maintenance</title>
 <style>
+    /* text links: one fixed color, visited or not (buttons keep their own colors) */
+    a:not(.button), a:not(.button):visited { color: #0645ad; }
     body { font-family: Arial, sans-serif; }
     pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-all; font-size: 13px; text-align: left; }
     .bad { color: #b00000; } .good { color: #006400; }

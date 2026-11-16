@@ -20,7 +20,7 @@ echo '<a href="../terms_maintenance/main.php">Terms Maintenance (TraitBank)</a> 
 
 // if($GLOBALS['ENV_NAME'] == 'development') echo '(dev only) <a href="../reference_maintenance/main.php">Reference Maintenance (TraitBank)</a> | <br><br>';
 
-echo '<a href="../reference_maintenance/main.php">Reference Maintenance (TraitBank)</a> | ';
+echo '<a href="../reference_maintenance/main.php">Reference Maintenance (TraitBank)</a> | <br><br>';
 echo '<a href="../full_reference_search/main.php">Full Reference Search</a> | <br><br>';
 
 echo "{".$GLOBALS['ENV_NAME']."}";

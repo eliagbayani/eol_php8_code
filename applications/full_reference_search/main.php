@@ -262,6 +262,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     .wait { display: none; color: #008000; font-weight: bold; } form { margin: 6px 0; }
     table.list td, table.list th { border: none; border-bottom: 1px solid #ddd; padding: 3px 12px 3px 0; text-align: left; font-size: 14px; }
     table.params td { border: none; padding: 3px 10px 3px 0; }
+    table.params.last td { font-size: 14px; } /* the Last search details: the same size as the reports list and the Running jobs box */
     progress { width: 300px; }
     /* "Running jobs": its own font and color, so it stands apart from the rest of the page */
     .jobs { font-family: "Courier New", Courier, monospace; font-size: 14px; color: #1a3d8f; background: #eef3fc; border: 1px solid #b8c8ea; padding: 8px 10px; }
@@ -393,7 +394,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         $title = $running ? "Search running" : ($pending ? "Previous search" : "Last search");
         if($stopped) $title .= " (stopped)"; elseif($ended) $title .= " (ended early)"; ?>
     <tr><td><b><?php echo $title ?></b><?php if($running) echo "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>" ?>
-        <table class="params">
+        <table class="params last">
             <tr><td>File:</td><td colspan="2"><?php echo v($state['name']) ?> (<?php echo v(number_format($state['rows'])) ?> rows; limit <?php echo v($state['limit'] !== '' ? $state['limit'] : 'none') ?>, start <?php echo v($state['start'] !== '' ? $state['start'] : '1') ?>)</td></tr>
             <tr><td>Started:</td><td colspan="2"><?php echo v($state['started']) ?><?php if(!empty($state['stopped'])) echo " &mdash; <span class='bad'>stopped " . h($state['stopped']) . "</span>" ?></td></tr>
             <tr><td><?php echo $ended ? "Rows done:" : "Progress:" ?></td><td colspan="2">

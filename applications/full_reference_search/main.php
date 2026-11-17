@@ -215,11 +215,11 @@ elseif($action == 'stop') {
     }
     else $out .= "<p>No search is running.</p>";
 }
-if(isset($_GET['started'])) $out .= "<p class='good'><b>Search started.</b> Its progress is shown below; this page refreshes itself while it runs.</p>";
-
 $state = read_state();
 $jobs = running_jobs();
 $running = is_running() || ($state && process_alive($state));
+// "Search started" only while it runs: a short search (e.g. all rows cached) can end before this page loads, and its banner says so
+if(isset($_GET['started']) && $running) $out .= "<p class='good'><b>Search started.</b> Its progress is shown below; this page refreshes itself while it runs.</p>";
 $pending = read_pending();
 $prog = $state ? progress($state) : null;
 // the banner at the top: how the last search ended (finished / stopped / ended early), until a new file is uploaded or it's dismissed
@@ -470,6 +470,7 @@ function askNotify() {
         else document.getElementById('notify-note').textContent = 'Desktop notices are blocked for this page in the browser settings.';
     });
 }
+try { if(location.search.indexOf('started=') >= 0) history.replaceState(null, '', 'main.php'); } catch(e) {} // a reload doesn't show "Search started" again
 (function() {
     var r = document.getElementById('banner-row');
     if(r && store('frs_dismissed') === r.dataset.log) {                                   // hidden before, for this same search

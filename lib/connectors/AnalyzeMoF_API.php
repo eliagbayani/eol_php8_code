@@ -1,6 +1,35 @@
 <?php
 namespace php_active_record;
-/* connector: [called from DwCA_Utility.php, which is called from analyze_MoF.php] 
+/* connector: [called from DwCA_Utility.php, which is called from analyze_MoF.php]
+e.g. php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "AmphibiaWeb_finale"}'
+     reads:  resources/AmphibiaWeb_finale.tar.gz
+     writes: resources/AmphibiaWeb_finale_analyzed.tar.gz
+
+What it does:
+Removes from a DwCA the MoF and Association records that use terms not defined in EOL's terms list (terms.tsv,
+loaded via ConvertNewModel_2DwCA::generate_measurements_values_associations()), together with the records linked to them.
+DwCA_Utility copies all other extensions (taxon, media, reference, agent, vernacular, etc.) as-is; only these 3 are processed here:
+MeasurementOrFact, Association and Occurrence.
+
+Pass 1 ('collect') - find what to delete:
+  MoF parent row (has occurrenceID):
+    - measurementValue is a URI not in EOL values, or
+    - measurementOfTaxon = true and measurementType is not in EOL measurements
+    => its occurrenceID is deleted (del_oID).
+  MoF child row (no occurrenceID; linked to its parent by parentMeasurementID):
+    - measurementValue is a URI not in EOL values
+    => only this child row is deleted (del_mID); its parent measurement and occurrence are kept.
+  Association:
+    - associationType is a URI not in EOL associations
+    => both its occurrenceID and targetOccurrenceID are deleted (del_oID).
+Pass 1b ('collect_mID') - the measurementIDs of MoF parent rows whose occurrence is deleted are added to del_mID,
+  so that their child rows are deleted too.
+Pass 2 ('write') - writes MoF, Association and Occurrence, skipping:
+  - any record whose occurrenceID is in del_oID (association: also its targetOccurrenceID)
+  - any MoF child row that is in del_mID, or whose parent/ancestor measurement is in del_mID
+  Also, measurementDeterminedBy (MoF and Association) is blanked if its value is not in EOL values.
+
+The undefined terms found are listed in: resources/neo4j_analyzed/[resource_id]_debug_[date].txt
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -57,12 +86,18 @@ class AnalyzeMoF_API
         */
 
         // --------------------- 1st pass: collect occurrenceIDs to delete (MoF/associations with undefined terms)
-        $this->del_oID = array();
+        // Child MoF rows (no occurrenceID, linked by parentMeasurementID) with an undefined value are dropped individually (del_mID); parent and occurrence are kept.
+        $this->del_oID = array();       // occurrenceIDs to delete
+        $this->del_mID = array();       // measurementIDs to delete
+        $this->child_parent = array();  // child measurementID => parentMeasurementID
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'association');
-        echo "\nOccurrences to delete: [".count($this->del_oID)."]\n";
+        // 1b: measurementIDs of parent rows whose occurrence is deleted, so their child rows are dropped too
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($this->del_oID && ($meta = @$tables[$tbl][0])) self::process_table($meta, 'collect_mID', 'mof');
+        echo "\nOccurrences to delete: [".count($this->del_oID)."]";
+        echo "\nMeasurements to delete (excl. descendants): [".count($this->del_mID)."]\n";
 
-        // --------------------- 2nd pass: write extensions, excluding every record linked to a deleted occurrence
+        // --------------------- 2nd pass: write extensions, excluding every record linked to a deleted occurrence or deleted parent measurement
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'occurrence');
@@ -72,6 +107,16 @@ class AnalyzeMoF_API
         // */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_analyzed_folder);
         unset($this->debug);
+    }
+    private function is_measurement_deleted($mID)
+    {   // true if this measurement or any of its ancestors (via parentMeasurementID) is deleted
+        $seen = array();
+        while($mID && !isset($seen[$mID])) {
+            if(isset($this->del_mID[$mID])) return true;
+            $seen[$mID] = '';                       // guards against circular parentMeasurementID references
+            $mID = @$this->child_parent[$mID];      // walk up to parent; stops at a top-level row (not in child_parent)
+        }
+        return false;
     }
     private function process_table($meta, $what, $class = false)
     {   echo "\nprocess_table analyze: [$what] [$meta->file_uri]...\n"; $i = 0;
@@ -149,11 +194,17 @@ class AnalyzeMoF_API
                     $mOfTaxon = strtolower(@$rec['measurementOfTaxon']);
                     $mValue = @$rec['measurementValue'];
                     $mType = @$rec['measurementType'];
+                    $oID = @$rec['occurrenceID'];
+                    $mID = @$rec['measurementID'];
+                    if(!$oID && $mID && ($pID = @$rec['parentMeasurementID'])) $this->child_parent[$mID] = $pID;
                     if(substr($mValue, 0, 4) == 'http' && !isset($this->eol_term_values[$mValue])) {
-                        $this->debug['Undefined mValue'][$mValue] = ''; $this->del_oID[$rec['occurrenceID']] = '';
+                        $this->debug['Undefined mValue'][$mValue] = '';
+                        if($oID) $this->del_oID[$oID] = '';     // parent row: delete its occurrence (and everything linked to it)
+                        elseif($mID) $this->del_mID[$mID] = ''; // child row: delete only this row (and its own descendants)
                     }
                     if($mOfTaxon == 'true' && !isset($this->eol_term_measurements[$mType])) {
-                        $this->debug['Undefined mType'][$mType] = ''; $this->del_oID[$rec['occurrenceID']] = '';
+                        $this->debug['Undefined mType'][$mType] = '';
+                        if($oID) $this->del_oID[$oID] = '';
                     }
                 }
                 if($class == "association") {
@@ -168,16 +219,23 @@ class AnalyzeMoF_API
                     $aType = @$rec['associationType'];
                     if(substr($aType, 0, 4) == 'http' && !isset($this->eol_term_associations[$aType])) {
                         $this->debug['Undefined aType'][$aType] = '';
-                        $this->del_oID[$rec['occurrenceID']] = '';
+                        if($oID = @$rec['occurrenceID']) $this->del_oID[$oID] = '';
                         if($tID = @$rec['targetOccurrenceID']) $this->del_oID[$tID] = ''; //also remove the target occurrence of the removed association
                     }
                 }
                 continue;
             }
             //=========================================================================================================
+            if($what == 'collect_mID') { // 1b: parent MoF rows of deleted occurrences
+                if(($oID = @$rec['occurrenceID']) && isset($this->del_oID[$oID]) && ($mID = @$rec['measurementID'])) $this->del_mID[$mID] = '';
+                continue;
+            }
+            //=========================================================================================================
             if($what == 'write') { // 2nd pass
                 // Skip every MoF/association record linked to a deleted occurrence (this includes the records that failed validation in the 1st pass).
-                if(isset($this->del_oID[@$rec['occurrenceID']])) continue;
+                if(($oID = @$rec['occurrenceID']) && isset($this->del_oID[$oID])) continue;
+                // Skip child MoF rows that were deleted, or whose parent/ancestor measurement was deleted.
+                if($class == "mof" && !$oID && self::is_measurement_deleted(@$rec['measurementID'])) continue;
                 if($class == "association") {
                     if(isset($this->del_oID[@$rec['targetOccurrenceID']])) continue;
                 }

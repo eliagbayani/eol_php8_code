@@ -22,7 +22,7 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class FullReferenceSearchAPI extends GenerateTB_Files_Functions
 {
-    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'text_changes', 'status', 'DOI', 'review_note',
+    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'text_changes', 'status', 'DOI', 'DOI_URL', 'review_note',
                                  'parsed_year', 'parsed_journal', 'parsed_volume', 'parsed_issue', 'parsed_page',
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'checks');
@@ -159,8 +159,16 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                      'crossref_year' => self::item_year($item), 'crossref_journal' => $clean(@$item['container-title'][0]),
                      'crossref_volume' => $clean(@$item['volume']), 'crossref_issue' => $clean(@$item['issue']), 'crossref_page' => $clean(@$item['page']),
                      'crossref_title' => $clean(@$item['title'][0]), 'checks' => implode(' ', $c['checks'])));
+        $row['DOI_URL'] = self::doi_url($row['DOI']);
         $row['review_note'] = $this->review_note($ref, $row, $c);
         return $row;
+    }
+    static function doi_url($doi)
+    {   // the DOI as a link, e.g. 10.1016/0044-8486(93)90035-w -> https://doi.org/10.1016/0044-8486(93)90035-w; '' when there is no DOI.
+        // Characters that would break a URL (space, %, ", #, ?, <, >, ...) are percent-encoded; "/" and the usual DOI characters are kept as they are.
+        $doi = trim((string) $doi);
+        if($doi === '') return '';
+        return "https://doi.org/" . preg_replace_callback('/[^A-Za-z0-9\-._~\/:;()\[\]@!$&\'*+,=]/', fn($m) => rawurlencode($m[0]), $doi);
     }
     // every pre-processing rule of clean_full_reference(): its code => what the guide says about it
     const TEXT_CHANGES = array(
@@ -484,6 +492,7 @@ COLUMNS
   searched_text              : what was sent to CrossRef, after the pre-processing above (the same text when nothing was changed)
   text_changes               : what the pre-processing changed in this row, e.g. removed '(Ref. 3)' at the end; empty = nothing
   status, DOI                : the result; DOI only for matched and possible
+  DOI_URL                    : the same DOI as a link (https://doi.org/...), to open it in a browser; empty when DOI is
   review_note                : what was found, in plain words
   parsed_*                   : year, journal, volume, issue and page read from the full_reference
   crossref_*                 : the CrossRef record shown (DOI, score, type, year, journal, volume, issue, page, title)

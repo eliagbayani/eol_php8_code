@@ -56,7 +56,13 @@ class AnalyzeMoF_API
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_Assoc');
         */
 
-        // --------------------- write extensions
+        // --------------------- 1st pass: collect occurrenceIDs to delete (MoF/associations with undefined terms)
+        $this->del_oID = array();
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'mof');
+        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'association');
+        echo "\nOccurrences to delete: [".count($this->del_oID)."]\n";
+
+        // --------------------- 2nd pass: write extensions, excluding every record linked to a deleted occurrence
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'occurrence');
@@ -138,48 +144,46 @@ class AnalyzeMoF_API
                 }
             }
             //========================================================================================================= 
-            if($what == 'write') {
-                $uris = array_keys($rec);            
-                    if($class == "occurrence")      $o = new \eol_schema\Occurrence_specific();
-                elseif($class == "mof")             $o = new \eol_schema\MeasurementOrFact_specific();
-                elseif($class == "association")     $o = new \eol_schema\Association();
-                else exit("\nUndefined class [$class]. Will terminate.\n");                
-                foreach($uris as $uri) {
-                    $field = pathinfo($uri, PATHINFO_BASENAME);
-                    $parts = explode("#", $field);
-                    if($parts[0]) $field = $parts[0];
-                    if(@$parts[1]) $field = $parts[1];
-                    $o->$field = $rec[$uri];
-                }
-
-                if($class == "measurementorfact") {
-                    $mOfTaxon = strtolower($rec['measurementOfTaxon']);
-                    $mValue = $rec['measurementValue'];
-                    $mType = $rec['measurementType'];
-                    if(substr($mValue, 0, 4) == 'http') {
-                        if(!isset($this->eol_term_values[$mValue])) { $this->debug['Undefined mValue'][$mValue] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
+            if($what == 'collect') { // 1st pass: flag occurrences of records with undefined terms
+                if($class == "mof") {
+                    $mOfTaxon = strtolower(@$rec['measurementOfTaxon']);
+                    $mValue = @$rec['measurementValue'];
+                    $mType = @$rec['measurementType'];
+                    if(substr($mValue, 0, 4) == 'http' && !isset($this->eol_term_values[$mValue])) {
+                        $this->debug['Undefined mValue'][$mValue] = ''; $this->del_oID[$rec['occurrenceID']] = '';
                     }
-                    if($mOfTaxon == 'true') {
-                        if(!isset($this->eol_term_measurements[$mType])) { $this->debug['Undefined mType'][$mType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
-                    }
-                    if($val = @$rec['measurementDeterminedBy']) {
-                        if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
+                    if($mOfTaxon == 'true' && !isset($this->eol_term_measurements[$mType])) {
+                        $this->debug['Undefined mType'][$mType] = ''; $this->del_oID[$rec['occurrenceID']] = '';
                     }
                 }
-
                 if($class == "association") {
                     /*Array(
                         [associationType] => http://purl.obolibrary.org/obo/RO_0002556
-                        [measurementDeterminedBy] => 
-                        [measurementMethod] => 
-                        [measurementRemarks] => 
-                        [bibliographicCitation] => 
-                        [contributor] => 
+                        [measurementDeterminedBy] =>
+                        [measurementMethod] =>
+                        [measurementRemarks] =>
+                        [bibliographicCitation] =>
+                        [contributor] =>
                     )*/
-                    $aType = $rec['associationType'];
-                    if(substr($aType, 0, 4) == 'http') {
-                        if(!isset($this->eol_term_associations[$aType])) { $this->debug['Undefined aType'][$aType] = ''; $this->del_oID[$rec['occurrenceID']] = ''; continue; }
+                    $aType = @$rec['associationType'];
+                    if(substr($aType, 0, 4) == 'http' && !isset($this->eol_term_associations[$aType])) {
+                        $this->debug['Undefined aType'][$aType] = '';
+                        $this->del_oID[$rec['occurrenceID']] = '';
+                        if($tID = @$rec['targetOccurrenceID']) $this->del_oID[$tID] = ''; //also remove the target occurrence of the removed association
                     }
+                }
+                continue;
+            }
+            //=========================================================================================================
+            if($what == 'write') { // 2nd pass
+                // Skip every MoF/association record linked to a deleted occurrence (this includes the records that failed validation in the 1st pass).
+                if(isset($this->del_oID[@$rec['occurrenceID']])) continue;
+                if($class == "association") {
+                    if(isset($this->del_oID[@$rec['targetOccurrenceID']])) continue;
+                }
+
+                // Blank undefined measurementDeterminedBy; $rec is modified before $o is populated below.
+                if($class == "mof" || $class == "association") {
                     if($val = @$rec['measurementDeterminedBy']) {
                         if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
                     }
@@ -190,10 +194,18 @@ User Warning: Undefined property `basisOfRecord` on eol_schema\Occurrence as def
 User Warning: Undefined property `physiologicalState` on eol_schema\Occurrence as defined by `http://editors.eol.org/other_files/ontology/occurrence_extension.xml` in /var/www/html/eol_php8_code/vendor/eol_content_schema_v2/DarwinCoreExtensionBase.php on line 241
 User Warning: Undefined property `bodyPart` on eol_schema                
                 */
-                if($class == "occurrence") {
-                    if(isset($this->del_oID[$rec['occurrenceID']])) continue;
+                // Populate the output object only after validation, so changes to $rec are carried over.
+                    if($class == "occurrence")      $o = new \eol_schema\Occurrence_specific();
+                elseif($class == "mof")             $o = new \eol_schema\MeasurementOrFact_specific();
+                elseif($class == "association")     $o = new \eol_schema\Association();
+                else exit("\nUndefined class [$class]. Will terminate.\n");
+                foreach(array_keys($rec) as $uri) {
+                    $field = pathinfo($uri, PATHINFO_BASENAME);
+                    $parts = explode("#", $field);
+                    if($parts[0]) $field = $parts[0];
+                    if(@$parts[1]) $field = $parts[1];
+                    $o->$field = $rec[$uri];
                 }
-
                 $this->archive_builder->write_object_to_file($o);
             }
             //========================================================================================================= 

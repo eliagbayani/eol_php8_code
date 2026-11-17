@@ -64,12 +64,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     function start()
     {   // Runs the task; also returns its result.
         $task = $this->param['task'] ?? '';
+        if($task == 'run_tests') return $this->run_tests(); // no lock: it writes no report; the page doesn't start it while a search runs
         // one run at a time: a second run waits here until the first one is done. Released when this function returns.
         $lock = @fopen($this->work_dir . ".full_reference_search.lock", 'c');
         if($lock) { @chmod($this->work_dir . ".full_reference_search.lock", 0666); flock($lock, LOCK_EX); }
         $result = null;
         if($task == 'search_DOIs_for_full_references') $result = $this->search_DOIs_for_full_references();
-        else echo "\nERROR: Unknown task [$task]. Available: search_DOIs_for_full_references\n";
+        else echo "\nERROR: Unknown task [$task]. Available: search_DOIs_for_full_references, run_tests\n";
         if($lock) { flock($lock, LOCK_UN); fclose($lock); }
         return $result;
     }
@@ -124,6 +125,38 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $guide = $this->write_guide($out_file, $file, $start, $row_no, $done, $counts, $changed);
         echo "\nDone: $done rows in " . gmdate("H:i:s", time() - $time) . " -- " . self::counts_str($counts) . "\nReport: [$out_file]\nGuide for the Data Managers: [$guide]\n";
         return array('file' => $out_file, 'guide' => $guide, 'counts' => $counts);
+    }
+    function run_tests()
+    {   /* The known cases in FullReferenceSearchAPI_tests.json (problems fixed before, CrossRef's own sample citations): each must still give the
+           expected result, so a change that breaks a known fact shows at once. Writes no report; saves the results in
+           Reference_maintenance/full_reference_search_tests_last.json (the web page shows them) and returns them. Uses the same cache as a search. */
+        $file = dirname(__FILE__) . "/FullReferenceSearchAPI_tests.json";
+        $d = @json_decode((string) @file_get_contents($file), true);
+        if(!is_array($d) || empty($d['cases'])) { echo "\nERROR: No test cases in [$file]\n"; return false; }
+        $res = array('when' => date("Y-m-d H:i:s"), 'author_title_checks' => $this->author_title_checks, 'passed' => 0, 'failed' => 0, 'skipped' => 0, 'cases' => array());
+        foreach($d['cases'] as $t) {
+            $e = $t['expect']; $r = array('id' => $t['id'], 'source' => $t['source'], 'full_reference' => $t['full_reference'], 'why' => $t['why'], 'problems' => array());
+            if(($e['requires'] ?? '') === 'author_title_checks' && !$this->author_title_checks) { $r['result'] = 'skipped'; $r['got'] = 'author and title checks are off'; $res['skipped']++; $res['cases'][] = $r; continue; }
+            $got = $this->find_DOI($t['full_reference']);
+            if($got['status'] == 'stop') { echo "\nCrossRef keeps asking us to slow down: the tests stopped. Try again later.\n"; $res['stopped'] = true; break; }
+            foreach($e as $k => $want) {
+                if($k == 'requires') continue;
+                if(str_ends_with($k, '_contains')) {
+                    $col = substr($k, 0, -9); $col = $col == 'note' ? 'review_note' : $col;
+                    if(!str_contains((string) ($got[$col] ?? ''), $want)) $r['problems'][] = "$col should contain \"$want\"";
+                }
+                elseif(strcasecmp((string) ($got[$k] ?? ''), (string) $want) !== 0) $r['problems'][] = "$k: expected \"$want\", got \"" . ($got[$k] ?? '') . "\"";
+            }
+            $r['result'] = $r['problems'] ? 'FAIL' : 'PASS'; $res[$r['problems'] ? 'failed' : 'passed']++;
+            $r['got'] = $got['status'] . ($got['DOI'] !== '' ? " " . $got['DOI'] : '');
+            $r['expected'] = $e['status'] . (!empty($e['DOI']) ? " " . $e['DOI'] : '');
+            $r['review_note'] = $got['review_note'];
+            $res['cases'][] = $r;
+            echo str_pad($r['result'], 5) . " " . $t['id'] . ($r['problems'] ? "\n      " . implode("\n      ", $r['problems']) : '') . "\n";
+        }
+        file_put_contents($this->work_dir . "full_reference_search_tests_last.json", json_encode($res));
+        echo "\nTests: {$res['passed']} passed, {$res['failed']} failed, {$res['skipped']} skipped (" . count($d['cases']) . " cases).\n";
+        return $res;
     }
     private function keep_latest_reports()
     {   // deletes all but the newest KEEP_REPORTS reports (by the time in their name), each with its _guide.txt

@@ -18,6 +18,9 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       'matched' row whose authors clearly differ becomes 'possible'. To turn them off for a run: add "author_title_checks": false, e.g.
       php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", "file": "/path/reference.tab", "author_title_checks": false}'
       (to turn them off for good, or remove them: see AUTHOR_TITLE_CHECKS in FullReferenceSearchAPI.php)
+    - Tests: the known cases (problems fixed before, CrossRef's own sample citations) must still give their expected results:
+      php do_full_reference_search.php _ '{"task": "run_tests"}'
+      The cases are in lib/connectors/FullReferenceSearchAPI_tests.json: add one whenever a problem is fixed. Also [Run Tests] on the web page.
     - Changes nothing else. CrossRef answers are cached (never expire), so a re-run or a resumed run is instant for rows already searched.
     - CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub): our contact email, sent with every call as CrossRef asks ("polite pool").
     - Polite: one call at a time, a 1-second pause after each (about 3 seconds per new reference). On HTTP 429 (too many requests) or

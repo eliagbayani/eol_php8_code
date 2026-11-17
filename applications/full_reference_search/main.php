@@ -196,6 +196,13 @@ elseif($action == 'proceed') {
         $out .= "<p class='bad'><b>The search could not be started.</b></p>";
     }
 }
+elseif($action == 'tests' && getenv('MY_ENV') === 'development') { // the Tests section is on the Mac only, not on eol-archive
+    // [Run Tests]: the known cases (problems fixed before, CrossRef's own sample citations), with the same command as on the command line.
+    // Not while a search runs: both would call CrossRef at once. Writes no report; the results go to full_reference_search_tests_last.json.
+    $st = read_state();
+    if(is_running() || ($st && process_alive($st))) $tests_msg = "<p class='bad'>A search is running: run the tests after it ends, so CrossRef isn't asked by both at once. Nothing was run.</p>";
+    else { shell_exec("cd " . escapeshellarg($connectors) . " && php do_full_reference_search.php _ " . escapeshellarg('{"task": "run_tests"}') . " 2>&1"); $tests_ran = true; }
+}
 elseif($action == 'cancel') {
     $p = read_pending();
     if($p && ($_POST['ts'] ?? '') === $p['ts']) { discard_pending(); $out .= "<p>Cancelled: [" . h($p['name']) . "] was removed. Nothing was searched.</p>"; }
@@ -449,6 +456,39 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
             echo "</table>";
         } ?>
     </details></td></tr>
+
+    <?php if(getenv('MY_ENV') === 'development'): // Tests: on the Mac only, not in production (editors.eol.org)
+    // the last run's results (from full_reference_search_tests_last.json), and [Run Tests]
+    $tests = @json_decode((string) @file_get_contents($work_dir . "full_reference_search_tests_last.json"), true); ?>
+    <tr><td><details class="reports" id="tests"<?php if(!empty($tests_ran) || !empty($tests_msg)) echo " open" ?>><summary><b>Tests</b>
+        <?php if($tests) echo "<small>(last run " . v($tests['when']) . ": " . v($tests['passed'] . " passed") . ", "
+                   . ($tests['failed'] ? "<span class='bad'><b>" . $tests['failed'] . " failed</b></span>" : v("0 failed"))
+                   . ($tests['skipped'] ? ", " . $tests['skipped'] . " skipped" : '') . ")</small>"; ?></summary>
+        <small>Known cases that must keep their results: problems fixed before (FishBase's reference numbers, "81A", year ranges, the "chickens" match,
+        works registered twice, …) and CrossRef's own 7 sample citations. Run them after any change to the tool: a FAIL means the change conflicts with a known fact.
+        They write no report. The cases are in <code>lib/connectors/FullReferenceSearchAPI_tests.json</code>; add one whenever a problem is fixed.</small>
+        <form method="post" action="main.php" onsubmit="return busy(this);">
+            <input type="hidden" name="action" value="tests"><input type="submit" value="Run Tests" <?php if($running) echo "disabled title='Not while a search runs'" ?>>
+            <span class="wait">This can take a minute. Working<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span></span>
+            <?php if($running) echo "<small>Not while a search runs.</small>" ?>
+        </form>
+        <?php if(!empty($tests_msg)) echo $tests_msg;
+        if($tests) {
+            if(!empty($tests['stopped'])) echo "<p class='bad'>The last run stopped early: CrossRef asked us to slow down. Run it again later.</p>";
+            echo "<table class='list'><tr><th>Result</th><th>Case</th><th>Expected</th><th>Got</th><th>Why it's a test</th></tr>";
+            foreach($tests['cases'] as $t) {
+                $cls = $t['result'] == 'PASS' ? 'good' : ($t['result'] == 'FAIL' ? 'bad' : '');
+                echo "<tr><td class='$cls'><b>" . h($t['result']) . "</b></td>"
+                   . "<td>" . h($t['source']) . "<br><small>" . h(mb_substr($t['full_reference'], 0, 110)) . (mb_strlen($t['full_reference']) > 110 ? '…' : '') . "</small></td>"
+                   . "<td>" . h($t['expected'] ?? '') . "</td><td>" . h($t['got'] ?? '')
+                   . ($t['problems'] ? "<br><small class='bad'>" . implode("<br>", array_map('php_active_record\\h', $t['problems'])) . "</small>" : '') . "</td>"
+                   . "<td><small>" . h($t['why']) . "</small></td></tr>";
+            }
+            echo "</table>";
+        }
+        else echo "<p><small>Not run yet.</small></p>"; ?>
+    </details></td></tr>
+    <?php endif; ?>
 </table>
 <script>
 // The banner and the desktop notice. Browser storage only remembers this viewer's choices; the page works without it.

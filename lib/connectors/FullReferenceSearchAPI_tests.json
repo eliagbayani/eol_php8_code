@@ -1,0 +1,245 @@
+{
+ "about": "Known cases for Full Reference Search: each must give the expected result. Run with [Run Tests] on the page, or: php do_full_reference_search.php _ '{\"task\": \"run_tests\"}'. Add a case whenever a problem is fixed. 'requires': skipped when that option is off.",
+ "cases": [
+  {
+   "id": "crossref-sample-1",
+   "source": "CrossRef's Simple Text Query sample",
+   "full_reference": "Boucher RC (2004) New concepts of the pathogenesis of cystic fibrosis lung disease. Eur Resp J 23: 146–158.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1183/09031936.03.00057003"
+   },
+   "why": "Style 'Author AB (Year) Title. Journal Vol: pages': the title must be cut off the journal name, en-dash page ranges, surname + initials. Simple Text Query finds all 7."
+  },
+  {
+   "id": "crossref-sample-2",
+   "source": "CrossRef's Simple Text Query sample",
+   "full_reference": "Knowles MR, Boucher RC (2002) Mucus clearance as a primary innate defense mechanism for mammalian airways. J Clin Investig 109: 571–577.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1172/jci0215217"
+   },
+   "why": "Style 'Author AB (Year) Title. Journal Vol: pages': the title must be cut off the journal name, en-dash page ranges, surname + initials. Simple Text Query finds all 7."
+  },
+  {
+   "id": "crossref-sample-3",
+   "source": "CrossRef's Simple Text Query sample",
+   "full_reference": "Antunes MB, Cohen NA (2007) Mucociliary clearance - a critical upper airway host defense mechanism and methods of assessment. Curr Opin Allergy Clin Immunol 7: 5–10.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1097/aci.0b013e3280114eef"
+   },
+   "why": "Style 'Author AB (Year) Title. Journal Vol: pages': the title must be cut off the journal name, en-dash page ranges, surname + initials. Simple Text Query finds all 7."
+  },
+  {
+   "id": "crossref-sample-4",
+   "source": "CrossRef's Simple Text Query sample",
+   "full_reference": "Riordan JR, Rommens JM, Kerem BS, Alon N, Rozmahel R, et al. (1989) Identification of the Cystic-Fibrosis Gene - Cloning and Characterization of Complementary-Dna. Science 245: 1066–1072.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1126/science.2475911"
+   },
+   "why": "Style 'Author AB (Year) Title. Journal Vol: pages': the title must be cut off the journal name, en-dash page ranges, surname + initials. Simple Text Query finds all 7."
+  },
+  {
+   "id": "crossref-sample-5",
+   "source": "CrossRef's Simple Text Query sample",
+   "full_reference": "Rommens JM, Iannuzzi MC, Kerem BS, Drumm ML, Melmer G, et al. (1989) Identification of the Cystic-Fibrosis Gene - Chromosome Walking and Jumping. Science 245: 1059–1065.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1126/science.2772657"
+   },
+   "why": "Style 'Author AB (Year) Title. Journal Vol: pages': the title must be cut off the journal name, en-dash page ranges, surname + initials. Simple Text Query finds all 7."
+  },
+  {
+   "id": "crossref-sample-6",
+   "source": "CrossRef's Simple Text Query sample",
+   "full_reference": "Bobadilla JL, Macek M, Fine JP, Farrell PM (2002) Cystic fibrosis: A worldwide analysis of CFTR mutations - Correlation with incidence data and application to screening. Human Mutation 19: 575–606.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1002/humu.10041"
+   },
+   "why": "Style 'Author AB (Year) Title. Journal Vol: pages': the title must be cut off the journal name, en-dash page ranges, surname + initials. Simple Text Query finds all 7."
+  },
+  {
+   "id": "crossref-sample-7",
+   "source": "CrossRef's Simple Text Query sample",
+   "full_reference": "Qu BH, Thomas PJ (1996) Alteration of the cystic fibrosis transmembrane conductance regulator folding pathway - Effects of the Delta F508 mutation on the thermodynamic stability and folding yield of NBD1. J Biol Chem 271: 7261–7264.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1074/jbc.271.13.7261"
+   },
+   "why": "Style 'Author AB (Year) Title. Journal Vol: pages': the title must be cut off the journal name, en-dash page ranges, surname + initials. Simple Text Query finds all 7."
+  },
+  {
+   "id": "fishbase-aaab1b3e",
+   "source": "FishBase (data manager)",
+   "full_reference": "Eknath, A.E., M.M. Tayamen, M.S.P. de Vera, J.C. Danting, R.A. Reyes, E.E. Dionisio, J.B. Capili, H.L. Bolivar, T.A. Abella, A.V. Circa, H.B. Bentsen, B. Gjerde, T. Gjedrem and R.S.V. Pullin0 Genetic improvement of farmed tilapias: the growth performance of eight strains of Oreochromis niloticus tested in different farm environments. Aquaculture 111:171-188. (Ref. 1725)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1016/0044-8486(93)90035-w",
+    "parsed_year": "",
+    "text_changes_contains": "(Ref. 1725)"
+   },
+   "why": "'(Ref. 1725)' was read as the year, so CrossRef was searched in 1724-1726. The reference number is removed before the search."
+  },
+  {
+   "id": "fishbase-f906fbab",
+   "source": "FishBase (data manager)",
+   "full_reference": "Boulenger, G.A.0 Descriptions of three new African cichlid fishes of the genus Tilapia, preserved in the British Museum. Ann. Mag. Nat. Hist. (Ser. 8) 10:138-140. (Ref. 1887)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1080/00222931208693206",
+    "parsed_year": ""
+   },
+   "why": "'(Ref. 1887)' was read as the year."
+  },
+  {
+   "id": "fishbase-b516f996",
+   "source": "FishBase (data manager)",
+   "full_reference": "Verheyen, E., R. Blust and C. Doumen0 The oxygen uptake of Sarotherodon niloticus L. and the oxygen binding properties of its blood and hemolysate (Pisces: Cichlidae). Comp. Biochem. Physiol. 81A:423-426. (Ref. 2652)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1016/0300-9629(85)90158-6",
+    "parsed_volume": "81A"
+   },
+   "why": "Volume '81A' (volume 81 of Part A) couldn't be read."
+  },
+  {
+   "id": "fishbase-c377d5c7",
+   "source": "FishBase (data manager)",
+   "full_reference": "Boulenger, G.A.0 Fourth contribution to the ichthyology of Lake Tanganyika. Report on the collection of fishes made by Dr. W.A. Cunnington during the Third Tanganyika Expedition, 1904-1905. Trans. Zool. Soc. Lond. 17(6):537-600. (Ref. 1872)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1111/j.1469-7998.1906.tb07891.x",
+    "parsed_year": "",
+    "note_contains": "10.1111/j.1096-3642.1905.tb00037.x"
+   },
+   "why": "'1904-1905' in the title was read as the year. CrossRef has two records for this article: the note must name the other one."
+  },
+  {
+   "id": "fishbase-c377d5c7-author",
+   "source": "FishBase (data manager)",
+   "full_reference": "Boulenger, G.A.0 Fourth contribution to the ichthyology of Lake Tanganyika. Report on the collection of fishes made by Dr. W.A. Cunnington during the Third Tanganyika Expedition, 1904-1905. Trans. Zool. Soc. Lond. 17(6):537-600. (Ref. 1872)",
+   "expect": {
+    "status": "possible",
+    "checks_contains": "author=nearly (Boulesger)",
+    "note_contains": "spelled slightly differently",
+    "requires": "author_title_checks"
+   },
+   "why": "CrossRef's record has the author 'Boulesger' (a scanning error): the author check must call it a near match and say so in the note."
+  },
+  {
+   "id": "fishbase-e70e47d3",
+   "source": "FishBase (data manager)",
+   "full_reference": "Rana, K.0 Reproductive biology and the hatchery rearing of tilapia eggs and fry. p. 343-397. In J.F. Muir and R.J. Roberts (eds.) Recent advances in aquaculture. Timber Press, Oregon. 420 p. (Ref. 175)",
+   "expect": {
+    "status": "not found"
+   },
+   "why": "A book chapter: books can't be confirmed yet (known limit). If books are supported later, this becomes 'possible' with 10.1007/978-94-011-9743-4_5: update this case."
+  },
+  {
+   "id": "fishbase-90d61b6e",
+   "source": "FishBase (chickens)",
+   "full_reference": "King, R.P.0 Growth performance of Nigerian fish stocks. Naga, ICLARM Q. 20(2):31-35. (Ref. 26112)",
+   "expect": {
+    "status": "not found",
+    "note_contains": "another work",
+    "requires": "author_title_checks"
+   },
+   "why": "Volume and page match a paper on chickens by Ibe; the authors differ and the title agrees 22%: both checks say it's another work."
+  },
+  {
+   "id": "fishbase-2b15c84e",
+   "source": "FishBase (false alarm)",
+   "full_reference": "Cui, J., X. Ren and Q. Yu0 Nuclear DNA content variation in fishes. Cytologia 56:425-429. (Ref. 12384)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1508/cytologia.56.425"
+   },
+   "why": "CrossRef has the authors' given names where the surnames belong, so the author check says 'differs'; the title agrees 100%, so it must stay 'possible'."
+  },
+  {
+   "id": "fishbase-c1491358",
+   "source": "FishBase",
+   "full_reference": "Zardoya, R., D.M. Vollmer, C. Craddock, J.T. Streelman, S. Karl and A. Meyer0 Evolutionary conservation of microsatellite flanking regions and their use in resolving the phylogeny of cichlid fishes (Pisces: Perciformes). Proc. R. Soc. Lond., Ser. B: Biol. Sci. 263:1589-1598. (Ref. 12791)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1098/rspb.1996.0233"
+   },
+   "why": "Found after the '(Ref. N)' removal."
+  },
+  {
+   "id": "fishbase-41acb38c",
+   "source": "FishBase",
+   "full_reference": "Worthington, E.B. and C.K. Ricardo0 Scientific results of the Cambridge Expedition to the east African lakes, 1930-1. No. 15. The fish of Lake Rudolf and Lake Baringo. J. Linn. Soc. (Zool.) 39(267):353-389. (Ref. 43507)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1111/j.1096-3642.1936.tb00472.x"
+   },
+   "why": "'1930-1' in the title; found after the fixes."
+  },
+  {
+   "id": "fishbase-0ba684d9",
+   "source": "FishBase (registered twice)",
+   "full_reference": "Pouyaud, L. and J.-F. Agnèse0 Phylogenetic relationships between 21 species of three tilapiine genera Tilapia, Sarotherodon and Oreochromis using allozyme data. J. Fish Biol. 47(1):26-38. (Ref. 9932)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1111/j.1095-8649.1995.tb01870.x",
+    "note_contains": "10.1006/jfbi.1995.0108"
+   },
+   "why": "The same article is in CrossRef under Wiley and Academic Press: the note must name the other DOI."
+  },
+  {
+   "id": "reference-c9554f19",
+   "source": "reference.tab",
+   "full_reference": "1998. Brittonia,50(1): 59,1998.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/2807718",
+    "parsed_author": ""
+   },
+   "why": "TraitBank style. '1998.' is a year, not a list number, so no author is read (once 'Brittonia' was taken as the author)."
+  },
+  {
+   "id": "reference-bae9cc99",
+   "source": "reference.tab",
+   "full_reference": "1981. Acta Amazonica,11: 852,1981.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1590/1809-43921981114852",
+    "parsed_author": ""
+   },
+   "why": "As above: no author in this citation."
+  },
+  {
+   "id": "reference-cbb36d2d",
+   "source": "reference.tab (registered twice)",
+   "full_reference": "Pirani, J.R.. 1999. Bot. J. Linn. Soc.,129(4): 306,1999.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1006/bojl.1998.0212",
+    "note_contains": "10.1111/j.1095-8339.1999.tb00506.x"
+   },
+   "why": "Bot. J. Linn. Soc. is in CrossRef under Academic Press and Wiley: the note must name the other DOI."
+  },
+  {
+   "id": "reference-e1041e7a",
+   "source": "reference.tab",
+   "full_reference": "Saint-Hilaire, A. & Tulasne. 1842. Ann. Sci. Nat., Bot.,ser. 2, 17: 138,1842.",
+   "expect": {
+    "status": "not found"
+   },
+   "why": "CrossRef's first candidate is in The Lancet: it must be rejected."
+  },
+  {
+   "id": "reference-4402cff0",
+   "source": "reference.tab",
+   "full_reference": "1933. Mem. Torrey Bot. Club,60: 356,1933.",
+   "expect": {
+    "status": "not found"
+   },
+   "why": "'Mem. Torrey Bot. Club' is not the 'Bulletin of the Torrey Botanical Club': a different series must be rejected."
+  }
+ ]
+}

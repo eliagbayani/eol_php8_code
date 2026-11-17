@@ -47,21 +47,7 @@ class AnalyzeMoF_API
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
-    {   /* old implementation
-        require_library('connectors/EOLterms_ymlAPI');
-        $func = new EOLterms_ymlAPI($this->resource_id, $this->archive_builder);
-        $arr = $func->use_yaml_parse_and_oldOrig(); //print_r($arr);
-        foreach($arr['terms'] as $r) {
-            if($r['type'] == 'value') {
-                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_values[trim($r['uri'])] = '';       //list of URI values
-            }
-            elseif($r['type'] == 'measurement') {
-                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_measurements[trim($r['uri'])] = ''; //list of URI measurements
-            }
-            elseif($r['type'] == 'association') {
-                if(substr($r['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($r['uri'])] = ''; //list of URI associations
-            }
-        }*/
+    {
         require_library('connectors/ZenodoTraitBankAPI');
         require_library('connectors/ConvertNewModel_2DwCA');
         $func = new ConvertNewModel_2DwCA(false, array());

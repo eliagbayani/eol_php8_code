@@ -41,7 +41,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
        What they do: the first author's surname read from the citation is compared with CrossRef's authors, and CrossRef's title words with the citation.
          - they break ties between candidates whose numbers agree equally
          - a 'matched' candidate whose authors clearly differ becomes 'possible', with a note
-         - they never turn a candidate into 'not found': CrossRef's author and title data for old works is often incomplete or garbled */
+         - only when BOTH disagree (the authors differ and under 30% of CrossRef's title is in the citation) is a candidate 'not found':
+           one alone is never enough, as CrossRef's author and title data for old works is often incomplete or garbled */
     const AUTHOR_TITLE_CHECKS = true;
     const MAX_AUTHOR_LOOKUPS = 3; // per row: CrossRef's search answer has no authors, so each candidate that passes the checks costs one call (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
@@ -171,6 +172,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                     $c['checks'] = array_merge($c['checks'], $a['checks']);
                     $author_score = $a['score']; $item['_authors'] = is_array($authors) ? implode('; ', $authors) : '';
                     if($a['differs'] && $c['status'] == 'matched') $c['status'] = 'possible'; // the numbers agree but the authors don't: a person checks it
+                    // both disagree -- the authors differ AND under 30% of CrossRef's title is in the citation -- so it's another work: not found.
+                    // e.g. "King, R.P. Growth performance of Nigerian fish stocks. Naga 20(2):31-35" vs a paper on chickens by Ibe, vol. 20 p. 25-31.
+                    // One alone is never enough: CrossRef's names can be garbled (given names as surnames), and many citations have no title.
+                    $share = self::title_share($full_reference, (string) @$item['title'][0]);
+                    if($a['differs'] && $share !== null && $share < 0.3) { $c['status'] = 'not found'; $c['why'] = 'author and title'; }
                 }
             }
             $key = array($rank[$c['status']], $c['agree'], $author_score, $title_share, -$i);
@@ -503,6 +509,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             case 'issue':         $n = "CrossRef's top 5 candidates include \"{$row['crossref_journal']}\" volume {$ref['volume']}, but none from issue {$ref['issue']} with this page."; break;
             case 'year':          $n = "CrossRef's closest candidate is from a different year."; break;
             case 'page':          $n = "$agree, but $cited isn't in the article's pages ({$row['crossref_page']}): the article cited may not be in CrossRef."; break;
+            case 'author and title': // AUTHOR/TITLE
+                $n = "$agree, but it's another work: the authors differ (the citation has \"{$ref['author']}\", CrossRef has \"{$row['crossref_authors']}\")"
+                   . " and CrossRef's title isn't in the citation."; break;
             default:              $n = "No CrossRef record agrees with this citation.";
         }
         return $n . $closest . $this->note_old_work($ref);
@@ -552,8 +561,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     title=OK / partly / not in citation (with the share of CrossRef's title words found in the citation) / unknown.
   - They break ties between candidates whose journal, volume, year and page agree equally.
   - A candidate whose numbers all agree but whose authors clearly differ is 'possible', not 'matched', with a note.
-  - They never reject a candidate on their own: CrossRef's author and title data for old works is often incomplete or
-    garbled, and many citations have no title. 'title=not in citation' is not a warning by itself.
+  - Only when BOTH disagree -- the authors differ AND under 30% of CrossRef's title is in the citation -- is a candidate
+    rejected ('not found'), e.g. a fish paper whose volume and page happen to match a paper on chickens. One alone is never
+    enough: CrossRef's author and title data for old works is often incomplete or garbled, and many citations have no
+    title. 'title=not in citation' is not a warning by itself.
   - The authors cost one CrossRef call for each candidate that passes the other checks (at most " . self::MAX_AUTHOR_LOOKUPS . " a row, cached),
     so a search can take a little longer than its estimate.
 "

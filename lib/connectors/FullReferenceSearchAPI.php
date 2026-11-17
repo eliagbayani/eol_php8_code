@@ -22,7 +22,7 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class FullReferenceSearchAPI extends GenerateTB_Files_Functions
 {
-    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'status', 'DOI', 'review_note',
+    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'text_changes', 'status', 'DOI', 'review_note',
                                  'parsed_year', 'parsed_journal', 'parsed_volume', 'parsed_issue', 'parsed_page',
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'checks');
@@ -82,6 +82,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         echo "\nInput: [$file]\nOutput: [$out_file]\nRows: from " . $start . ($limit ? ", at most $limit" : ', to the end') . "\n";
         $this->keep_latest_reports(); // here, not at the end, so stopped searches are counted too; the new report is one of the 20
         $counts = array('matched' => 0, 'possible' => 0, 'not found' => 0, 'skipped' => 0, 'error' => 0);
+        $changed = array_fill_keys(array_keys(self::TEXT_CHANGES), 0); // rows changed by each pre-processing rule, for the guide
         $time = time(); $row_no = 0; $done = 0;
         while(($line = fgets($in)) !== false) {
             $line = rtrim($line, "\r\n");
@@ -90,23 +91,24 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($row_no < $start) continue;
             if($limit && $done >= $limit) break;
             $f = explode("\t", $line);
-            $identifier = (string) ($f[$col_id] ?? ''); $full_reference = trim((string) ($f[$col_ref] ?? ''));
+            $identifier = (string) ($f[$col_id] ?? ''); $full_reference = (string) ($f[$col_ref] ?? ''); // as in the input file; find_DOI() cleans it
             $r = $this->find_DOI($full_reference);
             if($r['status'] == 'stop') { $stopped_at = $row_no; break; }
             $counts[$r['status']]++; $done++;
+            foreach($r['change_codes'] as $code) $changed[$code]++;
             $row = array_merge(array('identifier' => $identifier, 'full_reference' => $full_reference), $r);
             fwrite($out, implode("\t", array_map(fn($c) => str_replace(array("\t", "\r", "\n"), ' ', (string) ($row[$c] ?? '')), self::OUTPUT_COLUMNS)) . "\n");
             if($done % self::PROGRESS_EVERY == 0) { fflush($out); echo "  $done rows done (row $row_no): " . self::counts_str($counts) . "\n"; }
         }
         fclose($in); fclose($out);
         if(isset($stopped_at)) { // CrossRef kept answering 429/503: stop politely; the report keeps the rows done so far
-            $guide = $this->write_guide($out_file, $file, $start, $stopped_at - 1, $done, $counts);
+            $guide = $this->write_guide($out_file, $file, $start, $stopped_at - 1, $done, $counts, $changed);
             echo "\nERROR: CrossRef kept asking us to slow down (HTTP 429/503, " . self::THROTTLE_LIMIT . " times in a row), so the search stopped at row $stopped_at"
                . " after $done rows (" . self::counts_str($counts) . ").\nReport (the rows done so far): [$out_file]\nGuide for the Data Managers: [$guide]\n"
                . "To go on later, run again with \"start\": $stopped_at (and the same file).\n";
             return array('file' => $out_file, 'guide' => $guide, 'counts' => $counts, 'stopped_at' => $stopped_at);
         }
-        $guide = $this->write_guide($out_file, $file, $start, $row_no, $done, $counts);
+        $guide = $this->write_guide($out_file, $file, $start, $row_no, $done, $counts, $changed);
         echo "\nDone: $done rows in " . gmdate("H:i:s", time() - $time) . " -- " . self::counts_str($counts) . "\nReport: [$out_file]\nGuide for the Data Managers: [$guide]\n";
         return array('file' => $out_file, 'guide' => $guide, 'counts' => $counts);
     }
@@ -129,15 +131,17 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     function find_DOI($full_reference)
     {   // Searches CrossRef for one full_reference and checks its candidates. Returns the OUTPUT_COLUMNS from 'searched_text' on.
-        $full_reference = self::clean_full_reference($full_reference); // what is searched and read; the report keeps the original full_reference too
+        $full_reference = self::clean_full_reference($full_reference, $changes); // what is searched and read; the report keeps the original full_reference too
         $ref = $this->parse_full_reference($full_reference);
         $row = array_fill_keys(array_slice(self::OUTPUT_COLUMNS, 2), '');
         $row['searched_text'] = $full_reference;
+        $row['text_changes'] = implode('; ', $changes);   // every change made before the search, in plain words; empty = none
+        $row['change_codes'] = array_keys($changes);      // not a column: counted for the guide
         foreach(array('year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
         $items = $this->search_crossref($full_reference, $ref['year']);
-        if($items === 'stop') return array('status' => 'stop'); // CrossRef keeps asking us to slow down: the search stops before this row
+        if($items === 'stop') return array('status' => 'stop', 'change_codes' => array()); // CrossRef keeps asking us to slow down: the search stops before this row
         if($items === false) return array_merge($row, array('status' => 'error', 'review_note' => 'CrossRef could not be reached. Run again: this row will be searched again.'));
         if(!$items) return array_merge($row, array('status' => 'not found', 'review_note' => $this->note_no_candidates($ref)));
 
@@ -158,15 +162,27 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['review_note'] = $this->review_note($ref, $row, $c);
         return $row;
     }
-    static function clean_full_reference($s)
-    {   /* Removes what only confuses CrossRef, before the search (the report keeps the original full_reference):
+    // every pre-processing rule of clean_full_reference(): its code => what the guide says about it
+    const TEXT_CHANGES = array(
+        'spaces' => "Spaces at the start or end of the full_reference were removed.",
+        'ref_n'  => "A FishBase reference number at the very end, e.g. '(Ref. 3)', was removed. It is FishBase's own number, not part of the citation, and can mislead CrossRef.",
+        'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine'. The year itself is missing in these citations, so the year couldn't be checked.");
+    static function clean_full_reference($s, &$changes = null)
+    {   /* $changes: code => the change in plain words, for this text (empty: nothing was changed). Every rule is in TEXT_CHANGES.
+           Removes what only confuses CrossRef, before the search (the report keeps the original full_reference):
              - a FishBase reference number at the end, e.g. "... ICLARM Conf. Proc. 7. (Ref. 3)" -> "... ICLARM Conf. Proc. 7."
              - a FishBase "0" glued to the authors where the year should be (the year is lost), e.g.
                "Trewavas, E.0 Tilapiine fishes ..." -> "Trewavas, E. Tilapiine fishes ...", "J.-C. Ruwet0 Ecology ..." -> "J.-C. Ruwet. Ecology ..."
                only the first one, and only a lone 0 right after a letter or a dot and right before a capital letter */
-        $s = preg_replace('/\s*\(Ref\.\s*\d+\)\s*$/u', '', (string) $s);
-        $s = preg_replace_callback('/([\p{L}.])0(?=\s+\p{Lu})/u', fn($m) => $m[1] === '.' ? '.' : $m[1] . '.', $s, 1); // "E.0 " -> "E. ", "Ruwet0 " -> "Ruwet. "
-        return trim($s); // nothing else changes, so every other full_reference keeps its cached CrossRef answer
+        $changes = array(); $s = (string) $s;
+        if(($t = trim($s)) !== $s) { $changes['spaces'] = "removed spaces at the start or end"; $s = $t; }
+        if(preg_match('/\s*(\(Ref\.\s*\d+\))\s*$/u', $s, $m)) { $changes['ref_n'] = "removed '" . $m[1] . "' at the end"; $s = rtrim(substr($s, 0, -strlen($m[0]))); }
+        if(preg_match('/(\S*[\p{L}.])0(?=\s+\p{Lu})/u', $s, $m, PREG_OFFSET_CAPTURE)) { // only the first one: "E.0 " -> "E. ", "Ruwet0 " -> "Ruwet. "
+            $word = $m[1][0]; $fixed = str_ends_with($word, '.') ? $word : $word . '.';
+            $changes['zero'] = "removed a stray '0' after the authors ('" . $word . "0' -> '" . $fixed . "')";
+            $s = substr($s, 0, $m[0][1]) . $fixed . substr($s, $m[0][1] + strlen($m[0][0]));
+        }
+        return $s; // nothing else changes, so every other full_reference keeps its cached CrossRef answer
     }
     function parse_full_reference($s)
     {   /* Reads the year, journal, volume, issue and page(s) from a full_reference, e.g.
@@ -381,10 +397,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         preg_match_all('/[a-z]{3,}/', $s, $m);
         return array_values(array_diff(array_unique($m[0]), array('the', 'and', 'ser', 'des', 'der', 'del', 'for', 'von', 'und', 'zur', 'van')));
     }
-    private function write_guide($out_file, $in_file, $start, $last_row, $done, $counts)
+    private function write_guide($out_file, $in_file, $start, $last_row, $done, $counts, $changed)
     {   // a plain-text guide next to the report, for the Data Managers
         $guide = preg_replace('/\.tsv$/', '_guide.txt', $out_file);
         $c = $counts;
+        $prep = '';
+        foreach(self::TEXT_CHANGES as $code => $what) $prep .= str_pad(number_format($changed[$code] ?? 0), 9, ' ', STR_PAD_LEFT) . " row(s): " . wordwrap($what, 100, "\n                   ") . "\n";
         $txt = "DOIs found in CrossRef for references with only a full_reference -- guide for the Data Managers
 =============================================================================================
 Report : " . basename($out_file) . "
@@ -398,10 +416,15 @@ RESULT
   skipped   : {$c['skipped']}
   error     : {$c['error']}
 
+BEFORE THE SEARCH (pre-processing)
+  Some full_reference texts were cleaned before they were sent to CrossRef. The full_reference column keeps the text
+  exactly as in the input file; searched_text shows what was sent; text_changes says what was changed in that row
+  (empty = nothing). These are the only changes made; nothing else in the text is touched.
+$prep
 HOW IT WAS DONE
-  Each full_reference was searched in CrossRef (the same free-text search as https://apps.crossref.org/SimpleTextQuery),
-  limited to the cited year and the years next to it. CrossRef always returns candidates, even wrong ones, so each of its
-  top 5 candidates was checked against what could be read from the citation: year, journal, volume, issue and page.
+  Each full_reference (as in searched_text) was searched in CrossRef (the same free-text search as
+  https://apps.crossref.org/SimpleTextQuery), limited to the cited year and the years next to it. CrossRef always
+  returns candidates, even wrong ones, so each of its top 5 candidates was checked against what could be read from the citation: year, journal, volume, issue and page.
   The parsed_* columns show what was read; the crossref_* columns show the candidate; 'checks' lists each comparison.
 
 WHAT TO DO WITH EACH STATUS
@@ -433,8 +456,8 @@ GOOD TO KNOW
 
 COLUMNS
   identifier, full_reference : from the input file
-  searched_text              : what was sent to CrossRef: the full_reference without a FishBase '(Ref. N)' at the end
-                               or a stray '0' after the authors (the same text when there was nothing to remove)
+  searched_text              : what was sent to CrossRef, after the pre-processing above (the same text when nothing was changed)
+  text_changes               : what the pre-processing changed in this row, e.g. removed '(Ref. 3)' at the end; empty = nothing
   status, DOI                : the result; DOI only for matched and possible
   review_note                : what was found, in plain words
   parsed_*                   : year, journal, volume, issue and page read from the full_reference

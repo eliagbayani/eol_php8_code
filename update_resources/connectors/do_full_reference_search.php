@@ -8,7 +8,8 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
 php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", "file": "/path/reference.tab", "start": 1001}'   //from data row 1001 on
     - "file": a TSV whose header has 'identifier' and 'full_reference' (other columns are ignored). Path as the container sees it.
     - Report: Reference_maintenance/<file name>_DOIs_<YYYYmmdd_HHMMSS>.tsv, written row by row:
-      identifier, full_reference, searched_text (what was sent to CrossRef: without a FishBase "(Ref. N)" at the end or a stray "0" after the authors), status, DOI, review_note, parsed_* (what was read from the citation), crossref_* (the candidate), checks
+      identifier, full_reference, searched_text (what was sent to CrossRef: without a FishBase "(Ref. N)" at the end or a stray "0" after the authors),
+      text_changes (what that pre-processing changed in the row, in plain words; empty = nothing; the guide counts each kind), status, DOI, review_note, parsed_* (what was read from the citation), crossref_* (the candidate), checks
       plus <same name>_guide.txt: the results and how to review them, for the Data Managers.
       Only the newest 20 reports (with their guides) are kept; older ones are deleted when a search starts.
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)

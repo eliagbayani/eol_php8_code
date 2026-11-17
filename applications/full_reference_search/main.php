@@ -249,6 +249,10 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
     .dots span:nth-child(2) { animation-delay: 0.2s; }
     .dots span:nth-child(3) { animation-delay: 0.4s; }
     @keyframes hop { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+    /* the "Search running..." title: the busy blue of the Running jobs box, dots included (they hop without fading to gray) */
+    #last-search.running > summary { color: #0047c7; }
+    @media (prefers-reduced-motion: no-preference) { #last-search.running > summary .dots span { animation-name: hop-solid; } } /* they stay still when motion is reduced */
+    @keyframes hop-solid { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
     @media (prefers-reduced-motion: reduce) { .dots span { animation: none; opacity: 1; } }
     .notice { border: 1px solid #e0a0a0; background: #fff3f3; padding: 8px 10px; margin: 8px 0; }
     .todo { color: #c05000; } /* something waiting for the user, e.g. "Not started yet: click [Proceed]" */
@@ -398,7 +402,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         $title = $running ? "Search running" : ($pending ? "Previous search" : "Last search");
         if($stopped) $title .= " (stopped)"; elseif($ended) $title .= " (ended early)"; ?>
     <?php // hidden by default; open while a search runs, and when one has just ended (its banner is showing: closed again in the script below once the banner is dismissed) ?>
-    <tr><td><details class="reports" id="last-search"<?php if($running || $banner) echo " open" ?>><summary><b><?php echo $title ?></b><?php if($running) echo "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>" ?></summary>
+    <tr><td><details class="reports<?php if($running) echo ' running' ?>" id="last-search"<?php if($running || $banner) echo " open" ?>><summary><b><?php echo $title ?></b><?php if($running) echo "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>" ?></summary>
         <table class="params last">
             <tr><td>File:</td><td colspan="2"><?php echo v($state['name']) ?> (<?php echo v(number_format($state['rows'])) ?> rows; limit <?php echo v($state['limit'] !== '' ? $state['limit'] : 'none') ?>, start <?php echo v($state['start'] !== '' ? $state['start'] : '1') ?>)</td></tr>
             <tr><td>Started:</td><td colspan="2"><?php echo v($state['started']) ?><?php if(!empty($state['stopped'])) echo " &mdash; <span class='bad'>stopped " . h($state['stopped']) . "</span>" ?></td></tr>

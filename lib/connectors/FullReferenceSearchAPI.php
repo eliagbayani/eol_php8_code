@@ -191,9 +191,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
              "Bartoli, A. ... 1999. Revisión ... (Asteraceae: Astereae).,Kurtziana 27(3):327-359.,1999." -> 1999, Kurtziana, 27, 3, 327-359
            Anything it can't read is left blank, and that check is skipped. */
         $ref = array('year' => '', 'journal' => '', 'volume' => '', 'issue' => '', 'page' => '', 'page_end' => '');
-        if(preg_match('/\b(1[5-9]\d\d|20\d\d)\b/', $s, $m, PREG_OFFSET_CAPTURE)) { $ref['year'] = $m[1][0]; $year_end = $m[1][1] + 4; }
-        // the last "VOLUME[(ISSUE)]: PAGE[-PAGE]", e.g. "50(1): 59", "17: 138", "27(3):327-359"
-        if(preg_match_all('/(?<![\w.])(\d{1,4})\s*(?:\(([^()]{1,20})\))?\s*:\s*(\d{1,5})(?:\s*-\s*(\d{1,5}))?/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        // the year: the first one that isn't part of a range, e.g. not "1904" in "the Third Tanganyika Expedition, 1904-1905" (a range isn't a publication year)
+        if(preg_match_all('/\b(1[5-9]\d\d|20\d\d)\b/', $s, $years, PREG_OFFSET_CAPTURE)) foreach($years[1] as $y) {
+            if(preg_match('/\d\s*(?:-|\x{2013})\s*$/u', substr($s, 0, $y[1])) || preg_match('/^\s*(?:-|\x{2013})\s*\d/u', substr($s, $y[1] + 4))) continue;
+            $ref['year'] = $y[0]; $year_end = $y[1] + 4; break;
+        }
+        // the last "VOLUME[(ISSUE)]: PAGE[-PAGE]", e.g. "50(1): 59", "17: 138", "27(3):327-359", "81A:423-426" (volume 81 of Part A)
+        if(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*:\s*(\d{1,5})(?:\s*-\s*(\d{1,5}))?/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
             $m = end($all);
             $ref['volume'] = $m[1][0]; $ref['issue'] = trim((string) @$m[2][0]); $ref['page'] = $m[3][0]; $ref['page_end'] = (string) @$m[4][0];
             if($ref['volume'] === $ref['year']) $ref['volume'] = ''; // e.g. "Mem. Math. Phys. Inst. Par.,1811: 82" -> the year, not a volume
@@ -320,7 +324,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // volume
         $num = fn($v) => ltrim(trim((string) $v), '0');
         if($ref['volume'] !== '') {
-            if($num($ref['volume']) === $num(@$item['volume'])) $checks[] = 'volume=OK';
+            if(strtoupper($num($ref['volume'])) === strtoupper($num(@$item['volume']))) $checks[] = 'volume=OK';
+            // "81A" = volume 81 of "Part A": CrossRef often has volume "81" and the part in the journal title, e.g. "Comparative Biochemistry and Physiology Part A: Physiology"
+            elseif(preg_match('/^(\d+)([A-Z])$/', $num($ref['volume']), $vl) && $vl[1] === $num(@$item['volume'])
+                   && preg_match('/\bPart\s+' . $vl[2] . '\b/i', (string) @$item['container-title'][0])) $checks[] = 'volume=OK';
             else $fail('volume=differs', 'volume');
         }
         else $fail('volume=unknown', 'no volume'); // without a volume, a candidate can't be confirmed
@@ -363,18 +370,22 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $cand = "\"" . $row['crossref_journal'] . "\" " . $row['crossref_volume'] . ($row['crossref_issue'] !== '' ? "(" . $row['crossref_issue'] . ")" : '')
               . ($row['crossref_page'] !== '' ? ": " . $row['crossref_page'] : '') . " (" . $row['crossref_year'] . ")";
         $cited = "page " . $ref['page'];
+        $agree = $this->agreed_text($c['checks']); // e.g. "Journal, volume and year agree": only what was really compared and agreed
+        $unchecked = $this->unchecked_text($ref, $c['checks']); // e.g. " The year couldn't be checked: no year could be read from the citation."
         $year_note = in_array('year=next to it', $c['checks']) ? " The cited year ({$ref['year']}) is one off CrossRef's ({$row['crossref_year']}), which is common (cover date vs. publication date)." : '';
         if($c['status'] == 'matched') {
-            return "Journal, volume, year and page agree: $cited is in $cand, \"" . mb_substr($row['crossref_title'], 0, 120) . "\"." . $year_note
+            return "$agree, and $cited is in $cand, \"" . mb_substr($row['crossref_title'], 0, 120) . "\"." . $year_note . $unchecked
                  . " Accept, unless the article clearly isn't the one cited.";
         }
         if($c['status'] == 'possible') {
             $checks = implode(' ', $c['checks']);
-            if(str_contains($checks, 'end unknown'))   $n = "Journal, volume and year agree, but CrossRef gives only the first page ({$row['crossref_page']}), not the last. Check that the article runs to $cited.";
-            elseif($ref['page'] === '')               $n = "Journal, volume and year agree, but no page could be read from the citation. Check that this is the article cited.";
-            else                                      $n = "Journal, volume and year agree, but CrossRef has no page numbers for this article. Check that it contains $cited.";
-            if(in_array('journal=unknown', $c['checks'])) $n = str_replace('Journal, volume', 'Volume', $n) . " The journal name couldn't be compared: check it is \"{$row['crossref_journal']}\".";
-            return $n . " Candidate: $cand, \"" . mb_substr($row['crossref_title'], 0, 120) . "\"." . $year_note;
+            if(str_contains($checks, 'end unknown'))   $n = "$agree, but CrossRef gives only the first page ({$row['crossref_page']}), not the last. Check that the article runs to $cited.";
+            elseif($ref['page'] === '')               $n = "$agree, but no page could be read from the citation. Check that this is the article cited.";
+            elseif(str_contains($checks, 'page=first page') || str_contains($checks, 'page=in ')) $n = "$agree, and $cited is in the article's pages ({$row['crossref_page']}).";
+            elseif($row['crossref_page'] === '')      $n = "$agree, but CrossRef has no page numbers for this article. Check that it contains $cited.";
+            else                                      $n = "$agree, but the page couldn't be confirmed (CrossRef gives \"{$row['crossref_page']}\"). Check that the article contains $cited.";
+            if(in_array('journal=unknown', $c['checks'])) $n .= " The journal name couldn't be compared: check it is \"{$row['crossref_journal']}\".";
+            return $n . $unchecked . " Candidate: $cand, \"" . mb_substr($row['crossref_title'], 0, 120) . "\"." . $year_note;
         }
         // not found: why the closest candidate was rejected
         $closest = " Closest CrossRef record: $cand, DOI " . $row['crossref_DOI'] . " -- not the one cited.";
@@ -385,10 +396,24 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             case 'volume':        $n = "CrossRef's top 5 candidates include \"{$row['crossref_journal']}\", but none from volume {$ref['volume']}."; break;
             case 'issue':         $n = "CrossRef's top 5 candidates include \"{$row['crossref_journal']}\" volume {$ref['volume']}, but none from issue {$ref['issue']} with this page."; break;
             case 'year':          $n = "CrossRef's closest candidate is from a different year."; break;
-            case 'page':          $n = "Journal, volume and year agree, but $cited isn't in the article's pages ({$row['crossref_page']}): the article cited may not be in CrossRef."; break;
+            case 'page':          $n = "$agree, but $cited isn't in the article's pages ({$row['crossref_page']}): the article cited may not be in CrossRef."; break;
             default:              $n = "No CrossRef record agrees with this citation.";
         }
         return $n . $closest . $this->note_old_work($ref);
+    }
+    private function agreed_text($checks)
+    {   // "Journal, volume and year agree", from the checks that really agreed (a year one off counts: the note says so)
+        $names = array();
+        foreach(array('journal', 'volume', 'issue', 'year') as $k)
+            if(in_array("$k=OK", $checks) || ($k == 'year' && in_array('year=next to it', $checks))) $names[] = $k;
+        if(!$names) return "Nothing could be compared";
+        $last = array_pop($names);
+        return ucfirst($names ? implode(', ', $names) . " and $last agree" : "$last agrees");
+    }
+    private function unchecked_text($ref, $checks)
+    {   // the year, when it couldn't be compared, so a note never implies it was checked
+        foreach($checks as $c) if(str_starts_with($c, 'year=')) return '';
+        return $ref['year'] === '' ? " The year couldn't be checked: no year could be read from the citation." : " The year couldn't be checked: CrossRef has no year for this record.";
     }
     private static function words($s)
     {   // lowercase words of 3+ letters, accents removed, e.g. "Ann. Missouri Bot. Gard." -> ann, missouri, bot, gard

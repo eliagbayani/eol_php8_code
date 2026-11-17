@@ -14,6 +14,10 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       Only the newest 20 reports (with their guides) are kept; older ones are deleted when a search starts.
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)
       DOI is filled only for matched and possible; review_note says what was found, in plain words.
+    - Author and title checks (on by default): the first author's surname and CrossRef's title words also count; they break ties, and a
+      'matched' row whose authors clearly differ becomes 'possible'. To turn them off for a run: add "author_title_checks": false, e.g.
+      php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", "file": "/path/reference.tab", "author_title_checks": false}'
+      (to turn them off for good, or remove them: see AUTHOR_TITLE_CHECKS in FullReferenceSearchAPI.php)
     - Changes nothing else. CrossRef answers are cached (never expire), so a re-run or a resumed run is instant for rows already searched.
     - CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub): our contact email, sent with every call as CrossRef asks ("polite pool").
     - Polite: one call at a time, a 1-second pause after each (about 3 seconds per new reference). On HTTP 429 (too many requests) or

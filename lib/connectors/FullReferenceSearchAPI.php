@@ -23,9 +23,9 @@ use \AllowDynamicProperties; //for PHP 8.2
 class FullReferenceSearchAPI extends GenerateTB_Files_Functions
 {
     const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'text_changes', 'status', 'DOI', 'DOI_URL', 'review_note',
-                                 'parsed_year', 'parsed_journal', 'parsed_volume', 'parsed_issue', 'parsed_page',
+                                 'parsed_author', 'parsed_year', 'parsed_journal', 'parsed_volume', 'parsed_issue', 'parsed_page',
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
-                                 'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'checks');
+                                 'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
     const PROGRESS_EVERY = 20; // a progress line ("N rows done ...") every this many rows; the web page reads it
     const PAUSE_SECONDS = 1;    // the pause after every CrossRef call (calls are one at a time); cached answers need no call and no pause
@@ -33,9 +33,21 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     const KEEP_REPORTS = 20;  // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
     const REPORT_RE = '/^[A-Za-z0-9._-]+_DOIs_(\d{8}_\d{6})\.tsv$/'; // e.g. reference_DOIs_20261114_013451.tsv; the time it was made sorts them
     // CrossRef record types that are a whole issue/volume/journal or a part of an article, not an article: never the answer
+    /* The author and title checks (added Nov 17, 2026), all in one place so they can be turned off, or removed, if the Data Managers say so:
+         - turn off for one run: "author_title_checks": false in the parameters
+         - turn off for good: set this constant to false
+         - remove: delete this constant, author_title_check(), crossref_authors(), the block marked AUTHOR/TITLE in find_DOI(), and the
+           AUTHOR/TITLE lines in review_note(), agreed_text() and write_guide(); the parsed_author and crossref_authors columns go too.
+       What they do: the first author's surname read from the citation is compared with CrossRef's authors, and CrossRef's title words with the citation.
+         - they break ties between candidates whose numbers agree equally
+         - a 'matched' candidate whose authors clearly differ becomes 'possible', with a note
+         - they never turn a candidate into 'not found': CrossRef's author and title data for old works is often incomplete or garbled */
+    const AUTHOR_TITLE_CHECKS = true;
+    const MAX_AUTHOR_LOOKUPS = 3; // per row: CrossRef's search answer has no authors, so each candidate that passes the checks costs one call (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
     function __construct($param) {
         $this->param = $param; print_r($param);
+        $this->author_title_checks = array_key_exists('author_title_checks', (array) $param) ? (bool) $param['author_title_checks'] : self::AUTHOR_TITLE_CHECKS;
         $this->work_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
         if(!is_dir($this->work_dir)) @mkdir($this->work_dir, 0777, true);
         // CrossRef's "polite pool" (twice the rate limit) needs an email: optional constant CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub).
@@ -137,7 +149,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['searched_text'] = $full_reference;
         $row['text_changes'] = implode('; ', $changes);   // every change made before the search, in plain words; empty = none
         $row['change_codes'] = array_keys($changes);      // not a column: counted for the guide
-        foreach(array('year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
+        foreach(array('author', 'year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
         $items = $this->search_crossref($full_reference, $ref['year']);
@@ -146,22 +158,91 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(!$items) return array_merge($row, array('status' => 'not found', 'review_note' => $this->note_no_candidates($ref)));
 
         // the best candidate: matched > possible > not found; then the most checks that agree; then CrossRef's order (best score first)
-        $rank = array('matched' => 2, 'possible' => 1, 'not found' => 0); $best = null;
+        $rank = array('matched' => 2, 'possible' => 1, 'not found' => 0); $best = null; $lookups = 0;
         foreach($items as $i => $item) {
             $c = $this->check_candidate($ref, $item);
-            $key = array($rank[$c['status']], $c['agree'], -$i);
-            if(!$best || $key > $best['key']) $best = array('key' => $key, 'c' => $c, 'item' => $item);
+            $author_score = 1; $title_share = 0; $item['_authors'] = '';
+            if($this->author_title_checks) { // AUTHOR/TITLE: only for candidates that pass the other checks; they never reject one
+                $title_share = (float) self::title_share($full_reference, (string) @$item['title'][0]);
+                if($c['status'] != 'not found') {
+                    $authors = ($ref['author'] !== '' && $lookups < self::MAX_AUTHOR_LOOKUPS) ? $this->crossref_authors((string) @$item['DOI'], $lookups) : null;
+                    if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
+                    $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
+                    $c['checks'] = array_merge($c['checks'], $a['checks']);
+                    $author_score = $a['score']; $item['_authors'] = is_array($authors) ? implode('; ', $authors) : '';
+                    if($a['differs'] && $c['status'] == 'matched') $c['status'] = 'possible'; // the numbers agree but the authors don't: a person checks it
+                }
+            }
+            $key = array($rank[$c['status']], $c['agree'], $author_score, $title_share, -$i);
+            if(!$best || $key > $best['key']) $best = array('key' => $key, 'c' => $c, 'item' => $item, 'i' => $i);
         }
         $c = $best['c']; $item = $best['item'];
+        $c['also'] = $c['status'] == 'not found' ? array() : $this->same_pages_elsewhere($item, $items, $best['i']); // the same work registered twice?
         $clean = fn($s) => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $s), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
         $row = array_merge($row, array('status' => $c['status'], 'DOI' => $c['status'] == 'not found' ? '' : (string) @$item['DOI'],
                      'crossref_DOI' => (string) @$item['DOI'], 'crossref_score' => round((float) @$item['score'], 1), 'crossref_type' => (string) @$item['type'],
                      'crossref_year' => self::item_year($item), 'crossref_journal' => $clean(@$item['container-title'][0]),
                      'crossref_volume' => $clean(@$item['volume']), 'crossref_issue' => $clean(@$item['issue']), 'crossref_page' => $clean(@$item['page']),
-                     'crossref_title' => $clean(@$item['title'][0]), 'checks' => implode(' ', $c['checks'])));
+                     'crossref_title' => $clean(@$item['title'][0]), 'crossref_authors' => $item['_authors'], 'checks' => implode(' ', $c['checks'])));
         $row['DOI_URL'] = self::doi_url($row['DOI']);
         $row['review_note'] = $this->review_note($ref, $row, $c);
         return $row;
+    }
+    private function crossref_authors($doi, &$lookups)
+    {   /* AUTHOR/TITLE: the authors' surnames of one CrossRef record (CrossRef's search answer doesn't include them): https://api.crossref.org/works/<DOI>,
+           politely and cached like the search. Returns a list (empty: CrossRef lists none), null (couldn't be read) or 'stop' (CrossRef asks us to slow down). */
+        if($doi === '') return null;
+        $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
+        if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options);
+        else { $lookups++; $json = $this->call_crossref($url); if($json === 'stop') return 'stop'; if($json === false) return null; }
+        $d = @json_decode((string) $json, true);
+        if(($d['status'] ?? '') !== 'ok') return null;
+        $names = array();
+        foreach((array) @$d['message']['author'] as $a) { $n = trim((string) ($a['family'] ?? $a['name'] ?? '')); if($n !== '') $names[] = $n; }
+        return $names;
+    }
+    private function author_title_check($surname, $authors, $citation, $title)
+    {   /* AUTHOR/TITLE: the checks to add, a score for ranking candidates (3 = the author agrees, 2 = nearly, 1 = can't tell, 0 = differs), and whether it differs.
+           The surname may be any of CrossRef's authors; accents and capitals don't count; up to 2 letters off counts as nearly (OCR slips, e.g. "Boulesger"). */
+        $r = array('checks' => array(), 'score' => 1, 'differs' => false);
+        $norm = function($x) { $x = mb_strtolower((string) $x); $t = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $x); return preg_replace('/[^a-z]/', '', $t !== false ? $t : $x); };
+        $sn = $norm($surname);
+        if($sn === '')                        $r['checks'][] = 'author=unknown (none read from the citation)';
+        elseif($authors === null)             $r['checks'][] = "author=unknown (CrossRef's authors couldn't be read)";
+        elseif(!$authors)                     $r['checks'][] = 'author=unknown (CrossRef lists no authors)';
+        else {
+            $near = '';
+            foreach($authors as $a) {
+                $an = $norm($a); if($an === '') continue;
+                if($an === $sn || (strlen($an) >= 4 && str_ends_with($sn, $an)) || (strlen($sn) >= 4 && str_ends_with($an, $sn))) { $r['checks'][] = 'author=OK'; $r['score'] = 3; $near = null; break; }
+                if(min(strlen($an), strlen($sn)) >= 5 && levenshtein($an, $sn) <= 2) $near = $a;
+            }
+            if($near) { $r['checks'][] = "author=nearly ($near)"; $r['score'] = 2; }
+            elseif($near === '') { $r['checks'][] = 'author=differs'; $r['score'] = 0; $r['differs'] = true; }
+        }
+        $share = self::title_share($citation, $title);
+        if($share === null) $r['checks'][] = 'title=unknown';
+        else $r['checks'][] = 'title=' . ($share >= 0.7 ? 'OK' : ($share >= 0.3 ? 'partly' : 'not in citation')) . ' (' . round(100 * $share) . '%)';
+        return $r;
+    }
+    private static function title_share($citation, $title)
+    {   // AUTHOR/TITLE: the share of CrossRef's title words (3+ letters) that are in the citation; null for a title of fewer than 3 such words
+        $tw = self::words(html_entity_decode(strip_tags($title), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if(count($tw) < 3) return null;
+        $cw = array_flip(self::words($citation));
+        return count(array_filter($tw, fn($w) => isset($cw[$w]))) / count($tw);
+    }
+    private function same_pages_elsewhere($best, $items, $best_i)
+    {   // other candidates with the same journal, volume and first page as the one chosen, and another DOI: the same work registered twice, perhaps
+        $first = fn($p) => preg_match('/^\s*(\d+)/', (string) $p, $m) ? $m[1] : '';
+        $also = array();
+        foreach($items as $i => $it) {
+            if($i == $best_i || (string) @$it['DOI'] === (string) @$best['DOI'] || $first(@$it['page']) === '') continue;
+            if(mb_strtolower((string) @$it['container-title'][0]) === mb_strtolower((string) @$best['container-title'][0])
+               && ltrim((string) @$it['volume'], '0') === ltrim((string) @$best['volume'], '0') && $first(@$it['page']) === $first(@$best['page']))
+                $also[] = $it['DOI'] . " (" . (@$it['issue'] !== null && @$it['issue'] !== '' ? "issue " . $it['issue'] . ", " : '') . "pages " . @$it['page'] . ", " . self::item_year($it) . ")";
+        }
+        return $also;
     }
     static function doi_url($doi)
     {   // the DOI as a link, e.g. 10.1016/0044-8486(93)90035-w -> https://doi.org/10.1016/0044-8486(93)90035-w; '' when there is no DOI.
@@ -175,6 +256,19 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         'spaces' => "Spaces at the start or end of the full_reference were removed.",
         'ref_n'  => "A FishBase reference number at the very end, e.g. '(Ref. 3)', was removed. It is FishBase's own number, not part of the citation, and can mislead CrossRef.",
         'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine'. The year itself is missing in these citations, so the year couldn't be checked.");
+    private static function drop_title($j)
+    {   /* "Title. Journal" -> "Journal", for citations like "Boucher RC (2004) New concepts of ... lung disease. Eur Resp J 23: 146-158", where the
+           title sits between the year and the journal. Cut at the last ". " (or "? ", "! ") after a word (e.g. "disease.", "NBD1.") and before a capital
+           letter, whose left side reads like a title:
+           at least 3 full words (4+ letters, not abbreviations ending in "."). Abbreviated journal names are never cut, e.g.
+           "Mem. Torrey Bot. Club", "Bot. J. Linn. Soc.", "Proc. R. Soc. Lond., Ser. B: Biol. Sci." stay whole. */
+        if(!preg_match_all('/[\p{L}\d]{2,}[.?!]\s+(?=\p{Lu})/u', $j, $b, PREG_OFFSET_CAPTURE)) return $j;
+        foreach(array_reverse($b[0]) as $x) {
+            $cut = $x[1] + strlen($x[0]);
+            if(preg_match_all('/\b\p{L}{4,}\b(?![.])/u', substr($j, 0, $cut), $w) >= 3) return substr($j, $cut);
+        }
+        return $j;
+    }
     static function clean_full_reference($s, &$changes = null)
     {   /* $changes: code => the change in plain words, for this text (empty: nothing was changed). Every rule is in TEXT_CHANGES.
            Removes what only confuses CrossRef, before the search (the report keeps the original full_reference):
@@ -198,21 +292,25 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
              "Saint-Hilaire, A. & Tulasne. 1842. Ann. Sci. Nat., Bot.,ser. 2, 17: 138,1842." -> 1842, "Ann. Sci. Nat., Bot.,ser. 2", 17, '', 138
              "Bartoli, A. ... 1999. Revisión ... (Asteraceae: Astereae).,Kurtziana 27(3):327-359.,1999." -> 1999, Kurtziana, 27, 3, 327-359
            Anything it can't read is left blank, and that check is skipped. */
-        $ref = array('year' => '', 'journal' => '', 'volume' => '', 'issue' => '', 'page' => '', 'page_end' => '');
+        $ref = array('year' => '', 'journal' => '', 'volume' => '', 'issue' => '', 'page' => '', 'page_end' => '', 'author' => '');
+        // the first author's surname: the words before the first comma, letters only, e.g. "Boulenger, G.A. ..." -> Boulenger, "Thys van den Audenaerde, D.F.E." -> as is
+        //   also "Knowles MR, Boucher RC (2002) ..." and "Boucher RC (2004) ..." (surname + initials, no comma) -> Knowles, Boucher; a leading list number "1. " is skipped (not a year: "1998. Brittonia,50(1): 59" has no author)
+        if(preg_match('/^\s*(?:\d{1,3}[.)]\s+)?(\p{L}[\p{L}\'\x{2019}\- ]{1,40}?)\s*,/u', $s, $m)) $ref['author'] = trim(preg_replace('/\s+\p{Lu}{1,3}$/u', '', trim($m[1])));
+        elseif(preg_match('/^\s*(?:\d{1,3}[.)]\s+)?(\p{Lu}[\p{L}\'\x{2019}\-]+)\s+\p{Lu}{1,3}\b/u', $s, $m)) $ref['author'] = $m[1];
         // the year: the first one that isn't part of a range, e.g. not "1904" in "the Third Tanganyika Expedition, 1904-1905" (a range isn't a publication year)
         if(preg_match_all('/\b(1[5-9]\d\d|20\d\d)\b/', $s, $years, PREG_OFFSET_CAPTURE)) foreach($years[1] as $y) {
             if(preg_match('/\d\s*(?:-|\x{2013})\s*$/u', substr($s, 0, $y[1])) || preg_match('/^\s*(?:-|\x{2013})\s*\d/u', substr($s, $y[1] + 4))) continue;
             $ref['year'] = $y[0]; $year_end = $y[1] + 4; break;
         }
         // the last "VOLUME[(ISSUE)]: PAGE[-PAGE]", e.g. "50(1): 59", "17: 138", "27(3):327-359", "81A:423-426" (volume 81 of Part A)
-        if(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*:\s*(\d{1,5})(?:\s*-\s*(\d{1,5}))?/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        if(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*:\s*(\d{1,5})(?:\s*[-\x{2013}\x{2014}]\s*(\d{1,5}))?/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) { // a hyphen, an en dash or an em dash between pages
             $m = end($all);
             $ref['volume'] = $m[1][0]; $ref['issue'] = trim((string) @$m[2][0]); $ref['page'] = $m[3][0]; $ref['page_end'] = (string) @$m[4][0];
             if($ref['volume'] === $ref['year']) $ref['volume'] = ''; // e.g. "Mem. Math. Phys. Inst. Par.,1811: 82" -> the year, not a volume
             if(isset($year_end) && $m[0][1] > $year_end) { // journal: between the year and the volume; in "Title.,Journal 27(3)" the part after the last ".,"
-                $j = trim(substr($s, $year_end, $m[0][1] - $year_end), " .,;"); // e.g. ". Kew Bull.," -> "Kew Bull"
+                $j = trim(substr($s, $year_end, $m[0][1] - $year_end), " .,;()"); // e.g. ". Kew Bull.," -> "Kew Bull"; "(2004) Title. Eur Resp J" -> after ")"
                 if(($p = strrpos($j, '.,')) !== false) $j = substr($j, $p + 2);
-                $ref['journal'] = trim($j, " .,;");
+                $ref['journal'] = trim(self::drop_title($j), " .,;");
             }
         }
         return $ref;
@@ -379,7 +477,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
               . ($row['crossref_page'] !== '' ? ": " . $row['crossref_page'] : '') . " (" . $row['crossref_year'] . ")";
         $cited = "page " . $ref['page'];
         $agree = $this->agreed_text($c['checks']); // e.g. "Journal, volume and year agree": only what was really compared and agreed
-        $unchecked = $this->unchecked_text($ref, $c['checks']); // e.g. " The year couldn't be checked: no year could be read from the citation."
+        $unchecked = $this->unchecked_text($ref, $c['checks']) . $this->author_note($ref, $row, $c); // e.g. " The year couldn't be checked: no year could be read from the citation."
         $year_note = in_array('year=next to it', $c['checks']) ? " The cited year ({$ref['year']}) is one off CrossRef's ({$row['crossref_year']}), which is common (cover date vs. publication date)." : '';
         if($c['status'] == 'matched') {
             return "$agree, and $cited is in $cand, \"" . mb_substr($row['crossref_title'], 0, 120) . "\"." . $year_note . $unchecked
@@ -409,11 +507,23 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         return $n . $closest . $this->note_old_work($ref);
     }
+    private function author_note($ref, $row, $c)
+    {   // AUTHOR/TITLE: what the author check found, when it matters; and another record for the same pages (always)
+        $n = '';
+        foreach($c['checks'] as $k) {
+            if(str_starts_with($k, 'author=nearly')) $n .= " The first author is spelled slightly differently in CrossRef (\"" . substr($k, 15, -1) . "\" for \"{$ref['author']}\").";
+            if($k === 'author=differs') $n .= " The authors differ: the citation has \"{$ref['author']}\", CrossRef has \"{$row['crossref_authors']}\". Check that this is the work cited.";
+        }
+        if(!empty($c['also'])) $n .= " CrossRef also has " . implode(' and ', $c['also']) . " for the same journal, volume and first page: possibly the same work registered twice. Check which DOI to use.";
+        return $n;
+    }
     private function agreed_text($checks)
     {   // "Journal, volume and year agree", from the checks that really agreed (a year one off counts: the note says so)
         $names = array();
         foreach(array('journal', 'volume', 'issue', 'year') as $k)
             if(in_array("$k=OK", $checks) || ($k == 'year' && in_array('year=next to it', $checks))) $names[] = $k;
+        if(in_array('author=OK', $checks)) $names[] = 'first author'; // AUTHOR/TITLE
+        foreach($checks as $k) if(str_starts_with($k, 'title=OK')) $names[] = 'title'; // AUTHOR/TITLE
         if(!$names) return "Nothing could be compared";
         $last = array_pop($names);
         return ucfirst($names ? implode(', ', $names) . " and $last agree" : "$last agrees");
@@ -435,6 +545,20 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $guide = preg_replace('/\.tsv$/', '_guide.txt', $out_file);
         $c = $counts;
         $prep = '';
+        $at = $this->author_title_checks // AUTHOR/TITLE: said in the guide either way
+            ? "  ON for this report. The first author's surname read from the citation (parsed_author) is compared with CrossRef's
+  authors (crossref_authors), and CrossRef's title words with the citation:
+  - 'checks' shows author=OK / nearly (a small spelling difference, e.g. a scanning error) / differs / unknown, and
+    title=OK / partly / not in citation (with the share of CrossRef's title words found in the citation) / unknown.
+  - They break ties between candidates whose journal, volume, year and page agree equally.
+  - A candidate whose numbers all agree but whose authors clearly differ is 'possible', not 'matched', with a note.
+  - They never reject a candidate on their own: CrossRef's author and title data for old works is often incomplete or
+    garbled, and many citations have no title. 'title=not in citation' is not a warning by itself.
+  - The authors cost one CrossRef call for each candidate that passes the other checks (at most " . self::MAX_AUTHOR_LOOKUPS . " a row, cached),
+    so a search can take a little longer than its estimate.
+"
+            : "  OFF for this report: only journal, volume, issue, year and page were compared (see HOW IT WAS DONE).
+";
         foreach(self::TEXT_CHANGES as $code => $what) $prep .= str_pad(number_format($changed[$code] ?? 0), 9, ' ', STR_PAD_LEFT) . " row(s): " . wordwrap($what, 100, "\n                   ") . "\n";
         $txt = "DOIs found in CrossRef for references with only a full_reference -- guide for the Data Managers
 =============================================================================================
@@ -454,6 +578,8 @@ BEFORE THE SEARCH (pre-processing)
   exactly as in the input file; searched_text shows what was sent; text_changes says what was changed in that row
   (empty = nothing). These are the only changes made; nothing else in the text is touched.
 $prep
+AUTHOR AND TITLE CHECKS
+$at
 HOW IT WAS DONE
   Each full_reference (as in searched_text) was searched in CrossRef (the same free-text search as
   https://apps.crossref.org/SimpleTextQuery), limited to the cited year and the years next to it. CrossRef always
@@ -485,6 +611,8 @@ GOOD TO KNOW
   - Only CrossRef's top 5 candidates per citation are checked. A 'not found' row can still have a DOI that the free-text
     search didn't rank high enough, especially short citations of a page deep inside a long article: if another row
     of the same journal, volume and pages was matched, that DOI may apply here too.
+  - If CrossRef has another record with the same journal, volume and first page, the review_note names it: the same work
+    is sometimes registered twice (e.g. once per scan). Check which DOI to use.
   - Nothing was changed anywhere: this is a report only.
 
 COLUMNS
@@ -494,8 +622,9 @@ COLUMNS
   status, DOI                : the result; DOI only for matched and possible
   DOI_URL                    : the same DOI as a link (https://doi.org/...), to open it in a browser; empty when DOI is
   review_note                : what was found, in plain words
-  parsed_*                   : year, journal, volume, issue and page read from the full_reference
-  crossref_*                 : the CrossRef record shown (DOI, score, type, year, journal, volume, issue, page, title)
+  parsed_*                   : the first author's surname, year, journal, volume, issue and page read from the full_reference
+  crossref_*                 : the CrossRef record shown (DOI, score, type, year, journal, volume, issue, page, title, and
+                               its authors' surnames when the author check ran)
   checks                     : each comparison, e.g. journal=OK volume=OK year=OK page=in 305-313
 ";
         file_put_contents($guide, $txt);

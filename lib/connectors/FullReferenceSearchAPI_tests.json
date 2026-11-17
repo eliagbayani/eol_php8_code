@@ -73,7 +73,7 @@
   },
   {
    "id": "fishbase-aaab1b3e",
-   "source": "FishBase (data manager)",
+   "source": "FishBase",
    "full_reference": "Eknath, A.E., M.M. Tayamen, M.S.P. de Vera, J.C. Danting, R.A. Reyes, E.E. Dionisio, J.B. Capili, H.L. Bolivar, T.A. Abella, A.V. Circa, H.B. Bentsen, B. Gjerde, T. Gjedrem and R.S.V. Pullin0 Genetic improvement of farmed tilapias: the growth performance of eight strains of Oreochromis niloticus tested in different farm environments. Aquaculture 111:171-188. (Ref. 1725)",
    "expect": {
     "status": "possible",
@@ -85,7 +85,7 @@
   },
   {
    "id": "fishbase-f906fbab",
-   "source": "FishBase (data manager)",
+   "source": "FishBase",
    "full_reference": "Boulenger, G.A.0 Descriptions of three new African cichlid fishes of the genus Tilapia, preserved in the British Museum. Ann. Mag. Nat. Hist. (Ser. 8) 10:138-140. (Ref. 1887)",
    "expect": {
     "status": "possible",
@@ -96,7 +96,7 @@
   },
   {
    "id": "fishbase-b516f996",
-   "source": "FishBase (data manager)",
+   "source": "FishBase",
    "full_reference": "Verheyen, E., R. Blust and C. Doumen0 The oxygen uptake of Sarotherodon niloticus L. and the oxygen binding properties of its blood and hemolysate (Pisces: Cichlidae). Comp. Biochem. Physiol. 81A:423-426. (Ref. 2652)",
    "expect": {
     "status": "possible",
@@ -107,7 +107,7 @@
   },
   {
    "id": "fishbase-c377d5c7",
-   "source": "FishBase (data manager)",
+   "source": "FishBase",
    "full_reference": "Boulenger, G.A.0 Fourth contribution to the ichthyology of Lake Tanganyika. Report on the collection of fishes made by Dr. W.A. Cunnington during the Third Tanganyika Expedition, 1904-1905. Trans. Zool. Soc. Lond. 17(6):537-600. (Ref. 1872)",
    "expect": {
     "status": "possible",
@@ -119,7 +119,7 @@
   },
   {
    "id": "fishbase-c377d5c7-author",
-   "source": "FishBase (data manager)",
+   "source": "FishBase",
    "full_reference": "Boulenger, G.A.0 Fourth contribution to the ichthyology of Lake Tanganyika. Report on the collection of fishes made by Dr. W.A. Cunnington during the Third Tanganyika Expedition, 1904-1905. Trans. Zool. Soc. Lond. 17(6):537-600. (Ref. 1872)",
    "expect": {
     "status": "possible",
@@ -131,7 +131,7 @@
   },
   {
    "id": "fishbase-e70e47d3",
-   "source": "FishBase (data manager)",
+   "source": "FishBase",
    "full_reference": "Rana, K.0 Reproductive biology and the hatchery rearing of tilapia eggs and fry. p. 343-397. In J.F. Muir and R.J. Roberts (eds.) Recent advances in aquaculture. Timber Press, Oregon. 420 p. (Ref. 175)",
    "expect": {
     "status": "not found"
@@ -189,6 +189,17 @@
     "note_contains": "10.1006/jfbi.1995.0108"
    },
    "why": "The same article is in CrossRef under Wiley and Academic Press: the note must name the other DOI."
+  },
+  {
+   "id": "fishbase-1f18fc10-ed",
+   "source": "FishBase",
+   "full_reference": "Pullin, R.S.V. (ed.)0 Tilapia genetic resources for aquaculture. ICLARM Conf. Proc. 16, 108 p. (Ref. 88)",
+   "expect": {
+    "status": "not found",
+    "searched_text_contains": "(ed.) Tilapia genetic",
+    "text_changes_contains": "'(ed.)0' -> '(ed.)'"
+   },
+   "why": "A stray '0' right after an editor's '(ed.)' was kept, as the rule looked only after a letter or a dot. It's removed now, and '(ed.)' stays. A book, so still 'not found'."
   },
   {
    "id": "reference-c9554f19",

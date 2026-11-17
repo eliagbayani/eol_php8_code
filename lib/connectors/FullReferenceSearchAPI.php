@@ -294,7 +294,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     const TEXT_CHANGES = array(
         'spaces' => "Spaces at the start or end of the full_reference were removed.",
         'ref_n'  => "A FishBase reference number at the very end, e.g. '(Ref. 3)', was removed. It is FishBase's own number, not part of the citation, and can mislead CrossRef.",
-        'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine'. The year itself is missing in these citations, so the year couldn't be checked.");
+        'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine', '(ed.)0 Tilapia' -> '(ed.) Tilapia' (the '(ed.)' is kept). The year itself is missing in these citations, so the year couldn't be checked.");
     private static function drop_title($j)
     {   /* "Title. Journal" -> "Journal", for citations like "Boucher RC (2004) New concepts of ... lung disease. Eur Resp J 23: 146-158", where the
            title sits between the year and the journal. Cut at the last ". " (or "? ", "! ") after a word (e.g. "disease.", "NBD1.") and before a capital
@@ -314,12 +314,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
              - a FishBase reference number at the end, e.g. "... ICLARM Conf. Proc. 7. (Ref. 3)" -> "... ICLARM Conf. Proc. 7."
              - a FishBase "0" glued to the authors where the year should be (the year is lost), e.g.
                "Trewavas, E.0 Tilapiine fishes ..." -> "Trewavas, E. Tilapiine fishes ...", "J.-C. Ruwet0 Ecology ..." -> "J.-C. Ruwet. Ecology ..."
-               only the first one, and only a lone 0 right after a letter or a dot and right before a capital letter */
+               "Pullin, R.S.V. (ed.)0 Tilapia genetic ..." -> "Pullin, R.S.V. (ed.) Tilapia genetic ..." (after an editor's "(ed.)", "(eds.)", "(comp.)", kept)
+               only the first one, and only a lone 0 right after a letter, a dot or a ")" and right before a capital letter */
         $changes = array(); $s = (string) $s;
         if(($t = trim($s)) !== $s) { $changes['spaces'] = "removed spaces at the start or end"; $s = $t; }
         if(preg_match('/\s*(\(Ref\.\s*\d+\))\s*$/u', $s, $m)) { $changes['ref_n'] = "removed '" . $m[1] . "' at the end"; $s = rtrim(substr($s, 0, -strlen($m[0]))); }
-        if(preg_match('/(\S*[\p{L}.])0(?=\s+\p{Lu})/u', $s, $m, PREG_OFFSET_CAPTURE)) { // only the first one: "E.0 " -> "E. ", "Ruwet0 " -> "Ruwet. "
-            $word = $m[1][0]; $fixed = str_ends_with($word, '.') ? $word : $word . '.';
+        if(preg_match('/(\S*[\p{L}.)])0(?=\s+\p{Lu})/u', $s, $m, PREG_OFFSET_CAPTURE)) { // only the first one: "E.0 " -> "E. ", "Ruwet0 " -> "Ruwet. ", "(ed.)0 " -> "(ed.) "
+            $word = $m[1][0]; $fixed = (str_ends_with($word, '.') || str_ends_with($word, ')')) ? $word : $word . '.';
             $changes['zero'] = "removed a stray '0' after the authors ('" . $word . "0' -> '" . $fixed . "')";
             $s = substr($s, 0, $m[0][1]) . $fixed . substr($s, $m[0][1] + strlen($m[0][0]));
         }

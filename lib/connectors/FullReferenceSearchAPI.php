@@ -22,7 +22,7 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class FullReferenceSearchAPI extends GenerateTB_Files_Functions
 {
-    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'status', 'DOI', 'review_note',
+    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'status', 'DOI', 'review_note',
                                  'parsed_year', 'parsed_journal', 'parsed_volume', 'parsed_issue', 'parsed_page',
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'checks');
@@ -128,9 +128,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   return implode(', ', array_map(fn($k, $v) => "$k $v", array_keys($counts), $counts));
     }
     function find_DOI($full_reference)
-    {   // Searches CrossRef for one full_reference and checks its candidates. Returns the OUTPUT_COLUMNS from 'status' on.
+    {   // Searches CrossRef for one full_reference and checks its candidates. Returns the OUTPUT_COLUMNS from 'searched_text' on.
+        $full_reference = self::clean_full_reference($full_reference); // what is searched and read; the report keeps the original full_reference too
         $ref = $this->parse_full_reference($full_reference);
         $row = array_fill_keys(array_slice(self::OUTPUT_COLUMNS, 2), '');
+        $row['searched_text'] = $full_reference;
         foreach(array('year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
@@ -155,6 +157,16 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                      'crossref_title' => $clean(@$item['title'][0]), 'checks' => implode(' ', $c['checks'])));
         $row['review_note'] = $this->review_note($ref, $row, $c);
         return $row;
+    }
+    static function clean_full_reference($s)
+    {   /* Removes what only confuses CrossRef, before the search (the report keeps the original full_reference):
+             - a FishBase reference number at the end, e.g. "... ICLARM Conf. Proc. 7. (Ref. 3)" -> "... ICLARM Conf. Proc. 7."
+             - a FishBase "0" glued to the authors where the year should be (the year is lost), e.g.
+               "Trewavas, E.0 Tilapiine fishes ..." -> "Trewavas, E. Tilapiine fishes ...", "J.-C. Ruwet0 Ecology ..." -> "J.-C. Ruwet. Ecology ..."
+               only the first one, and only a lone 0 right after a letter or a dot and right before a capital letter */
+        $s = preg_replace('/\s*\(Ref\.\s*\d+\)\s*$/u', '', (string) $s);
+        $s = preg_replace_callback('/([\p{L}.])0(?=\s+\p{Lu})/u', fn($m) => $m[1] === '.' ? '.' : $m[1] . '.', $s, 1); // "E.0 " -> "E. ", "Ruwet0 " -> "Ruwet. "
+        return trim($s); // nothing else changes, so every other full_reference keeps its cached CrossRef answer
     }
     function parse_full_reference($s)
     {   /* Reads the year, journal, volume, issue and page(s) from a full_reference, e.g.
@@ -200,7 +212,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($row_no < $start) continue;
             if($limit && $n['rows'] >= $limit) break;
             $n['rows']++;
-            $ref = trim((string) (explode("\t", rtrim($line, "\r\n"))[$col_ref] ?? ''));
+            $ref = self::clean_full_reference(trim((string) (explode("\t", rtrim($line, "\r\n"))[$col_ref] ?? ''))); // as find_DOI() searches it
             if(mb_strlen($ref) < self::MIN_LENGTH) { $n['skipped']++; continue; }
             $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
             if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat in the same file is asked only once
@@ -421,6 +433,8 @@ GOOD TO KNOW
 
 COLUMNS
   identifier, full_reference : from the input file
+  searched_text              : what was sent to CrossRef: the full_reference without a FishBase '(Ref. N)' at the end
+                               or a stray '0' after the authors (the same text when there was nothing to remove)
   status, DOI                : the result; DOI only for matched and possible
   review_note                : what was found, in plain words
   parsed_*                   : year, journal, volume, issue and page read from the full_reference

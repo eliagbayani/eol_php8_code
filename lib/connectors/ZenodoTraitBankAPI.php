@@ -139,6 +139,12 @@ class ZenodoTraitBankAPI
         if (!($arr = $this->get_zenodo_info_using_conceptID($conceptId, $expire_seconds))) return false;
         return $arr['title'];
     }
+    function zenodo_local_dir()
+    {   // the folder where Zenodo downloads go: [CONTENT_RESOURCE_LOCAL_PATH]/TB_files/ by default.
+        // A child class can set $this->zenodo_folder, e.g. LegacyDwCAMaintenanceAPI -> Legacy_DwCA_files/
+        // (?? fallback: some child classes, e.g. GenerateCSV_NewModel, don't call this class' constructor)
+        return rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . '/' . ($this->zenodo_folder ?? 'TB_files') . '/';
+    }
     function download_zenodo_zip_file($archive_url, $concept_id)
     {   // e.g. https://zenodo.org/api/records/23067563/files-archive -> TB_files/23067562.zip (named by concept ID)
         // TB_files/23067562.record_id stores the record ID (version) of the downloaded zip, to detect new versions
@@ -148,7 +154,7 @@ class ZenodoTraitBankAPI
         }
         $record_id   = $m[1];
         $filename    = "{$concept_id}.zip";
-        $dir         = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $dir         = $this->zenodo_local_dir(); // TB_files/, or e.g. Legacy_DwCA_files/ (see zenodo_local_dir())
         $dest        = $dir . $filename;
         $record_file = $dir . "{$concept_id}.record_id";
 
@@ -183,7 +189,7 @@ class ZenodoTraitBankAPI
         // e.g. https://zenodo.org/api/records/23067563/files/traits.tsv/content -> TB_files/23067562_Bioc_and_Natu_Prod/input_files/traits.tsv
         // TB_files/23067562.record_id stores the record ID (version) of the downloaded files, to detect new versions
         $record_id   = (string) $arr['id'];
-        $dir         = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/";
+        $dir         = $this->zenodo_local_dir();
         $dest_dir    = $dir . "$folder_name/input_files/";
         $record_file = $dir . "{$concept_id}.record_id";
 

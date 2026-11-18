@@ -11,8 +11,10 @@ loaded via ConvertNewModel_2DwCA::generate_measurements_values_associations()), 
 DwCA_Utility copies all other extensions (taxon, media, reference, agent, vernacular, etc.) as-is; only these 3 are processed here:
 MeasurementOrFact, Association and Occurrence.
 
-Principle: delete the smallest unit that is wrong, plus only what depends on it. Each trait (MoF row with measurementOfTaxon=true)
-and each association is an independent claim, so one bad record never removes a sibling record.
+Principle: keep as many records as possible; delete only what can't be supported, i.e. the record with the undefined term,
+plus only what depends on it. One bad record never removes a sibling record. A trait whose own measurementType and value are
+valid is kept, even if some of its context (e.g. sex, lifestage) is removed or blanked: "femur = 1590 mm" is still accepted
+when "adult female" can't be supported.
 
 A MoF row has an undefined term if:
   - measurementValue is a URI not in EOL values, or
@@ -23,22 +25,28 @@ An association has an undefined term if associationType is a URI not in EOL asso
 Rules:
   1. Trait row (has occurrenceID, measurementOfTaxon = true) with an undefined term
      => only this row is deleted, with its child rows (del_mID). Other MoF and associations of the occurrence are kept.
-  2. Occurrence context row (has occurrenceID, measurementOfTaxon not true; e.g. sex, lifestage) with an undefined term
-     => all MoF of its occurrence are deleted (del_oID_MoF), since the context row qualifies every trait of that occurrence.
-        Associations are kept.
+  2. Occurrence context row (has occurrenceID, measurementOfTaxon not true; e.g. sex, lifestage, sample size) with an undefined term
+     => only this context row is deleted, with its child rows (del_mID). The traits of the occurrence are kept.
   3. Child row (no occurrenceID; linked to its parent by parentMeasurementID) with an undefined term
      => only this child row is deleted, with its own child rows (del_mID). Its parent and occurrence are kept.
   4. Association with an undefined associationType
      => only this association is deleted. MoF and other associations are kept.
   5. Any row whose parent/ancestor measurement is deleted is deleted too.
-  6. An occurrence that lost a record (flag_oID) is deleted only if no kept MoF row and no kept association uses it
-     (as occurrenceID or targetOccurrenceID); otherwise it is kept. Occurrences that lost nothing are never deleted.
-  7. measurementDeterminedBy (MoF and Association) is blanked if its value is not in EOL values; the record is kept.
+  6. Every orphaned occurrence is deleted: one that no kept MoF row and no kept association uses (as occurrenceID or
+     targetOccurrenceID). This covers occurrences that lost all their records here, and occurrences that were already
+     orphaned in the source; the run log counts the two separately.
+  7. Qualifier fields: a URI value not in EOL values is blanked; the record is kept. Literal (non-URI) values are left as-is.
+       MoF:         measurementUnit, statisticalMethod, sex, lifeStage, bodyPart, measurementDeterminedBy
+       Association: measurementDeterminedBy
+       Occurrence:  sex, lifeStage, reproductiveCondition, establishmentMeans, physiologicalState, bodyPart
+     Only records that are kept are checked. Each blanked URI is listed in the debug report with its number of records.
+  8. A MoF row whose occurrenceID is not in the occurrence table is deleted, with its child rows (rule 5).
+     Not applied if the archive has no occurrence table. The run log and debug report give the number of rows deleted.
 
-Pass 1 ('collect') - applies rules 1-4 to MoF and Association: fills del_mID, del_oID_MoF, flag_oID and child_parent.
-Pass 1b ('collect_mID') - adds the measurementIDs of all MoF rows of del_oID_MoF occurrences to del_mID (for rule 5).
-Pass 2 ('write') - writes MoF, then Association, then Occurrence, applying rules 1-7. While writing MoF and Association it
-  records which flagged occurrences are still used (used_oID), so that Occurrence can apply rule 6.
+Pass 0 ('collect_occ') - reads the occurrenceIDs of the occurrence table (for rule 8).
+Pass 1 ('collect') - applies rules 1-4 and 8 to MoF and Association: fills del_mID, flag_oID and child_parent.
+Pass 2 ('write') - writes MoF, then Association, then Occurrence, applying rules 1-8. While writing MoF and Association it
+  records every occurrenceID that a kept record uses (used_oID), so that Occurrence can apply rule 6.
 
 The undefined terms found are listed in: resources/neo4j_analyzed/[resource_id]_debug_[date].txt
 */
@@ -84,24 +92,48 @@ class AnalyzeMoF_API
 
         // --------------------- 1st pass: find the records with undefined terms (see rules at the top of this file)
         $this->del_mID = array();       // measurementIDs to delete (their descendants are deleted too)
-        $this->del_oID_MoF = array();   // occurrenceIDs whose MoF are all deleted (a context row has an undefined term)
         $this->flag_oID = array();      // occurrenceIDs that lost a record; deleted in 2nd pass only if no kept MoF or kept association uses them
-        $this->used_oID = array();      // flagged occurrenceIDs still used by a kept MoF or kept association (filled in 2nd pass)
+        $this->used_oID = array();      // occurrenceIDs used by a kept MoF or kept association (filled in 2nd pass); all others are orphans
+        $this->orphans = array('lost all its records' => 0, 'already orphaned in the source' => 0);
+        // Rule 7: qualifier fields whose URI value must be in EOL values, else the value is blanked (record kept)
+        $this->blank_fields = array(
+            'mof'         => array('measurementUnit', 'statisticalMethod', 'sex', 'lifeStage', 'bodyPart', 'measurementDeterminedBy'),
+            'association' => array('measurementDeterminedBy'),
+            'occurrence'  => array('sex', 'lifeStage', 'reproductiveCondition', 'establishmentMeans', 'physiologicalState', 'bodyPart'));
+        $this->blanked = array();       // "class.field" => array(uri => number of records blanked)
         $this->child_parent = array();  // measurementID => parentMeasurementID
+        // Rule 8: occurrenceIDs present in the occurrence table; MoF rows pointing to any other occurrenceID are deleted.
+        // If the archive has no occurrence table, rule 8 is not applied (false).
+        $this->occ_exists = false;
+        $this->missing_occ = array('rows' => 0, 'occurrenceIDs' => array());
+        $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) { $this->occ_exists = array(); self::process_table($meta, 'collect_occ', 'occurrence'); }
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'association');
-        // 1b: measurementIDs of the MoF rows of del_oID_MoF occurrences, so their child rows are dropped too
-        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($this->del_oID_MoF && ($meta = @$tables[$tbl][0])) self::process_table($meta, 'collect_mID', 'mof');
         echo "\nMeasurements to delete (excl. descendants): [".count($this->del_mID)."]";
-        echo "\nOccurrences with all MoF deleted (undefined context row): [".count($this->del_oID_MoF)."]";
-        echo "\nOccurrences flagged (lost a record): [".count($this->flag_oID)."]\n";
+        echo "\nOccurrences flagged (lost a record): [".count($this->flag_oID)."]";
+        if($this->occ_exists === false) echo "\nNo occurrence table: rule 8 (MoF pointing to a missing occurrence) not applied.";
+        else {
+            $n_occ = count($this->missing_occ['occurrenceIDs']);
+            echo "\nMoF rows pointing to a missing occurrence (deleted, excl. descendants): [".$this->missing_occ['rows']."], distinct occurrenceIDs: [$n_occ]";
+            if($n_occ) $this->debug['MoF rows pointing to a missing occurrence (deleted)']["rows: ".$this->missing_occ['rows']."; distinct occurrenceIDs: $n_occ"] = '';
+        }
+        unset($this->missing_occ['occurrenceIDs']); // free memory
+        echo "\n";
 
         // --------------------- 2nd pass: write extensions, excluding every record linked to a deleted occurrence or deleted parent measurement
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
+        unset($this->occ_exists); // free memory; only needed for rule 8 on MoF
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'occurrence');
-        echo "\nFlagged occurrences kept because a kept MoF or association uses them: [".count($this->used_oID)."]";
-        echo "\nFlagged occurrences deleted: [".(count($this->flag_oID) - count($this->used_oID))."]\n";
+        echo "\nOrphaned occurrences deleted - lost all their records: [".$this->orphans['lost all its records']."]";
+        echo "\nOrphaned occurrences deleted - already orphaned in the source: [".$this->orphans['already orphaned in the source']."]\n";
+        if($n = $this->orphans['already orphaned in the source']) $this->debug['Orphaned occurrences in the source (deleted)']["count: $n"] = '';
+        foreach($this->blanked as $class_field => $uris) {
+            $n = array_sum($uris);
+            echo "\nBlanked [$class_field]: [$n] values, [".count($uris)."] distinct URIs";
+            foreach($uris as $uri => $rows) $this->debug["Blanked $class_field (URI not in EOL values)"]["$uri  (records: $rows)"] = '';
+        }
+        echo "\n";
 
         // $this->archive_builder->finalize(TRUE);
 
@@ -211,19 +243,19 @@ class AnalyzeMoF_API
                     $oID = @$rec['occurrenceID'];
                     $mID = @$rec['measurementID'];
                     if($mID && ($pID = @$rec['parentMeasurementID'])) $this->child_parent[$mID] = $pID;
+                    // Rule 8: row points to an occurrence that is not in the occurrence table: delete this row (and its descendants).
+                    if($oID && $this->occ_exists !== false && !isset($this->occ_exists[$oID])) {
+                        $this->missing_occ['rows']++;
+                        $this->missing_occ['occurrenceIDs'][$oID] = '';
+                        if($mID) $this->del_mID[$mID] = ''; // so its child rows are deleted too (rule 5)
+                        continue;
+                    }
                     if($problems = self::mof_problems($rec)) {
                         foreach($problems as $debug_key => $uri) $this->debug[$debug_key][$uri] = '';
-                        if(!$oID) {                                                         // child row: delete only this row (and its descendants)
-                            if($mID) $this->del_mID[$mID] = '';
-                        }
-                        elseif(strtolower(@$rec['measurementOfTaxon']) == 'true') {         // trait row: delete only this row (and its descendants)
-                            if($mID) $this->del_mID[$mID] = '';
-                            $this->flag_oID[$oID] = '';
-                        }
-                        else {                                                              // occurrence context row (e.g. sex, lifestage): it qualifies every
-                            $this->del_oID_MoF[$oID] = '';                                  //   trait of the occurrence, so delete all MoF of the occurrence
-                            $this->flag_oID[$oID] = '';
-                        }
+                        // Rules 1-3: delete only this row (trait, context or child row) and its descendants.
+                        // Other MoF rows of the occurrence are kept, even when this row was context (e.g. sex, lifestage) for them.
+                        if($mID) $this->del_mID[$mID] = '';
+                        if($oID) $this->flag_oID[$oID] = '';
                     }
                 }
                 if($class == "association") {
@@ -246,41 +278,46 @@ class AnalyzeMoF_API
                 continue;
             }
             //=========================================================================================================
-            if($what == 'collect_mID') { // 1b: parent MoF rows of occurrences whose MoF is deleted
-                if(($oID = @$rec['occurrenceID']) && isset($this->del_oID_MoF[$oID]) && ($mID = @$rec['measurementID'])) $this->del_mID[$mID] = '';
+            if($what == 'collect_occ') { // 0: occurrenceIDs present in the occurrence table (rule 8)
+                if($oID = @$rec['occurrenceID']) $this->occ_exists[$oID] = '';
                 continue;
             }
             //=========================================================================================================
             if($what == 'write') { // 2nd pass
                 $oID = @$rec['occurrenceID'];
                 if($class == "mof") {
-                    // Skip all MoF of an occurrence whose context row (measurementOfTaxon not true) has an undefined term.
-                    if($oID && isset($this->del_oID_MoF[$oID])) continue;
+                    // Rule 8: skip rows pointing to an occurrence that is not in the occurrence table (re-checked here, so rows
+                    // without measurementID are covered too).
+                    if($oID && $this->occ_exists !== false && !isset($this->occ_exists[$oID])) continue;
                     // Skip the row that has an undefined term (re-checked here, so rows without measurementID are covered too).
                     if(self::mof_problems($rec)) continue;
                     // Skip rows whose parent/ancestor measurement was deleted.
                     if(self::is_measurement_deleted(@$rec['measurementID'])) continue;
-                    // MoF is kept: its occurrence must be kept too, even if flagged.
-                    if($oID && isset($this->flag_oID[$oID])) $this->used_oID[$oID] = '';
+                    // MoF is kept: its occurrence must be kept too.
+                    if($oID) $this->used_oID[$oID] = '';
                 }
                 if($class == "association") {
                     // Skip only the association that has the undefined associationType.
                     if(self::is_undefined_aType(@$rec['associationType'])) continue;
-                    // Association is kept: its occurrences must be kept too, even if flagged.
-                    $tID = @$rec['targetOccurrenceID'];
-                    foreach(array($oID, $tID) as $id) {
-                        if($id && isset($this->flag_oID[$id])) $this->used_oID[$id] = '';
-                    }
+                    // Association is kept: its occurrences must be kept too.
+                    if($oID) $this->used_oID[$oID] = '';
+                    if($tID = @$rec['targetOccurrenceID']) $this->used_oID[$tID] = '';
                 }
                 if($class == "occurrence") {
-                    // Delete a flagged occurrence only if no kept MoF or kept association uses it.
-                    if($oID && isset($this->flag_oID[$oID]) && !isset($this->used_oID[$oID])) continue;
+                    // Delete every orphaned occurrence: one that no kept MoF row or kept association uses.
+                    if(!$oID || !isset($this->used_oID[$oID])) {
+                        if($oID && isset($this->flag_oID[$oID])) $this->orphans['lost all its records']++;
+                        else                                    $this->orphans['already orphaned in the source']++;
+                        continue;
+                    }
                 }
 
-                // Blank undefined measurementDeterminedBy; $rec is modified before $o is populated below.
-                if($class == "mof" || $class == "association") {
-                    if($val = @$rec['measurementDeterminedBy']) {
-                        if(!isset($this->eol_term_values[$val])) { $this->debug['Undefined measurementDeterminedBy'][$val] = ''; $rec['measurementDeterminedBy'] = ''; }
+                // Rule 7: blank URI values not in EOL values in the qualifier fields; $rec is modified before $o is populated below.
+                foreach($this->blank_fields[$class] as $field) {
+                    $val = trim((string) @$rec[$field]);
+                    if(substr($val, 0, 4) == 'http' && !isset($this->eol_term_values[$val])) {
+                        @$this->blanked["$class.$field"][$val]++;
+                        $rec[$field] = '';
                     }
                 }
 

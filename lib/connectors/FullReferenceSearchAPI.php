@@ -186,6 +186,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         foreach(array('author', 'year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
+        if(($doi = self::doi_in_text($full_reference)) !== '') return $this->doi_given($row, $doi, $full_reference); // the citation gives its own DOI: no search
         $items = $this->search_crossref($full_reference, $ref['year']);
         if($items === 'stop') return array('status' => 'stop', 'change_codes' => array()); // CrossRef keeps asking us to slow down: the search stops before this row
         if($items === false) return array_merge($row, array('status' => 'error', 'review_note' => 'CrossRef could not be reached. Run again: this row will be searched again.'));
@@ -198,7 +199,25 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $author_score = 1; $title_share = 0; $item['_authors'] = '';
             if($this->author_title_checks) { // AUTHOR/TITLE: only for candidates that pass the other checks; they never reject one
                 $title_share = (float) self::title_share($full_reference, (string) @$item['title'][0]);
-                if($c['status'] != 'not found') {
+                if($c['status'] == 'not found' && $c['fails'] === array('no volume') && $ref['author'] !== '') {
+                    /* No volume or pages in the citation -- a book, or a style without them (e.g. Vancouver "Journal. 1917 May") -- and nothing else differs:
+                       'possible' (never 'matched') when the first author agrees (or nearly), at least 90% of CrossRef's title is in the citation (all of a title of up to 9 words), and,
+                       when the candidate is in a journal, the journal is named in the citation. Books like "Kofoid & Swezy 1921" have BHL DOIs in CrossRef.
+                       Not 80%: "Allobates zaparo" (IUCN) then got "Allobates alessandroi: IUCN SSC Amphibian Specialist Group" (86%), and Micha et al. another Azolla paper (83%). */
+                    $share = self::title_share($full_reference, (string) @$item['title'][0]);
+                    $jshare = self::title_share($full_reference, (string) @$item['container-title'][0], 1);
+                    if($share !== null && $share >= 0.9 && ($jshare === null || $jshare >= 0.7)) {
+                        $authors = $lookups < self::MAX_AUTHOR_LOOKUPS ? $this->crossref_authors((string) @$item['DOI'], $lookups) : null;
+                        if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
+                        $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
+                        if($a['score'] >= 2) {
+                            $c['status'] = 'possible'; $c['via'] = 'author and title'; $c['why'] = '';
+                            $c['checks'] = array_merge(array_values(array_diff($c['checks'], $jshare !== null ? array('volume=unknown', 'journal=unknown') : array('volume=unknown'))), $jshare !== null ? array('journal=in the citation') : array(), $a['checks']);
+                            $c['agree'] += 2 + ($jshare !== null ? 1 : 0); $author_score = $a['score']; $item['_authors'] = is_array($authors) ? implode('; ', $authors) : '';
+                        }
+                    }
+                }
+                elseif($c['status'] != 'not found') {
                     $authors = ($ref['author'] !== '' && $lookups < self::MAX_AUTHOR_LOOKUPS) ? $this->crossref_authors((string) @$item['DOI'], $lookups) : null;
                     if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
                     $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
@@ -227,13 +246,44 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['review_note'] = $this->review_note($ref, $row, $c);
         return $row;
     }
+    private function doi_given($row, $doi, $citation)
+    {   /* The citation gives its own DOI, e.g. "... doi:10.1594/PANGAEA.692046" or "DOI: 10.1080/09670262.2014.982202,2014.": CrossRef's record of it is read
+           (one call, cached) instead of a search. A DOI can be mistyped or cut short in a citation, so:
+             - CrossRef has it and its title is in the citation (or can't be compared)  -> matched
+             - CrossRef has it but its title isn't in the citation (under 50%)          -> possible: maybe a mistyped DOI
+             - CrossRef doesn't have it                                                 -> possible: registered elsewhere (e.g. DataCite, for PANGAEA datasets), or mistyped */
+        $work = $this->crossref_work($doi);
+        if($work === 'stop') return array('status' => 'stop', 'change_codes' => array());
+        if($work === null) return array_merge($row, array('status' => 'error', 'review_note' => 'The citation gives the DOI ' . $doi . ', but CrossRef could not be reached to check it. Run again: this row will be checked again.'));
+        $row = array_merge($row, array('DOI' => $doi, 'DOI_URL' => self::doi_url($doi), 'crossref_DOI' => $doi));
+        if($work === 'missing') return array_merge($row, array('status' => 'possible', 'checks' => 'doi=in the citation, not in CrossRef',
+            'review_note' => "The citation itself gives this DOI, but CrossRef doesn't have it: it may be registered elsewhere (e.g. with DataCite, as PANGAEA datasets are), or it may be mistyped. Open the link: accept it if it opens the work cited."));
+        $clean = fn($x) => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $x), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        $title = $clean(@$work['title'][0]); $share = self::title_share($citation, $title);
+        $row = array_merge($row, array('crossref_type' => (string) @$work['type'], 'crossref_year' => self::item_year($work), 'crossref_journal' => $clean(@$work['container-title'][0]),
+            'crossref_volume' => $clean(@$work['volume']), 'crossref_issue' => $clean(@$work['issue']), 'crossref_page' => $clean(@$work['page']), 'crossref_title' => $title,
+            'crossref_authors' => implode('; ', array_filter(array_map(fn($a) => trim((string) ($a['family'] ?? $a['name'] ?? '')), (array) @$work['author'])))));
+        $t = $share === null ? 'title=unknown' : 'title=' . ($share >= 0.7 ? 'OK' : ($share >= 0.3 ? 'partly' : 'not in citation')) . ' (' . round(100 * $share) . '%)';
+        if($share !== null && $share < 0.5) return array_merge($row, array('status' => 'possible', 'checks' => "doi=in the citation, in CrossRef $t",
+            'review_note' => "The citation itself gives this DOI, and CrossRef has it, but its title isn't in the citation: \"" . mb_substr($title, 0, 120) . "\". The DOI may be mistyped. Open the link to check."));
+        return array_merge($row, array('status' => 'matched', 'checks' => "doi=in the citation, in CrossRef $t",
+            'review_note' => "The citation itself gives this DOI, and CrossRef has it: \"" . mb_substr($title, 0, 120) . "\"" . ($row['crossref_year'] !== '' ? " (" . $row['crossref_year'] . ")" : '') . ". Accept it."));
+    }
+    private function crossref_work($doi)
+    {   // CrossRef's record of one DOI (https://api.crossref.org/works/<DOI>, politely, cached): its 'message', 'missing' (404: CrossRef doesn't have it), null (couldn't be read) or 'stop'
+        $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
+        if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options);
+        else { $json = $this->call_crossref($url); if($json === 'stop' || $json === 'missing') return $json; if($json === false) return null; }
+        $d = @json_decode((string) $json, true);
+        return ($d['status'] ?? '') === 'ok' ? (array) $d['message'] : null;
+    }
     private function crossref_authors($doi, &$lookups)
     {   /* AUTHOR/TITLE: the authors' surnames of one CrossRef record (CrossRef's search answer doesn't include them): https://api.crossref.org/works/<DOI>,
            politely and cached like the search. Returns a list (empty: CrossRef lists none), null (couldn't be read) or 'stop' (CrossRef asks us to slow down). */
         if($doi === '') return null;
         $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
         if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options);
-        else { $lookups++; $json = $this->call_crossref($url); if($json === 'stop') return 'stop'; if($json === false) return null; }
+        else { $lookups++; $json = $this->call_crossref($url); if($json === 'stop') return 'stop'; if($json === false || $json === 'missing') return null; }
         $d = @json_decode((string) $json, true);
         if(($d['status'] ?? '') !== 'ok') return null;
         $names = array();
@@ -264,10 +314,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         else $r['checks'][] = 'title=' . ($share >= 0.7 ? 'OK' : ($share >= 0.3 ? 'partly' : 'not in citation')) . ' (' . round(100 * $share) . '%)';
         return $r;
     }
-    private static function title_share($citation, $title)
-    {   // AUTHOR/TITLE: the share of CrossRef's title words (3+ letters) that are in the citation; null for a title of fewer than 3 such words
+    private static function title_share($citation, $title, $min_words = 3)
+    {   // AUTHOR/TITLE: the share of CrossRef's title words (3+ letters) that are in the citation; null for a title of fewer than $min_words such words
         $tw = self::words(html_entity_decode(strip_tags($title), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-        if(count($tw) < 3) return null;
+        if(!$tw || count($tw) < $min_words) return null;
         $cw = array_flip(self::words($citation));
         return count(array_filter($tw, fn($w) => isset($cw[$w]))) / count($tw);
     }
@@ -283,6 +333,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         return $also;
     }
+    static function doi_in_text($s)
+    {   // a DOI written in the citation itself, e.g. "doi:10.1594/PANGAEA.692046", "DOI: 10.1080/09670262.2014.982202,", "https://doi.org/10..."; '' if none
+        if(!preg_match('~(?:\bdoi\s*[:.]?\s*|https?://(?:dx\.)?doi\.org/)(10\.\d{4,9}/[^\s"<>,]+)~i', $s, $m)) return ''; // no comma: in "DOI 10.1007/s40415-014-0048-3,2014." the year follows
+        $doi = $m[1];
+        while($doi !== '' && (strpbrk(substr($doi, -1), '.,;:') !== false || (substr($doi, -1) === ')' && substr_count($doi, '(') < substr_count($doi, ')')))) $doi = substr($doi, 0, -1);
+        return $doi; // a ")" that closes a "(" inside it stays, e.g. 10.1016/0044-8486(93)90035-w
+    }
     static function doi_url($doi)
     {   // the DOI as a link, e.g. 10.1016/0044-8486(93)90035-w -> https://doi.org/10.1016/0044-8486(93)90035-w; '' when there is no DOI.
         // Characters that would break a URL (space, %, ", #, ?, <, >, ...) are percent-encoded; "/" and the usual DOI characters are kept as they are.
@@ -293,6 +350,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     // every pre-processing rule of clean_full_reference(): its code => what the guide says about it
     const TEXT_CHANGES = array(
         'spaces' => "Spaces at the start or end of the full_reference were removed.",
+        'quotes' => "Double quotes around the whole full_reference were removed, and doubled quotes inside (\"\") made single, e.g. '\"Lebour, M. V. (1917). ...\"' -> 'Lebour, M. V. (1917). ...'. A spreadsheet adds them when it saves a file as text.",
         'ref_n'  => "A FishBase reference number at the very end, e.g. '(Ref. 3)', was removed. It is FishBase's own number, not part of the citation, and can mislead CrossRef.",
         'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine', '(ed.)0 Tilapia' -> '(ed.) Tilapia' (the '(ed.)' is kept). The year itself is missing in these citations, so the year couldn't be checked.");
     private static function drop_title($j)
@@ -311,6 +369,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     static function clean_full_reference($s, &$changes = null)
     {   /* $changes: code => the change in plain words, for this text (empty: nothing was changed). Every rule is in TEXT_CHANGES.
            Removes what only confuses CrossRef, before the search (the report keeps the original full_reference):
+             - quotes around the whole text, added by a spreadsheet: "\"Lebour, M. V. (1917). ...\"" -> "Lebour, M. V. (1917). ..." (and "" inside -> ")
              - a FishBase reference number at the end, e.g. "... ICLARM Conf. Proc. 7. (Ref. 3)" -> "... ICLARM Conf. Proc. 7."
              - a FishBase "0" glued to the authors where the year should be (the year is lost), e.g.
                "Trewavas, E.0 Tilapiine fishes ..." -> "Trewavas, E. Tilapiine fishes ...", "J.-C. Ruwet0 Ecology ..." -> "J.-C. Ruwet. Ecology ..."
@@ -318,6 +377,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                only the first one, and only a lone 0 right after a letter, a dot or a ")" and right before a capital letter */
         $changes = array(); $s = (string) $s;
         if(($t = trim($s)) !== $s) { $changes['spaces'] = "removed spaces at the start or end"; $s = $t; }
+        // quotes a spreadsheet adds around a field when it saves it as text, with the quotes inside doubled: "Lebour, M. V. ""The Peridiniales ..."" ..."
+        if(strlen($s) >= 2 && $s[0] === '"' && substr($s, -1) === '"') {
+            $inner = substr($s, 1, -1); $doubled = str_contains($inner, '""');
+            $changes['quotes'] = "removed the quotes around the whole citation" . ($doubled ? ", and made the doubled quotes inside single" : '');
+            $s = trim(str_replace('""', '"', $inner));
+        }
         if(preg_match('/\s*(\(Ref\.\s*\d+\))\s*$/u', $s, $m)) { $changes['ref_n'] = "removed '" . $m[1] . "' at the end"; $s = rtrim(substr($s, 0, -strlen($m[0]))); }
         if(preg_match('/(\S*[\p{L}.)])0(?=\s+\p{Lu})/u', $s, $m, PREG_OFFSET_CAPTURE)) { // only the first one: "E.0 " -> "E. ", "Ruwet0 " -> "Ruwet. ", "(ed.)0 " -> "(ed.) "
             $word = $m[1][0]; $fixed = (str_ends_with($word, '.') || str_ends_with($word, ')')) ? $word : $word . '.';
@@ -337,20 +402,51 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         //   also "Knowles MR, Boucher RC (2002) ..." and "Boucher RC (2004) ..." (surname + initials, no comma) -> Knowles, Boucher; a leading list number "1. " is skipped (not a year: "1998. Brittonia,50(1): 59" has no author)
         if(preg_match('/^\s*(?:\d{1,3}[.)]\s+)?(\p{L}[\p{L}\'\x{2019}\- ]{1,40}?)\s*,/u', $s, $m)) $ref['author'] = trim(preg_replace('/\s+\p{Lu}{1,3}$/u', '', trim($m[1])));
         elseif(preg_match('/^\s*(?:\d{1,3}[.)]\s+)?(\p{Lu}[\p{L}\'\x{2019}\-]+)\s+\p{Lu}{1,3}\b/u', $s, $m)) $ref['author'] = $m[1];
-        // the year: the first one that isn't part of a range, e.g. not "1904" in "the Third Tanganyika Expedition, 1904-1905" (a range isn't a publication year)
-        if(preg_match_all('/\b(1[5-9]\d\d|20\d\d)\b/', $s, $years, PREG_OFFSET_CAPTURE)) foreach($years[1] as $y) {
+        $Y = '(1[5-9]\d\d|20\d\d)'; $P = '(\d{1,5})(?:\s*[-\x{2013}\x{2014}]\s*(\d{1,5}))?'; // a year; a page or a page range (a hyphen, an en dash or an em dash)
+        $g = fn($m, $i) => (isset($m[$i]) && $m[$i][1] >= 0) ? $m[$i][0] : ''; // a group of a PREG_OFFSET_CAPTURE match, '' when it didn't match
+        // the year, in this order:
+        //   reference.tab's own style, with the year repeated at the end ("1992. Bradea,9: 85 (1991) ...,1992."): the first one, as before (last rule)
+        //   a year alone in parentheses, e.g. "Boucher RC (2004) ...", "Lebour, M. V. (1917). ..." (APA), "... (2008)." (Chicago)
+        //   a year followed by a month, e.g. "... United Kingdom. 1963 Nov" (Vancouver) -- not "in August 1962" in its title
+        //   else the first one that isn't part of a range, e.g. not "1904" in "the Third Tanganyika Expedition, 1904-1905" (a range isn't a publication year)
+        $tab_style = (bool) preg_match('/,\s*' . $Y . '\.?\s*$/', $s);
+        if(!$tab_style && preg_match('/\(' . $Y . '[a-z]?\)/', $s, $m, PREG_OFFSET_CAPTURE)) { $ref['year'] = $m[1][0]; $year_end = $m[1][1] + 4; }
+        elseif(!$tab_style && preg_match('/\b' . $Y . '\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\b/', $s, $m, PREG_OFFSET_CAPTURE)) { $ref['year'] = $m[1][0]; $year_end = $m[1][1] + 4; }
+        elseif(preg_match_all('/\b' . $Y . '\b/', $s, $years, PREG_OFFSET_CAPTURE)) foreach($years[1] as $y) {
             if(preg_match('/\d\s*(?:-|\x{2013})\s*$/u', substr($s, 0, $y[1])) || preg_match('/^\s*(?:-|\x{2013})\s*\d/u', substr($s, $y[1] + 4))) continue;
             $ref['year'] = $y[0]; $year_end = $y[1] + 4; break;
         }
-        // the last "VOLUME[(ISSUE)]: PAGE[-PAGE]", e.g. "50(1): 59", "17: 138", "27(3):327-359", "81A:423-426" (volume 81 of Part A)
-        if(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*:\s*(\d{1,5})(?:\s*[-\x{2013}\x{2014}]\s*(\d{1,5}))?/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) { // a hyphen, an en dash or an em dash between pages
+        // the volume, issue and page(s), the last one of these:
+        //   (a) Chicago "11, no. 2 (1917): 183-200", MLA "11.2 (1917): 183-200", or "11 (1917): 183-200": the year in parentheses is the publication year
+        //   (b) "VOLUME[(ISSUE)]: PAGE[-PAGE]", e.g. "50(1): 59", "17: 138", "27(3):327-359", "81A:423-426" (volume 81 of Part A)
+        //   (c) APA / Harvard "11(2), 183-200", "11(2), pp.183-200": only with a page range, so a lone number after a comma isn't taken for a page
+        $m = null; $vol_at = null;
+        if(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)(?:\.(\d{1,4})|\s*,\s*no\.\s*([\w\/-]{1,8}))?\s*\(\s*(?:\p{L}+\.?\s+)?' . $Y . '\s*\)\s*:\s*' . $P . '/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
             $m = end($all);
-            $ref['volume'] = $m[1][0]; $ref['issue'] = trim((string) @$m[2][0]); $ref['page'] = $m[3][0]; $ref['page_end'] = (string) @$m[4][0];
+            $ref['volume'] = $g($m, 1); $ref['issue'] = $g($m, 2) !== '' ? $g($m, 2) : $g($m, 3); $ref['year'] = $g($m, 4); $ref['page'] = $g($m, 5); $ref['page_end'] = $g($m, 6);
+            $vol_at = $m[0][1]; unset($year_end); // the year comes after the journal here
+        }
+        elseif(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*:\s*' . $P . '/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)
+            || (preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*,\s*(?:pp?\.\s*)?(\d{1,5})\s*[-\x{2013}\x{2014}]\s*(\d{1,5})(?!\d)/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)
+                && ($all = array_values(array_filter($all, fn($x) => !(preg_match('/^' . $Y . '$/', $x[3][0]) && preg_match('/^' . $Y . '$/', $x[4][0])))))) ) { // not a year range, e.g. "Select. Hexandr. Pl.,9,1831-1834"
+
+            $m = end($all);
+            $ref['volume'] = $g($m, 1); $ref['issue'] = trim($g($m, 2)); $ref['page'] = $g($m, 3); $ref['page_end'] = $g($m, 4);
+            $vol_at = $m[0][1];
             if($ref['volume'] === $ref['year']) $ref['volume'] = ''; // e.g. "Mem. Math. Phys. Inst. Par.,1811: 82" -> the year, not a volume
-            if(isset($year_end) && $m[0][1] > $year_end) { // journal: between the year and the volume; in "Title.,Journal 27(3)" the part after the last ".,"
-                $j = trim(substr($s, $year_end, $m[0][1] - $year_end), " .,;()"); // e.g. ". Kew Bull.," -> "Kew Bull"; "(2004) Title. Eur Resp J" -> after ")"
+        }
+        if($vol_at !== null) { // the journal
+            $before = substr($s, 0, $vol_at);
+            // a title in quotes (Chicago, MLA): the journal is what follows it, e.g. '"The Peridiniales ... breakwater." Journal of the ... Kingdom 11, no. 2'
+            // (not a name in a journal title, e.g. 'Anais Bot. Herb. "Barbosa Rodrigues"': a quoted title ends with ".", "?" or "!" inside the quotes)
+            if(preg_match_all('/["\x{201C}][^"\x{201C}\x{201D}]{10,}[.?!]["\x{201D}]/u', $before, $q, PREG_OFFSET_CAPTURE)) {
+                $last = end($q[0]);
+                $ref['journal'] = trim(substr($before, $last[1] + strlen($last[0])), " .,;()");
+            }
+            elseif(isset($year_end) && $vol_at > $year_end) { // between the year and the volume; in "Title.,Journal 27(3)" the part after the last ".,"
+                $j = trim(substr($s, $year_end, $vol_at - $year_end), " .,;()"); // e.g. ". Kew Bull.," -> "Kew Bull"; "(2004) Title. Eur Resp J" -> after ")"
                 if(($p = strrpos($j, '.,')) !== false) $j = substr($j, $p + 2);
-                $ref['journal'] = trim(self::drop_title($j), " .,;");
+                $ref['journal'] = trim(preg_replace('/,\s*v(?:ol)?\.?$/i', '', trim(self::drop_title($j), " .,;")), " .,;"); // "Fl. Venez. Guayana,v. 6" -> without ",v" 
             }
         }
         return $ref;
@@ -423,6 +519,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                 $this->save_to_cache($url, $body);
                 return $body;
             }
+            if($code == 404 && str_contains($url, '/works/10.')) return 'missing'; // a DOI CrossRef doesn't have (e.g. a DataCite DOI): no need to ask again now
             if($code == 429 || $code == 503) {
                 $this->throttled_in_a_row = ($this->throttled_in_a_row ?? 0) + 1;
                 if($this->throttled_in_a_row >= self::THROTTLE_LIMIT) return 'stop';
@@ -457,8 +554,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     function check_candidate($ref, $item)
     {   // Returns array('status' => matched / possible / not found, 'checks' => what agreed (list), 'agree' => n checks that agree, 'why' => reason it isn't matched)
-        $checks = array(); $ok = true; $why = '';
-        $fail = function($check, $reason) use (&$checks, &$ok, &$why) { $checks[] = $check; if($ok) $why = $reason; $ok = false; };
+        $checks = array(); $ok = true; $why = ''; $fails = array();
+        $fail = function($check, $reason) use (&$checks, &$ok, &$why, &$fails) { $checks[] = $check; if($ok) $why = $reason; $ok = false; $fails[] = $reason; };
         // type: a whole issue or volume is never the answer
         $type = (string) @$item['type'];
         if(in_array($type, self::NOT_AN_ARTICLE)) $fail("type=$type", 'not an article');
@@ -500,9 +597,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         else $checks[] = 'page=unknown';
         $agree = count(array_filter($checks, fn($c) => str_ends_with($c, '=OK') || str_starts_with($c, 'page=first') || str_starts_with($c, 'page=in')));
-        if(!$ok) return array('status' => 'not found', 'checks' => $checks, 'agree' => $agree, 'why' => $why);
+        if(!$ok) return array('status' => 'not found', 'checks' => $checks, 'agree' => $agree, 'why' => $why, 'fails' => $fails);
         $status = ($page_ok && $journal === true) ? 'matched' : 'possible'; // 'matched' needs the journal and the page confirmed
-        return array('status' => $status, 'checks' => $checks, 'agree' => $agree, 'why' => '');
+        return array('status' => $status, 'checks' => $checks, 'agree' => $agree, 'why' => '', 'fails' => array());
     }
     private function note_no_candidates($ref)
     {   $note = "CrossRef has no records" . ($ref['year'] ? " from " . ($ref['year'] - 1) . "-" . ($ref['year'] + 1) : '') . " that resemble this citation.";
@@ -513,7 +610,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     private function review_note($ref, $row, $c)
     {   // what was found, in plain words, for the Data Managers' final check
-        $cand = "\"" . $row['crossref_journal'] . "\" " . $row['crossref_volume'] . ($row['crossref_issue'] !== '' ? "(" . $row['crossref_issue'] . ")" : '')
+        $cand = $row['crossref_journal'] === '' ? "a " . ($row['crossref_type'] !== '' ? $row['crossref_type'] : 'record') . " (" . $row['crossref_year'] . ")" // e.g. a book
+              : "\"" . $row['crossref_journal'] . "\" " . $row['crossref_volume'] . ($row['crossref_issue'] !== '' ? "(" . $row['crossref_issue'] . ")" : '')
               . ($row['crossref_page'] !== '' ? ": " . $row['crossref_page'] : '') . " (" . $row['crossref_year'] . ")";
         $cited = "page " . $ref['page'];
         $agree = $this->agreed_text($c['checks']); // e.g. "Journal, volume and year agree": only what was really compared and agreed
@@ -525,12 +623,14 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         if($c['status'] == 'possible') {
             $checks = implode(' ', $c['checks']);
-            if(str_contains($checks, 'end unknown'))   $n = "$agree, but CrossRef gives only the first page ({$row['crossref_page']}), not the last. Check that the article runs to $cited.";
+            if(($c['via'] ?? '') === 'author and title') // AUTHOR/TITLE: no volume or pages in the citation
+                $n = "$agree, but no volume or pages could be read from the citation (a book, or a citation style without them), so the numbers couldn't be compared. Check that this is the work cited (another edition or a reprint has its own DOI).";
+            elseif(str_contains($checks, 'end unknown'))   $n = "$agree, but CrossRef gives only the first page ({$row['crossref_page']}), not the last. Check that the article runs to $cited.";
             elseif($ref['page'] === '')               $n = "$agree, but no page could be read from the citation. Check that this is the article cited.";
             elseif(str_contains($checks, 'page=first page') || str_contains($checks, 'page=in ')) $n = "$agree, and $cited is in the article's pages ({$row['crossref_page']}).";
             elseif($row['crossref_page'] === '')      $n = "$agree, but CrossRef has no page numbers for this article. Check that it contains $cited.";
             else                                      $n = "$agree, but the page couldn't be confirmed (CrossRef gives \"{$row['crossref_page']}\"). Check that the article contains $cited.";
-            if(in_array('journal=unknown', $c['checks'])) $n .= " The journal name couldn't be compared: check it is \"{$row['crossref_journal']}\".";
+            if(in_array('journal=unknown', $c['checks']) && $row['crossref_journal'] !== '' && !in_array('journal=in the citation', $c['checks'])) $n .= " The journal name couldn't be compared: check it is \"{$row['crossref_journal']}\".";
             return $n . $unchecked . " Candidate: $cand, \"" . mb_substr($row['crossref_title'], 0, 120) . "\"." . $year_note;
         }
         // not found: why the closest candidate was rejected
@@ -564,7 +664,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   // "Journal, volume and year agree", from the checks that really agreed (a year one off counts: the note says so)
         $names = array();
         foreach(array('journal', 'volume', 'issue', 'year') as $k)
-            if(in_array("$k=OK", $checks) || ($k == 'year' && in_array('year=next to it', $checks))) $names[] = $k;
+            if(in_array("$k=OK", $checks) || ($k == 'year' && in_array('year=next to it', $checks)) || ($k == 'journal' && in_array('journal=in the citation', $checks))) $names[] = $k;
         if(in_array('author=OK', $checks)) $names[] = 'first author'; // AUTHOR/TITLE
         foreach($checks as $k) if(str_starts_with($k, 'title=OK')) $names[] = 'title'; // AUTHOR/TITLE
         if(!$names) return "Nothing could be compared";
@@ -599,6 +699,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     rejected ('not found'), e.g. a fish paper whose volume and page happen to match a paper on chickens. One alone is never
     enough: CrossRef's author and title data for old works is often incomplete or garbled, and many citations have no
     title. 'title=not in citation' is not a warning by itself.
+  - No volume or pages in the citation (a book, or a style without them, e.g. Vancouver '... Journal. 1917 May'):
+    a candidate can still be 'possible' (never 'matched') when nothing differs, the first author agrees (or nearly), at
+    least 90% of CrossRef's title is in the citation, and, for a journal article, the journal is named in the citation.
+    E.g. old books with DOIs from the Biodiversity Heritage Library (10.5962/bhl.title...). Check the edition.
   - The authors cost one CrossRef call for each candidate that passes the other checks (at most " . self::MAX_AUTHOR_LOOKUPS . " a row, cached),
     so a search can take a little longer than its estimate.
 "
@@ -636,6 +740,8 @@ WHAT TO DO WITH EACH STATUS
                review_note or the title shows it clearly isn't the work cited.
   possible  -> Journal, volume and year agree, but the page can't be confirmed (CrossRef often gives only an article's
                first page). Open the DOI and check that the article covers the cited page, then accept or reject it.
+               Or (author and title checks on): no volume or pages could be read, but the first author and the title
+               agree; the review_note says so. Check that it's the work (and edition) cited.
                Watch out: one article often appears for several citations of later pages in the same volume; those
                later pages may belong to a different article.
   not found -> No candidate agrees. The DOI column is left empty on purpose; the closest candidate is described in the
@@ -658,6 +764,9 @@ GOOD TO KNOW
     of the same journal, volume and pages was matched, that DOI may apply here too.
   - If CrossRef has another record with the same journal, volume and first page, the review_note names it: the same work
     is sometimes registered twice (e.g. once per scan). Check which DOI to use.
+  - A DOI written in the citation itself (e.g. 'doi:10.1594/PANGAEA.692046') is checked in CrossRef instead of searching:
+    'matched' when CrossRef has it and its title is in the citation; 'possible' when CrossRef doesn't have it (it may be
+    registered elsewhere, e.g. with DataCite for PANGAEA datasets, or be mistyped) or its title isn't in the citation.
   - Nothing was changed anywhere: this is a report only.
 
 COLUMNS

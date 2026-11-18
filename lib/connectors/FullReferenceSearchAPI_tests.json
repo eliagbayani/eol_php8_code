@@ -134,9 +134,11 @@
    "source": "FishBase",
    "full_reference": "Rana, K.0 Reproductive biology and the hatchery rearing of tilapia eggs and fry. p. 343-397. In J.F. Muir and R.J. Roberts (eds.) Recent advances in aquaculture. Timber Press, Oregon. 420 p. (Ref. 175)",
    "expect": {
-    "status": "not found"
+    "status": "possible",
+    "DOI": "10.1007/978-94-011-9743-4_5",
+    "requires": "author_title_checks"
    },
-   "why": "A book chapter: books can't be confirmed yet (known limit). If books are supported later, this becomes 'possible' with 10.1007/978-94-011-9743-4_5: update this case."
+   "why": "A book chapter (p. 343-397 in 'Recent advances in aquaculture'): no volume, so it's confirmed by the first author and the title instead (Nov 18). Was 'not found' before."
   },
   {
    "id": "fishbase-90d61b6e",
@@ -251,6 +253,110 @@
     "status": "not found"
    },
    "why": "'Mem. Torrey Bot. Club' is not the 'Bulletin of the Torrey Botanical Club': a different series must be rejected."
+  },
+  {
+   "id": "styles-apa-1",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lebour, M. V. (1917). The Peridiniales of Plymouth Sound from the region beyond the breakwater. Journal of the Marine Biological Association of the United Kingdom, 11(2), 183-200.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400047950",
+    "parsed_volume": "11",
+    "parsed_issue": "2",
+    "text_changes_contains": "quotes"
+   },
+   "why": "APA: 'Journal, 11(2), 183-200.' (a comma, not a colon, before the pages), and the quotes a spreadsheet adds around the field."
+  },
+  {
+   "id": "styles-harvard-5",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, J.B., 1936. Occurrence and distribution of the marine protozoan species in the Woods Hole area. The Biological Bulletin, 70(2), pp.264-278.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1537471",
+    "parsed_page": "264-278"
+   },
+   "why": "Harvard: 'The Biological Bulletin, 70(2), pp.264-278.'"
+  },
+  {
+   "id": "styles-chicago-6",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, James B., and Elsie W. Lackey. \"\"Microscopic algae and protozoa in the waters near Plymouth in August 1962.\"\" Journal of the Marine Biological Association of the United Kingdom 43, no. 3 (1963): 797-805.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400025698",
+    "parsed_year": "1963",
+    "parsed_volume": "43",
+    "parsed_issue": "3"
+   },
+   "why": "Chicago: '\"Title.\" Journal 43, no. 3 (1963): 797-805.' Was read as volume 3, issue 1963; and the year 1962 was taken from the title ('in August 1962')."
+  },
+  {
+   "id": "styles-mla-1",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lebour, Marie V. \"\"The Peridiniales of Plymouth Sound from the region beyond the breakwater.\"\" Journal of the Marine Biological Association of the United Kingdom 11.2 (1917): 183-200.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400047950",
+    "parsed_volume": "11",
+    "parsed_issue": "2",
+    "parsed_year": "1917"
+   },
+   "why": "MLA: 'Journal 11.2 (1917): 183-200.'"
+  },
+  {
+   "id": "styles-vancouver-6",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey JB, Lackey EW. Microscopic algae and protozoa in the waters near Plymouth in August 1962. Journal of the Marine Biological Association of the United Kingdom. 1963 Nov\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1017/s0025315400025698",
+    "parsed_year": "1963",
+    "requires": "author_title_checks"
+   },
+   "why": "Vancouver as Google Scholar makes it: no volume or pages ('Journal. 1963 Nov'), so at most 'possible', by the first author, the title and the journal. The year is the one before the month, not 1962 from the title."
+  },
+  {
+   "id": "styles-apa-3-book",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Kofoid, C. A., & Swezy, O. (1921). The free-living unarmored Dinoflagellata (Vol. 5). University of California Press.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.24995",
+    "requires": "author_title_checks"
+   },
+   "why": "A book (Kofoid & Swezy 1921), with a BHL DOI in CrossRef: confirmed by the first author and the title."
+  },
+  {
+   "id": "styles-orig-2-doi",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Gotsis-Skretas, Olympia;†Pagou, Kalliopi†(2008):†Microplankton abundance in the euphotic zone of the Aegean Sea in October-November 1991.†Hellenic Center of Marine Research, Institut of Oceanography, Greece, doi:10.1594/PANGAEA.692046\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1594/PANGAEA.692046",
+    "checks_contains": "not in CrossRef"
+   },
+   "why": "The citation gives its own DOI, a PANGAEA dataset registered with DataCite, not CrossRef: given as 'possible', to be opened and checked."
+  },
+  {
+   "id": "reference-26d1efd4",
+   "source": "amphibian references",
+   "full_reference": "IUCN SSC Amphibian Specialist Group. 2018. “Allobates zaparo”. The IUCN Red List of Threatened Species 2018: e.T55039A89198822. Downloaded on 26 July 2018.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2305/iucn.uk.2018-1.rlts.t55039a89198822.en",
+    "requires": "author_title_checks"
+   },
+   "why": "IUCN 'Allobates zaparo': with a title bar of 80%, 'Allobates alessandroi: IUCN SSC Amphibian Specialist Group' (86%) was taken; 90% is needed."
+  },
+  {
+   "id": "fishbase-201862b0",
+   "source": "FishBase",
+   "full_reference": "Micha, J.C., T. Antoine, P. Wery and C. Van Hove0 Growth, ingestion capacity, comparative appetency and biochemical composition of Oreochromis niloticus and Tilapia rendalli fed with Azolla. p. 347-355. In R.S.V. Pullin, T. Bhukaswan, K. Tonguthai, and J.L. Maclean (eds.) The Second International Symposium on Tilapia in Aquaculture. ICLARM Conference Proceedings 15, Dept. of Fish., Bangkok, Thailand and ICLARM, Manila, Philippines. 623 p. (Ref. 5419)",
+   "expect": {
+    "status": "not found"
+   },
+   "why": "A chapter by Micha et al.; CrossRef's 'Comparative appetency for Azolla of Cichlasoma and Oreochromis' has 83% of its title in the citation but is another paper: under the 90% bar."
   }
  ]
 }

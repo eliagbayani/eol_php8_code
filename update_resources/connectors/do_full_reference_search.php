@@ -8,17 +8,20 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
 php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", "file": "/path/reference.tab", "start": 1001}'   //from data row 1001 on
     - "file": a TSV whose header has 'identifier' and 'full_reference' (other columns are ignored). Path as the container sees it.
     - Report: Reference_maintenance/<file name>_DOIs_<YYYYmmdd_HHMMSS>.tsv, written row by row:
-      identifier, full_reference, searched_text (what was sent to CrossRef: without a FishBase "(Ref. N)" at the end or a stray "0" after the authors),
+      identifier, full_reference, searched_text (what was sent to CrossRef: without quotes a spreadsheet put around it, a FishBase "(Ref. N)" at the end or a stray "0" after the authors),
       text_changes (what that pre-processing changed in the row, in plain words; empty = nothing; the guide counts each kind), status, DOI, DOI_URL (the DOI as a https://doi.org/ link), review_note, parsed_* (what was read from the citation), crossref_* (the candidate), checks
       plus <same name>_guide.txt: the results and how to review them, for the Data Managers.
       Only the newest 20 reports (with their guides) are kept; older ones are deleted when a search starts.
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)
       DOI is filled only for matched and possible; review_note says what was found, in plain words.
+    - Citation styles read: TraitBank's, FishBase's, "Author AB (Year) Title. Journal Vol: pages", APA, Harvard, Chicago, MLA (Vancouver: no volume or pages).
+      A DOI written in the citation (e.g. "doi:10.1594/PANGAEA.692046") is checked in CrossRef instead of searching.
     - Author and title checks (on by default): the first author's surname and CrossRef's title words also count; they break ties, and a
-      'matched' row whose authors clearly differ becomes 'possible'. To turn them off for a run: add "author_title_checks": false, e.g.
+      'matched' row whose authors clearly differ becomes 'possible'. A citation with no volume or pages (a book, or Vancouver style) can be
+      'possible' when the first author and 90% of CrossRef's title agree. To turn them off for a run: add "author_title_checks": false, e.g.
       php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", "file": "/path/reference.tab", "author_title_checks": false}'
       (to turn them off for good, or remove them: see AUTHOR_TITLE_CHECKS in FullReferenceSearchAPI.php)
-    - Tests: the known cases (problems fixed before, CrossRef's own sample citations) must still give their expected results:
+    - Tests: the known cases (problems fixed before, CrossRef's own sample citations, citation styles) must still give their expected results:
       php do_full_reference_search.php _ '{"task": "run_tests"}'
       The cases are in lib/connectors/FullReferenceSearchAPI_tests.json: add one whenever a problem is fixed. Also [Run Tests] on the web page.
     - Changes nothing else. CrossRef answers are cached (never expire), so a re-run or a resumed run is instant for rows already searched.

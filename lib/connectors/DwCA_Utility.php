@@ -808,6 +808,13 @@ class DwCA_Utility
             */
             echo "\n3 of 3*\n";
             foreach($index as $row_type) {
+
+                // /* New: Nov 18, 2026
+                if($params['excluded_rowtypes']) { //1st client here is Legacy DwCA resources
+                    if(in_array($row_type, $params['excluded_rowtypes'])) continue;
+                }
+                // */
+
                 $meta = $tables[$row_type][0];
                 if(@$this->extensions[$row_type]) { //process only defined row_types
                     if($this->extensions[$row_type] == "taxon") { //ditox

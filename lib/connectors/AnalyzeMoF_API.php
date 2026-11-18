@@ -85,6 +85,8 @@ class AnalyzeMoF_API
         $this->debug = array();
         $temp = CONTENT_RESOURCE_LOCAL_PATH . 'neo4j_analyzed'; if(!is_dir($temp)) mkdir($temp);
         $this->neo4j_analyzed_folder = $temp;
+        $this->modulo = 20000;
+        if(strpos($this->resource_id, 'globi_assoc_finale') === 0) $this->modulo = 100000;
     }
     /*================================================================= STARTS HERE ======================================================================*/
     private function initial()
@@ -104,6 +106,8 @@ class AnalyzeMoF_API
     }
     function start($info)
     {   
+        // progress echo every [modulo] rows in process_table(); must be set before the 1st process_table() call
+        // resource_id here already ends in "_analyzed", e.g. "globi_assoc_finale_analyzed"
         self::initial();
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
@@ -198,7 +202,7 @@ class AnalyzeMoF_API
     {   echo "\nprocess_table analyze: [$what] [$meta->file_uri]...\n"; $i = 0;
         foreach (new FileIterator($meta->file_uri) as $line => $row) {
             $i++;
-            if (($i % 20000) == 0) echo "\n" . number_format($i) . " - ";
+            if (($i % $this->modulo) == 0) echo "\n" . number_format($i) . " - ";
             if ($meta->ignore_header_lines && $i == 1) continue;
             if (!$row) continue;
             // $row = Functions::conv_to_utf8($row); //possibly to fix special chars. but from copied template

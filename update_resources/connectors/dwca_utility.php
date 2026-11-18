@@ -53,6 +53,18 @@ echo "\n[$resource_id] [$dwca_file] [".$task."]\n";
 // /* //main operation
 $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) {
+
+    // /* New: Nov 18, 2026
+    // $preferred_rowtypes = array();
+    $excluded_rowtypes = array();
+    // media, agent, and vernacular name files can be discarded.
+    $excluded_rowtypes[] = 'http://eol.org/schema/media/document';
+    $excluded_rowtypes[] = 'http://eol.org/schema/agent/agent';
+    $excluded_rowtypes[] = 'http://rs.gbif.org/terms/1.0/vernacularname';
+    // */
+    // $params['preferred_rowtypes'] = $preferred_rowtypes;
+    $params['excluded_rowtypes'] = $excluded_rowtypes;
+
     $ret = $func->convert_archive_by_adding_higherClassification($params);
     if($ret) Functions::finalize_dwca_resource($resource_id, false, true);
 }

@@ -50,6 +50,11 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $excluded_rowtypes = array('http://eol.org/schema/association', 'http://rs.tdwg.org/dwc/terms/measurementorfact', 'http://rs.tdwg.org/dwc/terms/occurrence');
     // these 3 will be processed in AnalyzeMoF_API.php. The rest will be saved in DwCA_Utility.php.
 
+    // media, agent, and vernacular name files can be discarded.
+    $excluded_rowtypes[] = 'http://eol.org/schema/media/document';
+    $excluded_rowtypes[] = 'http://eol.org/schema/agent/agent';
+    $excluded_rowtypes[] = 'http://rs.gbif.org/terms/1.0/vernacularname';
+
     /* This will be processed in AnalyzeMoF_API.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);
     Functions::finalize_dwca_resource($resource_id, false, true, $timestart);

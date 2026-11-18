@@ -367,6 +367,319 @@
    "why": "The same dataset with no year but the one in its title ('winter 1995'): DataCite's year is 2008, allowed because the cited year is in its title."
   },
   {
+   "id": "styles-apa-4",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Schmarda, L. K. (1846). Kleine Beiträge zur Naturgeschichte der Infusorien: Mit zwei Tafeln Abbildungen. Verlag der Carl Haas' schen Buchhandlung.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.11287",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Schmarda 1846, a book with a BHL DOI, in APA: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-apa-5",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, J. B. (1936). Occurrence and distribution of the marine protozoan species in the Woods Hole area. The Biological Bulletin, 70(2), 264-278.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1537471",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey 1936 in APA: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-apa-6",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, J. B., & Lackey, E. W. (1963). Microscopic algae and protozoa in the waters near Plymouth in August 1962. Journal of the Marine Biological Association of the United Kingdom, 43(3), 797-805.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400025698",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey & Lackey 1963 in APA: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-harvard-1",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lebour, M.V., 1917. The Peridiniales of Plymouth Sound from the region beyond the breakwater. Journal of the Marine Biological Association of the United Kingdom, 11(2), pp.183-200.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400047950",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lebour 1917 in Harvard: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-harvard-2",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Gotsis-Skretas, O., Pagou, K. and Ignatiades, L., 2008. Microplankton abundance in the euphotic zone of the Aegean Sea in winter 1995.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1594/pangaea.691325",
+    "DOI_source": "DataCite",
+    "requires": "datacite_search"
+   },
+   "why": "Gotsis-Skretas 2008 (winter 1995) in Harvard: a PANGAEA dataset, found in DataCite."
+  },
+  {
+   "id": "styles-harvard-3",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Kofoid, C.A. and Swezy, O., 1921. The free-living unarmored Dinoflagellata (Vol. 5). University of California Press.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.24995",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Kofoid & Swezy 1921, a book with a BHL DOI, in Harvard: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-harvard-4",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Schmarda, L.K., 1846. Kleine Beiträge zur Naturgeschichte der Infusorien: Mit zwei Tafeln Abbildungen. Verlag der Carl Haas' schen Buchhandlung.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.11287",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Schmarda 1846, a book with a BHL DOI, in Harvard: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-harvard-6",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, J.B. and Lackey, E.W., 1963. Microscopic algae and protozoa in the waters near Plymouth in August 1962. Journal of the Marine Biological Association of the United Kingdom, 43(3), pp.797-805.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400025698",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey & Lackey 1963 in Harvard: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-chicago-1",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lebour, Marie V. \"\"The Peridiniales of Plymouth Sound from the region beyond the breakwater.\"\" Journal of the Marine Biological Association of the United Kingdom 11, no. 2 (1917): 183-200.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400047950",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lebour 1917 in Chicago: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-chicago-2",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Gotsis-Skretas, Olympia, Kalliopi Pagou, and Lydia Ignatiades. \"\"Microplankton abundance in the euphotic zone of the Aegean Sea in winter 1995.\"\" (2008).\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1594/pangaea.691325",
+    "DOI_source": "DataCite",
+    "requires": "datacite_search"
+   },
+   "why": "Gotsis-Skretas 2008 (winter 1995) in Chicago: a PANGAEA dataset, found in DataCite."
+  },
+  {
+   "id": "styles-chicago-3",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Kofoid, Charles Atwood, and Olive Swezy. The free-living unarmored Dinoflagellata. Vol. 5. University of California Press, 1921.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.24995",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Kofoid & Swezy 1921, a book with a BHL DOI, in Chicago: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-chicago-4",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Schmarda, Ludwig Karl. Kleine Beiträge zur Naturgeschichte der Infusorien: Mit zwei Tafeln Abbildungen. Verlag der Carl Haas' schen Buchhandlung, 1846.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.11287",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Schmarda 1846, a book with a BHL DOI, in Chicago: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-chicago-5",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, James B. \"\"Occurrence and distribution of the marine protozoan species in the Woods Hole area.\"\" The Biological Bulletin 70, no. 2 (1936): 264-278.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1537471",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey 1936 in Chicago: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-mla-2",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Gotsis-Skretas, Olympia, Kalliopi Pagou, and Lydia Ignatiades. \"\"Microplankton abundance in the euphotic zone of the Aegean Sea in winter 1995.\"\" (2008).\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1594/pangaea.691325",
+    "DOI_source": "DataCite",
+    "requires": "datacite_search"
+   },
+   "why": "Gotsis-Skretas 2008 (winter 1995) in MLA: a PANGAEA dataset, found in DataCite."
+  },
+  {
+   "id": "styles-mla-3",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Kofoid, Charles Atwood, and Olive Swezy. The free-living unarmored Dinoflagellata. Vol. 5. University of California Press, 1921.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.24995",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Kofoid & Swezy 1921, a book with a BHL DOI, in MLA: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-mla-4",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Schmarda, Ludwig Karl. Kleine Beiträge zur Naturgeschichte der Infusorien: Mit zwei Tafeln Abbildungen. Verlag der Carl Haas' schen Buchhandlung, 1846.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.11287",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Schmarda 1846, a book with a BHL DOI, in MLA: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-mla-5",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, James B. \"\"Occurrence and distribution of the marine protozoan species in the Woods Hole area.\"\" The Biological Bulletin 70.2 (1936): 264-278.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1537471",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey 1936 in MLA: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-mla-6",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey, James B., and Elsie W. Lackey. \"\"Microscopic algae and protozoa in the waters near Plymouth in August 1962.\"\" Journal of the Marine Biological Association of the United Kingdom 43.3 (1963): 797-805.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400025698",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey & Lackey 1963 in MLA: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-vancouver-1",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "Lebour MV. The Peridiniales of Plymouth Sound from the region beyond the breakwater. Journal of the Marine Biological Association of the United Kingdom. 1917 May",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1017/s0025315400047950",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Lebour 1917 in Vancouver style: no volume or pages, so 'possible' by the first author, the title and the journal."
+  },
+  {
+   "id": "styles-vancouver-3",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Kofoid CA, Swezy O. The free-living unarmored Dinoflagellata. University of California Press\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.24995",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Kofoid & Swezy 1921, a book with a BHL DOI, in Vancouver: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-vancouver-4",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "Schmarda LK. Kleine Beiträge zur Naturgeschichte der Infusorien: Mit zwei Tafeln Abbildungen. Verlag der Carl Haas' schen Buchhandlung",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.11287",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Schmarda 1846, a book with a BHL DOI, in Vancouver: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-vancouver-5",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "Lackey JB. Occurrence and distribution of the marine protozoan species in the Woods Hole area. The Biological Bulletin. 1936 Apr",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/1537471",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Lackey 1936 in Vancouver style: no volume or pages, so 'possible' by the first author, the title and the journal."
+  },
+  {
+   "id": "styles-orig-1",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lebour, M.V. 1917. The Peridiniales of Plymouth Sound from the region beyond the breakwater. Journal of the Marine Biological Association of the United Kingdom 11:183-200.\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400047950",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lebour 1917 in the original format: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-orig-3",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Kofoid, C.A. and O. Swezy. 1921. The Free-Living Unarmored Dinoflagellata. Memoirs of the University of California Vol. 5, University of California Press, Berkeley, CA, 562 pp.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.24995",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Kofoid & Swezy 1921, a book with a BHL DOI, in the original format: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-orig-4",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Schmarda, L.K. 1846. Kleine Beiträge zur Naturgeschichte der Infusorien.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.11287",
+    "DOI_source": "CrossRef",
+    "requires": "author_title_checks"
+   },
+   "why": "Schmarda 1846, a book with a BHL DOI, in the original format: 'possible' by the first author and the title."
+  },
+  {
+   "id": "styles-orig-5",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "Lackey JB (1936) Occurrence and distribution of the marine protozoan species in the Woods Hole area. Biol Bull 70: 264-278",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1537471",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey 1936 in the original format: journal, volume, year and pages read and confirmed."
+  },
+  {
+   "id": "styles-orig-6",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Lackey JB, Lackey EW (1963) Microscopic algae and protozoa in the waters near Plymouth in August 1962. J Mar Biol Assoc UK 43: 797-805\"",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0025315400025698",
+    "DOI_source": "CrossRef"
+   },
+   "why": "Lackey & Lackey 1963 in the original format: journal, volume, year and pages read and confirmed."
+  },
+  {
    "id": "reference-26d1efd4",
    "source": "amphibian references",
    "full_reference": "IUCN SSC Amphibian Specialist Group. 2018. “Allobates zaparo”. The IUCN Red List of Threatened Species 2018: e.T55039A89198822. Downloaded on 26 July 2018.",

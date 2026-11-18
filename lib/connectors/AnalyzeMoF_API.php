@@ -6,49 +6,71 @@ e.g. php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "Amphibi
      writes: resources/AmphibiaWeb_finale_analyzed.tar.gz
 
 What it does:
-Removes from a DwCA the MoF and Association records that use terms not defined in EOL's terms list (terms.tsv,
-loaded via ConvertNewModel_2DwCA::generate_measurements_values_associations()), together with the records that depend on them.
-DwCA_Utility copies all other extensions (taxon, media, reference, agent, vernacular, etc.) as-is; only these 3 are processed here:
-MeasurementOrFact, Association and Occurrence.
+Reads a DwCA and writes a new one in which the MeasurementOrFact (MoF), Association and Occurrence records are checked against
+the EOL terms list. Records that can't be supported by the terms list are dropped; unknown URIs in qualifier fields are blanked.
+DwCA_Utility copies all other extensions (taxon, media, reference, agent, vernacular, etc.) as-is.
 
-Principle: keep as many records as possible; delete only what can't be supported, i.e. the record with the undefined term,
-plus only what depends on it. One bad record never removes a sibling record. A trait whose own measurementType and value are
-valid is kept, even if some of its context (e.g. sex, lifestage) is removed or blanked: "femur = 1590 mm" is still accepted
-when "adult female" can't be supported.
+Terms list (the authority on terms):
+  applications/content_server/resources/TB_files/22776577_Terms/input_files/terms_1.0.tsv
+  loaded via ConvertNewModel_2DwCA::generate_measurements_values_associations(), which returns its 4 term types:
+  measurement, value, association, metadata. The filename may change in later versions (e.g. terms_1.1.tsv).
 
-A MoF row has an undefined term if:
+Principle: include as many records as possible; drop only what can't be supported, i.e. the record with the unknown term,
+plus only what depends on it. One bad record never drops a sibling record.
+  - A trait whose own measurementType and measurementValue are valid is always included, even when some of its context or
+    qualifiers are dropped or blanked: "femur = 1590 mm" is included when "adult female" can't be supported.
+  - A lone "60" is included when its measurementUnit URI is unknown: the unit is blanked and reported.
+
+A MoF row has an unknown term if:
   - measurementValue is a URI not in EOL values, or
-  - measurementOfTaxon = true and measurementType is not in EOL measurements
-    (reported separately if the mType is an EOL value term, i.e. misused rather than undefined)
-An association has an undefined term if associationType is a URI not in EOL associations.
+  - trait row (measurementOfTaxon = true): measurementType is not an EOL measurement term, or
+  - context or child row (measurementOfTaxon not true): measurementType is not an EOL measurement or metadata term
+    (e.g. sex, lifeStage, sample size, locality, contributor are metadata terms).
+  A measurementType that is in the terms list only as a value term is misused rather than undefined. The row is still dropped,
+  and reported separately. Examples: WoRMS's brooding (CEPH_0000036) and asexual reproduction (GO_0019954) traits;
+  natdb4's "mean annual temperature" context rows. Such terms are not remapped and not added to the terms list (decided 2026-11-18).
+An association has an unknown term if associationType is a URI not in EOL associations.
 
 Rules:
-  1. Trait row (has occurrenceID, measurementOfTaxon = true) with an undefined term
-     => only this row is deleted, with its child rows (del_mID). Other MoF and associations of the occurrence are kept.
-  2. Occurrence context row (has occurrenceID, measurementOfTaxon not true; e.g. sex, lifestage, sample size) with an undefined term
-     => only this context row is deleted, with its child rows (del_mID). The traits of the occurrence are kept.
-  3. Child row (no occurrenceID; linked to its parent by parentMeasurementID) with an undefined term
-     => only this child row is deleted, with its own child rows (del_mID). Its parent and occurrence are kept.
-  4. Association with an undefined associationType
-     => only this association is deleted. MoF and other associations are kept.
-  5. Any row whose parent/ancestor measurement is deleted is deleted too.
-  6. Every orphaned occurrence is deleted: one that no kept MoF row and no kept association uses (as occurrenceID or
+  1. Trait row (has occurrenceID, measurementOfTaxon = true) with an unknown term
+     => only this row is dropped, with its child rows. Other MoF and associations of the occurrence are included.
+  2. Context row (has occurrenceID, measurementOfTaxon not true; e.g. sex, lifestage, sample size) with an unknown term
+     => only this context row is dropped, with its child rows. The traits of the occurrence are included.
+  3. Child row (no occurrenceID; linked to its parent by parentMeasurementID) with an unknown term
+     => only this child row is dropped, with its own child rows. Its parent and occurrence are included,
+        even if the child qualified the parent.
+  4. Association with an unknown associationType
+     => only this association is dropped. MoF and other associations are included.
+  5. Any row whose parent/ancestor measurement is dropped is dropped too.
+  6. Every orphaned occurrence is dropped: one that no included MoF row and no included association uses (as occurrenceID or
      targetOccurrenceID). This covers occurrences that lost all their records here, and occurrences that were already
      orphaned in the source; the run log counts the two separately.
-  7. Qualifier fields: a URI value not in EOL values is blanked; the record is kept. Literal (non-URI) values are left as-is.
+  7. Qualifier fields: a URI value not in EOL values is blanked, and the record is included. Plain-text (non-URI) values are
+     left as-is. Only included records are looked at.
        MoF:         measurementUnit, statisticalMethod, sex, lifeStage, bodyPart, measurementDeterminedBy
        Association: measurementDeterminedBy
        Occurrence:  sex, lifeStage, reproductiveCondition, establishmentMeans, physiologicalState, bodyPart
-     Only records that are kept are checked. Each blanked URI is listed in the debug report with its number of records.
-  8. A MoF row whose occurrenceID is not in the occurrence table is deleted, with its child rows (rule 5).
-     Not applied if the archive has no occurrence table. The run log and debug report give the number of rows deleted.
+     Occurrence basisOfRecord and behavior are left as-is (no archive had values in them as of 2026-11-18).
+  8. A MoF row whose occurrenceID is not in the occurrence table is dropped, with its child rows (rule 5).
+     Not applied if the archive has no occurrence table.
 
-Pass 0 ('collect_occ') - reads the occurrenceIDs of the occurrence table (for rule 8).
-Pass 1 ('collect') - applies rules 1-4 and 8 to MoF and Association: fills del_mID, flag_oID and child_parent.
-Pass 2 ('write') - writes MoF, then Association, then Occurrence, applying rules 1-8. While writing MoF and Association it
-  records every occurrenceID that a kept record uses (used_oID), so that Occurrence can apply rule 6.
+Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with these sections (only those that occur):
+  Undefined mValue                                    - value URIs not in the terms list (rules 1-3)
+  Undefined mType                                     - trait types not in the terms list (rule 1)
+  mType is an EOL value term, not a measurement term  - trait types that are value terms (rule 1)
+  Undefined mType of a context/child row              - (rules 2-3)
+  mType of a context/child row is an EOL value term, not a measurement or metadata term  - (rules 2-3)
+  Undefined aType                                     - association types not in the terms list (rule 4)
+  Orphaned occurrences in the source (deleted)        - count (rule 6)
+  Blanked [extension].[field] (URI not in EOL values) - each blanked URI with its number of records (rule 7)
+  MoF rows pointing to a missing occurrence (deleted) - rows and distinct occurrenceIDs (rule 8)
 
-The undefined terms found are listed in: resources/neo4j_analyzed/[resource_id]_debug_[date].txt
+Passes:
+  Pass 0 ('collect_occ') - reads the occurrenceIDs of the occurrence table (for rule 8).
+  Pass 1 ('collect') - applies rules 1-4 and 8 to MoF and Association: fills del_mID, flag_oID and child_parent.
+  Pass 2 ('write') - writes MoF, then Association, then Occurrence, applying rules 1-8. While writing MoF and Association it
+    records every occurrenceID that an included record uses (used_oID), so that Occurrence can apply rule 6.
+  Run it in the Jenkins container (12g); the web container (1g) runs out of memory on large resources like WoRMS.
 */
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -72,7 +94,10 @@ class AnalyzeMoF_API
         $func = new ConvertNewModel_2DwCA(false, array());
         $ret = $func->generate_measurements_values_associations();
         $this->eol_term_values = $ret['values']; $this->eol_term_measurements = $ret['measurements']; $this->eol_term_associations = $ret['associations'];
+        $this->eol_term_metadata = @$ret['metadata'] ?: array();
+        if(!$this->eol_term_metadata) exit("\nERROR: no metadata terms loaded; context and child MoF rows can't be checked. Will terminate.\n");
         echo "\neol_term_values: [".count($this->eol_term_values)."]";
+        echo "\neol_term_metadata: [".count($this->eol_term_metadata)."]";
         echo "\neol_term_measurements: [".count($this->eol_term_measurements)."]";
         echo "\neol_term_associations: [".count($this->eol_term_associations)."]";
         // print_r($this->eol_term_values); print_r($this->eol_term_measurements); print_r($this->eol_term_associations); exit("\nstopx 3\n");
@@ -83,12 +108,6 @@ class AnalyzeMoF_API
         // /* Read the DwCA in question:
         $tables = $info['harvester']->tables; // print_r($tables); exit;
         $extensions = array_keys($tables); print_r($extensions); //exit;
-
-        // --------------------- get undefined mTypes and mValues
-        /* not needed anymore...
-        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_MoF');
-        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'analyze_Assoc');
-        */
 
         // --------------------- 1st pass: find the records with undefined terms (see rules at the top of this file)
         $this->del_mID = array();       // measurementIDs to delete (their descendants are deleted too)
@@ -157,9 +176,17 @@ class AnalyzeMoF_API
         $mValue = @$rec['measurementValue'];
         $mType = @$rec['measurementType'];
         if(substr($mValue, 0, 4) == 'http' && !isset($this->eol_term_values[$mValue])) $ret['Undefined mValue'] = $mValue;
-        if(strtolower(@$rec['measurementOfTaxon']) == 'true' && !isset($this->eol_term_measurements[$mType])) {
-            if(isset($this->eol_term_values[$mType])) $ret['mType is an EOL value term, not a measurement term'] = $mType; // misused, not undefined
-            else                                      $ret['Undefined mType'] = $mType;
+        if(strtolower(@$rec['measurementOfTaxon']) == 'true') {     // trait row: mType must be a measurement term
+            if(!isset($this->eol_term_measurements[$mType])) {
+                if(isset($this->eol_term_values[$mType])) $ret['mType is an EOL value term, not a measurement term'] = $mType; // misused, not undefined
+                else                                      $ret['Undefined mType'] = $mType;
+            }
+        }
+        else {                                                      // context or child row: mType must be a measurement or metadata term
+            if(!isset($this->eol_term_measurements[$mType]) && !isset($this->eol_term_metadata[$mType])) {
+                if(isset($this->eol_term_values[$mType])) $ret['mType of a context/child row is an EOL value term, not a measurement or metadata term'] = $mType;
+                else                                      $ret['Undefined mType of a context/child row'] = $mType;
+            }
         }
         return $ret;
     }
@@ -204,39 +231,6 @@ class AnalyzeMoF_API
                 [contributor] => https://www.fishbase.de/collaborators/CollaboratorSummary.php?id=2
                 [referenceID] => 1c6aa37fd9a66304a0f3232fdb521710
             )*/
-            //========================================================================================================= 
-            if($what == 'analyze_MoF') {
-                $mOfTaxon = strtolower($rec['measurementOfTaxon']);
-                $mValue = $rec['measurementValue'];
-                $mType = $rec['measurementType'];
-                if(substr($mValue, 0, 4) == 'http') {
-                    if(!isset($this->eol_term_values[$mValue])) $this->debug['Undefined mValue'][$mValue] = '';
-                }
-                if($mOfTaxon == 'true') {
-                    if(!isset($this->eol_term_measurements[$mType])) $this->debug['Undefined mType'][$mType] = '';
-                }
-                if($val = @$rec['measurementDeterminedBy']) {
-                    if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
-                }
-            }
-            //========================================================================================================= 
-            if($what == 'analyze_Assoc') {
-                /*Array(
-                    [associationType] => http://purl.obolibrary.org/obo/RO_0002556
-                    [measurementDeterminedBy] => 
-                    [measurementMethod] => 
-                    [measurementRemarks] => 
-                    [bibliographicCitation] => 
-                    [contributor] => 
-                )*/
-                $aType = $rec['associationType'];
-                if(substr($aType, 0, 4) == 'http') {
-                    if(!isset($this->eol_term_associations[$aType])) $this->debug['Undefined mType'][$aType] = '';
-                }
-                if($val = @$rec['measurementDeterminedBy']) {
-                    if(!isset($this->eol_term_values[$val])) $this->debug['Undefined measurementDeterminedBy'][$val] = '';
-                }
-            }
             //========================================================================================================= 
             if($what == 'collect') { // 1st pass: flag occurrences of records with undefined terms
                 if($class == "mof") {

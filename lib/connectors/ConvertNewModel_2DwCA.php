@@ -288,7 +288,8 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         if (!($local = $this->get_generic_file_path($this->main_datasets['Terms_conceptID'], 'terms'))) exit("\nERROR: No terms.tsv\n");
         else {
             self::process_table($local, 'generate_MVA');
-            return array('values' => $this->eol_term_values, 'measurements' => $this->eol_term_measurements, 'associations' => $this->eol_term_associations); 
+            return array('values' => $this->eol_term_values, 'measurements' => $this->eol_term_measurements, 'associations' => $this->eol_term_associations,
+                         'metadata' => @$this->eol_term_metadata ?: array()); //metadata: used by AnalyzeMoF_API.php for context and child MoF rows
         }
     }
     private function generate_MVA($rec)
@@ -314,7 +315,10 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         }
         elseif($rec['type'] == 'association') {
             if(substr($rec['uri'], 0, 4) == 'http') $this->eol_term_associations[trim($rec['uri'])] = ''; //list of URI associations
-        }        
+        }
+        elseif($rec['type'] == 'metadata') {
+            if(substr($rec['uri'], 0, 4) == 'http') $this->eol_term_metadata[trim($rec['uri'])] = '';     //list of URI metadata (e.g. sample size, locality, contributor)
+        }
     }
     private function build_taxon_info($rec) //called externally
     {   /*Array( sample $rec from: 22923616_Fung_ecol_trai_reco_and_taxo_meta

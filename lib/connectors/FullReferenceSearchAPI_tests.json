@@ -332,11 +332,39 @@
    "source": "Google Scholar styles (Jen's sample)",
    "full_reference": "\"Gotsis-Skretas, Olympia;†Pagou, Kalliopi†(2008):†Microplankton abundance in the euphotic zone of the Aegean Sea in October-November 1991.†Hellenic Center of Marine Research, Institut of Oceanography, Greece, doi:10.1594/PANGAEA.692046\"",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1594/PANGAEA.692046",
-    "checks_contains": "not in CrossRef"
+    "DOI_source": "citation",
+    "checks_contains": "in DataCite",
+    "requires": "datacite_search"
    },
-   "why": "The citation gives its own DOI, a PANGAEA dataset registered with DataCite, not CrossRef: given as 'possible', to be opened and checked."
+   "why": "The citation gives its own DOI, a PANGAEA dataset registered with DataCite, not CrossRef: confirmed in DataCite, its title in the citation."
+  },
+  {
+   "id": "styles-apa-2-datacite",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Gotsis-Skretas, O., Pagou, K., & Ignatiades, L. (2008). Microplankton abundance in the euphotic zone of the Aegean Sea in winter 1995.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1594/pangaea.691325",
+    "DOI_source": "DataCite",
+    "note_contains": "10.15468/z3e4wd",
+    "requires": "datacite_search"
+   },
+   "why": "A PANGAEA dataset (in DataCite, not CrossRef), found by the second search. Not its GBIF copy (10.15468/z3e4wd, named in the note), nor its near-twins ('... in September 1994', '... at Station JUNE-9')."
+  },
+  {
+   "id": "styles-vancouver-2-datacite",
+   "source": "Google Scholar styles (Jen's sample)",
+   "full_reference": "\"Gotsis-Skretas O, Pagou K, Ignatiades L. Microplankton abundance in the euphotic zone of the Aegean Sea in winter 1995.\"",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1594/pangaea.691325",
+    "DOI_source": "DataCite",
+    "parsed_year": "1995",
+    "requires": "datacite_search"
+   },
+   "why": "The same dataset with no year but the one in its title ('winter 1995'): DataCite's year is 2008, allowed because the cited year is in its title."
   },
   {
    "id": "reference-26d1efd4",

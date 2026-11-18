@@ -9,7 +9,7 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
     - "file": a TSV whose header has 'identifier' and 'full_reference' (other columns are ignored). Path as the container sees it.
     - Report: Reference_maintenance/<file name>_DOIs_<YYYYmmdd_HHMMSS>.tsv, written row by row:
       identifier, full_reference, searched_text (what was sent to CrossRef: without quotes a spreadsheet put around it, a FishBase "(Ref. N)" at the end or a stray "0" after the authors),
-      text_changes (what that pre-processing changed in the row, in plain words; empty = nothing; the guide counts each kind), status, DOI, DOI_URL (the DOI as a https://doi.org/ link), review_note, parsed_* (what was read from the citation), crossref_* (the candidate), checks
+      text_changes (what that pre-processing changed in the row, in plain words; empty = nothing; the guide counts each kind), status, DOI, DOI_URL (the DOI as a https://doi.org/ link), DOI_source (CrossRef, DataCite or citation), review_note, parsed_* (what was read from the citation), crossref_* (the candidate), checks
       plus <same name>_guide.txt: the results and how to review them, for the Data Managers.
       Only the newest 20 reports (with their guides) are kept; older ones are deleted when a search starts.
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)
@@ -21,6 +21,9 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       'possible' when the first author and 90% of CrossRef's title agree. To turn them off for a run: add "author_title_checks": false, e.g.
       php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", "file": "/path/reference.tab", "author_title_checks": false}'
       (to turn them off for good, or remove them: see AUTHOR_TITLE_CHECKS in FullReferenceSearchAPI.php)
+    - DataCite, a second search (on by default, with the author and title checks): rows CrossRef can't confirm and with no volume or pages
+      (datasets, reports, theses, books) are also searched in DataCite, e.g. PANGAEA and GBIF datasets; at most 'possible'.
+      To turn it off for a run: add "datacite_search": false (for good, or to remove it: see DATACITE_SEARCH in FullReferenceSearchAPI.php)
     - Tests: the known cases (problems fixed before, CrossRef's own sample citations, citation styles) must still give their expected results:
       php do_full_reference_search.php _ '{"task": "run_tests"}'
       The cases are in lib/connectors/FullReferenceSearchAPI_tests.json: add one whenever a problem is fixed. Also [Run Tests] on the web page.

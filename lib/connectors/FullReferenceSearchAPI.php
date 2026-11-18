@@ -22,7 +22,7 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class FullReferenceSearchAPI extends GenerateTB_Files_Functions
 {
-    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'text_changes', 'status', 'DOI', 'DOI_URL', 'review_note',
+    const OUTPUT_COLUMNS = array('identifier', 'full_reference', 'searched_text', 'text_changes', 'status', 'DOI', 'DOI_URL', 'DOI_source', 'review_note',
                                  'parsed_author', 'parsed_year', 'parsed_journal', 'parsed_volume', 'parsed_issue', 'parsed_page',
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
@@ -44,11 +44,20 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
          - only when BOTH disagree (the authors differ and under 30% of CrossRef's title is in the citation) is a candidate 'not found':
            one alone is never enough, as CrossRef's author and title data for old works is often incomplete or garbled */
     const AUTHOR_TITLE_CHECKS = true;
+    /* DATACITE: the second search, in DataCite (https://api.datacite.org), for rows CrossRef can't confirm and where no volume or pages could be read:
+       datasets (PANGAEA, GBIF, Zenodo), reports, theses, books. DataCite registers DOIs that CrossRef doesn't have, e.g. 10.1594/PANGAEA.692046.
+       Added Nov 18, 2026; all in one place so it can be turned off or removed:
+         - turn off for one run: "datacite_search": false in the parameters; for good: set this constant to false
+         - remove: delete this constant, datacite_route(), search_datacite(), datacite_work(), the DATACITE lines in find_DOI(), doi_given(),
+           __construct(), run_tests() and write_guide()
+       It needs the author and title checks (they confirm a DataCite record), so it's off when they are off. A DataCite DOI is at most 'possible'. */
+    const DATACITE_SEARCH = true;
     const MAX_AUTHOR_LOOKUPS = 3; // per row: CrossRef's search answer has no authors, so each candidate that passes the checks costs one call (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
     function __construct($param) {
         $this->param = $param; print_r($param);
         $this->author_title_checks = array_key_exists('author_title_checks', (array) $param) ? (bool) $param['author_title_checks'] : self::AUTHOR_TITLE_CHECKS;
+        $this->datacite_search = $this->author_title_checks && (array_key_exists('datacite_search', (array) $param) ? (bool) $param['datacite_search'] : self::DATACITE_SEARCH); // DATACITE
         $this->work_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
         if(!is_dir($this->work_dir)) @mkdir($this->work_dir, 0777, true);
         // CrossRef's "polite pool" (twice the rate limit) needs an email: optional constant CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub).
@@ -59,7 +68,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $this->crossref_options = array('resource_id' => 'crossref', 'expire_seconds' => false, // never expires: the same full_reference is never asked twice
                                         'timeout' => 60,
                                         'user_agent' => $user_agent,
-                                        'validation_regex' => '"status":"ok"'); // a failed call isn't kept as a valid cache
+                                        'validation_regex' => '"status":"ok"', // a failed call isn't kept as a valid cache
+                                        'name' => 'CrossRef');
+        // DATACITE: DataCite's answers, cached the same way in their own folder; DataCite also asks for a User-Agent with a mailto
+        $this->datacite_url = "https://api.datacite.org/dois";
+        $this->datacite_options = array_merge($this->crossref_options, array('resource_id' => 'datacite', 'validation_regex' => '"data":', 'name' => 'DataCite'));
     }
     function start()
     {   // Runs the task; also returns its result.
@@ -133,10 +146,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $file = dirname(__FILE__) . "/FullReferenceSearchAPI_tests.json";
         $d = @json_decode((string) @file_get_contents($file), true);
         if(!is_array($d) || empty($d['cases'])) { echo "\nERROR: No test cases in [$file]\n"; return false; }
-        $res = array('when' => date("Y-m-d H:i:s"), 'author_title_checks' => $this->author_title_checks, 'passed' => 0, 'failed' => 0, 'skipped' => 0, 'cases' => array());
+        $res = array('when' => date("Y-m-d H:i:s"), 'author_title_checks' => $this->author_title_checks, 'datacite_search' => $this->datacite_search, 'passed' => 0, 'failed' => 0, 'skipped' => 0, 'cases' => array());
         foreach($d['cases'] as $t) {
             $e = $t['expect']; $r = array('id' => $t['id'], 'source' => $t['source'], 'full_reference' => $t['full_reference'], 'why' => $t['why'], 'problems' => array());
-            if(($e['requires'] ?? '') === 'author_title_checks' && !$this->author_title_checks) { $r['result'] = 'skipped'; $r['got'] = 'author and title checks are off'; $res['skipped']++; $res['cases'][] = $r; continue; }
+            $off = array('author_title_checks' => !$this->author_title_checks ? 'author and title checks are off' : '',
+                         'datacite_search' => !$this->datacite_search ? 'the DataCite search is off' : ''); // DATACITE
+            if(($why_off = $off[$e['requires'] ?? ''] ?? '') !== '') { $r['result'] = 'skipped'; $r['got'] = $why_off; $res['skipped']++; $res['cases'][] = $r; continue; }
             $got = $this->find_DOI($t['full_reference']);
             if($got['status'] == 'stop') { echo "\nCrossRef keeps asking us to slow down: the tests stopped. Try again later.\n"; $res['stopped'] = true; break; }
             foreach($e as $k => $want) {
@@ -190,7 +205,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $items = $this->search_crossref($full_reference, $ref['year']);
         if($items === 'stop') return array('status' => 'stop', 'change_codes' => array()); // CrossRef keeps asking us to slow down: the search stops before this row
         if($items === false) return array_merge($row, array('status' => 'error', 'review_note' => 'CrossRef could not be reached. Run again: this row will be searched again.'));
-        if(!$items) return array_merge($row, array('status' => 'not found', 'review_note' => $this->note_no_candidates($ref)));
+        if(!$items) {
+            $row = array_merge($row, array('status' => 'not found', 'review_note' => $this->note_no_candidates($ref)));
+            return $this->datacite_route($row, $ref, $full_reference); // DATACITE: a second search, when no volume or pages were read
+        }
 
         // the best candidate: matched > possible > not found; then the most checks that agree; then CrossRef's order (best score first)
         $rank = array('matched' => 2, 'possible' => 1, 'not found' => 0); $best = null; $lookups = 0;
@@ -243,8 +261,83 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                      'crossref_volume' => $clean(@$item['volume']), 'crossref_issue' => $clean(@$item['issue']), 'crossref_page' => $clean(@$item['page']),
                      'crossref_title' => $clean(@$item['title'][0]), 'crossref_authors' => $item['_authors'], 'checks' => implode(' ', $c['checks'])));
         $row['DOI_URL'] = self::doi_url($row['DOI']);
+        $row['DOI_source'] = $row['DOI'] !== '' ? 'CrossRef' : '';
         $row['review_note'] = $this->review_note($ref, $row, $c);
+        if($row['status'] == 'not found') return $this->datacite_route($row, $ref, $full_reference); // DATACITE: a second search, when no volume or pages were read
         return $row;
+    }
+    private function datacite_route($row, $ref, $citation)
+    {   /* DATACITE: for a row CrossRef couldn't confirm, with no volume or pages read (a dataset, report, thesis or book) and a first author read:
+           DataCite's top 5 candidates, each checked:
+             - at least 90% of its title words are in the citation (PANGAEA has series of near-twins: "... at Station JUNE-9", "... in winter 1995")
+             - the first author agrees, or nearly
+             - the year is within 1 of the cited one, when both are known; a cited year inside its title doesn't count ("... Aegean Sea in winter 1995", 2008)
+             - never a GBIF "Occurrence Download" (a user's download, not the dataset)
+           When several pass with the same title and first author (e.g. a PANGAEA dataset and its GBIF copy, 10.15468/...), the one that isn't a GBIF
+           copy is given and the note names the other. At most 'possible'. Returns the row: unchanged when nothing passes. */
+        if(!$this->datacite_search || $ref['volume'] !== '' || $ref['author'] === '') return $row;
+        $items = $this->search_datacite($citation);
+        if($items === 'stop') return array('status' => 'stop', 'change_codes' => array());
+        if(!is_array($items) || !$items) return $row; // DataCite couldn't be reached, or has nothing: the CrossRef result stands
+        $ok = array();
+        foreach($items as $d) {
+            $at = (array) @$d['attributes']; $title = trim((string) @$at['titles'][0]['title']); $doi = (string) ($at['doi'] ?? @$d['id']);
+            if($doi === '' || $title === '' || preg_match('/^Occurrence Download/i', $title)) continue;
+            $share = self::title_share($citation, $title);
+            if($share === null || $share < 0.9) continue;
+            $names = array();
+            foreach((array) @$at['creators'] as $cr) { $n = trim((string) ($cr['familyName'] ?? '')); if($n === '') $n = trim(explode(',', (string) ($cr['name'] ?? ''))[0]); if($n !== '') $names[] = $n; }
+            $a = $this->author_title_check($ref['author'], $names, $citation, $title);
+            if($a['score'] < 2) continue;
+            $year = (string) ($at['publicationYear'] ?? ''); $ycheck = 'year=unknown';
+            if($ref['year'] !== '' && $year !== '') {
+                $diff = abs((int) $ref['year'] - (int) $year);
+                if($diff <= 1) $ycheck = $diff ? 'year=next to it' : 'year=OK';
+                elseif(str_contains($title, $ref['year'])) $ycheck = "year=$year (the cited {$ref['year']} is in its title)";
+                else continue;
+            }
+            $publisher = is_array(@$at['publisher']) ? (string) @$at['publisher']['name'] : (string) @$at['publisher'];
+            $ok[] = array('doi' => $doi, 'title' => $title, 'names' => $names, 'year' => $year, 'publisher' => $publisher,
+                          'type' => (string) (@$at['types']['resourceTypeGeneral'] ?: @$at['types']['resourceType']), 'checks' => array_merge(array($ycheck), $a['checks']));
+        }
+        if(!$ok) return $row;
+        usort($ok, fn($x, $y) => (int) str_starts_with($x['doi'], '10.15468/') - (int) str_starts_with($y['doi'], '10.15468/')); // a GBIF copy last (stable: DataCite's order otherwise)
+        $b = $ok[0]; $norm = fn($t) => implode(' ', self::words($t));
+        $also = array();
+        foreach(array_slice($ok, 1) as $o) if($norm($o['title']) === $norm($b['title'])) $also[] = $o['doi'] . (str_starts_with($o['doi'], '10.15468/') ? ' (a GBIF copy)' : '');
+        $what = $b['type'] !== '' ? $b['type'] : 'record';
+        $agree = $this->agreed_text($b['checks']);
+        $note = "Not in CrossRef; found in DataCite: \"" . mb_substr($b['title'], 0, 140) . "\" ($what" . ($b['publisher'] !== '' ? ", " . $b['publisher'] : '') . ($b['year'] !== '' ? ", " . $b['year'] : '') . ")"
+              . ($b['names'] ? " by " . implode('; ', array_slice($b['names'], 0, 4)) . (count($b['names']) > 4 ? ' et al.' : '') : '') . ". $agree."
+              . (str_contains(implode(' ', $b['checks']), 'is in its title') ? " The cited year ({$ref['year']}) is in its title; DataCite's year is {$b['year']}." : '')
+              . ($also ? " DataCite also has " . implode(' and ', $also) . " with the same title." : '')
+              . " Check that this is the " . strtolower($what) . " cited.";
+        return array_merge($row, array('status' => 'possible', 'DOI' => $b['doi'], 'DOI_URL' => self::doi_url($b['doi']), 'DOI_source' => 'DataCite',
+            'checks' => trim($row['checks'] . ' | DataCite: ' . implode(' ', $b['checks'])), 'review_note' => $note));
+    }
+    private function search_datacite($text)
+    {   /* DATACITE: DataCite's top 5 records for a citation (https://api.datacite.org/dois?query=...&sort=relevance), politely and cached like CrossRef's answers.
+           Its query has a syntax ("-" = NOT, ":" = a field, quotes, brackets ...) and joins words with AND, so a citation word that isn't in the record
+           (a co-author, a publisher) would find nothing: the words (3+ characters, at most 40, without a DOI or link) are joined with OR and
+           ranked by relevance, e.g. "Gotsis OR Skretas OR Pagou OR ... OR Aegean OR winter OR 1995". Returns the list, false (couldn't be read) or 'stop'. */
+        $t = preg_replace('~(?:https?://\S+|\bdoi\s*[:.]?\s*10\.\S+)~i', ' ', $text);
+        preg_match_all('/[\p{L}\p{N}]{3,}/u', $t, $w);
+        $words = array_slice(array_values(array_unique(array_filter($w[0], fn($x) => !in_array(strtoupper($x), array('AND', 'NOT'))))), 0, 40);
+        if(!$words) return array();
+        $url = $this->datacite_url . "?" . http_build_query(array('query' => implode(' OR ', $words), 'sort' => 'relevance', 'page[size]' => 5,
+                                                                  'fields[dois]' => 'doi,titles,creators,publicationYear,types,publisher'));
+        if(Functions::url_already_cached($url, $this->datacite_options)) $json = Functions::lookup_with_cache($url, $this->datacite_options);
+        else { $json = $this->call_crossref($url, $this->datacite_options); if($json === 'stop') return 'stop'; if($json === false || $json === 'missing') return false; }
+        $d = @json_decode((string) $json, true);
+        return is_array($d['data'] ?? null) ? $d['data'] : false;
+    }
+    private function datacite_work($doi)
+    {   // DATACITE: DataCite's record of one DOI (https://api.datacite.org/dois/<DOI>): its 'attributes', 'missing' (DataCite doesn't have it), null (couldn't be read) or 'stop'
+        $url = $this->datacite_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
+        if(Functions::url_already_cached($url, $this->datacite_options)) $json = Functions::lookup_with_cache($url, $this->datacite_options);
+        else { $json = $this->call_crossref($url, $this->datacite_options); if($json === 'stop' || $json === 'missing') return $json; if($json === false) return null; }
+        $d = @json_decode((string) $json, true);
+        return is_array($d['data']['attributes'] ?? null) ? $d['data']['attributes'] : null;
     }
     private function doi_given($row, $doi, $citation)
     {   /* The citation gives its own DOI, e.g. "... doi:10.1594/PANGAEA.692046" or "DOI: 10.1080/09670262.2014.982202,2014.": CrossRef's record of it is read
@@ -255,9 +348,22 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $work = $this->crossref_work($doi);
         if($work === 'stop') return array('status' => 'stop', 'change_codes' => array());
         if($work === null) return array_merge($row, array('status' => 'error', 'review_note' => 'The citation gives the DOI ' . $doi . ', but CrossRef could not be reached to check it. Run again: this row will be checked again.'));
-        $row = array_merge($row, array('DOI' => $doi, 'DOI_URL' => self::doi_url($doi), 'crossref_DOI' => $doi));
-        if($work === 'missing') return array_merge($row, array('status' => 'possible', 'checks' => 'doi=in the citation, not in CrossRef',
-            'review_note' => "The citation itself gives this DOI, but CrossRef doesn't have it: it may be registered elsewhere (e.g. with DataCite, as PANGAEA datasets are), or it may be mistyped. Open the link: accept it if it opens the work cited."));
+        $row = array_merge($row, array('DOI' => $doi, 'DOI_URL' => self::doi_url($doi), 'DOI_source' => 'citation', 'crossref_DOI' => $doi));
+        if($work === 'missing' && $this->datacite_search) { // DATACITE: is it a DataCite DOI? (e.g. PANGAEA datasets)
+            $dc = $this->datacite_work($doi);
+            if($dc === 'stop') return array('status' => 'stop', 'change_codes' => array());
+            if(is_array($dc)) {
+                $title = trim((string) @$dc['titles'][0]['title']); $share = self::title_share($citation, $title);
+                $t = $share === null ? 'title=unknown' : 'title=' . ($share >= 0.7 ? 'OK' : ($share >= 0.3 ? 'partly' : 'not in citation')) . ' (' . round(100 * $share) . '%)';
+                $desc = "\"" . mb_substr($title, 0, 140) . "\"" . (!empty($dc['publicationYear']) ? " (" . $dc['publicationYear'] . ")" : '');
+                if($share !== null && $share < 0.5) return array_merge($row, array('status' => 'possible', 'checks' => "doi=in the citation, not in CrossRef, in DataCite $t",
+                    'review_note' => "The citation itself gives this DOI; it is registered with DataCite (not CrossRef), but its title isn't in the citation: $desc. The DOI may be mistyped. Open the link to check."));
+                return array_merge($row, array('status' => 'matched', 'checks' => "doi=in the citation, not in CrossRef, in DataCite $t",
+                    'review_note' => "The citation itself gives this DOI, registered with DataCite (not CrossRef): $desc. Accept it."));
+            }
+        }
+        if($work === 'missing') return array_merge($row, array('status' => 'possible', 'checks' => 'doi=in the citation, not in CrossRef' . ($this->datacite_search ? ' or DataCite' : ''),
+            'review_note' => "The citation itself gives this DOI, but " . ($this->datacite_search ? "neither CrossRef nor DataCite has it: it may be registered elsewhere, or it may be mistyped." : "CrossRef doesn't have it: it may be registered elsewhere (e.g. with DataCite, as PANGAEA datasets are), or it may be mistyped.") . " Open the link: accept it if it opens the work cited."));
         $clean = fn($x) => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $x), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
         $title = $clean(@$work['title'][0]); $share = self::title_share($citation, $title);
         $row = array_merge($row, array('crossref_type' => (string) @$work['type'], 'crossref_year' => self::item_year($work), 'crossref_journal' => $clean(@$work['container-title'][0]),
@@ -497,16 +603,18 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(($d['status'] ?? '') !== 'ok') return false;
         return $d['message']['items'] ?? array();
     }
-    private function call_crossref($url)
-    {   /* One CrossRef call, politely: one at a time, a PAUSE after each call, and our contact email in the User-Agent (CROSSREF_MAILTO).
+    private function call_crossref($url, $opt = null)
+    {   /* $opt: the options of the service called: crossref_options (default) or datacite_options (DATACITE): its cache, name and success test.
+           One CrossRef call, politely: one at a time, a PAUSE after each call, and our contact email in the User-Agent (CROSSREF_MAILTO).
            - 200: the answer is saved in the same cache lookup_with_cache() uses (so it's never asked again) and returned.
            - 429 (too many requests) or 503 (busy): wait -- CrossRef's Retry-After, else 1, 2, 4, 8 minutes -- and try again.
              After THROTTLE_LIMIT such answers in a row, returns 'stop': the search stops cleanly and can be resumed with "start".
            - anything else (no connection, 5xx, ...): tried 3 times, 5 seconds apart; then false (this row = 'error'). */
+        $opt = $opt ?? $this->crossref_options; $name = $opt['name'];
         for($attempt = 1, $other_failures = 0; ; $attempt++) {
             $ch = curl_init($url);
             curl_setopt_array($ch, array(CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => true, CURLOPT_FOLLOWLOCATION => true,
-                                         CURLOPT_CONNECTTIMEOUT => 30, CURLOPT_TIMEOUT => 60, CURLOPT_USERAGENT => $this->crossref_options['user_agent']));
+                                         CURLOPT_CONNECTTIMEOUT => 30, CURLOPT_TIMEOUT => 60, CURLOPT_USERAGENT => $opt['user_agent']));
             $res = curl_exec($ch);
             $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $header_size = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
@@ -514,29 +622,30 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             usleep(self::PAUSE_SECONDS * 1000000); // the pause between calls, whatever the answer
             $headers = $res === false ? '' : substr($res, 0, $header_size);
             $body    = $res === false ? '' : substr($res, $header_size);
-            if($code == 200 && str_contains($body, '"status":"ok"')) {
+            if($code == 200 && preg_match('/' . $opt['validation_regex'] . '/', $body)) {
                 $this->throttled_in_a_row = 0;
-                $this->save_to_cache($url, $body);
+                $this->save_to_cache($url, $body, $opt);
                 return $body;
             }
-            if($code == 404 && str_contains($url, '/works/10.')) return 'missing'; // a DOI CrossRef doesn't have (e.g. a DataCite DOI): no need to ask again now
+            if($code == 404 && (str_contains($url, '/works/10.') || str_contains($url, '/dois/10.'))) return 'missing'; // a DOI it doesn't have (e.g. a DataCite DOI in CrossRef)
             if($code == 429 || $code == 503) {
                 $this->throttled_in_a_row = ($this->throttled_in_a_row ?? 0) + 1;
                 if($this->throttled_in_a_row >= self::THROTTLE_LIMIT) return 'stop';
                 $wait = preg_match('/^Retry-After:\s*(\d+)/mi', $headers, $m) ? min((int) $m[1], 600) : 60 * (2 ** ($this->throttled_in_a_row - 1));
-                echo "CrossRef answered HTTP $code (" . ($code == 429 ? 'too many requests' : 'busy') . "): waiting " . $wait . " seconds, then trying again"
+                echo "$name answered HTTP $code (" . ($code == 429 ? 'too many requests' : 'busy') . "): waiting " . $wait . " seconds, then trying again"
                    . " ($this->throttled_in_a_row of " . self::THROTTLE_LIMIT . " before stopping).\n";
                 sleep(max(1, $wait));
                 continue;
             }
-            if(++$other_failures >= 3) { echo "CrossRef call failed (HTTP $code) 3 times; this row is marked 'error' and will be tried again on the next run.\n"; return false; }
+            if(++$other_failures >= 3) { echo "$name call failed (HTTP $code) 3 times; this row is marked 'error' and will be tried again on the next run.\n"; return false; }
             sleep(5);
         }
     }
-    private function save_to_cache($url, $body)
-    {   // the same file lookup_with_cache($url, crossref_options) reads: <cache>/crossref/ab/cd/<md5>.cache
+    private function save_to_cache($url, $body, $opt = null)
+    {   // the same file lookup_with_cache($url, $opt) reads: <cache>/crossref/ab/cd/<md5>.cache (DataCite: <cache>/datacite/...)
+        $opt = $opt ?? $this->crossref_options;
         $md5 = md5($url);
-        $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . $this->crossref_options['resource_id'] . "/" . substr($md5, 0, 2) . "/" . substr($md5, 2, 2) . "/";
+        $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . $opt['resource_id'] . "/" . substr($md5, 0, 2) . "/" . substr($md5, 2, 2) . "/";
         if(!is_dir($dir)) @mkdir($dir, 0777, true);
         @file_put_contents($dir . "$md5.cache", $body);
     }
@@ -708,6 +817,17 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
 "
             : "  OFF for this report: only journal, volume, issue, year and page were compared (see HOW IT WAS DONE).
 ";
+        $dc = $this->datacite_search // DATACITE: said in the guide either way
+            ? "  ON for this report. Rows CrossRef couldn't confirm, where no volume or pages could be read (datasets, reports, theses,
+  books), were also searched in DataCite (https://datacite.org), which registers DOIs CrossRef doesn't have, e.g. PANGAEA,
+  GBIF and Zenodo datasets (10.1594/..., 10.15468/..., 10.5281/...). A DataCite record is given only when at least 90% of
+  its title is in the citation, the first author agrees (or nearly), and the year is within 1 (a cited year inside its title,
+  e.g. '... in winter 1995', is allowed). It is at most 'possible'; DOI_source says 'DataCite'. A GBIF copy of a dataset is
+  named in the review_note but not given when the original is found. A DOI written in the citation that CrossRef doesn't
+  have is looked up in DataCite too.
+"
+            : "  OFF for this report: only CrossRef was searched.
+";
         foreach(self::TEXT_CHANGES as $code => $what) $prep .= str_pad(number_format($changed[$code] ?? 0), 9, ' ', STR_PAD_LEFT) . " row(s): " . wordwrap($what, 100, "\n                   ") . "\n";
         $txt = "DOIs found in CrossRef for references with only a full_reference -- guide for the Data Managers
 =============================================================================================
@@ -729,6 +849,8 @@ BEFORE THE SEARCH (pre-processing)
 $prep
 AUTHOR AND TITLE CHECKS
 $at
+DATACITE (a second search)
+$dc
 HOW IT WAS DONE
   Each full_reference (as in searched_text) was searched in CrossRef (the same free-text search as
   https://apps.crossref.org/SimpleTextQuery), limited to the cited year and the years next to it. CrossRef always
@@ -774,7 +896,8 @@ COLUMNS
   searched_text              : what was sent to CrossRef, after the pre-processing above (the same text when nothing was changed)
   text_changes               : what the pre-processing changed in this row, e.g. removed '(Ref. 3)' at the end; empty = nothing
   status, DOI                : the result; DOI only for matched and possible
-  DOI_URL                    : the same DOI as a link (https://doi.org/...), to open it in a browser; empty when DOI is
+  DOI_URL                    : the same DOI as a link (https://doi.org/...), to open it in a browser; empty when DOI is empty
+  DOI_source                 : where the DOI was found: CrossRef, DataCite, or citation (written in the citation, checked)
   review_note                : what was found, in plain words
   parsed_*                   : the first author's surname, year, journal, volume, issue and page read from the full_reference
   crossref_*                 : the CrossRef record shown (DOI, score, type, year, journal, volume, issue, page, title, and

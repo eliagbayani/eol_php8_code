@@ -14,7 +14,11 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       Only the newest 20 reports (with their guides) are kept; older ones are deleted when a search starts.
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)
       DOI is filled only for matched and possible; review_note says what was found, in plain words.
-    - Citation styles read: TraitBank's, FishBase's, "Author AB (Year) Title. Journal Vol: pages", APA, Harvard, Chicago, MLA (Vancouver: no volume or pages).
+    - Citation styles read: TraitBank's, FishBase's, "Author AB (Year) Title. Journal Vol: pages", APA, Harvard, Chicago, MLA (Vancouver: no volume or pages),
+      "A. B. Author;C. Author. Year. Title. pp. 43-50. Journal. vol. 44" and "... Journal. vol. 46. pp. 233 - 240" (Nov 19, 2026).
+    - Nov 19, 2026 (from the Data Managers' DOI list): CrossRef's journal is also found at the end of a title left in front of it; a CrossRef record
+      without a volume (e.g. JSTOR's "Mammalian Species") can be 'possible' when the first author agrees; and a citation with a typo in its
+      journal/volume/issue/page (or the journal's old name) can be 'possible' when the year, first author and 90% of the title agree.
       A DOI written in the citation (e.g. "doi:10.1594/PANGAEA.692046") is checked in CrossRef instead of searching.
     - Author and title checks (on by default): the first author's surname and CrossRef's title words also count; they break ties, and a
       'matched' row whose authors clearly differ becomes 'possible'. A citation with no volume or pages (a book, or Vancouver style) can be

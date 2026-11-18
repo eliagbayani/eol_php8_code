@@ -698,6 +698,92 @@
     "status": "not found"
    },
    "why": "A chapter by Micha et al.; CrossRef's 'Comparative appetency for Azolla of Cichlasoma and Oreochromis' has 83% of its title in the citation but is another paper: under the 90% bar."
+  },
+  {
+   "id": "jen2-1",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "A. A. Heidebrecht;R. MacVicar;O. B. Ross;C. K. Whitehair. 1951. Composition of swine milk. I. Major constituents and carotene, vitamin A and vitamin C. pp. 43-50. Journal of Nutrition. vol. 44",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1093/jn/44.1.43"
+   },
+   "why": "Style 'Authors. Year. Title. pp. 43-50. Journal. vol. 44' (initials before the surname, ';' between authors): the pages, journal and volume must be read."
+  },
+  {
+   "id": "jen2-243",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Brodie, E.D.|Acevedo, M.|Campbell, J.A. 2012. New Salamanders of the Genus Oedipina (Caudata: Plethodontidae) from Guatemala. Journal of Herpetology. vol. 46. pp. 233 - 240.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1670/11-106"
+   },
+   "why": "Style '... Title. Journal. vol. 46. pp. 233 - 240.': the volume and pages after the journal must be read."
+  },
+  {
+   "id": "jen2-22",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Adams DG, Duggan PS. 2008. Cyanobacteria-bryophytes symbioses. Journal of Experimental Botany 59: 1047-1058.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1093/jxb/ern005"
+   },
+   "why": "A short title ('Cyanobacteria-bryophytes symbioses.') stays in front of the journal: CrossRef's journal must be found at the end of it."
+  },
+  {
+   "id": "jen2-16",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Abe, A. S., Johansen, K. 1987. Gas-exchange and ventilatory responses to hypoxia and hypercapnia in Amphisbaena alba (Reptilia, Amphisbaenia). Journal of Experimental Biology 127:159-172.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1242/jeb.127.1.159"
+   },
+   "why": "A title ending in '(Reptilia, Amphisbaenia).' stays in front of the journal: CrossRef's journal must be found at the end of it."
+  },
+  {
+   "id": "jen2-72",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Anyonge, W. 1993. Body mass in large extant and extinct carnivores. Journal of Zoology, London 231:339ñ350.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1111/j.1469-7998.1993.tb01922.x"
+   },
+   "why": "'Journal of Zoology, London': CrossRef's 'Journal of Zoology' is in it word for word."
+  },
+  {
+   "id": "jen2-21",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Adam, M. D., and J. P. Hayes. 1998. Arborimuspomo. Mammalian Species 593:1ñ5.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/3504418",
+    "note_contains": "no volume number",
+    "requires": "author_title_checks"
+   },
+   "why": "JSTOR's 'Mammalian Species' records have no volume, and 'ñ' is a garbled dash in '1ñ5': 'possible' only because the first author agrees."
+  },
+  {
+   "id": "jen2-81",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Attum, O. et al. 2007. An evaluation of the taxonomic validity of Testudo werneri. Amphibia-Reptilia 27: 393-401.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1163/156853807781374728",
+    "note_contains": "the volume (cited 27, CrossRef 28)",
+    "requires": "author_title_checks"
+   },
+   "why": "A typo in the citation (volume 27; CrossRef 28): 'possible' because the year, first author and title agree; the note names what differs."
+  },
+  {
+   "id": "jen2-132",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Ballantine, D. 1961. Gymnodinium chukwanii n. sp. And other marine dinoflagellates collected in the vicinity of Zanzibar. Journal of Eukaryotic Microbiology 8:217-228.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1111/j.1550-7408.1961.tb01207.x",
+    "note_contains": "the journal (cited",
+    "requires": "author_title_checks"
+   },
+   "why": "The journal's later name in the citation ('Journal of Eukaryotic Microbiology'; CrossRef 'The Journal of Protozoology'): 'possible' because the year, first author and title agree."
   }
  ]
 }

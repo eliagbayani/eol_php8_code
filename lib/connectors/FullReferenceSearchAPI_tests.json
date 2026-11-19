@@ -1484,9 +1484,9 @@
    "full_reference": "Ackery, P. R., de Jong, R., & Vane-Wright, R. I. (1998). The butterflies: Hedyloidea, Hesperoidea and Papilionoidea. In N. P. Kristensen (Ed.), Lepidoptera, Moths and Butterflies. 1. Evolution, Systematics, and Biogeography. Handbook of Zoology, Vol. IV, Part 35 (pp. 263-300). Berlin: Walter de Gruyter.",
    "expect": {
     "status": "not found",
-    "note_contains": "Worth a look: CrossRef's top candidate, 10.1515/9783110804744.263"
+    "note_contains": "Worth a look: the closest CrossRef candidate, 10.1515/9783110804744.263"
    },
-   "why": "A book chapter the citation can't confirm (CrossRef's title spells 'Hesperioidea', the citation 'Hesperoidea'): 'not found', and the DOI column stays empty; but CrossRef's top candidate scored high (145.7, over HINT_SCORE), so the review_note says it's worth a look. It is the DM's DOI."
+   "why": "A book chapter the citation can't confirm (CrossRef's title spells 'Hesperioidea', the citation 'Hesperoidea'): 'not found', and the DOI column stays empty; but the closest CrossRef candidate scored high (145.7, over HINT_SCORE), so the review_note says it's worth a look. It is the DM's DOI."
   }
  ]
 }

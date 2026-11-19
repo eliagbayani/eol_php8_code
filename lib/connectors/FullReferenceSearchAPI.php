@@ -465,8 +465,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   // a DOI written in the citation itself, e.g. "doi:10.1594/PANGAEA.692046", "DOI: 10.1080/09670262.2014.982202,", "https://doi.org/10..."; '' if none
         if(!preg_match('~(?:\bdoi\s*[:.]?\s*|https?://(?:dx\.)?doi\.org/)(10\.\d{4,9}/[^\s"<>,]+)~i', $s, $m)) return ''; // no comma: in "DOI 10.1007/s40415-014-0048-3,2014." the year follows
         $doi = $m[1];
-        while($doi !== '' && (strpbrk(substr($doi, -1), '.,;:') !== false || (substr($doi, -1) === ')' && substr_count($doi, '(') < substr_count($doi, ')')))) $doi = substr($doi, 0, -1);
-        return $doi; // a ")" that closes a "(" inside it stays, e.g. 10.1016/0044-8486(93)90035-w
+        while($doi !== '' && (strpbrk(substr($doi, -1), '.,;:') !== false || (substr($doi, -1) === ')' && substr_count($doi, '(') < substr_count($doi, ')'))
+                              || (substr($doi, -1) === ']' && substr_count($doi, '[') < substr_count($doi, ']')))) $doi = substr($doi, 0, -1); // "[DOI:10.1126/science.1102289]" (Nov 19, 2026)
+        return $doi; // a ")" or "]" that closes one inside it stays, e.g. 10.1016/0044-8486(93)90035-w, 10.1645/0022-3395(2001)087[0340:FLNSAO]2.0.CO;2
     }
     static function doi_url($doi)
     {   // the DOI as a link, e.g. 10.1016/0044-8486(93)90035-w -> https://doi.org/10.1016/0044-8486(93)90035-w; '' when there is no DOI.
@@ -559,7 +560,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         elseif(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*:\s*' . $P . '/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)
             || (preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*,\s*(?:pp?\.\s*)?(\d{1,5})\s*[-\x{2013}\x{2014}]\s*(\d{1,5})(?!\d)/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)
-                && ($all = array_values(array_filter($all, fn($x) => !(preg_match('/^' . $Y . '$/', $x[3][0]) && preg_match('/^' . $Y . '$/', $x[4][0])))))) ) { // not a year range, e.g. "Select. Hexandr. Pl.,9,1831-1834"
+                && ($all = array_values(array_filter($all, fn($x) => !(preg_match('/^' . $Y . '$/', $x[3][0]) && preg_match('/^' . $Y . '$/', $x[4][0])
+                       && ($ref['year'] === '' || in_array($ref['year'], array($x[3][0], $x[4][0]), true))))))) ) {
+                // not a year range, e.g. "Select. Hexandr. Pl.,9,1831-1834" (the cited year is one of them); but pages that only look like years are pages,
+                // e.g. "1979. ... Can. J. Zool., 57, 1835-1844." (Nov 19, 2026)
 
             $m = end($all);
             $ref['volume'] = $g($m, 1); $ref['issue'] = trim($g($m, 2)); $ref['page'] = $g($m, 3); $ref['page_end'] = $g($m, 4);

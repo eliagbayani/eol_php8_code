@@ -784,6 +784,27 @@
     "requires": "author_title_checks"
    },
    "why": "The journal's later name in the citation ('Journal of Eukaryotic Microbiology'; CrossRef 'The Journal of Protozoology'): 'possible' because the year, first author and title agree."
+  },
+  {
+   "id": "jen2-2461",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Yael Politi, Talmon Arad, Eugenia Klein, Steve Weiner, and Lia Addadi. 2004. Sea Urchin Spine Calcite Forms via a Transient Amorphous Calcium Carbonate Phase. Science, 306 (5699), 1161-1164. [DOI:10.1126/science.1102289]",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1126/science.1102289"
+   },
+   "why": "A DOI in square brackets: the closing ']' isn't part of it (a ']' that closes a '[' inside a DOI stays)."
+  },
+  {
+   "id": "jen2-516",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Dehnal & Kong 1979 Dehnel P.A. & Kong D.C. (1979). The effect of temperature on developmental rates in the nudibranch Cadlina luteomarginata. Can. J. Zool., 57, 1835-1844.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1139/z79-243",
+    "parsed_page": "1835-1844"
+   },
+   "why": "Pages that look like years ('57, 1835-1844') are pages, not a year range: only a range with the cited year in it is (\"Select. Hexandr. Pl.,9,1831-1834\")."
   }
  ]
 }

@@ -1390,7 +1390,7 @@
     "status": "possible",
     "requires": "author_title_checks"
    },
-   "why": "Known imperfect: the tool gives the series 'The Fauna of British India', while the cited volume 'Moths' has its own DOI. It must stay 'possible' (never 'matched') so a person checks it."
+   "why": "Known imperfect: the tool gives the series 'The Fauna of British India', while the cited volume 'Moths' has its own DOI. It must stay 'possible' (never 'matched') so a person checks it. The Data Manager reviewed it (Nov 20, 2026): less precise but not misleading (the series includes the volume); not worth a stricter rule."
   },
   {
    "id": "fishbase-33464b7b",

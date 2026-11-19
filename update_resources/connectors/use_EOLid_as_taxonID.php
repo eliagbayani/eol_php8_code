@@ -13,6 +13,7 @@ php update_resources/connectors/xxx.php _ '{"resource_id": "Brazilian_Flora"}'
 
 php use_EOLid_as_taxonID.php _ '{"resource_id": "WoRMS-with-hC"}' # gen neo4j_3
 php use_EOLid_as_taxonID.php _ '{"resource_id": "22943003_Palm-with-hC_neo4j_1_eolID", "resource_type": "TB_dwca"}' # gen 22943003_Palm_finale
+php use_EOLid_as_taxonID.php _ '{"resource_id": "13318109_AmphibiaWeb-with-hC_neo4j_1_eolID", "resource_type": "legacy_dwca"}'
 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
@@ -21,6 +22,8 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+
+Possible resource_type values are: 'legacy_dwca' and 'TB_dwca'
 ==================================================================== generate tar.gz
 tar -czf folder.tar.gz folder/
 */

@@ -19,6 +19,8 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+
+Possible resource_type values are: 'legacy_dwca' and 'TB_dwca'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 require_library('connectors/DwCA_Utility');
@@ -36,6 +38,7 @@ $params['jenkins_or_cron']  = @$argv[1]; //not needed here
 print_r($params);
 $resource_id = $params['resource_id'];
 $task = $params['task'];
+$resource_type = @$params['resource_type'];
 
 if($resource_id == 704) $dwca_file = "https://opendata.eol.org/dataset/7a17dc15-cb08-4e41-b901-6af5fd89bcd7/resource/3c56c4e4-3be7-463b-b958-22fbc560cf0d/download/pantheria.zip";
 else { // the rest goes here
@@ -54,16 +57,14 @@ echo "\n[$resource_id] [$dwca_file] [".$task."]\n";
 $func = new DwCA_Utility($resource_id, $dwca_file, $params);
 if(in_array($task, array('gen_hC_using_pID', 'gen_hC_using_ancestry'))) {
 
-    // /* New: Nov 18, 2026
-    // $preferred_rowtypes = array();
-    $excluded_rowtypes = array();
-    // media, agent, and vernacular name files can be discarded.
-    $excluded_rowtypes[] = 'http://eol.org/schema/media/document';
-    $excluded_rowtypes[] = 'http://eol.org/schema/agent/agent';
-    $excluded_rowtypes[] = 'http://rs.gbif.org/terms/1.0/vernacularname';
-    // */
-    // $params['preferred_rowtypes'] = $preferred_rowtypes;
-    $params['excluded_rowtypes'] = $excluded_rowtypes;
+    if($resource_type == 'legacy_dwca') { //18Nov2026 per Jen: https://github.com/EOL/ContentImport/issues/54#issue-6377390153
+        $excluded_rowtypes = array();
+        // media, agent, and vernacular name files can be discarded.
+        $excluded_rowtypes[] = 'http://eol.org/schema/media/document';
+        $excluded_rowtypes[] = 'http://eol.org/schema/agent/agent';
+        $excluded_rowtypes[] = 'http://rs.gbif.org/terms/1.0/vernacularname';
+        $params['excluded_rowtypes'] = $excluded_rowtypes;
+    }
 
     $ret = $func->convert_archive_by_adding_higherClassification($params);
     if($ret) Functions::finalize_dwca_resource($resource_id, false, true);

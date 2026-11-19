@@ -8,7 +8,7 @@ php match_taxa_2DH.php _ '{"resource_id": "Brazilian_Flora"                     
 php match_taxa_2DH.php _ '{"resource_id": "globi_assoc"                                 ,"resource_type": "legacy_dwca"}'
 php match_taxa_2DH.php _ '{"resource_id": "WoRMS2EoL"                                   ,"resource_type": "legacy_dwca"}'
 php match_taxa_2DH.php _ '{"resource_id": "23067562_Bioc_and_Natu_Prod-with-hC_neo4j_1" ,"resource_type": "TB_dwca"}'
-
+php match_taxa_2DH.php _ '{"resource_id": "13318109_AmphibiaWeb-with-hC_neo4j_1", "AncestryIndexVer": "new", "resource_type": "legacy_dwca"}'
 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
@@ -17,6 +17,8 @@ These ff. workspaces work together:
 - DwCA_MatchTaxa2DH.code-workspace
 - UseEOLidInTaxon.code-workspace
 - GenerateCSV_4Neo4j.code-workspace
+
+Possible resource_type values are: 'legacy_dwca' and 'TB_dwca'
 ==================================================================== generate tar.gz
 tar -czf protisten_v2_Eli.tar.gz protisten_v2_Eli/
 */

@@ -809,9 +809,9 @@ class DwCA_Utility
             echo "\n3 of 3*\n";
             foreach($index as $row_type) {
 
-                // /* New: Nov 18, 2026
-                if($params['excluded_rowtypes']) { //1st client here is Legacy DwCA resources
-                    if(in_array($row_type, $params['excluded_rowtypes'])) continue;
+                // /* New: 18Nov2026
+                if($val_arr = @$params['excluded_rowtypes']) { //1st client here is Legacy DwCA resources
+                    if(in_array($row_type, $val_arr)) continue;
                 }
                 // */
 

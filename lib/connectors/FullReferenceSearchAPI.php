@@ -10,12 +10,34 @@ namespace php_active_record;
    the year, journal, volume, issue and page read from the full_reference, e.g. "1998. Brittonia,50(1): 59,1998." -> 10.2307/2807718.
    Status of each row:
      matched   : journal, volume and year (or the year next to it) agree, and the page cited is in the article's page range
+                 (no year in the citation: the first author and the title must agree too)
      possible  : journal, volume and year agree, but the page can't be confirmed (e.g. CrossRef has only the first page) -> look at it
      not found : no candidate agrees; the closest candidate is still described, for review (its DOI is NOT put in the DOI column)
      skipped   : empty, or too short to search
      error     : CrossRef could not be reached; a re-run tries it again
    Every row gets a review_note in plain words, for the Data Managers' final check.
    Changes nothing else: it only writes a report TSV and a guide (_guide.txt) next to it.
+
+   STRICT ON PURPOSE (Nov 19, 2026): a DOI is given only when the citation itself confirms it, so that 'matched' DOIs can be trusted
+   without checking, and a DOI that differs from someone else's is more likely the right one. Rules that would give more DOIs but also
+   wrong ones are left out on purpose: short-titled book chapters ("Azollaceae"), misspelled journal names, under 90% of a book's or
+   chapter's title, CrossRef's top candidate when only the author and year agree. A citation without a year (FishBase) is 'matched' only
+   if the first author and the title also agree.
+
+   CHECKED AGAINST THE DATA MANAGERS' DOIs (Nov 19, 2026): the Google Sheet "doi match tests" (Sheet1), 3,561 citations, each with a DOI
+   found by a Data Manager (column 'matched doi'), many by hand: https://docs.google.com/spreadsheets/d/1dtNG5qNIT_Y7E2JlR8QCboC1YWn6IwabMV9TQ2fJL4w/edit?gid=0
+     - the tool gave a DOI for 3,243; 3,202 the same as the DM's, 36 another DOI of the same work (or the journal article vs. its book
+       reprint), 4 that fit the citation better than the DM's, 1 wrong (a 'possible');
+     - 'matched' 2,682: all usable; 'possible' 561: 560 usable; 'not found' 318 (in 139 of them CrossRef's top candidate, shown in
+       crossref_DOI, was the DM's DOI, but the citation couldn't confirm it);
+     - 16 of the DM's DOIs don't fit their citations (don't exist, not DOIs, other works, e.g. another Mammalian Species number):
+       the tool rightly gives none.
+     - CrossRef's top candidate alone is not trusted: taken as the DOI of the 318 'not found' rows it would add 139 right DOIs and 179
+       wrong ones; even at a score of 100 or more, 5 of 73 were wrong. So it is never filled in; from a score of HINT_SCORE (80: 102 of
+       114 right) the review_note says "Worth a look" (candidate_hint). In 6 rows the DM's DOI that doesn't fit was CrossRef's top candidate.
+   Every change was also run on 540 other citations (FishBase, reference.tab, the style samples) and every changed row read: no wrong
+   DOI added. The cases are in FullReferenceSearchAPI_tests.json: 'dm-sheet-<identifier>' = that row of the sheet.
+   Report for the Data Managers: Full_Reference_Search_vs_DM_DOIs_report.md (with our_tool_vs_DM_DOIs.tsv, row by row).
 ----------------------------------------------------
 */
 use \AllowDynamicProperties; //for PHP 8.2
@@ -52,6 +74,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
            __construct(), run_tests() and write_guide()
        It needs the author and title checks (they confirm a DataCite record), so it's off when they are off. A DataCite DOI is at most 'possible'. */
     const DATACITE_SEARCH = true;
+    const HINT_SCORE = 80; // (Nov 19, 2026) a 'not found' row whose CrossRef top candidate scores this or more gets a "worth a look" hint (candidate_hint)
     const MAX_AUTHOR_LOOKUPS = 3; // per row: CrossRef's search answer has no authors, so each candidate that passes the checks costs one call (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
     // (Nov 19, 2026) titles of records that are a journal's or book's furniture, not a work: never the answer
@@ -318,7 +341,19 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['DOI_URL'] = self::doi_url($row['DOI']);
         $row['DOI_source'] = $row['DOI'] !== '' ? 'CrossRef' : '';
         $row['review_note'] = $this->review_note($ref, $row, $c);
-        if($row['status'] == 'not found') return $this->datacite_route($row, $ref, $full_reference); // DATACITE: a second search, when no volume or pages were read
+        if($row['status'] == 'not found') return $this->candidate_hint($this->datacite_route($row, $ref, $full_reference)); // DATACITE: a second search, when no volume or pages were read
+        return $row;
+    }
+    private function candidate_hint($row)
+    {   /* (Nov 19, 2026) For a row still 'not found': when CrossRef's top candidate scored high, the review_note says it's worth a look.
+           The DOI column stays empty: the citation can't confirm it, and CrossRef's search has no notion of "correct" -- it ranks records by
+           the words they share with the citation and always returns some. On the Data Managers' list ("doi match tests", 3,561 citations),
+           candidates of 'not found' rows scoring HINT_SCORE or more were the DM's DOI 9 times in 10 (102 of 114); the others were wrong,
+           which is why they are never given as the DOI. */
+        if(($row['status'] ?? '') !== 'not found' || (string) ($row['crossref_DOI'] ?? '') === '' || (float) ($row['crossref_score'] ?? 0) < self::HINT_SCORE) return $row;
+        if(preg_match('/(?:^|\s)type=/', (string) ($row['checks'] ?? ''))) return $row; // rejected as not a work (a table of contents, a masthead, a preprint ...): never worth a look
+        $row['review_note'] = rtrim($row['review_note']) . " Worth a look: CrossRef's top candidate, " . $row['crossref_DOI'] . " (score " . $row['crossref_score'] . "), "
+            . "is often the right one at this score (about 9 in 10 on the Data Managers' list), but this citation can't confirm it: open it to check.";
         return $row;
     }
     private function datacite_route($row, $ref, $citation, $dataset = false)
@@ -1040,6 +1075,7 @@ HOW IT WAS DONE
 WHAT TO DO WITH EACH STATUS
   matched   -> Journal, volume, year and page all agree. The DOI is very likely right. Accept it, unless the
                review_note or the title shows it clearly isn't the work cited.
+               (Checked on the Data Managers' 3,561 citations with known DOIs, Nov 2026: every 'matched' DOI was right.)
   possible  -> Journal, volume and year agree, but the page can't be confirmed (CrossRef often gives only an article's
                first page). Open the DOI and check that the article covers the cited page, then accept or reject it.
                Or (author and title checks on): no volume or pages could be read, but the first author and the title
@@ -1047,8 +1083,11 @@ WHAT TO DO WITH EACH STATUS
                Watch out: one article often appears for several citations of later pages in the same volume; those
                later pages may belong to a different article.
   not found -> No candidate agrees. The DOI column is left empty on purpose; the closest candidate is described in the
-               review_note and crossref_* columns only so you can see why it was rejected. Usually there is no DOI:
-               old works (before 1900), books, and many regional journals aren't in CrossRef.
+               review_note and crossref_* columns only so you can see why it was rejected. It is sometimes the right one
+               that the citation alone can't confirm (139 of 318 on the Data Managers' list): crossref_DOI is worth a look.
+               When it scored " . self::HINT_SCORE . " or more, the review_note says \"Worth a look\": about 9 in 10 such candidates were
+               right on that list -- but not all, which is why the tool never fills them in as the DOI.
+               Usually there is no DOI: old works (before 1900), books, and many regional journals aren't in CrossRef.
                The Biodiversity Heritage Library (biodiversitylibrary.org) may have these.
   skipped   -> Too short to search.
   error     -> CrossRef couldn't be reached; the search will be redone on the next run.

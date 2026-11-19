@@ -336,6 +336,9 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         Each of CrossRef's top 5 candidates is checked against the year, journal, volume, issue and page read from the citation.<br><br>
         It changes nothing: it writes a report (<b>matched</b> / <b>possible</b> / <b>not found</b>, with a review note for each row)
         and a guide, for the Data Managers' final check.<br><br>
+        It is strict on purpose: checked on the Data Managers' list of 3,561 citations with known DOIs
+        (<a href="https://docs.google.com/spreadsheets/d/1dtNG5qNIT_Y7E2JlR8QCboC1YWn6IwabMV9TQ2fJL4w/edit?gid=0" target="_blank">doi match tests</a>, Nov 2026), every <b>matched</b> DOI was right,
+        and 560 of 561 <b>possible</b> ones.<br><br>
         <span style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
             <span>Also on the command line (do_full_reference_search.php).</span>
             <span>See also: <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?><a href="<?php echo h($refs_page) ?>">References Maintenance</a> | <?php endif; ?><a href="<?php echo h($terms_page) ?>">Terms Maintenance</a>.</span></span></small>

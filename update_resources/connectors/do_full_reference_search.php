@@ -23,6 +23,12 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       (article numbers, "Volume 9, Issue 2, Pages ...", the year as the volume when CrossRef agrees); renamed journals (RENAMED_JOURNALS);
       datasets cited as datasets are looked up in DataCite first; never a table of contents, a preprint for a published article, or a
       figure/Plazi copy; Mammalian Species numbers must agree; a citation without a year is 'matched' only if author and title agree too.
+    - Checked against the Data Managers' DOIs (Nov 19, 2026): the Google Sheet "doi match tests" (Sheet1), 3,561 citations with DOIs found
+      by the Data Managers: https://docs.google.com/spreadsheets/d/1dtNG5qNIT_Y7E2JlR8QCboC1YWn6IwabMV9TQ2fJL4w/edit?gid=0
+      'matched' 2,682, all right; 'possible' 561, 560 usable; 'not found' 318. See "CHECKED AGAINST THE DATA MANAGERS' DOIs" in
+      FullReferenceSearchAPI.php; the test cases 'dm-sheet-<identifier>' are rows of that sheet.
+    - A 'not found' row whose CrossRef top candidate scored 80 or more (HINT_SCORE) says "Worth a look" in its review_note (about 9 in 10
+      were right on that sheet); the DOI column stays empty, as CrossRef's top candidate alone also gives wrong DOIs.
       A DOI written in the citation (e.g. "doi:10.1594/PANGAEA.692046") is checked in CrossRef instead of searching.
     - Author and title checks (on by default): the first author's surname and CrossRef's title words also count; they break ties, and a
       'matched' row whose authors clearly differ becomes 'possible'. A citation with no volume or pages (a book, or Vancouver style) can be

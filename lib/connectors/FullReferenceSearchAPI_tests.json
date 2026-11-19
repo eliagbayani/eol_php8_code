@@ -1,5 +1,5 @@
 {
- "about": "Known cases for Full Reference Search: each must give the expected result. Run with [Run Tests] on the page, or: php do_full_reference_search.php _ '{\"task\": \"run_tests\"}'. Add a case whenever a problem is fixed. 'requires': skipped when that option is off.",
+ "about": "Known cases for Full Reference Search: each must give the expected result. Run with [Run Tests] on the page, or: php do_full_reference_search.php _ '{\"task\": \"run_tests\"}'. Add a case whenever a problem is fixed. 'requires': skipped when that option is off. Cases 'dm-sheet-<identifier>' are rows of the Data Managers' Google Sheet \"doi match tests\" (Sheet1), whose DOIs were found by the Data Managers: https://docs.google.com/spreadsheets/d/1dtNG5qNIT_Y7E2JlR8QCboC1YWn6IwabMV9TQ2fJL4w/edit?gid=0 (Nov 19, 2026). They include every DM DOI found not to fit its citation (expected: not found) and the cases where the tool's DOI fits better.",
  "cases": [
   {
    "id": "crossref-sample-1",
@@ -701,7 +701,7 @@
    "why": "A chapter by Micha et al.; CrossRef's 'Comparative appetency for Azolla of Cichlasoma and Oreochromis' has 83% of its title in the citation but is another paper: under the 90% bar."
   },
   {
-   "id": "jen2-1",
+   "id": "dm-sheet-1",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "A. A. Heidebrecht;R. MacVicar;O. B. Ross;C. K. Whitehair. 1951. Composition of swine milk. I. Major constituents and carotene, vitamin A and vitamin C. pp. 43-50. Journal of Nutrition. vol. 44",
    "expect": {
@@ -711,7 +711,7 @@
    "why": "Style 'Authors. Year. Title. pp. 43-50. Journal. vol. 44' (initials before the surname, ';' between authors): the pages, journal and volume must be read."
   },
   {
-   "id": "jen2-243",
+   "id": "dm-sheet-243",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Brodie, E.D.|Acevedo, M.|Campbell, J.A. 2012. New Salamanders of the Genus Oedipina (Caudata: Plethodontidae) from Guatemala. Journal of Herpetology. vol. 46. pp. 233 - 240.",
    "expect": {
@@ -721,7 +721,7 @@
    "why": "Style '... Title. Journal. vol. 46. pp. 233 - 240.': the volume and pages after the journal must be read."
   },
   {
-   "id": "jen2-22",
+   "id": "dm-sheet-22",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Adams DG, Duggan PS. 2008. Cyanobacteria-bryophytes symbioses. Journal of Experimental Botany 59: 1047-1058.",
    "expect": {
@@ -731,7 +731,7 @@
    "why": "A short title ('Cyanobacteria-bryophytes symbioses.') stays in front of the journal: CrossRef's journal must be found at the end of it."
   },
   {
-   "id": "jen2-16",
+   "id": "dm-sheet-16",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Abe, A. S., Johansen, K. 1987. Gas-exchange and ventilatory responses to hypoxia and hypercapnia in Amphisbaena alba (Reptilia, Amphisbaenia). Journal of Experimental Biology 127:159-172.",
    "expect": {
@@ -741,7 +741,7 @@
    "why": "A title ending in '(Reptilia, Amphisbaenia).' stays in front of the journal: CrossRef's journal must be found at the end of it."
   },
   {
-   "id": "jen2-72",
+   "id": "dm-sheet-72",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Anyonge, W. 1993. Body mass in large extant and extinct carnivores. Journal of Zoology, London 231:339ñ350.",
    "expect": {
@@ -751,7 +751,7 @@
    "why": "'Journal of Zoology, London': CrossRef's 'Journal of Zoology' is in it word for word."
   },
   {
-   "id": "jen2-21",
+   "id": "dm-sheet-21",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Adam, M. D., and J. P. Hayes. 1998. Arborimuspomo. Mammalian Species 593:1ñ5.",
    "expect": {
@@ -762,7 +762,7 @@
    "why": "JSTOR's 'Mammalian Species' records have no volume but the number as the issue (593): it must agree with the cited number. 'ñ' is a garbled dash in '1ñ5'."
   },
   {
-   "id": "jen2-81",
+   "id": "dm-sheet-81",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Attum, O. et al. 2007. An evaluation of the taxonomic validity of Testudo werneri. Amphibia-Reptilia 27: 393-401.",
    "expect": {
@@ -774,7 +774,7 @@
    "why": "A typo in the citation (volume 27; CrossRef 28): 'possible' because the year, first author and title agree; the note names what differs."
   },
   {
-   "id": "jen2-132",
+   "id": "dm-sheet-132",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Ballantine, D. 1961. Gymnodinium chukwanii n. sp. And other marine dinoflagellates collected in the vicinity of Zanzibar. Journal of Eukaryotic Microbiology 8:217-228.",
    "expect": {
@@ -785,7 +785,7 @@
    "why": "The journal's later name in the citation ('Journal of Eukaryotic Microbiology') for an article in 'The Journal of Protozoology': in RENAMED_JOURNALS since Nov 19, 2026, so 'matched' (before: 'possible' through the typo rule)."
   },
   {
-   "id": "jen2-2461",
+   "id": "dm-sheet-2461",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Yael Politi, Talmon Arad, Eugenia Klein, Steve Weiner, and Lia Addadi. 2004. Sea Urchin Spine Calcite Forms via a Transient Amorphous Calcium Carbonate Phase. Science, 306 (5699), 1161-1164. [DOI:10.1126/science.1102289]",
    "expect": {
@@ -795,7 +795,7 @@
    "why": "A DOI in square brackets: the closing ']' isn't part of it (a ']' that closes a '[' inside a DOI stays)."
   },
   {
-   "id": "jen2-516",
+   "id": "dm-sheet-516",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Dehnal & Kong 1979 Dehnel P.A. & Kong D.C. (1979). The effect of temperature on developmental rates in the nudibranch Cadlina luteomarginata. Can. J. Zool., 57, 1835-1844.",
    "expect": {
@@ -806,7 +806,7 @@
    "why": "Pages that look like years ('57, 1835-1844') are pages, not a year range: only a range with the cited year in it is (\"Select. Hexandr. Pl.,9,1831-1834\")."
   },
   {
-   "id": "jen2-1266",
+   "id": "dm-sheet-1266",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Lantz, L. A. 1947. Observations on Discoglossus pictus Otth: Note. Proceedings of the Royal Society B-Biological Sciences 134:52-56.",
    "expect": {
@@ -816,7 +816,7 @@
    "why": "A cited range (52-56) that starts inside an article (37-52) but runs past its end is the next article: the 'Note' on 52-56, not 'Observations' on 37-52."
   },
   {
-   "id": "jen2-1368",
+   "id": "dm-sheet-1368",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "M. Messer;G. S. Mossop. 1977. Milk and carbohydrates of marsupials. I. Partial separation and characterization of neutral milk oligosaccharides of the eastern grey kangaroo. pp. 378-388. Australian Journal of Biological Sciences. vol. 30",
    "expect": {
@@ -827,7 +827,7 @@
    "why": "A journal's table of contents ('... Volume 30, 1977 - Table of Contents') is never the answer."
   },
   {
-   "id": "jen2-1492",
+   "id": "dm-sheet-1492",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Milla & Reich 2011 Annals of Botany 107: 455465, 2011.",
    "expect": {
@@ -836,7 +836,7 @@
    "why": "'ContentSnapshots' (a journal's front matter) is never the answer; nothing else agrees, so: not found."
   },
   {
-   "id": "jen2-3539",
+   "id": "dm-sheet-3539",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Widdicombe, Claire E; Eloire, Damien; Harbour, Derek; Harris, Roger P; Somerfield, Paul J (2010): Time series of phytoplankton abundance and composition at station L4 in the English Channel from 1988 to 2009 [dataset]. PANGAEA. In supplement to: Widdicombe, CE et al. (2010): Long-term phytoplankton community dynamics in the Western English Channel. Journal of Plankton Research, 32(5), 643-655",
    "expect": {
@@ -847,7 +847,7 @@
    "why": "A dataset cited as one ('[dataset]. PANGAEA. In supplement to: <article>'): DataCite first, by its title; not the article it supplements."
   },
   {
-   "id": "jen2-3542",
+   "id": "dm-sheet-3542",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "McDaniel, Stuart F.; Atwood, John; Burleigh, J. Gordon (2012). Data from: Recurrent evolution of dioecy in bryophytes [Dataset]. Dryad.",
    "expect": {
@@ -858,7 +858,7 @@
    "why": "A Dryad dataset ('Data from: ... [Dataset]. Dryad.'): the dataset in the repository cited, not a file in it or a copy elsewhere."
   },
   {
-   "id": "jen2-2166",
+   "id": "dm-sheet-2166",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Strassert, J.F.H., Wurzbacher, C., Hervé, V. et al. Long rDNA amplicon sequencing of insect-infecting nephridiophagids reveals their affiliation to the Chytridiomycota and a potential to switch between hosts. Sci Rep 11, 396 (2021).",
    "expect": {
@@ -868,7 +868,7 @@
    "why": "'Sci Rep 11, 396 (2021)': the article number is read, and the bioRxiv preprint (posted-content) is not given for a citation of the published article."
   },
   {
-   "id": "jen2-63",
+   "id": "dm-sheet-63",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Anderson 1961 Anderson D.T. (1961). The development of the polychaete Haploscoloplos fragilis. Quart. J. Microscop. Sci., 102, 257-272.",
    "expect": {
@@ -878,7 +878,7 @@
    "why": "'Quart. J. Microscop. Sci., 102' is 'Journal of Cell Science' (renamed) volume 'S3-102' (CrossRef's series volume)."
   },
   {
-   "id": "jen2-1747",
+   "id": "dm-sheet-1747",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Pianka, E. R., and W. S. Parker. 1972. Ecology of Iguanid lizard Callisaurus draconides. Copeia 1972:493-508.",
    "expect": {
@@ -888,7 +888,7 @@
    "why": "'Copeia 1972:493-508': the year is the volume, accepted because CrossRef's volume is 1972."
   },
   {
-   "id": "jen2-1625",
+   "id": "dm-sheet-1625",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Oka S-i, Tomita T, Miyamoto K (2016) A Mighty Claw: Pinching Force of the Coconut Crab, the Largest Terrestrial Crustacean. PLoS ONE 11(11): e0166108.",
    "expect": {
@@ -898,7 +898,7 @@
    "why": "'PLoS ONE 11(11): e0166108': an article number; volume and issue are read, the page can't be compared: 'possible'."
   },
   {
-   "id": "jen2-696",
+   "id": "dm-sheet-696",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Gaill, F. 1979. Digestive structure of abyssal tunicates. Sarsaria, vol 64, p 363-369",
    "expect": {
@@ -909,7 +909,7 @@
    "why": "'Sarsaria, vol 64, p 363-369': volume and pages read."
   },
   {
-   "id": "jen2-1103",
+   "id": "dm-sheet-1103",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Jones, J. Knox Jr., and G. A. Baldassarre. 1982. Reithrodontyomysbrevirostris and Reithrodontomysparadoxus. Mammalian Species 192:1ñ3.",
    "expect": {
@@ -920,7 +920,7 @@
    "why": "JSTOR's 'Mammalian Species' records keep the number as the issue (192): the cited number must agree, as one author wrote many numbers that all start at page 1."
   },
   {
-   "id": "jen2-177",
+   "id": "dm-sheet-177",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Best, T. L., and H. H. Thomas. 1991. Dipodomysinsularis. Mammalian Species 374:1ñ3.",
    "expect": {
@@ -930,7 +930,7 @@
    "why": "'Mammalian Species 374': CrossRef's record by these authors is number 378 (another species), so it's rejected: not found."
   },
   {
-   "id": "jen2-178",
+   "id": "dm-sheet-178",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Best, T. L., J. L. Bartig, and S. L. Burt. 1992. Tamiascanipes. Mammalian Species 411:1ñ5.",
    "expect": {
@@ -939,7 +939,7 @@
    "why": "The DM's DOI is Mammalian Species number 400 (Dipodomys margaritae), cited as 411 (Tamias canipes): the number must agree, so: not found."
   },
   {
-   "id": "jen2-1467",
+   "id": "dm-sheet-1467",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Mead, J. I., and A. Nadachowski. 1999. Alticolastoliczkanus. Mammalian Species 624:1ñ4.",
    "expect": {
@@ -948,7 +948,7 @@
    "why": "The DM's DOI is Mammalian Species number 625 (Alticola argentatus), cited as 624 (Alticola stoliczkanus): the number must agree, so: not found."
   },
   {
-   "id": "jen2-1527",
+   "id": "dm-sheet-1527",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Morse, D. H. 1989. Song patterns of warblers at dawn and dusk. Wilson Bulletin 101:26-35.",
    "expect": {
@@ -958,7 +958,7 @@
    "why": "The DM's DOI is Morse's 1989 book 'American Warblers'; the citation is his Wilson Bulletin article 101:26-35. A record without a volume needs the author AND the title: not found."
   },
   {
-   "id": "jen2-372",
+   "id": "dm-sheet-372",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Choate, J,. 2002. in litt.",
    "expect": {
@@ -967,7 +967,7 @@
    "why": "'Choate, J,. 2002. in litt.': the DM's DOI is 'Strategies for Retirement Benefits in Estate Planning'. Nothing can confirm a personal communication: not found."
   },
   {
-   "id": "jen2-817",
+   "id": "dm-sheet-817",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Grubb, P. 1971. Comparitive notes on the behavior of Geochelone sulcata. Herpetologica 27:328-333.",
    "expect": {
@@ -976,7 +976,7 @@
    "why": "Grubb 1971, Herpetologica 27:328-333: the DM's DOI is 'The Interpretation of French Song'. No candidate agrees: not found."
   },
   {
-   "id": "jen2-969",
+   "id": "dm-sheet-969",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Hérissé t, A. (1952), Influence de la lumière sur la Nostoc commune. Bull. Soc. Chim. Biol. Paris 34, 532-537.",
    "expect": {
@@ -985,7 +985,7 @@
    "why": "Hérissé 1952, Bull. Soc. Chim. Biol.: the DM's DOI is 'Mise au point' (another work). No candidate agrees: not found."
   },
   {
-   "id": "jen2-1165",
+   "id": "dm-sheet-1165",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Kenny 1969 Kenny R. (1969). Growth and asexual reproduction of the starfish Nepanthia belcheri (Perrier).",
    "expect": {
@@ -994,7 +994,7 @@
    "why": "Kenny 1969, starfish growth: the DM's DOI is a book chapter 'Introduction'. No candidate agrees: not found."
   },
   {
-   "id": "jen2-1590",
+   "id": "dm-sheet-1590",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Nishi 1992 Nishi E. (1992). Occurrence of the boring serpulid Floriprotis sabiuraensis and the brooding serpulid Paraprotis dendrova Uchida (Polychaeta : Sedentaria). Galaxea, 11, 15-20.",
    "expect": {
@@ -1003,7 +1003,7 @@
    "why": "Nishi 1992, a boring serpulid: the DM's DOI is a superconductor paper. No candidate agrees: not found."
   },
   {
-   "id": "jen2-2142",
+   "id": "dm-sheet-2142",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Southward & Southward 1958 Southward E., C. & Southward A.J. (1958). The breeding of Arenicola ecaudata Johnston and A. branchialis Aud. & Edw. at Plymouth. J. Mar. Biol. Assoc. U. K., 37, 267-286.",
    "expect": {
@@ -1012,7 +1012,7 @@
    "why": "Southward & Southward 1958, breeding of Arenicola: the DM's DOI is 'On some Pogonophora'. Page 267 isn't in the candidate's 268-285: not found."
   },
   {
-   "id": "jen2-2342",
+   "id": "dm-sheet-2342",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Vitt, L.J. 1995 The ecology of tropical lizards in the Caatinga of Northeast Brazil. Occas Pap Okla Mus Nat Hist, 1-29.",
    "expect": {
@@ -1021,7 +1021,7 @@
    "why": "Vitt 1995, Occasional Papers: the DM's DOI is another Vitt 1995 paper (Copeia). No candidate agrees: not found."
   },
   {
-   "id": "jen2-3536",
+   "id": "dm-sheet-3536",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Proudlove, G. and Elliott, W.R., 2023. Subterranean Fishes of the World: An account of the subterranean (hypogean) fishes with a bibliography from 1436.",
    "expect": {
@@ -1030,7 +1030,7 @@
    "why": "The DM's DOI 10.1073/pnas.94.10.51 doesn't exist (doi.org: not found); a book with no confirmable record: not found."
   },
   {
-   "id": "jen2-3537",
+   "id": "dm-sheet-3537",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Deets, G.B. and HO, J.S., 1988. Phylogenetic analysis of the Eudactylinidae (Crustacea: Copepoda: Siphonostomatoida), with descriptions of two new genera. Proceedings of the Biological Society of Washington, 101(2), pp.317-339.",
    "expect": {
@@ -1039,7 +1039,7 @@
    "why": "The DM's DOI 10.1079/9780851998183.002 doesn't exist (doi.org: not found); the volume, issue and page differ from CrossRef's candidate: not found."
   },
   {
-   "id": "jen2-632",
+   "id": "dm-sheet-632",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Field 1892 Field G.W. (1892). The larva of Asterias vulgaris. Quart. J. Microscop. Sci., 34, 105-128.",
    "expect": {
@@ -1049,7 +1049,7 @@
    "why": "'Quart. J. Microscop. Sci., 34, 105-128' (renamed: Journal of Cell Science, volume S2-34): the journal article, which fits the citation better than the DM's separate BHL record."
   },
   {
-   "id": "jen2-937",
+   "id": "dm-sheet-937",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Heppner, J. B. (2008b). Archaic Bell Moths (Lepidoptera: Neopseustidae). In J. L. Capinera (Ed.), Encyclopedia of Entomology (pp. 264-265). Dordrecht, The Netherlands: Springer Science + Business Media B.V.",
    "expect": {
@@ -1060,7 +1060,7 @@
    "why": "An encyclopedia entry 'Archaic Bell Moths (Lepidoptera: Neopseustidae)': its own chapter, not the DM's shorter entry 'Neopseustidae'."
   },
   {
-   "id": "jen2-1148",
+   "id": "dm-sheet-1148",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Karanovic, I. 2012. Recent Freshwater Ostracods of the World. Springer. ISBN 978-3-642-21810-1",
    "expect": {
@@ -1071,7 +1071,7 @@
    "why": "A whole book cited with its ISBN: the book's DOI, not the DM's DOI of its 'Introduction' chapter."
   },
   {
-   "id": "jen2-2012",
+   "id": "dm-sheet-2012",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Schaefer, C.W. and Ahmad, I., 2000. Cotton stainers and their relatives (Pyrrhocoroidea: Pyrrhocoridae and Largidae). Heteroptera of Economic Importance. CRC Press, Boca Raton, pp. 271-307.",
    "expect": {
@@ -1082,7 +1082,7 @@
    "why": "A chapter 'Cotton stainers and their relatives (Pyrrhocoroidea ...)': its own DOI; the DM's DOI is another chapter of the book ('Seed and Chinch Bugs')."
   },
   {
-   "id": "jen2-2601",
+   "id": "dm-sheet-2601",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Smith, R. E. H., & Kalff, J. (1982). SIZE‐DEPENDENT PHOSPHORUS UPTAKE KINETICS AND CELL QUOTA IN PHYTOPLANKTON1. Journal of Phycology, 18(2), 275-284.",
    "expect": {
@@ -1092,7 +1092,7 @@
    "why": "Journal of Phycology has two Wiley DOIs per old article (10.1111/j.0022-3646... and 10.1111/j.1529-8817...): both are the same article."
   },
   {
-   "id": "jen2-1214",
+   "id": "dm-sheet-1214",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Kramer, C. L. (1958). A new genus in the Protomycetaceae. Mycologia, 50(6), 916-926.",
    "expect": {
@@ -1102,7 +1102,7 @@
    "why": "The DM's JSTOR DOI 10.2307/3755913 now redirects to this DOI: the same Mycologia article."
   },
   {
-   "id": "jen2-1683",
+   "id": "dm-sheet-1683",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Parra-Olea, G.|García-París, M.|Wake, D.B. 2002. Phylogenetic relationships among the salamanders of the Bolitoglossa macrinii species group (Amphibia: Plethodontidae), with descriptions of two new species from Oaxaca (Mexico). Journal of Herpetology. vol. 36. pp. 356 - 366.",
    "expect": {
@@ -1112,7 +1112,7 @@
    "why": "JSTOR (this) and BioOne (the DM's SICI DOI) both register this Journal of Herpetology article: the same work."
   },
   {
-   "id": "jen2-2402",
+   "id": "dm-sheet-2402",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Wheatly, M.G. 1989. Standard Rate of O2 Uptake and Body Size in the Crayfish Pacifastacus Leniusculus (Dana, 1852) (Decapoda: Astacidae): Intra- Versus Interspecific Relations in Crustaceans.\\nJournal of Crustacean Biology, Volume 9, Issue 2, Pages 212–216,",
    "expect": {
@@ -1123,7 +1123,7 @@
    "why": "'Journal of Crustacean Biology, Volume 9, Issue 2, Pages 212–216': read; OUP has two DOIs for this article (the DM's is the other)."
   },
   {
-   "id": "jen2-414",
+   "id": "dm-sheet-414",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Conover, R. J. 1988. Comparative life histories in the genera Calanus and Neocalanus in high latitude of the northern hemisphere. Hydrobiologia. Article.",
    "expect": {
@@ -1134,7 +1134,7 @@
    "why": "'Hydrobiologia. Article.': the journal article; the DM's DOI is its book reprint (Biology of Copepods). Both valid; the citation names the journal."
   },
   {
-   "id": "jen2-1882",
+   "id": "dm-sheet-1882",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Reish DJ, Mason AZ (2003) Radiocarbon dating and metal analyses of 'fossil' and living tubes of Protula (Annelida: Polychaeta). Hydrobiologia 496:371-383 CrossRef",
    "expect": {
@@ -1144,7 +1144,7 @@
    "why": "'Hydrobiologia 496:371-': the journal article; the DM's DOI is its book reprint (Advances in Polychaete Research). Both valid."
   },
   {
-   "id": "jen2-3551",
+   "id": "dm-sheet-3551",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Robertson, D. R., & Tornabene, L. (2021). Reef-associated Bony Fishes of the Greater Caribbean: a Checklist; Version 4 (Version 4.0) [Dataset]. Zenodo.",
    "expect": {
@@ -1155,7 +1155,7 @@
    "why": "Zenodo 'Version 4 (Version 4.0) [Dataset]': the cited year (2021) before version 3 (2020); Zenodo has two DOIs for version 4.0 (the DM's is the other)."
   },
   {
-   "id": "jen2-2378",
+   "id": "dm-sheet-2378",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Wang, X., and R. S. Hofmann. 1987. Pseudoisnayaur and Pseudoisschaeferi. Mammalian Species 278:1ñ6.",
    "expect": {
@@ -1165,7 +1165,7 @@
    "why": "'Pseudoisnayaur ... Mammalian Species 278': the number agrees with CrossRef's issue 278, so 'matched' even though the title runs the species names together."
   },
   {
-   "id": "jen2-3544",
+   "id": "dm-sheet-3544",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "DeLeo, Danielle; Bessho-Uehara, Manabu; Haddock, Steven et al. (2024). Evolution of bioluminescence in Anthozoa with emphasis on Octocorallia [Dataset]. Dryad.",
    "expect": {
@@ -1176,7 +1176,7 @@
    "why": "'[Dataset]. Dryad.': the Dryad dataset, not a Zenodo copy found by the same title."
   },
   {
-   "id": "jen2-3546",
+   "id": "dm-sheet-3546",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "White, Craig R.; Seymour, Roger S. (2013). Data from: The role of gravity in the evolution of mammalian blood pressure [Dataset]. Dryad.",
    "expect": {
@@ -1187,7 +1187,7 @@
    "why": "'Data from: ... [Dataset]. Dryad.': the Dryad dataset, not the Evolution article it is data for."
   },
   {
-   "id": "jen2-3548",
+   "id": "dm-sheet-3548",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Lovegrove, Barry G. (2014). Data from: Cool sperm: why some placental mammals have a scrotum [Dataset]. Dryad.",
    "expect": {
@@ -1198,7 +1198,7 @@
    "why": "'Data from: Cool sperm ... [Dataset]. Dryad.': the Dryad dataset, not a Zenodo copy."
   },
   {
-   "id": "jen2-1890",
+   "id": "dm-sheet-1890",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Riccioni C, Belfiori B, Rubini A, Bucci G, Ianigro M (2025). Dataset of endophytic and forest fungi (IBBR-CNR-FABI-01). Version 1.1. Consiglio Nazionale delle Ricerche, Istituti del Dipartimento di Scienze Bio-AgroAlimentari (CNR-DiSBA). Occurrence dataset",
    "expect": {
@@ -1209,7 +1209,7 @@
    "why": "A real GBIF dataset (publisher: Consiglio Nazionale delle Ricerche), cited without the word GBIF: only Plazi copies of articles are skipped."
   },
   {
-   "id": "jen2-785",
+   "id": "dm-sheet-785",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Gordon, D.P. et al. (2002) New taxa of Japanese and New Zealand Eurystomellidae (Phylum Bryozoa) and their phylogenetic relationships. Zool. J. Linn. Soc. 136, 199ñ216",
    "expect": {
@@ -1219,7 +1219,7 @@
    "why": "'Zool. J. Linn. Soc. 136, 199ñ216': 'ñ' (a garbled dash) in a page range after a comma; not the Zenodo figure or the Plazi copy of this article."
   },
   {
-   "id": "jen2-1325",
+   "id": "dm-sheet-1325",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Luu, V. Q. et al. 2016. Evolution in karst massifs: Cryptic diversity among bent-toed geckos along the Truong Son Range with descriptions of three new species and one new country record from Laos.",
    "expect": {
@@ -1228,7 +1228,7 @@
    "why": "No journal or numbers in the citation; DataCite's matches are a Zenodo figure ('FIGURE 6 in ...') and a Plazi copy, never the work cited: not found."
   },
   {
-   "id": "jen2-461",
+   "id": "dm-sheet-461",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "D. Cardoso,T. Särkinen,S. Alexander,A.M. Amorim,V. Bittrich,M. Celis,D.C. Daly,P. Fiaschi,V.A. Funk,L.L. Giacomin,R. Goldenberg,G. Heiden,J. Iganci,C.L. Kelloff,S. Knapp,H. Cavalcante de Lima,A.F.P. Machado,R.M. dos Santos,R. Mello-Silva,[...] & R.C. Forzza,  Amazon plant diversity revealed by a taxonomically verified species list, Proc. Natl. Acad. Sci. U.S.A. 114 (40) 10695-10700,",
    "expect": {
@@ -1238,7 +1238,7 @@
    "why": "'Proc. Natl. Acad. Sci. U.S.A. 114 (40) 10695-10700': volume (issue) and a page range with only spaces between them."
   },
   {
-   "id": "jen2-2228",
+   "id": "dm-sheet-2228",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "ter Steege, H., Vaessen, R., Cárdenas-López, D. et al. The discovery of the Amazonian tree flora with an updated checklist of all known tree taxa. Sci Rep 6, 29549 (2016).",
    "expect": {
@@ -1248,7 +1248,7 @@
    "why": "'Sci Rep 6, 29549 (2016)': volume and article number (CrossRef's page)."
   },
   {
-   "id": "jen2-2344",
+   "id": "dm-sheet-2344",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Vitt, L.J., Souza, R.A., Sartorius, S.S., Avila-Pires, T.C.S. & Espósito, M.C. 2000 Comparative ecology of sympatric Gonatodes(Squamata: Gekkonidae) in the western Amazon of Brazil. Copeia 2000, 83-95.",
    "expect": {
@@ -1258,7 +1258,7 @@
    "why": "'Copeia 2000, 83-95': the year is the volume, accepted because CrossRef's volume is 2000."
   },
   {
-   "id": "jen2-1594",
+   "id": "dm-sheet-1594",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Noguchi, T., Uzu, A., Koyama, K., Hashimoto, K., 1983. Occurrence of tetrodotoxin as the major toxin in xanthid crab Atergatis floridus. Bull. Jpn. Soc. Sci. Fish 49, 1887-1892.",
    "expect": {
@@ -1269,7 +1269,7 @@
    "why": "'Bull. Jpn. Soc. Sci. Fish 49, 1887-1892': pages that look like years are pages."
   },
   {
-   "id": "jen2-373",
+   "id": "dm-sheet-373",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Choe 1960 Choe S. (1960). On the life history of the polychaete worm, Diopatra neapolitana Delle Chiaje. Bull. Japan. Soc. Sci. Fish., 26, 430-437.",
    "expect": {
@@ -1279,7 +1279,7 @@
    "why": "'Bull. Japan. Soc. Sci. Fish., 26, 430-437' is 'Nippon Suisan Gakkaishi' (RENAMED_JOURNALS)."
   },
   {
-   "id": "jen2-1049",
+   "id": "dm-sheet-1049",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "J. F. O'Grady;F. W. H. Elsley;R. M. MacPherson;I. McDonald. 1973. The response of lactating sows and their litters to different energy allowances. pp. 65-74. Animal Production. vol. 17",
    "expect": {
@@ -1289,7 +1289,7 @@
    "why": "'Animal Production' is now 'Animal Science' (RENAMED_JOURNALS)."
   },
   {
-   "id": "jen2-836",
+   "id": "dm-sheet-836",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "H-G. Klös;D. Jarofke;H. Langner;E. Malek. 1972. Die chemische Zusammensetzung der Panzernashornmilch. pp. 175-178. Zuchthygiene. vol. 7",
    "expect": {
@@ -1299,7 +1299,7 @@
    "why": "'Zuchthygiene' is now 'Reproduction in Domestic Animals' (RENAMED_JOURNALS)."
   },
   {
-   "id": "jen2-68",
+   "id": "dm-sheet-68",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Anderson, N. H., and E. Grafius. 1975. Utilization and processing of allochthonous material by stream Trichoptera. Verh. Internat. Verein. Limnol. 19:3083-3088.",
    "expect": {
@@ -1309,7 +1309,7 @@
    "why": "'Verh. Internat. Verein. Limnol. 19:3083-3088' is CrossRef's 'SIL Proceedings, 1922-2010' (RENAMED_JOURNALS)."
   },
   {
-   "id": "jen2-749",
+   "id": "dm-sheet-749",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Gilchrist, J.D.F. 1920. Planktolhuria diaphana gen. et sp.n. Quarterly Journal of Microscopical Science, 64:373-382.",
    "expect": {
@@ -1319,7 +1319,7 @@
    "why": "'Quarterly Journal of Microscopical Science, 64:373-382': Journal of Cell Science, series volume 'S2-64'."
   },
   {
-   "id": "jen2-53",
+   "id": "dm-sheet-53",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Allman GJ (1855) On Aphanizomenon flos-aquae and a species of Peridinae. Quarterly Journal of Microscopical Science 3:21-25",
    "expect": {
@@ -1329,7 +1329,7 @@
    "why": "'Quarterly Journal of Microscopical Science 3:21-25' (1855): Journal of Cell Science, series volume 'S1-3'."
   },
   {
-   "id": "jen2-685",
+   "id": "dm-sheet-685",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Fyllas, N. M., S. Patino, T. R. Baker, G. Bielefeld Nardoto, L. A. Martinelli, C. A. Quesada, R. Paiva, M. Schwarz, V. Horna, L. M. Mercado, A. Santos, L. Arroyo, E. M. Jimenez, F. J. Luizao, D. A. Neill, N. Silva, A. Prieto, A. Rudas, M. Silviera, I. C. G. Vieira, G. Lopez-Gonzale, and J. Lloyd. 2009. Basin-wide variations in foliar properties of Amazonian forest: phylogeny, soils and climate Biogeosciences 6:2677-2708.",
    "expect": {
@@ -1340,7 +1340,7 @@
    "why": "The published Biogeosciences article, not its Biogeosciences Discussions preprint (posted-content)."
   },
   {
-   "id": "jen2-805",
+   "id": "dm-sheet-805",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Grimble, D. G., Beckwith, R. C., & Hammond, P. C. (1992). A survey of the Lepidoptera fauna from the Blue Mountains of eastern Oregon. Journal of Research on the Lepidoptera, 31(1-2), 83-102.",
    "expect": {
@@ -1350,7 +1350,7 @@
    "why": "A Forest Service report by the same authors (another work, 71% of the title) was given before; with the cited volume/page differing: not found."
   },
   {
-   "id": "jen2-855",
+   "id": "dm-sheet-855",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Haddon, A. C., & Shackleton, A. M. (1891). A revision of the British Actiniæ. Part II: The Zoantheæ. Scientific Transactions of the Royal Dublin Society, 4, 609-672.",
    "expect": {
@@ -1361,7 +1361,7 @@
    "why": "Haddon 1891: the volume cited ('A revision of the British Actiniae. Part II'), not another work of the same author in the same series (22% of its title)."
   },
   {
-   "id": "jen2-1889",
+   "id": "dm-sheet-1889",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Rhodin, A. G. J., Metrailler, S., Vinke, T., Vinke, S., Artner, H., Mittermeier, R. A. 2009. Acanthochelys macrocephala (Rhodin, Mittermeier, and McMorris 1984) - big-headed Pantanal swamp turtle, Pantanal swamp turtle. Chelonian Research Monographs 5:1-8.",
    "expect": {
@@ -1372,7 +1372,7 @@
    "why": "Rhodin 2009 'Acanthochelys macrocephala': the account cited, not another account of the same series (18% of its title)."
   },
   {
-   "id": "jen2-2453",
+   "id": "dm-sheet-2453",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Wright, S. J., K. Kitajima, N. J. B. Kraft, P. B. Reich, I. J. Wright, D. E. Bunker, R. Condit, J. W. Dalling, S. J. Davies, S. Daz, B. M. J. Engelbrecht, K. E. Harms, S. P. Hubbell, C. O. Marks, M. C. Ruiz-Jaen, C. M. Salvador, and A. E. Zanne. 2010. Functional traits and the growth-mortality trade-off in tropical trees. Ecology 91:36643674",
    "expect": {
@@ -1383,7 +1383,7 @@
    "why": "'3664-3674' cited as '36643674': the page isn't confirmed, but journal, volume, year, first author and title agree: 'possible'."
   },
   {
-   "id": "jen2-867",
+   "id": "dm-sheet-867",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Hampson, G. F. (1892). Moths. Volume 1. In W. T. Blanford (Ed.), The Fauna of British India, including Ceylon and Burma. (pp. 527). London: Taylor and Francis.",
    "expect": {
@@ -1452,7 +1452,7 @@
    "why": "No year in the citation and only 57% of the title agrees: 'possible', not 'matched'."
   },
   {
-   "id": "jen2-3214",
+   "id": "dm-sheet-3214",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "RANDALL, J.E. and ALLEN, G.R., 1973. A revision of the gobiid fish genus Nemateleotris, with descriptions of two new species. 臺灣省立博物館季刊, 26(3&4), pp.347-367",
    "expect": {
@@ -1461,7 +1461,7 @@
    "why": "The DM's DOI 10.6532/QJTM.197312_26(3_4).0002 is registered with Airiti (Taiwan), not CrossRef or DataCite, so the tool can't find it; the journal is cited in Chinese: not found."
   },
   {
-   "id": "jen2-2263",
+   "id": "dm-sheet-2263",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Kattge, J., Díaz, S., Lavorel, S., Prentice, I. C., Leadley, P., Bönisch, G., … Wirth, C. (2011). TRY – A global database of plant traits. Global Change Biology, 17, 2905–2935.",
    "expect": {
@@ -1470,13 +1470,23 @@
    "why": "The DM's value is a TRY database web page, not a DOI; the tool finds no confirmable record."
   },
   {
-   "id": "jen2-3561",
+   "id": "dm-sheet-3561",
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "ALASTAIR GRAHAM, MOLLUSCAN DIETS, Journal of Molluscan Studies, Volume 31, Issue 3-4, 20 June 1955, Pages 144–158,",
    "expect": {
     "status": "not found"
    },
    "why": "The DM's value is a Wikidata item, not a DOI; the tool finds no confirmable record."
+  },
+  {
+   "id": "dm-sheet-20",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Ackery, P. R., de Jong, R., & Vane-Wright, R. I. (1998). The butterflies: Hedyloidea, Hesperoidea and Papilionoidea. In N. P. Kristensen (Ed.), Lepidoptera, Moths and Butterflies. 1. Evolution, Systematics, and Biogeography. Handbook of Zoology, Vol. IV, Part 35 (pp. 263-300). Berlin: Walter de Gruyter.",
+   "expect": {
+    "status": "not found",
+    "note_contains": "Worth a look: CrossRef's top candidate, 10.1515/9783110804744.263"
+   },
+   "why": "A book chapter the citation can't confirm (CrossRef's title spells 'Hesperioidea', the citation 'Hesperoidea'): 'not found', and the DOI column stays empty; but CrossRef's top candidate scored high (145.7, over HINT_SCORE), so the review_note says it's worth a look. It is the DM's DOI."
   }
  ]
 }

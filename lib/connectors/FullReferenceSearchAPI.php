@@ -54,6 +54,24 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     const DATACITE_SEARCH = true;
     const MAX_AUTHOR_LOOKUPS = 3; // per row: CrossRef's search answer has no authors, so each candidate that passes the checks costs one call (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
+    // (Nov 19, 2026) titles of records that are a journal's or book's furniture, not a work: never the answer
+    const NOT_A_WORK_TITLE = '/^(?:(?:table of )?contents?|content ?snapshots?|front matter|back matter|front cover|back cover|cover|issue information|editorial board|masthead|index|title page|preface|errat(?:a|um)|corrigend(?:a|um))\s*$|\bTable of Contents\s*$/i';
+    // (Nov 19, 2026) a figure or table of an article, copied to Zenodo (e.g. "FIGURE 6 in Evolution in karst massifs: ..."): never the article itself
+    // (Nov 19, 2026) a citation of a dataset as a dataset: DataCite is searched first
+    const DATASET_CITATION = '/\[\s*data\s*-?\s*set\s*\]|\bData from:|\b(?:Dryad|PANGAEA|figshare|Zenodo)\b.{0,200}\bdata\s*-?\s*set\b|\bdata\s*-?\s*set\b.{0,200}\b(?:Dryad|PANGAEA|figshare|Zenodo)\b/i';
+    // (Nov 19, 2026) words that show a citation is of a preprint or discussion paper
+    const PREPRINT_CITED = '/\b(?:bioRxiv|medRxiv|arXiv|EcoEvoRxiv|EarthArXiv|Preprints?|Research Square|SSRN|Authorea|Discussions?|Discuss\.)\b/i';
+    /* (Nov 19, 2026) journals renamed (or cited by a later name): the name in the citation => CrossRef's journal. Only facts about these journals;
+       the volume, page and year must still agree. e.g. "Quart. J. Microsc. Sci., 102, 257-272" is "Journal of Cell Science" volume "S3-102". */
+    const RENAMED_JOURNALS = array(
+        '/Quart(?:erly)?\.?\s*J(?:ourn(?:al)?)?\.?\s*(?:of\s*)?Micros(?:c(?:op(?:ical)?)?)?\.?\s*Sci/i'                                    => '/^Journal of Cell Science$/i',
+        '/Bull(?:etin)?\.?\s*(?:of\s*the\s*)?Ja?p(?:an)?(?:ese)?\.?\s*Soc(?:iety)?\.?\s*(?:of\s*)?Sci(?:entific)?\.?\s*Fish/i'            => '/^Nippon Suisan Gakkaishi$/i',
+        '/\bAnim(?:al)?\.?\s*Prod(?:uction)?\b/i'                                                                                     => '/^Animal Science$/i',
+        '/\bZuchthygiene\b/i'                                                                                                          => '/^Reproduction in Domestic Animals$/i',
+        '/Verh(?:andlungen)?\.?\s*(?:des\s*)?Int(?:ernat(?:ional)?)?\.?\s*(?:en\s*)?Verein(?:igung)?\.?\s*(?:f\S*r\s*)?(?:theoret\S*\s*(?:und|u\.)\s*angew\S*\s*)?Limnol/i' => '/^SIL Proceedings/i',
+        '/Soil\s*Sci(?:ence)?\.?\s*Soc(?:iety)?\.?\s*(?:of\s*)?Am(?:er(?:ica)?)?\.?\s*Proc/i'                                          => '/^Soil Science Society of America Journal$/i',
+        '/J(?:ournal)?\.?\s*(?:of\s*)?Eukaryot(?:ic)?\.?\s*Microbiol/i'                                                                => '/^The Journal of Protozoology$/i');
+    const FIGURE_COPY_TITLE = '/^(?:figures?|figs?\.?|tables?|plates?)\s*[\dIVX]+[a-z]?\b.{0,20}?\b(?:in|from)\b/i';
     function __construct($param) {
         $this->param = $param; print_r($param);
         $this->author_title_checks = array_key_exists('author_title_checks', (array) $param) ? (bool) $param['author_title_checks'] : self::AUTHOR_TITLE_CHECKS;
@@ -202,6 +220,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
         if(($doi = self::doi_in_text($full_reference)) !== '') return $this->doi_given($row, $doi, $full_reference); // the citation gives its own DOI: no search
+        if(preg_match(self::DATASET_CITATION, $full_reference)) { // (Nov 19, 2026) a dataset cited as one: DataCite first, e.g. "... [Dataset]. Dryad.", "Data from: ..."
+            $d = $this->datacite_route(array_merge($row, array('status' => 'not found', 'checks' => '')), $ref, $full_reference, true);
+            if(($d['status'] ?? '') === 'stop' || ($d['DOI_source'] ?? '') === 'DataCite') return $d; // else CrossRef, as for any citation
+        }
         $items = $this->search_crossref($full_reference, $ref['year']);
         if($items === 'stop') return array('status' => 'stop', 'change_codes' => array()); // CrossRef keeps asking us to slow down: the search stops before this row
         if($items === false) return array_merge($row, array('status' => 'error', 'review_note' => 'CrossRef could not be reached. Run again: this row will be searched again.'));
@@ -268,10 +290,21 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                     if($a['differs'] && $share !== null && $share < 0.3) { $c['status'] = 'not found'; $c['why'] = 'author and title'; }
                     // (added Nov 19, 2026) CrossRef has no volume for it (e.g. "Mammalian Species" 593 vs JSTOR's record): the first author must agree exactly,
                     // as in a series like that every number starts at page 1 in the same year
-                    elseif(in_array('volume=not in CrossRef', $c['checks']) && $a['score'] < 3) { $c['status'] = 'not found'; $c['why'] = 'no CrossRef volume'; }
+                    // and the title (Nov 19, 2026): when CrossRef's journal agrees, half of its title (3+ words) in the citation; when the journal can't be compared
+                    // (e.g. a BHL book), 75% of it. Else the same author's other work in the same year: e.g. Haddon 1891 "A revision of the British Actiniae" is not
+                    // his "Reports on the zoological collections ... Torres Straits" (22%), Goren 1978 "Isr. J. Zool. 23" is not a 2025 checklist (60%, no year)
+                    // A title that can't be compared word by word (e.g. "Arborimuspomo" for "Arborimus pomo") must be in the citation without its spaces: in a series
+                    // like "Mammalian Species" one author wrote many numbers in one year, all starting at page 1, so without the title it's a guess.
+                    elseif(in_array('volume=not in CrossRef', $c['checks']) && ($a['score'] < 3
+                           || (in_array('journal=OK', $c['checks']) ? (($share === null || $share < 0.5) && !self::squashed_title_in($full_reference, (string) @$item['title'][0]))
+                                                                    : ($share === null || $share < 0.75)))) { $c['status'] = 'not found'; $c['why'] = 'no CrossRef volume'; }
                 }
             }
-            $key = array($rank[$c['status']] - (($c['via'] ?? '') === 'typo' ? 0.5 : 0), $c['agree'], $author_score, $title_share, -$i); // TYPO: below any other 'possible'
+            // (Nov 19, 2026) no year to compare (e.g. FishBase's "Boulenger, G.A.0 ..."): 'matched' also needs the first author and the title to agree
+            if($this->author_title_checks && $c['status'] == 'matched' && !preg_grep('/^year=/', $c['checks'])
+               && !(preg_grep('/^author=(?:OK|nearly)/', $c['checks']) && preg_grep('/^title=OK/', $c['checks']))) $c['status'] = 'possible';
+            $key = array($rank[$c['status']] - (($c['via'] ?? '') === 'typo' ? 0.5 : 0) - ((string) @$item['type'] === 'posted-content' ? 0.25 : 0), // TYPO: below any other 'possible';
+                         $c['agree'], $author_score, $title_share, -$i);                                                                   // a preprint below the published article (Nov 19, 2026)
             if(!$best || $key > $best['key']) $best = array('key' => $key, 'c' => $c, 'item' => $item, 'i' => $i);
         }
         $c = $best['c']; $item = $best['item'];
@@ -288,8 +321,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if($row['status'] == 'not found') return $this->datacite_route($row, $ref, $full_reference); // DATACITE: a second search, when no volume or pages were read
         return $row;
     }
-    private function datacite_route($row, $ref, $citation)
-    {   /* DATACITE: for a row CrossRef couldn't confirm, with no volume or pages read (a dataset, report, thesis or book) and a first author read:
+    private function datacite_route($row, $ref, $citation, $dataset = false)
+    {   // $dataset (Nov 19, 2026): the citation says it's a dataset (DATASET_CITATION): searched first, even with a volume read (e.g. "In supplement to: ... 32(5)")
+   /* DATACITE: for a row CrossRef couldn't confirm, with no volume or pages read (a dataset, report, thesis or book) and a first author read:
            DataCite's top 5 candidates, each checked:
              - at least 90% of its title words are in the citation (PANGAEA has series of near-twins: "... at Station JUNE-9", "... in winter 1995")
              - the first author agrees, or nearly
@@ -297,14 +331,28 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
              - never a GBIF "Occurrence Download" (a user's download, not the dataset)
            When several pass with the same title and first author (e.g. a PANGAEA dataset and its GBIF copy, 10.15468/...), the one that isn't a GBIF
            copy is given and the note names the other. At most 'possible'. Returns the row: unchanged when nothing passes. */
-        if(!$this->datacite_search || $ref['volume'] !== '' || $ref['author'] === '') return $row;
-        $items = $this->search_datacite($citation);
-        if($items === 'stop') return array('status' => 'stop', 'change_codes' => array());
-        if(!is_array($items) || !$items) return $row; // DataCite couldn't be reached, or has nothing: the CrossRef result stands
+        if(!$this->datacite_search || ($ref['volume'] !== '' && !$dataset) || $ref['author'] === '') return $row;
+        // (Nov 19, 2026) a dataset citation: first its title with all its words (the text between the year and "[Dataset]"), as DataCite's ranking of
+        // any-word searches puts copies first (e.g. PANGAEA's "Time series of phytoplankton ... at station L4 ..." under 4 "Widdicombe et al 2010" copies);
+        // then the usual search, without "In supplement to: <the article>", whose words pull in other records
+        $items = array();
+        if($dataset && preg_match('/(?:\(\s*(?:1[5-9]|20)\d\d[a-z]?\s*\)|\b(?:1[5-9]|20)\d\d[a-z]?)\s*[.:]?\s*:?\s*(.{10,300}?)\s*\[\s*data\s*-?\s*set\s*\]/iu', $citation, $tm)) {
+            $items = $this->search_datacite(preg_replace('/^Data from:\s*/i', '', $tm[1]), true);
+            if($items === 'stop') return array('status' => 'stop', 'change_codes' => array());
+            if(!is_array($items)) $items = array();
+        }
+        $more = $this->search_datacite($dataset ? trim(preg_replace('/\bIn supplement to:.*$/is', '', $citation)) : $citation);
+        if($more === 'stop') return array('status' => 'stop', 'change_codes' => array());
+        $have = array_map(fn($d) => strtolower((string) ($d['attributes']['doi'] ?? @$d['id'])), $items);
+        if(is_array($more)) foreach($more as $d) if(!in_array(strtolower((string) ($d['attributes']['doi'] ?? @$d['id'])), $have)) $items[] = $d;
+        if(!$items) return $row; // DataCite couldn't be reached, or has nothing: the CrossRef result stands
         $ok = array();
         foreach($items as $d) {
             $at = (array) @$d['attributes']; $title = trim((string) @$at['titles'][0]['title']); $doi = (string) ($at['doi'] ?? @$d['id']);
             if($doi === '' || $title === '' || preg_match('/^Occurrence Download/i', $title)) continue;
+            if(preg_match(self::FIGURE_COPY_TITLE, $title) || strcasecmp((string) @$at['types']['resourceTypeGeneral'], 'Image') == 0) continue; // a figure copied to Zenodo, not the work cited (Nov 19, 2026)
+            $pub = is_array(@$at['publisher']) ? (string) @$at['publisher']['name'] : (string) @$at['publisher'];
+            if(stripos($pub, 'Plazi') !== false && stripos($citation, 'Plazi') === false) continue; // a Plazi copy of an article (on GBIF), not the article cited (Nov 19, 2026)
             $share = self::title_share($citation, $title);
             if($share === null || $share < 0.9) continue;
             $names = array();
@@ -323,13 +371,18 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                           'type' => (string) (@$at['types']['resourceTypeGeneral'] ?: @$at['types']['resourceType']), 'checks' => array_merge(array($ycheck), $a['checks']));
         }
         if(!$ok) return $row;
-        usort($ok, fn($x, $y) => (int) str_starts_with($x['doi'], '10.15468/') - (int) str_starts_with($y['doi'], '10.15468/')); // a GBIF copy last (stable: DataCite's order otherwise)
+        // the cited year first (versions of one dataset, e.g. Zenodo "Version 4", 2021 vs 2020: Nov 19, 2026), then a GBIF copy last (stable: DataCite's order otherwise)
+        // (Nov 19, 2026) and before those: the repository named in the citation ("[Dataset]. Dryad." -> Dryad, not a Zenodo copy), and a dataset before a file in it (dryad.101tb, not dryad.101tb/1)
+        $cited_repo = function($o) use ($citation) { $pub = strtolower(trim($o['publisher'])); return $pub !== '' && stripos($citation, explode(' ', $pub)[0]) !== false; };
+        $is_part = function($o) use ($ok) { foreach($ok as $p) if($p['doi'] !== $o['doi'] && str_starts_with(strtolower($o['doi']), strtolower($p['doi']) . '/')) return true; return false; };
+        $sort_key = fn($o) => array((int) !$cited_repo($o), (int) $is_part($o), (int) !in_array('year=OK', $o['checks']), (int) str_starts_with($o['doi'], '10.15468/'));
+        usort($ok, fn($x, $y) => $sort_key($x) <=> $sort_key($y));
         $b = $ok[0]; $norm = fn($t) => implode(' ', self::words($t));
         $also = array();
         foreach(array_slice($ok, 1) as $o) if($norm($o['title']) === $norm($b['title'])) $also[] = $o['doi'] . (str_starts_with($o['doi'], '10.15468/') ? ' (a GBIF copy)' : '');
         $what = $b['type'] !== '' ? $b['type'] : 'record';
         $agree = $this->agreed_text($b['checks']);
-        $note = "Not in CrossRef; found in DataCite: \"" . mb_substr($b['title'], 0, 140) . "\" ($what" . ($b['publisher'] !== '' ? ", " . $b['publisher'] : '') . ($b['year'] !== '' ? ", " . $b['year'] : '') . ")"
+        $note = ($dataset ? "The citation is a dataset; found in DataCite: \"" : "Not in CrossRef; found in DataCite: \"") . "" . mb_substr($b['title'], 0, 140) . "\" ($what" . ($b['publisher'] !== '' ? ", " . $b['publisher'] : '') . ($b['year'] !== '' ? ", " . $b['year'] : '') . ")"
               . ($b['names'] ? " by " . implode('; ', array_slice($b['names'], 0, 4)) . (count($b['names']) > 4 ? ' et al.' : '') : '') . ". $agree."
               . (str_contains(implode(' ', $b['checks']), 'is in its title') ? " The cited year ({$ref['year']}) is in its title; DataCite's year is {$b['year']}." : '')
               . ($also ? " DataCite also has " . implode(' and ', $also) . " with the same title." : '')
@@ -337,8 +390,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         return array_merge($row, array('status' => 'possible', 'DOI' => $b['doi'], 'DOI_URL' => self::doi_url($b['doi']), 'DOI_source' => 'DataCite',
             'checks' => trim($row['checks'] . ' | DataCite: ' . implode(' ', $b['checks'])), 'review_note' => $note));
     }
-    private function search_datacite($text)
-    {   /* DATACITE: DataCite's top 5 records for a citation (https://api.datacite.org/dois?query=...&sort=relevance), politely and cached like CrossRef's answers.
+    private function search_datacite($text, $all_words = false)
+    {   // $all_words (Nov 19, 2026): the words joined with AND (DataCite's default), for a dataset's title
+        /* DATACITE: DataCite's top 5 records for a citation (https://api.datacite.org/dois?query=...&sort=relevance), politely and cached like CrossRef's answers.
            Its query has a syntax ("-" = NOT, ":" = a field, quotes, brackets ...) and joins words with AND, so a citation word that isn't in the record
            (a co-author, a publisher) would find nothing: the words (3+ characters, at most 40, without a DOI or link) are joined with OR and
            ranked by relevance, e.g. "Gotsis OR Skretas OR Pagou OR ... OR Aegean OR winter OR 1995". Returns the list, false (couldn't be read) or 'stop'. */
@@ -346,7 +400,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         preg_match_all('/[\p{L}\p{N}]{3,}/u', $t, $w);
         $words = array_slice(array_values(array_unique(array_filter($w[0], fn($x) => !in_array(strtoupper($x), array('AND', 'NOT'))))), 0, 40);
         if(!$words) return array();
-        $url = $this->datacite_url . "?" . http_build_query(array('query' => implode(' OR ', $words), 'sort' => 'relevance', 'page[size]' => 5,
+        $url = $this->datacite_url . "?" . http_build_query(array('query' => implode($all_words ? ' ' : ' OR ', $words), 'sort' => 'relevance', 'page[size]' => 5,
                                                                   'fields[dois]' => 'doi,titles,creators,publicationYear,types,publisher'));
         if(Functions::url_already_cached($url, $this->datacite_options)) $json = Functions::lookup_with_cache($url, $this->datacite_options);
         else { $json = $this->call_crossref($url, $this->datacite_options); if($json === 'stop') return 'stop'; if($json === false || $json === 'missing') return false; }
@@ -442,6 +496,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         else $r['checks'][] = 'title=' . ($share >= 0.7 ? 'OK' : ($share >= 0.3 ? 'partly' : 'not in citation')) . ' (' . round(100 * $share) . '%)';
         return $r;
     }
+    private static function squashed_title_in($citation, $title)
+    {   // (Nov 19, 2026) CrossRef's title (6+ letters), without spaces and punctuation, is in the citation without them: "Pseudois nayaur and Pseudois schaeferi" in "Pseudoisnayaur and Pseudoisschaeferi"
+        $sq = function($x) { $x = mb_strtolower(html_entity_decode(strip_tags((string) $x), ENT_QUOTES | ENT_HTML5, 'UTF-8')); $t = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $x); return preg_replace('/[^a-z]/', '', $t !== false ? $t : $x); };
+        $t = $sq($title);
+        return strlen($t) >= 6 && str_contains($sq($citation), $t);
+    }
     private static function title_share($citation, $title, $min_words = 3)
     {   // AUTHOR/TITLE: the share of CrossRef's title words (3+ letters) that are in the citation; null for a title of fewer than $min_words such words
         $tw = self::words(html_entity_decode(strip_tags($title), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
@@ -456,7 +516,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         foreach($items as $i => $it) {
             if($i == $best_i || (string) @$it['DOI'] === (string) @$best['DOI'] || $first(@$it['page']) === '') continue;
             if(mb_strtolower((string) @$it['container-title'][0]) === mb_strtolower((string) @$best['container-title'][0])
-               && ltrim((string) @$it['volume'], '0') === ltrim((string) @$best['volume'], '0') && $first(@$it['page']) === $first(@$best['page']))
+               && ltrim((string) @$it['volume'], '0') === ltrim((string) @$best['volume'], '0') && $first(@$it['page']) === $first(@$best['page'])
+               && (trim((string) @$best['volume']) !== '' || trim((string) @$it['issue']) === trim((string) @$best['issue']))) // no volume (Mammalian Species): the same number too (Nov 19, 2026)
                 $also[] = $it['DOI'] . " (" . (@$it['issue'] !== null && @$it['issue'] !== '' ? "issue " . $it['issue'] . ", " : '') . "pages " . @$it['page'] . ", " . self::item_year($it) . ")";
         }
         return $also;
@@ -526,7 +587,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
              "Saint-Hilaire, A. & Tulasne. 1842. Ann. Sci. Nat., Bot.,ser. 2, 17: 138,1842." -> 1842, "Ann. Sci. Nat., Bot.,ser. 2", 17, '', 138
              "Bartoli, A. ... 1999. Revisión ... (Asteraceae: Astereae).,Kurtziana 27(3):327-359.,1999." -> 1999, Kurtziana, 27, 3, 327-359
            Anything it can't read is left blank, and that check is skipped. */
-        $ref = array('year' => '', 'journal' => '', 'journal_zone' => '', 'volume' => '', 'issue' => '', 'page' => '', 'page_end' => '', 'author' => '');
+        $ref = array('text' => $s, 'year' => '', 'journal' => '', 'journal_zone' => '', 'volume' => '', 'issue' => '', 'page' => '', 'page_end' => '', 'author' => '');
         // the first author's surname: the words before the first comma, letters only, e.g. "Boulenger, G.A. ..." -> Boulenger, "Thys van den Audenaerde, D.F.E." -> as is
         //   also "Knowles MR, Boucher RC (2002) ..." and "Boucher RC (2004) ..." (surname + initials, no comma) -> Knowles, Boucher; a leading list number "1. " is skipped (not a year: "1998. Brittonia,50(1): 59" has no author)
         //   also initials first (added Nov 19, 2026): "A. A. Heidebrecht;R. MacVicar;..." -> Heidebrecht, "B. Sandel, J. D. Corbin, ..." -> Sandel
@@ -559,7 +620,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $vol_at = $m[0][1]; unset($year_end); // the year comes after the journal here
         }
         elseif(preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*:\s*' . $P . '/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)
-            || (preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*,\s*(?:pp?\.\s*)?(\d{1,5})\s*[-\x{2013}\x{2014}]\s*(\d{1,5})(?!\d)/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)
+            || (preg_match_all('/(?<![\w.])(\d{1,4}[A-Z]?)\s*(?:\(([^()]{1,20})\))?\s*,\s*(?:pp?\.\s*)?(\d{1,5})\s*[-\x{2013}\x{2014}\x{00F1}]\s*(\d{1,5})(?!\d)/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)
                 && ($all = array_values(array_filter($all, fn($x) => !(preg_match('/^' . $Y . '$/', $x[3][0]) && preg_match('/^' . $Y . '$/', $x[4][0])
                        && ($ref['year'] === '' || in_array($ref['year'], array($x[3][0], $x[4][0]), true))))))) ) {
                 // not a year range, e.g. "Select. Hexandr. Pl.,9,1831-1834" (the cited year is one of them); but pages that only look like years are pages,
@@ -568,16 +629,30 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $m = end($all);
             $ref['volume'] = $g($m, 1); $ref['issue'] = trim($g($m, 2)); $ref['page'] = $g($m, 3); $ref['page_end'] = $g($m, 4);
             $vol_at = $m[0][1];
-            if($ref['volume'] === $ref['year']) $ref['volume'] = ''; // e.g. "Mem. Math. Phys. Inst. Par.,1811: 82" -> the year, not a volume
+            if($ref['volume'] === $ref['year']) { $ref['volume'] = ''; $ref['year_volume'] = $ref['year']; } // e.g. "Mem. Math. Phys. Inst. Par.,1811: 82" -> the year, not a volume
+            // ... unless CrossRef's volume is that year: "Copeia 1972:493-508" is Copeia volume 1972 (check_candidate, Nov 19, 2026)
         }
         //   (d) (added Nov 19, 2026) pages before the journal, the volume last, e.g. "A. Bensch. 1847. Ueber die ... Fleischfresser. pp. 221-227. Annalen der Chemie und Pharmacie. vol. 61"
         elseif(preg_match('/\bpp?\.\s*' . $P . '\s*\.\s+(\p{L}[^\t]{1,150}?)[.,]?\s+vol\.\s*(\d{1,4}[A-Z]?)\b(?:\s*[.,]\s*(?:no\.|issue)\s*(\d{1,4}))?/u', $s, $m)) {
             $ref['page'] = $m[1]; $ref['page_end'] = $m[2] ?? ''; $ref['journal'] = $ref['journal_zone'] = trim($m[3]); $ref['volume'] = $m[4]; $ref['issue'] = $m[5] ?? '';
         }
         //   (e) (added Nov 19, 2026) "Journal. vol. 46. pp. 233 - 240", e.g. "Brodie, E.D. ... 2012. New Salamanders of ... Guatemala. Journal of Herpetology. vol. 46. pp. 233 - 240."
-        elseif(preg_match('/[.,]\s*vol\.\s*(\d{1,4}[A-Z]?)\s*[.,]\s*(?:(?:no\.|issue)\s*(\d{1,4})\s*[.,]\s*)?pp?\.\s*' . $P . '/u', $s, $m, PREG_OFFSET_CAPTURE)) {
+        //       also (Nov 19, 2026) "Volume 9, Issue 2, Pages 212–216", "Sarsaria, vol 64, p 363-369"
+        elseif(preg_match('/(?:[.,]\s*|\s)vol(?:ume)?\.?\s*(\d{1,4}[A-Z]?)\s*[.,]\s*(?:(?:no\.?|issue)\s*(\d{1,4})\s*[.,]\s*)?(?:pages?|pp?)\.?\s*' . $P . '/iu', $s, $m, PREG_OFFSET_CAPTURE)) {
             $ref['volume'] = $g($m, 1); $ref['issue'] = $g($m, 2); $ref['page'] = $g($m, 3); $ref['page_end'] = $g($m, 4);
             $vol_at = $m[0][1];
+        }
+        //   (f) (Nov 19, 2026) volume (issue) and a page range with only spaces, e.g. "Proc. Natl. Acad. Sci. U.S.A. 114 (40) 10695-10700"
+        elseif(preg_match_all('/(?<![\w.])(\d{1,4})\s*\((\d{1,4})\)\s+(\d{1,5})\s*[-\x{2013}\x{2014}]\s*(\d{1,5})(?!\d)/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+            $m = end($all); $ref['volume'] = $g($m, 1); $ref['issue'] = $g($m, 2); $ref['page'] = $g($m, 3); $ref['page_end'] = $g($m, 4); $vol_at = $m[0][1];
+        }
+        //   (g) (Nov 19, 2026) an article number: "PLoS ONE 11(11): e0166108" (volume and issue; the page can't be compared) and
+        //       "Sci Rep 11, 396 (2021)" (volume and article number, which CrossRef keeps as the page)
+        elseif(preg_match_all('/(?<![\w.])(\d{1,4})\s*(?:\((\d{1,4})\))?\s*:\s*e\d{4,8}\b/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+            $m = end($all); $ref['volume'] = $g($m, 1); $ref['issue'] = $g($m, 2); $vol_at = $m[0][1];
+        }
+        elseif(preg_match_all('/(?<![\w.])(\d{1,4})\s*,\s*(\d{1,6})\s*\(\s*' . $Y . '\s*\)/u', $s, $all, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+            $m = end($all); $ref['volume'] = $g($m, 1); $ref['page'] = $g($m, 2); $ref['year'] = $g($m, 3); $vol_at = $m[0][1]; unset($year_end);
         }
         if($vol_at !== null) { // the journal
             $before = substr($s, 0, $vol_at);
@@ -593,6 +668,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                 $ref['journal_zone'] = $j; // the title may still be in it: check_candidate() also looks for CrossRef's journal at its end (journal_in_zone)
                 $ref['journal'] = trim(preg_replace('/,\s*v(?:ol)?\.?$/i', '', trim(self::drop_title($j), " .,;")), " .,;"); // "Fl. Venez. Guayana,v. 6" -> without ",v" 
             }
+            // (Nov 19, 2026) no year in front of the numbers (e.g. "Strassert ... nephridiophagids. Sci Rep 11, 396 (2021)."): journal_in_zone() looks at the text before them
+            if($ref['journal'] === '' && $ref['journal_zone'] === '') $ref['journal_zone'] = trim(substr($s, 0, $vol_at), " .,;");
         }
         return $ref;
     }
@@ -697,7 +774,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
            One word may be missing only in a long abbreviation (5+ words). */
         $words = self::words($ref_journal); $cwords = self::words($container);
         if(!$words || !$cwords) return null;
-        $miss = count(array_filter($words, function($w) use ($cwords) { foreach($cwords as $c) if(str_starts_with($c, $w)) return false; return true; }));
+        // (Nov 19, 2026) also a short abbreviation (up to 5 letters) whose letters are in the word in order, from its first letter: "Natl" ~ "National", "Expt" ~ "Experimental"
+        $abbr = fn($w, $c) => strlen($w) <= 5 && $w[0] === $c[0] && preg_match('/^' . implode('.*', str_split($w)) . '/', $c);
+        $miss = count(array_filter($words, function($w) use ($cwords, $abbr) { foreach($cwords as $c) if(str_starts_with($c, $w) || $abbr($w, $c)) return false; return true; }));
         return $miss == 0 || (count($words) >= 5 && $miss == 1);
     }
     function journal_in_zone($zone, $container)
@@ -733,17 +812,31 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // type: a whole issue or volume is never the answer
         $type = (string) @$item['type'];
         if(in_array($type, self::NOT_AN_ARTICLE)) $fail("type=$type", 'not an article');
+        // (Nov 19, 2026) a preprint or discussion paper ("posted-content") only when the citation itself is of one: otherwise the published article is cited,
+        // e.g. "Strassert ... Sci Rep 11, 396 (2021)" is not its bioRxiv preprint of 2020
+        elseif($type === 'posted-content' && !preg_match(self::PREPRINT_CITED, (string) ($ref['text'] ?? ''))) $fail("type=$type (a preprint)", 'not an article');
+        // (Nov 19, 2026) a journal's table of contents, front matter etc., registered as an "article": never the answer,
+        // e.g. "Australian Journal of Biological Sciences - Volume 30, 1977 - Table of Contents", "ContentSnapshots" (Annals of Botany)
+        elseif(preg_match(self::NOT_A_WORK_TITLE, trim(strip_tags((string) @$item['title'][0])))) $fail("type=$type (" . mb_substr(trim(strip_tags((string) @$item['title'][0])), 0, 40) . ")", 'not an article');
         // journal
         $journal = $this->journal_agrees($ref['journal'], (string) @$item['container-title'][0]);
         if($journal !== true && $this->journal_in_zone($ref['journal_zone'] ?? '', (string) @$item['container-title'][0])) $journal = true; // the title was still in front of it
+        if($journal !== true) foreach(self::RENAMED_JOURNALS as $old => $new) // a renamed journal (Nov 19, 2026)
+            if(preg_match($old, ($ref['journal_zone'] ?? '') . ' ' . $ref['journal']) && preg_match($new, trim((string) @$item['container-title'][0]))) { $journal = true; $checks[] = 'journal_renamed'; break; }
         if($journal === true) $checks[] = 'journal=OK';
         elseif($journal === false) $fail('journal=differs', 'journal');
         else $checks[] = 'journal=unknown';
         // volume
-        $num = fn($v) => ltrim(trim((string) $v), '0');
+        $num = fn($v) => ltrim(preg_replace('/^S\d+-/i', '', trim((string) $v)), '0'); // CrossRef's series volumes, e.g. "S3-102" for volume 102 of the 3rd series (Nov 19, 2026)
         $no_cr_volume = false;
-        if($ref['volume'] !== '' && trim((string) @$item['volume']) === '') { // (added Nov 19, 2026) e.g. JSTOR's old "Mammalian Species" records: nothing to compare.
-            $checks[] = 'volume=not in CrossRef'; $no_cr_volume = true;    // At most 'possible', and find_DOI() also wants the first author to agree.
+        $cr_issue = trim((string) @$item['issue']);
+        if($ref['volume'] !== '' && trim((string) @$item['volume']) === '' && ctype_digit($cr_issue) && ctype_digit($num($ref['volume']))) {
+            // (Nov 19, 2026) no volume, but a number as the issue: JSTOR's "Mammalian Species" keep the number there, e.g. "Mammalian Species 192:1-3" is issue 192
+            if($num($ref['volume']) === $num($cr_issue)) { $checks[] = 'volume=OK'; $checks[] = 'volume_as_issue'; }
+            else $fail("volume=differs (CrossRef has issue $cr_issue)", 'volume');
+        }
+        elseif($ref['volume'] !== '' && trim((string) @$item['volume']) === '') { // (added Nov 19, 2026) e.g. a BHL book: nothing to compare.
+            $checks[] = 'volume=not in CrossRef'; $no_cr_volume = true;    // At most 'possible', and find_DOI() also wants the first author and the title to agree.
         }
         elseif($ref['volume'] !== '') {
             if(strtoupper($num($ref['volume'])) === strtoupper($num(@$item['volume']))) $checks[] = 'volume=OK';
@@ -752,10 +845,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                    && preg_match('/\bPart\s+' . $vl[2] . '\b/i', (string) @$item['container-title'][0])) $checks[] = 'volume=OK';
             else $fail('volume=differs', 'volume');
         }
+        elseif(($ref['year_volume'] ?? '') !== '' && trim((string) @$item['volume']) === $ref['year_volume']) $checks[] = 'volume=OK'; // "Copeia 1972:493-508" (Nov 19, 2026)
         else $fail('volume=unknown', 'no volume'); // without a volume, a candidate can't be confirmed
         // issue: only when both are plain numbers, e.g. "2" vs "3"
         $issue = trim((string) @$item['issue']);
-        if(ctype_digit($ref['issue']) && ctype_digit($issue)) {
+        if(ctype_digit($ref['issue']) && ctype_digit($issue) && !in_array('volume_as_issue', $checks)) {
             if($num($ref['issue']) === $num($issue)) $checks[] = 'issue=OK';
             else $fail('issue=differs', 'issue');
         }
@@ -769,7 +863,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $page = trim((string) @$item['page']); $page_ok = null;
         if($ref['page'] !== '' && preg_match('/^(\d+)(?:\s*-\s*(\d+))?$/', $page, $p)) {
             $first = (int) $p[1]; $last = isset($p[2]) ? (int) $p[2] : null; $cited = (int) $ref['page'];
+            $cited_end = $ref['page_end'] !== '' ? (int) $ref['page_end'] : null;
             if($cited == $first)                                          { $page_ok = true;  $checks[] = "page=first page $first"; }
+            // (Nov 19, 2026) a cited range that starts inside the article but runs past its end is another article on the next pages,
+            // e.g. Lantz 1947 "134:52-56" is not "Observations on Discoglossus pictus" 37-52 but the "Note" on 52-56 (2 pages' slack for an end page off by one or two)
+            elseif($last !== null && $cited > $first && $cited <= $last && $cited_end !== null && $cited_end > $cited && $cited_end > $last + 2)
+                $fail("page=$cited-$cited_end not in $page", 'page');
             elseif($last !== null && $cited > $first && $cited <= $last)  { $page_ok = true;  $checks[] = "page=in $first-$last"; }
             elseif($last === null && $cited > $first)                     { $checks[] = "page=after first page $first, end unknown"; }
             else $fail("page=$cited not in $page", 'page');
@@ -793,6 +892,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
               : "\"" . $row['crossref_journal'] . "\" " . $row['crossref_volume'] . ($row['crossref_issue'] !== '' ? "(" . $row['crossref_issue'] . ")" : '')
               . ($row['crossref_page'] !== '' ? ": " . $row['crossref_page'] : '') . " (" . $row['crossref_year'] . ")";
         $cited = "page " . $ref['page'];
+        foreach($c['checks'] as $k) if(preg_match('/^page=\d+-\d+ not in /', $k)) $cited = "pages " . $ref['page'] . "-" . $ref['page_end']; // a cited range past the article's end (Nov 19, 2026)
         $agree = $this->agreed_text($c['checks']); // e.g. "Journal, volume and year agree": only what was really compared and agreed
         $unchecked = $this->unchecked_text($ref, $c['checks']) . $this->author_note($ref, $row, $c); // e.g. " The year couldn't be checked: no year could be read from the citation."
         $year_note = in_array('year=next to it', $c['checks']) ? " The cited year ({$ref['year']}) is one off CrossRef's ({$row['crossref_year']}), which is common (cover date vs. publication date)." : '';
@@ -830,7 +930,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             case 'volume':        $n = "CrossRef's top 5 candidates include \"{$row['crossref_journal']}\", but none from volume {$ref['volume']}."; break;
             case 'issue':         $n = "CrossRef's top 5 candidates include \"{$row['crossref_journal']}\" volume {$ref['volume']}, but none from issue {$ref['issue']} with this page."; break;
             case 'year':          $n = "CrossRef's closest candidate is from a different year."; break;
-            case 'no CrossRef volume': $n = "$agree, but CrossRef has no volume number for its closest record and the first author couldn't be confirmed."; break;
+            case 'no CrossRef volume': $n = "$agree, but CrossRef has no volume number for its closest record, and its first author and title couldn't both be confirmed."; break;
             case 'page':          $n = "$agree, but $cited isn't in the article's pages ({$row['crossref_page']}): the article cited may not be in CrossRef."; break;
             case 'author and title': // AUTHOR/TITLE
                 $n = "$agree, but it's another work: the authors differ (the citation has \"{$ref['author']}\", CrossRef has \"{$row['crossref_authors']}\")"

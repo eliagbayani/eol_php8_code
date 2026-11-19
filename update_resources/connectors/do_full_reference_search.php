@@ -19,6 +19,10 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
     - Nov 19, 2026 (from the Data Managers' DOI list): CrossRef's journal is also found at the end of a title left in front of it; a CrossRef record
       without a volume (e.g. JSTOR's "Mammalian Species") can be 'possible' when the first author agrees; and a citation with a typo in its
       journal/volume/issue/page (or the journal's old name) can be 'possible' when the year, first author and 90% of the title agree.
+    - Nov 19, 2026, quality round (checked on the Data Managers' list and on 540 other citations; no wrong DOI added): more number styles
+      (article numbers, "Volume 9, Issue 2, Pages ...", the year as the volume when CrossRef agrees); renamed journals (RENAMED_JOURNALS);
+      datasets cited as datasets are looked up in DataCite first; never a table of contents, a preprint for a published article, or a
+      figure/Plazi copy; Mammalian Species numbers must agree; a citation without a year is 'matched' only if author and title agree too.
       A DOI written in the citation (e.g. "doi:10.1594/PANGAEA.692046") is checked in CrossRef instead of searching.
     - Author and title checks (on by default): the first author's surname and CrossRef's title words also count; they break ties, and a
       'matched' row whose authors clearly differ becomes 'possible'. A citation with no volume or pages (a book, or Vancouver style) can be

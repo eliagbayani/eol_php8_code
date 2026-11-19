@@ -76,58 +76,58 @@
    "source": "FishBase",
    "full_reference": "Eknath, A.E., M.M. Tayamen, M.S.P. de Vera, J.C. Danting, R.A. Reyes, E.E. Dionisio, J.B. Capili, H.L. Bolivar, T.A. Abella, A.V. Circa, H.B. Bentsen, B. Gjerde, T. Gjedrem and R.S.V. Pullin0 Genetic improvement of farmed tilapias: the growth performance of eight strains of Oreochromis niloticus tested in different farm environments. Aquaculture 111:171-188. (Ref. 1725)",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1016/0044-8486(93)90035-w",
     "parsed_year": "",
     "text_changes_contains": "(Ref. 1725)"
    },
-   "why": "'(Ref. 1725)' was read as the year, so CrossRef was searched in 1724-1726. The reference number is removed before the search."
+   "why": "'(Ref. 1725)' was read as the year, so CrossRef was searched in 1724-1726. The reference number is removed before the search. Since Nov 19, 2026 'matched' (not 'possible'): the journal is found in the text before the numbers, and with no year the first author and the title also agree."
   },
   {
    "id": "fishbase-f906fbab",
    "source": "FishBase",
    "full_reference": "Boulenger, G.A.0 Descriptions of three new African cichlid fishes of the genus Tilapia, preserved in the British Museum. Ann. Mag. Nat. Hist. (Ser. 8) 10:138-140. (Ref. 1887)",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1080/00222931208693206",
     "parsed_year": ""
    },
-   "why": "'(Ref. 1887)' was read as the year."
+   "why": "'(Ref. 1887)' was read as the year. Since Nov 19, 2026 'matched' (not 'possible'): the journal is found in the text before the numbers, and with no year the first author and the title also agree."
   },
   {
    "id": "fishbase-b516f996",
    "source": "FishBase",
    "full_reference": "Verheyen, E., R. Blust and C. Doumen0 The oxygen uptake of Sarotherodon niloticus L. and the oxygen binding properties of its blood and hemolysate (Pisces: Cichlidae). Comp. Biochem. Physiol. 81A:423-426. (Ref. 2652)",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1016/0300-9629(85)90158-6",
     "parsed_volume": "81A"
    },
-   "why": "Volume '81A' (volume 81 of Part A) couldn't be read."
+   "why": "Volume '81A' (volume 81 of Part A) couldn't be read. Since Nov 19, 2026 'matched' (not 'possible'): the journal is found in the text before the numbers, and with no year the first author and the title also agree."
   },
   {
    "id": "fishbase-c377d5c7",
    "source": "FishBase",
    "full_reference": "Boulenger, G.A.0 Fourth contribution to the ichthyology of Lake Tanganyika. Report on the collection of fishes made by Dr. W.A. Cunnington during the Third Tanganyika Expedition, 1904-1905. Trans. Zool. Soc. Lond. 17(6):537-600. (Ref. 1872)",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1111/j.1469-7998.1906.tb07891.x",
     "parsed_year": "",
     "note_contains": "10.1111/j.1096-3642.1905.tb00037.x"
    },
-   "why": "'1904-1905' in the title was read as the year. CrossRef has two records for this article: the note must name the other one."
+   "why": "'1904-1905' in the title was read as the year. CrossRef has two records for this article: the note must name the other one. Since Nov 19, 2026 'matched' (not 'possible'): the journal is found in the text before the numbers, and with no year the first author and the title also agree."
   },
   {
    "id": "fishbase-c377d5c7-author",
    "source": "FishBase",
    "full_reference": "Boulenger, G.A.0 Fourth contribution to the ichthyology of Lake Tanganyika. Report on the collection of fishes made by Dr. W.A. Cunnington during the Third Tanganyika Expedition, 1904-1905. Trans. Zool. Soc. Lond. 17(6):537-600. (Ref. 1872)",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "checks_contains": "author=nearly (Boulesger)",
     "note_contains": "spelled slightly differently",
     "requires": "author_title_checks"
    },
-   "why": "CrossRef's record has the author 'Boulesger' (a scanning error): the author check must call it a near match and say so in the note."
+   "why": "CrossRef's record has the author 'Boulesger' (a scanning error): the author check must call it a near match and say so in the note. Since Nov 19, 2026 'matched' (not 'possible'): the journal is found in the text before the numbers, and with no year the first author and the title also agree."
   },
   {
    "id": "fishbase-e70e47d3",
@@ -146,10 +146,9 @@
    "full_reference": "King, R.P.0 Growth performance of Nigerian fish stocks. Naga, ICLARM Q. 20(2):31-35. (Ref. 26112)",
    "expect": {
     "status": "not found",
-    "note_contains": "another work",
-    "requires": "author_title_checks"
+    "note_contains": "pages 31-35 isn't in the article's pages (25-31)"
    },
-   "why": "Volume and page match a paper on chickens by Ibe; the authors differ and the title agrees 22%: both checks say it's another work."
+   "why": "Volume and page match a paper on chickens by Ibe (pages 25-31); the cited pages 31-35 run past its end, so it's another article (Nov 19, 2026; before: the authors differ and the title agrees 22%)."
   },
   {
    "id": "fishbase-2b15c84e",
@@ -169,17 +168,17 @@
     "status": "possible",
     "DOI": "10.1098/rspb.1996.0233"
    },
-   "why": "Found after the '(Ref. N)' removal."
+   "why": "Found after the '(Ref. N)' removal. Stays 'possible' (Nov 19, 2026): no year in the citation and CrossRef lists no authors, so 'matched' can't be confirmed."
   },
   {
    "id": "fishbase-41acb38c",
    "source": "FishBase",
    "full_reference": "Worthington, E.B. and C.K. Ricardo0 Scientific results of the Cambridge Expedition to the east African lakes, 1930-1. No. 15. The fish of Lake Rudolf and Lake Baringo. J. Linn. Soc. (Zool.) 39(267):353-389. (Ref. 43507)",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1111/j.1096-3642.1936.tb00472.x"
    },
-   "why": "'1930-1' in the title; found after the fixes."
+   "why": "'1930-1' in the title; found after the fixes. Since Nov 19, 2026 'matched' (not 'possible'): the journal is found in the text before the numbers, and with no year the first author and the title also agree."
   },
   {
    "id": "fishbase-0ba684d9",
@@ -754,12 +753,11 @@
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Adam, M. D., and J. P. Hayes. 1998. Arborimuspomo. Mammalian Species 593:1ñ5.",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.2307/3504418",
-    "note_contains": "no volume number",
-    "requires": "author_title_checks"
+    "checks_contains": "volume_as_issue"
    },
-   "why": "JSTOR's 'Mammalian Species' records have no volume, and 'ñ' is a garbled dash in '1ñ5': 'possible' only because the first author agrees."
+   "why": "JSTOR's 'Mammalian Species' records have no volume but the number as the issue (593): it must agree with the cited number. 'ñ' is a garbled dash in '1ñ5'."
   },
   {
    "id": "jen2-81",
@@ -778,12 +776,11 @@
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Ballantine, D. 1961. Gymnodinium chukwanii n. sp. And other marine dinoflagellates collected in the vicinity of Zanzibar. Journal of Eukaryotic Microbiology 8:217-228.",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1111/j.1550-7408.1961.tb01207.x",
-    "note_contains": "the journal (cited",
-    "requires": "author_title_checks"
+    "checks_contains": "journal_renamed"
    },
-   "why": "The journal's later name in the citation ('Journal of Eukaryotic Microbiology'; CrossRef 'The Journal of Protozoology'): 'possible' because the year, first author and title agree."
+   "why": "The journal's later name in the citation ('Journal of Eukaryotic Microbiology') for an article in 'The Journal of Protozoology': in RENAMED_JOURNALS since Nov 19, 2026, so 'matched' (before: 'possible' through the typo rule)."
   },
   {
    "id": "jen2-2461",
@@ -805,6 +802,128 @@
     "parsed_page": "1835-1844"
    },
    "why": "Pages that look like years ('57, 1835-1844') are pages, not a year range: only a range with the cited year in it is (\"Select. Hexandr. Pl.,9,1831-1834\")."
+  },
+  {
+   "id": "jen2-1266",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Lantz, L. A. 1947. Observations on Discoglossus pictus Otth: Note. Proceedings of the Royal Society B-Biological Sciences 134:52-56.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1098/rspb.1947.0003"
+   },
+   "why": "A cited range (52-56) that starts inside an article (37-52) but runs past its end is the next article: the 'Note' on 52-56, not 'Observations' on 37-52."
+  },
+  {
+   "id": "jen2-1368",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "M. Messer;G. S. Mossop. 1977. Milk and carbohydrates of marsupials. I. Partial separation and characterization of neutral milk oligosaccharides of the eastern grey kangaroo. pp. 378-388. Australian Journal of Biological Sciences. vol. 30",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1071/bi9770379"
+   },
+   "why": "A journal's table of contents ('... Volume 30, 1977 - Table of Contents') is never the answer."
+  },
+  {
+   "id": "jen2-1492",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Milla & Reich 2011 Annals of Botany 107: 455465, 2011.",
+   "expect": {
+    "status": "not found"
+   },
+   "why": "'ContentSnapshots' (a journal's front matter) is never the answer; nothing else agrees, so: not found."
+  },
+  {
+   "id": "jen2-3539",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Widdicombe, Claire E; Eloire, Damien; Harbour, Derek; Harris, Roger P; Somerfield, Paul J (2010): Time series of phytoplankton abundance and composition at station L4 in the English Channel from 1988 to 2009 [dataset]. PANGAEA. In supplement to: Widdicombe, CE et al. (2010): Long-term phytoplankton community dynamics in the Western English Channel. Journal of Plankton Research, 32(5), 643-655",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1594/pangaea.754335",
+    "requires": "datacite_search"
+   },
+   "why": "A dataset cited as one ('[dataset]. PANGAEA. In supplement to: <article>'): DataCite first, by its title; not the article it supplements."
+  },
+  {
+   "id": "jen2-3542",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "McDaniel, Stuart F.; Atwood, John; Burleigh, J. Gordon (2012). Data from: Recurrent evolution of dioecy in bryophytes [Dataset]. Dryad.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5061/dryad.101tb",
+    "requires": "datacite_search"
+   },
+   "why": "A Dryad dataset ('Data from: ... [Dataset]. Dryad.'): the dataset in the repository cited, not a file in it or a copy elsewhere."
+  },
+  {
+   "id": "jen2-2166",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Strassert, J.F.H., Wurzbacher, C., Hervé, V. et al. Long rDNA amplicon sequencing of insect-infecting nephridiophagids reveals their affiliation to the Chytridiomycota and a potential to switch between hosts. Sci Rep 11, 396 (2021).",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1038/s41598-020-79842-6"
+   },
+   "why": "'Sci Rep 11, 396 (2021)': the article number is read, and the bioRxiv preprint (posted-content) is not given for a citation of the published article."
+  },
+  {
+   "id": "jen2-63",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Anderson 1961 Anderson D.T. (1961). The development of the polychaete Haploscoloplos fragilis. Quart. J. Microscop. Sci., 102, 257-272.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1242/jcs.s3-102.58.257"
+   },
+   "why": "'Quart. J. Microscop. Sci., 102' is 'Journal of Cell Science' (renamed) volume 'S3-102' (CrossRef's series volume)."
+  },
+  {
+   "id": "jen2-1747",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Pianka, E. R., and W. S. Parker. 1972. Ecology of Iguanid lizard Callisaurus draconides. Copeia 1972:493-508.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1442922"
+   },
+   "why": "'Copeia 1972:493-508': the year is the volume, accepted because CrossRef's volume is 1972."
+  },
+  {
+   "id": "jen2-1625",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Oka S-i, Tomita T, Miyamoto K (2016) A Mighty Claw: Pinching Force of the Coconut Crab, the Largest Terrestrial Crustacean. PLoS ONE 11(11): e0166108.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1371/journal.pone.0166108"
+   },
+   "why": "'PLoS ONE 11(11): e0166108': an article number; volume and issue are read, the page can't be compared: 'possible'."
+  },
+  {
+   "id": "jen2-696",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Gaill, F. 1979. Digestive structure of abyssal tunicates. Sarsaria, vol 64, p 363-369",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1080/00364827.1979.10411369"
+   },
+   "why": "'Sarsaria, vol 64, p 363-369': volume and pages read."
+  },
+  {
+   "id": "jen2-1103",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Jones, J. Knox Jr., and G. A. Baldassarre. 1982. Reithrodontyomysbrevirostris and Reithrodontomysparadoxus. Mammalian Species 192:1ñ3.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/3503867",
+    "requires": "author_title_checks"
+   },
+   "why": "JSTOR's 'Mammalian Species' records keep the number as the issue (192): the cited number must agree, as one author wrote many numbers that all start at page 1."
+  },
+  {
+   "id": "jen2-177",
+   "source": "Data Managers' DOI list (Nov 2026)",
+   "full_reference": "Best, T. L., and H. H. Thomas. 1991. Dipodomysinsularis. Mammalian Species 374:1ñ3.",
+   "expect": {
+    "status": "not found",
+    "requires": "author_title_checks"
+   },
+   "why": "'Mammalian Species 374': CrossRef's record by these authors is number 378 (another species), so it's rejected: not found."
   }
  ]
 }

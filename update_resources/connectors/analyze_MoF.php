@@ -2,6 +2,9 @@
 namespace php_active_record;
 /* This analyzes the MoF extension
 php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "fishbase_final"}' //fishbase_final.tar.gz
+php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "13318109_AmphibiaWeb_finale"}'
+    Also replaces each reference identifier with its DOI_URL found by Full Reference Search ('matched' or 'possible'),
+    and every referenceID with it. See "References" in lib/connectors/AnalyzeMoF_API.php.
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -54,6 +57,11 @@ function process_resource_url($dwca_file, $resource_id, $timestart)
     $excluded_rowtypes[] = 'http://eol.org/schema/media/document';
     $excluded_rowtypes[] = 'http://eol.org/schema/agent/agent';
     $excluded_rowtypes[] = 'http://rs.gbif.org/terms/1.0/vernacularname';
+
+    // Reference and Taxon are written in AnalyzeMoF_API.php too: each reference identifier becomes its DOI_URL (Full Reference Search),
+    // and every referenceID (also in Taxon) is changed with it (Nov 20, 2026).
+    $excluded_rowtypes[] = 'http://eol.org/schema/reference/reference';
+    $excluded_rowtypes[] = 'http://rs.tdwg.org/dwc/terms/taxon';
 
     /* This will be processed in AnalyzeMoF_API.php which will be called from DwCA_Utility.php */
     $func->convert_archive($preferred_rowtypes, $excluded_rowtypes);

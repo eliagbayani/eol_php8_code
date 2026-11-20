@@ -52,6 +52,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
+    const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 20; // a progress line ("N rows done ...") every this many rows; the web page reads it
     const PAUSE_SECONDS = 1;    // the pause after every CrossRef call (calls are one at a time); cached answers need no call and no pause
     const THROTTLE_LIMIT = 5;   // after this many "429 too many requests" / "503 busy" answers in a row (with waits of 1, 2, 4, 8 minutes), the search stops
@@ -167,8 +168,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($r['status'] == 'stop') { $stopped_at = $row_no; break; }
             $counts[$r['status']]++; $done++;
             foreach($r['change_codes'] as $code) $changed[$code]++;
-            $row = array_merge(array('identifier' => $identifier, 'full_reference' => $full_reference), $r);
-            fwrite($out, implode("\t", array_map(fn($c) => str_replace(array("\t", "\r", "\n"), ' ', (string) ($row[$c] ?? '')), self::OUTPUT_COLUMNS)) . "\n");
+            fwrite($out, self::report_line($identifier, $full_reference, $r));
             if($done % self::PROGRESS_EVERY == 0) { fflush($out); echo "  $done rows done (row $row_no): " . self::counts_str($counts) . "\n"; }
         }
         fclose($in); fclose($out);
@@ -216,6 +216,46 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         file_put_contents($this->work_dir . "full_reference_search_tests_last.json", json_encode($res));
         echo "\nTests: {$res['passed']} passed, {$res['failed']} failed, {$res['skipped']} skipped (" . count($d['cases']) . " cases).\n";
         return $res;
+    }
+    private static function report_line($identifier, $full_reference, $r)
+    {   // one report row (OUTPUT_COLUMNS) for a find_DOI() result
+        $row = array_merge(array('identifier' => $identifier, 'full_reference' => $full_reference), $r);
+        return implode("\t", array_map(fn($c) => str_replace(array("\t", "\r", "\n"), ' ', (string) ($row[$c] ?? '')), self::OUTPUT_COLUMNS)) . "\n";
+    }
+    /* The same report and guide, for another program that calls find_DOI() row by row (e.g. AnalyzeMoF_API, for a DwCA's reference.tab):
+         $frs->report_open('13318109_AmphibiaWeb_finale_reference');            -> Reference_maintenance/<name>_DOIs_<YYYYmmdd_HHMMSS>.tsv
+         $r = $frs->find_DOI($full_reference); $frs->report_row($identifier, $full_reference, $r);   (a 'stop' result isn't written)
+         $frs->report_close('[resource] reference.tab');                       -> writes <same>_guide.txt; returns array('file', 'guide', 'counts')
+       Same columns, same guide, and counted with the tool's own reports (only the newest KEEP_REPORTS are kept). Nov 20, 2026 */
+    function report_open($name)
+    {   $name = preg_replace('/[^A-Za-z0-9._-]+/', '_', (string) $name);
+        $file = $this->work_dir . $name . "_DOIs_" . date("Ymd_His") . ".tsv";
+        if(!($out = fopen($file, 'w'))) { echo "\nERROR: Cannot write [$file]\n"; return false; }
+        fwrite($out, implode("\t", self::OUTPUT_COLUMNS) . "\n");
+        $this->keep_latest_reports();
+        $this->rep = array('file' => $file, 'out' => $out, 'rows' => 0, 'time' => time(),
+                           'counts' => array('matched' => 0, 'possible' => 0, 'not found' => 0, 'skipped' => 0, 'error' => 0),
+                           'changed' => array_fill_keys(array_keys(self::TEXT_CHANGES), 0));
+        echo "\nFull Reference Search report: [$file]\n";
+        return $file;
+    }
+    function report_row($identifier, $full_reference, $r)
+    {   if(empty($this->rep) || ($r['status'] ?? '') == 'stop' || !isset($this->rep['counts'][$r['status'] ?? ''])) return;
+        $this->rep['counts'][$r['status']]++; $this->rep['rows']++;
+        foreach($r['change_codes'] ?? array() as $code) if(isset($this->rep['changed'][$code])) $this->rep['changed'][$code]++;
+        fwrite($this->rep['out'], self::report_line($identifier, $full_reference, $r));
+        if($this->rep['rows'] % self::PROGRESS_EVERY == 0) fflush($this->rep['out']);
+    }
+    function report_close($input_label)
+    {   if(empty($this->rep)) return false;
+        fclose($this->rep['out']);
+        $n = $this->rep['rows'];
+        $guide = $this->write_guide($this->rep['file'], (string) $input_label, 1, $n, $n, $this->rep['counts'], $this->rep['changed']);
+        echo "\nFull Reference Search: $n rows in " . gmdate("H:i:s", time() - $this->rep['time']) . " -- " . self::counts_str($this->rep['counts'])
+           . "\nReport: [{$this->rep['file']}]\nGuide for the Data Managers: [$guide]\n";
+        $ret = array('file' => $this->rep['file'], 'guide' => $guide, 'counts' => $this->rep['counts']);
+        unset($this->rep);
+        return $ret;
     }
     private function keep_latest_reports()
     {   // deletes all but the newest KEEP_REPORTS reports (by the time in their name), each with its _guide.txt
@@ -735,14 +775,35 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($row_no < $start) continue;
             if($limit && $n['rows'] >= $limit) break;
             $n['rows']++;
-            $ref = self::clean_full_reference(trim((string) (explode("\t", rtrim($line, "\r\n"))[$col_ref] ?? ''))); // as find_DOI() searches it
-            if(mb_strlen($ref) < self::MIN_LENGTH) { $n['skipped']++; continue; }
-            $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
-            if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat in the same file is asked only once
-            else { $n['new']++; $seen[$url] = 1; }
+            $this->count_one_row($n, $seen, (string) (explode("\t", rtrim($line, "\r\n"))[$col_ref] ?? ''));
         }
         fclose($in);
         return $n;
+    }
+    function count_references_to_search($full_references)
+    {   // the same count as count_rows_to_search(), for a list of full_reference texts (e.g. a DwCA's reference.tab read by AnalyzeMoF_API)
+        $n = array('rows' => 0, 'new' => 0, 'cached' => 0, 'skipped' => 0); $seen = array();
+        foreach($full_references as $full_reference) { $n['rows']++; $this->count_one_row($n, $seen, (string) $full_reference); }
+        return $n;
+    }
+    private function count_one_row(&$n, &$seen, $full_reference)
+    {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it
+        if(mb_strlen($ref) < self::MIN_LENGTH) { $n['skipped']++; return; }
+        $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
+        if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat is asked only once
+        else { $n['new']++; $seen[$url] = 1; }
+    }
+    static function estimate_text($n)
+    {   // e.g. "Estimated time: about 4.8 hours (5,799 references: 5,750 new, sent to CrossRef at about 3 seconds each; 40 cached, instant; 9 too short)"
+        $s = $n['new'] * self::SECONDS_PER_NEW;
+        if($s < 60)          $t = "less than a minute";
+        elseif($s < 90)      $t = "about 1 minute";
+        elseif($s < 5400)    $t = "about " . round($s / 60) . " minutes";
+        elseif($s < 172800)  $t = "about " . rtrim(rtrim(number_format($s / 3600, 1), '0'), '.') . " hours";
+        else                 $t = "about " . rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
+        return "Estimated time: $t" . ($s >= 60 ? ", to finish around " . date("Y-m-d H:i T", time() + $s) : '')
+             . " (" . number_format($n['rows']) . " references: " . number_format($n['new']) . " new, sent to CrossRef at about " . self::SECONDS_PER_NEW . " seconds each; "
+             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " too short to search" : '') . ")";
     }
     private function search_crossref($full_reference, $year)
     {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.

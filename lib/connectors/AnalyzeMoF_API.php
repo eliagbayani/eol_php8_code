@@ -54,6 +54,19 @@ Rules:
   8. A MoF row whose occurrenceID is not in the occurrence table is dropped, with its child rows (rule 5).
      Not applied if the archive has no occurrence table.
 
+References (Nov 20, 2026): each reference's identifier is replaced by its DOI as a link (DOI_URL, e.g. https://doi.org/10.1093/jn/44.1.43),
+found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same code and the same CrossRef/DataCite cache as the tool).
+  - Only 'matched' and 'possible' DOIs are used; 'not found', 'skipped' and 'error' references keep their identifier.
+  - Every referenceID (MoF, Association, Occurrence, Taxon; several IDs joined by ';' too) is changed the same way, so no link breaks.
+  - Two references with the same DOI are merged: the first one's row is kept, and both IDs point to it.
+  - Always on. A new full_reference costs about 3 seconds (CrossRef's polite pace); cached ones are instant, so a re-run is fast.
+    If CrossRef keeps answering HTTP 429/503, the lookups stop for this run and the remaining references keep their identifiers.
+  - Every reference with its result: resources/neo4j_analyzed/[resource_id]_references_DOI_[date].tsv
+    (old_identifier, status, DOI_URL, new_identifier, full_reference).
+  - Also Full Reference Search's own report and guide, as the tool writes them, in CONTENT_RESOURCE_LOCAL_PATH/Reference_maintenance/:
+    [resource_id]_reference_DOIs_[YYYYmmdd_HHMMSS].tsv + _guide.txt (counted with the tool's reports: only the newest 20 are kept).
+  - Reference and Taxon are written here (not copied by DwCA_Utility), since both can have referenceIDs.
+
 Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with these sections (only those that occur):
   Undefined mValue                                    - value URIs not in the terms list (rules 1-3)
   Undefined mType                                     - trait types not in the terms list (rule 1)
@@ -64,11 +77,13 @@ Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with t
   Orphaned occurrences in the source (deleted)        - count (rule 6)
   Blanked [extension].[field] (URI not in EOL values) - each blanked URI with its number of records (rule 7)
   MoF rows pointing to a missing occurrence (deleted) - rows and distinct occurrenceIDs (rule 8)
+  References: identifier replaced by DOI_URL          - counts by Full Reference Search status, merged rows
 
 Passes:
+  Pass 0 ('collect_ref') - looks up the DOI of every reference (Full Reference Search): fills ref_map (old identifier => DOI_URL).
   Pass 0 ('collect_occ') - reads the occurrenceIDs of the occurrence table (for rule 8).
   Pass 1 ('collect') - applies rules 1-4 and 8 to MoF and Association: fills del_mID, flag_oID and child_parent.
-  Pass 2 ('write') - writes MoF, then Association, then Occurrence, applying rules 1-8. While writing MoF and Association it
+  Pass 2 ('write') - writes Reference and Taxon (with the new identifiers), then MoF, Association, Occurrence, applying rules 1-8. While writing MoF and Association it
     records every occurrenceID that an included record uses (used_oID), so that Occurrence can apply rule 6.
   Run it in the Jenkins container (12g); the web container (1g) runs out of memory on large resources like WoRMS.
 */
@@ -129,6 +144,9 @@ class AnalyzeMoF_API
         // If the archive has no occurrence table, rule 8 is not applied (false).
         $this->occ_exists = false;
         $this->missing_occ = array('rows' => 0, 'occurrenceIDs' => array());
+        // References: old identifier => DOI_URL, by Full Reference Search (see "References" at the top of this file)
+        $this->ref_map = array();
+        $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::lookup_reference_DOIs($meta);
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) { $this->occ_exists = array(); self::process_table($meta, 'collect_occ', 'occurrence'); }
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'association');
@@ -144,6 +162,11 @@ class AnalyzeMoF_API
         echo "\n";
 
         // --------------------- 2nd pass: write extensions, excluding every record linked to a deleted occurrence or deleted parent measurement
+        $this->ref_written = array(); $this->ref_merged = 0;
+        $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'reference');
+        if($this->ref_merged) { echo "\nReferences merged (same DOI as an earlier one): [{$this->ref_merged}]\n"; $this->debug['References: identifier replaced by DOI_URL']["merged (same DOI as an earlier reference): {$this->ref_merged}"] = ''; }
+        unset($this->ref_written);
+        $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'taxon');
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
         unset($this->occ_exists); // free memory; only needed for rule 8 on MoF
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
@@ -163,6 +186,61 @@ class AnalyzeMoF_API
         // */
         if($this->debug) Functions::start_print_debug($this->debug, $this->resource_id, $this->neo4j_analyzed_folder);
         unset($this->debug);
+    }
+    private function lookup_reference_DOIs($meta)
+    {   // Pass 0: the DOI of every reference, by Full Reference Search (same code, same cache). Fills $this->ref_map (old identifier => DOI_URL)
+        // for 'matched' and 'possible' only, and writes every reference's result to neo4j_analyzed/[resource_id]_references_DOI_[date].tsv.
+        require_library('connectors/GenerateTB_Files_Functions');
+        require_library('connectors/FullReferenceSearchAPI');
+        $this->frs = new FullReferenceSearchAPI(array()); // its defaults: author/title checks and DataCite on, as the tool
+        $this->frs->report_open($this->resource_id . "_reference"); // the tool's own report + guide, in Reference_maintenance/
+        $file = $this->neo4j_analyzed_folder . "/" . $this->resource_id . "_references_DOI_" . date("Y-m-d") . ".tsv";
+        $this->ref_tsv = fopen($file, 'w');
+        fwrite($this->ref_tsv, implode("\t", array('old_identifier', 'status', 'DOI_URL', 'new_identifier', 'full_reference')) . "\n");
+        $this->ref_counts = array(); $this->frs_stopped = false; $this->ref_done = 0;
+        // the estimate, before the first call to CrossRef: how many references are new (about 3 seconds each) and how many are cached
+        $this->ref_texts = array();
+        self::process_table($meta, 'collect_ref_text', 'reference');
+        $estimate = $this->frs->count_references_to_search($this->ref_texts); unset($this->ref_texts);
+        echo "\nReferences: looking up their DOIs with Full Reference Search.\n" . FullReferenceSearchAPI::estimate_text($estimate) . "\n";
+        $this->debug['References: identifier replaced by DOI_URL'][FullReferenceSearchAPI::estimate_text($estimate)] = '';
+        self::process_table($meta, 'collect_ref', 'reference');
+        fclose($this->ref_tsv);
+        $frs_report = $this->frs->report_close("reference.tab of " . $this->resource_id . " (analyze_MoF)");
+        unset($this->frs, $this->ref_tsv);
+        if($frs_report) $this->debug['References: identifier replaced by DOI_URL']["Full Reference Search report: " . basename($frs_report['file']) . " (+ _guide.txt) in Reference_maintenance/"] = '';
+        $replaced = count($this->ref_map);
+        echo "\nReferences: [" . number_format($this->ref_done) . "] looked at, identifier replaced by DOI_URL: [" . number_format($replaced) . "] ";
+        foreach($this->ref_counts as $status => $n) { echo "[$status: $n] "; $this->debug['References: identifier replaced by DOI_URL']["$status: $n"] = ''; }
+        $this->debug['References: identifier replaced by DOI_URL']["identifiers replaced (matched + possible): $replaced; every reference: " . basename($file)] = '';
+        if($this->frs_stopped) echo "\nWARNING: CrossRef kept asking us to slow down (HTTP 429/503): the remaining references were not searched and keep their identifiers. Run again later.";
+        echo "\nEvery reference with its result: [$file]\n";
+    }
+    private function lookup_reference_DOI($rec)
+    {   // one reference: its DOI_URL in ref_map when Full Reference Search gives 'matched' or 'possible'
+        $id = (string) @$rec['identifier']; $full = (string) @$rec['full_reference'];
+        if($id === '') return;
+        $this->ref_done++;
+        if($this->frs_stopped) $status = 'not searched (CrossRef asked us to slow down)';
+        else {
+            $r = $this->frs->find_DOI($full);
+            $this->frs->report_row($id, $full, $r); // the tool's report (a 'stop' isn't written)
+            $status = $r['status'];
+            if($status == 'stop') { $this->frs_stopped = true; $status = 'not searched (CrossRef asked us to slow down)'; }
+            elseif(in_array($status, array('matched', 'possible')) && ($url = (string) @$r['DOI_URL']) !== '') $this->ref_map[$id] = $url;
+        }
+        @$this->ref_counts[$status]++;
+        $clean = fn($s) => str_replace(array("\t", "\r", "\n"), ' ', (string) $s);
+        fwrite($this->ref_tsv, implode("\t", array_map($clean, array($id, $status, $this->ref_map[$id] ?? '', $this->ref_map[$id] ?? $id, $full))) . "\n");
+        if($this->ref_done % 100 == 0) { fflush($this->ref_tsv); echo "\n  references: " . number_format($this->ref_done) . " done, " . number_format(count($this->ref_map)) . " with a DOI"; }
+    }
+    private function map_reference_ids($value)
+    {   // referenceID(s), e.g. "a1;b2": each old identifier replaced by its DOI_URL (ref_map); duplicates removed, order kept
+        $value = (string) $value;
+        if($value === '' || !$this->ref_map) return $value;
+        $ids = array();
+        foreach(explode(';', $value) as $id) { $id = trim($id); if($id === '') continue; $ids[$this->ref_map[$id] ?? $id] = ''; }
+        return implode(';', array_keys($ids));
     }
     private function is_measurement_deleted($mID)
     {   // true if this measurement or any of its ancestors (via parentMeasurementID) is deleted
@@ -276,6 +354,9 @@ class AnalyzeMoF_API
                 continue;
             }
             //=========================================================================================================
+            if($what == 'collect_ref_text') { if((string) @$rec['identifier'] !== '') $this->ref_texts[] = (string) @$rec['full_reference']; continue; } // for the estimate
+            if($what == 'collect_ref') { self::lookup_reference_DOI($rec); continue; } // 0: references' DOIs
+            //=========================================================================================================
             if($what == 'collect_occ') { // 0: occurrenceIDs present in the occurrence table (rule 8)
                 if($oID = @$rec['occurrenceID']) $this->occ_exists[$oID] = '';
                 continue;
@@ -310,8 +391,16 @@ class AnalyzeMoF_API
                     }
                 }
 
+                if($class == "reference") { // identifier -> its DOI_URL; a reference with a DOI already written is merged into it
+                    $new = $this->ref_map[(string) @$rec['identifier']] ?? (string) @$rec['identifier'];
+                    if(isset($this->ref_written[$new])) { $this->ref_merged++; continue; }
+                    $this->ref_written[$new] = '';
+                    $rec['identifier'] = $new;
+                }
+                if(isset($rec['referenceID'])) $rec['referenceID'] = self::map_reference_ids($rec['referenceID']); // MoF, Association, Occurrence, Taxon
+
                 // Rule 7: blank URI values not in EOL values in the qualifier fields; $rec is modified before $o is populated below.
-                foreach($this->blank_fields[$class] as $field) {
+                foreach($this->blank_fields[$class] ?? array() as $field) {
                     $val = trim((string) @$rec[$field]);
                     if(substr($val, 0, 4) == 'http' && !isset($this->eol_term_values[$val])) {
                         @$this->blanked["$class.$field"][$val]++;
@@ -328,6 +417,8 @@ User Warning: Undefined property `bodyPart` on eol_schema
                     if($class == "occurrence")      $o = new \eol_schema\Occurrence_specific();
                 elseif($class == "mof")             $o = new \eol_schema\MeasurementOrFact_specific();
                 elseif($class == "association")     $o = new \eol_schema\Association();
+                elseif($class == "reference")       $o = new \eol_schema\Reference();
+                elseif($class == "taxon")           $o = new \eol_schema\Taxon();
                 else exit("\nUndefined class [$class]. Will terminate.\n");
                 foreach(array_keys($rec) as $uri) {
                     $field = pathinfo($uri, PATHINFO_BASENAME);

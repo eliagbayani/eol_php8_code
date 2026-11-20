@@ -597,6 +597,9 @@ class ZenodoTraitBankAPI
             'filename' => file name on Zenodo; default basename($local_file)
             'remove_files' => other file names to remove from the new version, e.g. array('terms_0.9.tsv') when uploading terms_1.0.tsv
                           (a renamed file isn't replaced by the same-name rule). Each one must be in the draft, or nothing is published.
+            'tool'     => our tool's name, e.g. 'Terms Maintenance', 'References Maintenance', 'Full Reference Search': adds
+                          "-(auto uploaded by <code>{tool}</code> MM-DD-YYYY)-" at the bottom of the description (earlier lines are kept;
+                          see add_auto_upload_line()). Without it the description is left as copied from the previous version.
             'token'    => Zenodo token; default the ZENODO_TOKEN constant. Sent only in the Authorization header.
             'domain'   => default $this->api['domain'] or https://zenodo.org; e.g. https://sandbox.zenodo.org (needs a sandbox token)
         Returns array('draft_id', 'draft_url', 'published', 'record_id', 'doi'), or false.
@@ -674,9 +677,11 @@ class ZenodoTraitBankAPI
         unset($metadata['prereserve_doi']); // read-only
         $metadata['publication_date'] = gmdate("Y-m-d"); // UTC, as Zenodo dates its records
         if (isset($options['version'])) $metadata['version'] = (string) $options['version'];
+        if (!empty($options['tool'])) $metadata['description'] = self::add_auto_upload_line((string) ($metadata['description'] ?? ''), (string) $options['tool']);
         [$code, $res] = $this->zenodo_api_request('PUT', "$domain/api/deposit/depositions/$draft_id", $token, array('metadata' => $metadata));
         if ($code != 200) return $discard("Cannot update the draft's metadata (HTTP $code): " . $this->zenodo_error_message($res));
         echo "Draft metadata: publication_date " . $metadata['publication_date'] . ", version " . ($metadata['version'] ?? '(none)') . "\n";
+        if (!empty($options['tool'])) echo "Description ends with: " . strip_tags(self::auto_upload_line((string) $options['tool'])) . "\n";
 
         $ret = array('draft_id' => $draft_id, 'draft_url' => $html, 'published' => false, 'record_id' => null, 'doi' => null);
         if (!$publish) {
@@ -693,6 +698,21 @@ class ZenodoTraitBankAPI
         $ret['doi']       = $res['doi'] ?? null;
         echo "Published new version: record " . $ret['record_id'] . ($ret['doi'] ? ", DOI " . $ret['doi'] : '') . "\n";
         return $ret;
+    }
+    static function auto_upload_line($tool)
+    {   // the line our tools add at the bottom of a new Zenodo version's description, e.g.
+        // <p>-(auto uploaded by <code>Terms Maintenance</code> 11-20-2026)-</p>   (date in UTC, as publication_date)
+        return "<p>-(auto uploaded by <code>" . htmlspecialchars($tool, ENT_QUOTES) . "</code> " . gmdate("m-d-Y") . ")-</p>";
+    }
+    static function add_auto_upload_line($description, $tool)
+    {   /* $description (Zenodo's HTML) + auto_upload_line($tool) at the bottom, whether the description is blank or not (Nov 20, 2026).
+           The lines of earlier uploads are kept (each new version copies the previous description), so it keeps a history;
+           only the same line twice in a row (same tool, same day, e.g. a re-run reusing an open draft) isn't added again. */
+        $line = self::auto_upload_line($tool);
+        $desc = rtrim($description);
+        if (trim(strip_tags(html_entity_decode($desc), '<img>')) === '') return $line; // blank, or only empty tags such as <p></p>
+        if (substr($desc, -strlen($line)) === $line) return $desc;
+        return $desc . "\n" . $line;
     }
     private function find_untouched_zenodo_draft($domain, $token, $concept_id, $latest)
     {   // the open (unpublished) draft of $concept_id in our Zenodo account, only if nobody has changed its files yet,

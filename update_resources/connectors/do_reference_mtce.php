@@ -63,6 +63,7 @@ php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "227
     - Creates a new version of the dataset on Zenodo with our local file (default: references.tsv for References); other files are kept.
       Stops at a draft, to be reviewed and published on Zenodo. Optional: "file": "traits", "version": "2026-10-28".
       Stops and uploads nothing if Zenodo has changes we don't have yet (an unmerged Zenodo copy, or a newer version than our download).
+      The new version's description gets "-(auto uploaded by References Maintenance MM-DD-YYYY)-" at the bottom (earlier such lines are kept).
 php do_reference_mtce.php _ '{"task": "upload_file_toZenodo", "concept_id": "22776838", "publish": 1}'    //same, but publish now -- CANNOT be undone
     - Same as above, but publishes the new version right away. A published Zenodo version can never be deleted.
 

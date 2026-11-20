@@ -1219,7 +1219,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             return false;
         }
 
-        $options = array('publish' => !empty($this->param['publish']));
+        $options = array('publish' => !empty($this->param['publish']), 'tool' => 'References Maintenance'); // 'tool': a line at the bottom of Zenodo's description
         if(isset($this->param['version'])) $options['version'] = $this->param['version'];
         if(isset($this->param['remove_files'])) $options['remove_files'] = (array) $this->param['remove_files'];
         $ret = $this->upload_new_version_to_zenodo($concept_id, $local_file, $options);

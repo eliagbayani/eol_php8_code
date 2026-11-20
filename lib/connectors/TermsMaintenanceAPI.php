@@ -248,7 +248,7 @@ class TermsMaintenanceAPI extends GenerateTB_Files_Functions
         if($ret['identical_to_zenodo']) echo "The file is identical to Zenodo's latest version (record {$zenodo['record_id']}): there's nothing to upload.\n";
         if($dry_run) { echo "Dry run: nothing was uploaded.\n"; return $ret; }
         if($ret['identical_to_zenodo']) return $ret;
-        $options = array('filename' => self::ZENODO_FILENAME, 'publish' => $publish);
+        $options = array('filename' => self::ZENODO_FILENAME, 'publish' => $publish, 'tool' => 'Terms Maintenance'); // 'tool': a line at the bottom of Zenodo's description
         if(isset($this->param['version'])) $options['version'] = (string) $this->param['version'];
         $up = $this->upload_new_version_to_zenodo($this->main_datasets['Terms_conceptID'], $terms_tsv, $options);
         $ret['uploaded'] = $up ? ($up['published'] ? "published record " . $up['record_id'] : "draft " . $up['draft_url']) : false;

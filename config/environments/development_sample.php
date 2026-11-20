@@ -17,4 +17,8 @@ define('LOGGING_DB', 'eol_logging_development');
 // applications/reference_maintenance/main.php (no password = uploading/changes from those pages are disabled)
 // define('TERMS_MTCE_PASSWORD', 'choose-a-password');
 
+// CrossRef: contact email sent with every call (User-Agent), as CrossRef asks; gives the 'polite pool' (FullReferenceSearchAPI.php).
+// Without it, CrossRef calls still work, but at the lower public rate limit.
+// define('CROSSREF_MAILTO', 'you@example.org');
+
 ?>

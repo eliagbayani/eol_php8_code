@@ -61,7 +61,7 @@ found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same cod
   - A ';' in a DOI (old SICI DOIs, e.g. 10.1656/1528-7092(2003)002[0159:ANSOEC]2.0.CO;2) is written as %3B, since ';' separates referenceIDs;
     https://doi.org/...2.0.CO%3B2 opens the same page.
   - Two references with the same DOI are merged: the first one's row is kept, and both IDs point to it.
-  - Always on. A new full_reference costs about 2.5 seconds (CrossRef's polite pace); cached ones are instant, so a re-run is fast.
+  - Always on. A new full_reference costs about 2.8 seconds (CrossRef's polite pace); cached ones are instant, so a re-run is fast.
     If CrossRef keeps answering HTTP 429/503, the lookups stop for this run and the remaining references keep their identifiers.
   - Every reference with its result: resources/neo4j_analyzed/[resource_id]_references_DOI_[date].tsv
     (old_identifier, status, DOI_URL, new_identifier, full_reference).
@@ -200,7 +200,7 @@ class AnalyzeMoF_API
         $this->ref_tsv = fopen($file, 'w');
         fwrite($this->ref_tsv, implode("\t", array('old_identifier', 'status', 'DOI_URL', 'new_identifier', 'full_reference')) . "\n");
         $this->ref_counts = array(); $this->frs_stopped = false; $this->ref_done = 0;
-        // the estimate, before the first call to CrossRef: how many references are new (about 2.5 seconds each) and how many are cached
+        // the estimate, before the first call to CrossRef: how many references are new (about 2.8 seconds each) and how many are cached
         $this->ref_texts = array();
         self::process_table($meta, 'collect_ref_text', 'reference');
         $estimate = $this->frs->count_references_to_search($this->ref_texts); unset($this->ref_texts);

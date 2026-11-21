@@ -52,14 +52,14 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
-    const SECONDS_PER_NEW = 2.5; // about 2.5 seconds per new reference (about 1.7 calls, at least MIN_GAP_SECONDS apart), for estimates; same as the web page's
+    const SECONDS_PER_NEW = 2.8; // about 2.8 seconds per new reference (about 1.7 calls, at least MIN_GAP_SECONDS apart), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
     /* (Nov 21, 2026) PACE: calls are one at a time, and the next call starts at least MIN_GAP_SECONDS after the previous one started
        (or interval/limit + 10% from CrossRef's x-rate-limit-* headers, if that is longer). The headers say 3 per second in the polite pool,
-       but searches (query.bibliographic) got HTTP 429 at 1.0 and 1.2 seconds apart (1 in 12 calls) and none at 1.5 seconds (20 calls),
-       so 1.5 s. The old scheme (a 1-second pause after each call) was about 1.8-1.9 s apart. After a 429/503: back to the 1-second
+       but searches (query.bibliographic) got HTTP 429 at 1.0 and 1.2 seconds apart (1 in 12 calls), and at 1.5 s (40 a minute) a long run
+       got one after about 170 calls: the real limit seems to be about 40 searches a minute or a little fewer. So 1.7 s (about 35 a minute). The old scheme (a 1-second pause after each call) was about 1.8-1.9 s apart. After a 429/503: back to the 1-second
        PAUSE after each call, for the rest of the run. Cached answers need no call and no wait. */
-    const MIN_GAP_SECONDS = 1.5;
+    const MIN_GAP_SECONDS = 1.7;
     const PAUSE_SECONDS = 1;    // the pause after every call once CrossRef has asked us to slow down (and the gap before the limit is known)
     const THROTTLE_LIMIT = 5;   // after this many "429 too many requests" / "503 busy" answers in a row (with waits of 1, 2, 4, 8 minutes), the search stops
     const KEEP_REPORTS = 20;  // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted

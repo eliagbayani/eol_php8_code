@@ -5,7 +5,7 @@ namespace php_active_record;
    Finds the DOI of references that have only a full_reference text, using CrossRef. The command line keeps working as before.
    - [Browse File] + limit + start = the command line's "file", "limit" and "start". [Upload file] checks and saves the file and shows
      its rows; then [Proceed] starts the search, or [Cancel] removes the uploaded file.
-   - A search can take hours (about 2.5 seconds per new reference), so it runs in the background, as the same command-line script;
+   - A search can take hours (about 2.8 seconds per new reference), so it runs in the background, as the same command-line script;
      this page shows its progress, can stop it, and lists the reports with [Download].
    - One search at a time (the script's own lock). It changes nothing: it only writes a report and a guide for the Data Managers.
    - The uploaded file is only the input of its search: its folder full_reference_search_uploads/<YYYYmmdd_HHMMSS>/ is deleted by this page
@@ -28,7 +28,7 @@ $has_password = defined('TERMS_MTCE_PASSWORD') && TERMS_MTCE_PASSWORD !== ''; //
 $report_re   = '/^[A-Za-z0-9._-]+_DOIs_\d{8}_\d{6}(\.tsv|_guide\.txt)$/';      // the only files [Download] serves
 define('MAX_UPLOAD_MB', getenv('MY_ENV') === 'development' ? 100 : 20); // upload limit: 100 MB on the Mac (e.g. 300,000-row parts of a big reference.tab), 20 MB in production (editors.eol.org)
 const PROGRESS_EVERY = 50; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
-const SECONDS_PER_NEW = 2.5; // = FullReferenceSearchAPI::SECONDS_PER_NEW: about 2.5 seconds per new reference (calls at least 1.5 s apart)
+const SECONDS_PER_NEW = 2.8; // = FullReferenceSearchAPI::SECONDS_PER_NEW: about 2.8 seconds per new reference (calls at least 1.7 s apart)
 require_library('connectors/ZenodoTraitBankAPI');
 require_library('connectors/GenerateTB_Files_Functions');
 require_library('connectors/FullReferenceSearchAPI'); // only for the estimate (count_rows_to_search); the search itself runs as the command-line script
@@ -430,8 +430,8 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
             <input type="submit" value="Upload file">
             <span class="wait"> Uploading...</span>
         </form>
-        <small>New references take about 2.5 seconds each: CrossRef is asked politely, one call at a time, at least 1.5 seconds apart
-        (e.g. 55,000 rows: about 1.6 days). References already searched are never sent to CrossRef again: they come back instantly.
+        <small>New references take about 2.8 seconds each: CrossRef is asked politely, one call at a time, at least 1.7 seconds apart
+        (e.g. 55,000 rows: about 1.8 days). References already searched are never sent to CrossRef again: they come back instantly.
         If CrossRef asks us to slow down, the search waits and adds a 1-second pause after each call; if it keeps asking, the search stops and can be resumed with <b>start</b>.</small>
         <?php endif; ?>
     </td></tr>

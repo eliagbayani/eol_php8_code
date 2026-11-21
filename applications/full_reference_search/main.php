@@ -411,7 +411,7 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
                     <br><small>Estimate: <?php echo ($e['new'] * SECONDS_PER_NEW < 60 ? '' : 'about ') . v(duration_text($e['new'] * SECONDS_PER_NEW)) ?>.
                         <?php echo v(number_format($e['new'])) ?> new reference(s) to send to CrossRef, at about <?php echo SECONDS_PER_NEW ?> seconds each;
                         <?php echo v(number_format($e['cached'])) ?> searched before (instant, from the cache)<?php
-                        if($e['skipped']) echo "; " . v(number_format($e['skipped'])) . " skipped (too short, only a link, or a GenBank sequence title)" ?>.
+                        if($e['skipped']) echo "; " . v(number_format($e['skipped'])) . " skipped (too short, only a link, a GenBank title, or only authors and a year)" ?>.
                         <?php if($e['new'] * SECONDS_PER_NEW > 3600) echo "It can be stopped at any time and resumed later with <b>start</b>." ?></small>
                     <?php endif; ?>
                 </td></tr>

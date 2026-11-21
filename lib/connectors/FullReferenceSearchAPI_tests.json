@@ -1539,6 +1539,36 @@
     "DOI_source": "doi column"
    },
    "why": "The input file's own 'doi' column gives the DOI: CrossRef's record of it is read and checked (title in the citation), no search; DOI_source 'doi column'."
+  },
+  {
+   "id": "author-year-1",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Negredo et al. 2011",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only authors and a year"
+   },
+   "why": "Only authors and a year ('Author et al. year'): no title, journal, volume or page, so no DOI can be confirmed: skipped, no CrossRef call. None of 1,202 such citations searched before was matched or possible."
+  },
+  {
+   "id": "author-year-2",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Trainer & Knowlton 1968",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only authors and a year"
+   },
+   "why": "Only authors and a year ('Author & Author year'): no title, journal, volume or page, so no DOI can be confirmed: skipped, no CrossRef call. None of 1,202 such citations searched before was matched or possible."
+  },
+  {
+   "id": "author-year-3",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Carpenter (1981)",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only authors and a year"
+   },
+   "why": "Only authors and a year ('Author (year)'): no title, journal, volume or page, so no DOI can be confirmed: skipped, no CrossRef call. None of 1,202 such citations searched before was matched or possible."
   }
  ]
 }

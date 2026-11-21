@@ -8,6 +8,8 @@ namespace php_active_record;
    - A search can take hours (about 1 second per new reference), so it runs in the background, as the same command-line script;
      this page shows its progress, can stop it, and lists the reports with [Download].
    - One search at a time (the script's own lock). It changes nothing: it only writes a report and a guide for the Data Managers.
+   - The uploaded file is only the input of its search: its folder full_reference_search_uploads/<YYYYmmdd_HHMMSS>/ is deleted by this page
+     once no search uses it (after the search finishes or is stopped). A stopped search is resumed by uploading the same file again, with start.
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 ini_set('error_reporting', false);
@@ -111,6 +113,22 @@ function running_jobs()
     }
     usort($jobs, fn($a, $b) => $a['started'] <=> $b['started']);
     return $jobs;
+}
+function clean_uploads($pending, $jobs, $running, $state)
+{   // (Nov 21, 2026) deletes every upload folder (full_reference_search_uploads/<YYYYmmdd_HHMMSS>/) that no search needs any more, so uploads don't pile up.
+    // Kept: the file waiting for [Proceed], the file of the running search (from this page or the command line), and a folder made in the last 2 minutes
+    // (an upload or a [Proceed] being handled right now). Only files directly in such a folder are deleted, then the empty folder.
+    $keep = array();
+    if($pending) $keep[] = (string) $pending['ts'];
+    if($running && $state) $keep[] = (string) $state['ts'];
+    foreach($jobs as $j) if(preg_match('#full_reference_search_uploads/(\d{8}_\d{6})/#', (string) ($j['param']['file'] ?? ''), $m)) $keep[] = $m[1];
+    foreach(glob($GLOBALS['upload_dir'] . '*', GLOB_ONLYDIR) ?: array() as $dir) {
+        $ts = basename($dir);
+        if(!preg_match('/^\d{8}_\d{6}$/', $ts) || in_array($ts, $keep, true)) continue;
+        if(time() - (int) @filemtime($dir) < 120) continue;
+        foreach(scandir($dir) ?: array() as $f) if($f !== '.' && $f !== '..' && is_file("$dir/$f")) @unlink("$dir/$f");
+        @rmdir($dir);
+    }
 }
 function read_state() { $s = @json_decode((string) @file_get_contents($GLOBALS['state_file']), true); return is_array($s) ? $s : null; }
 function read_pending() { $s = @json_decode((string) @file_get_contents($GLOBALS['pending_file']), true); return is_array($s) ? $s : null; }
@@ -228,6 +246,7 @@ $running = is_running() || ($state && process_alive($state));
 // "Search started" only while it runs: a short search (e.g. all rows cached) can end before this page loads, and its banner says so
 if(isset($_GET['started']) && $running) $out .= "<p class='good'><b>Search started.</b> Its progress is shown above; this page refreshes itself while it runs.</p>";
 $pending = read_pending();
+clean_uploads($pending, $jobs, $running, $state); // a finished or stopped search's upload isn't needed any more
 $prog = $state ? progress($state) : null;
 // the banner at the top: how the last search ended (finished / stopped / ended early), until a new file is uploaded or it's dismissed
 $banner = null;

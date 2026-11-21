@@ -13,7 +13,7 @@ namespace php_active_record;
                  (no year in the citation: the first author and the title must agree too)
      possible  : journal, volume and year agree, but the page can't be confirmed (e.g. CrossRef has only the first page) -> look at it
      not found : no candidate agrees; the closest candidate is still described, for review (its DOI is NOT put in the DOI column)
-     skipped   : empty, or too short to search
+     skipped   : empty, too short to search, or only a link (e.g. an iNaturalist, GenBank or museum record: not a citation; Nov 21, 2026)
      error     : CrossRef could not be reached; a re-run tries it again
    Every row gets a review_note in plain words, for the Data Managers' final check.
    Changes nothing else: it only writes a report TSV and a guide (_guide.txt) next to it.
@@ -52,6 +52,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
+    const BARE_LINK = '~^(https?://|www\.)\S+$~i'; // (Nov 21, 2026) a full_reference that is only a link, e.g. http://www.ncbi.nlm.nih.gov/nuccore/109628396, https://www.inaturalist.org/observations/...:
+                                                   // not searched (CrossRef can't match a link; none of 6,765 did). A link with its own DOI (doi.org/10...) is still used.
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
     /* PACE: calls are one at a time, with a PAUSE_SECONDS pause after each one (about 1.8-1.9 s from one call's start to the next): thousands of
@@ -330,6 +332,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
         if(($doi = self::doi_in_text($full_reference)) !== '') return $this->doi_given($row, $doi, $full_reference); // the citation gives its own DOI: no search
+        if(preg_match(self::BARE_LINK, $full_reference)) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Only a link, not a citation: not searched.'));
         if(preg_match(self::DATASET_CITATION, $full_reference)) { // (Nov 19, 2026) a dataset cited as one: DataCite first, e.g. "... [Dataset]. Dryad.", "Data from: ..."
             $d = $this->datacite_route(array_merge($row, array('status' => 'not found', 'checks' => '')), $ref, $full_reference, true);
             if(($d['status'] ?? '') === 'stop' || ($d['DOI_source'] ?? '') === 'DataCite') return $d; // else CrossRef, as for any citation
@@ -806,7 +809,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   /* For an estimate before a search: of the rows a search of $file would do (same start/limit rules), how many are
              'new'     -> sent to CrossRef (about SECONDS_PER_NEW seconds each),
              'cached'  -> searched before: their answer comes from the cache, instantly,
-             'skipped' -> too short to search.
+             'skipped' -> too short to search, or only a link (find_DOI's rules).
            Makes no call. Returns array('rows' => n, 'new' => n, 'cached' => n, 'skipped' => n), or false. */
         if(!($in = @fopen($file, 'r'))) return false;
         $header = explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets($in)), "\r\n"));
@@ -834,6 +837,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it
         if(mb_strlen($ref) < self::MIN_LENGTH) { $n['skipped']++; return; }
         if(($doi = self::doi_in_text($ref)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // its own DOI: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
+        elseif(preg_match(self::BARE_LINK, $ref)) { $n['skipped']++; return; } // only a link: not searched
         else $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
         if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat is asked only once
         else { $n['new']++; $seen[$url] = 1; }
@@ -848,7 +852,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         else                 $t = "about " . rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
         return "Estimated time: $t" . ($s >= 60 ? ", to finish around " . date("Y-m-d H:i T", time() + (int) round($s)) : '')
              . " (" . number_format($n['rows']) . " references: " . number_format($n['new']) . " new, sent to CrossRef at about " . self::SECONDS_PER_NEW . " seconds each; "
-             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " too short to search" : '') . ")";
+             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " skipped (too short, or only a link)" : '') . ")";
     }
     private function search_crossref($full_reference, $year)
     {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.
@@ -1207,7 +1211,7 @@ WHAT TO DO WITH EACH STATUS
                right on that list -- but not all, which is why the tool never fills them in as the DOI.
                Usually there is no DOI: old works (before 1900), books, and many regional journals aren't in CrossRef.
                The Biodiversity Heritage Library (biodiversitylibrary.org) may have these.
-  skipped   -> Too short to search.
+  skipped   -> Not searched: too short, or only a link (e.g. an iNaturalist, GenBank or museum record), not a citation.
   error     -> CrossRef couldn't be reached; the search will be redone on the next run.
 
 GOOD TO KNOW

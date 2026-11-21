@@ -274,6 +274,10 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
     /* form submissions ([Upload file], [Proceed], [Cancel], [Stop the search]): blue, so "this runs something" stands apart from [Download] / [Guide] (gray) */
     input[type=submit], button[type=submit] { background: #2f6db5; color: #fff; border-color: #25578f; font-weight: bold; }
     input[type=submit]:hover, button[type=submit]:hover { background: #25578f; }
+    button.run { background: #2f6db5; color: #fff; border-color: #25578f; font-weight: bold; } /* opens a dialog that runs something: blue too */
+    button.run:hover { background: #25578f; }
+    dialog { border: 1px solid #888; border-radius: 6px; padding: 14px 18px; }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.3); }
     input[type=submit]:disabled, button[type=submit]:disabled { background: #e4e4e4; color: #888; border-color: #bbb; }
     td { text-align: left; vertical-align: top; }
     .wait { display: none; color: #008000; font-weight: bold; } form { margin: 6px 0; }
@@ -370,7 +374,7 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
                 <tr><td></td><td>
                     <form method="post" action="main.php" style="display:inline" onsubmit="return busy(this);">
                         <input type="hidden" name="ts" value="<?php echo h($pending['ts']) ?>">
-                        <button type="submit" name="action" value="proceed">Proceed</button>
+                        <button type="submit" name="action" value="proceed" onclick="return askNotifyThenProceed(this);">Proceed</button>
                         <button type="submit" name="action" value="cancel" formnovalidate>Cancel</button>
                         <span class="wait"> Starting...</span>
                     </form>
@@ -430,13 +434,19 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
             <?php if($prog['guide'] && is_file($work_dir . $prog['guide'])) echo "<tr><td>Guide:</td><td>" . v($prog['guide']) . "</td><td><a class='button' href='main.php?download=" . rawurlencode($prog['guide']) . "'>Download</a></td></tr>"; ?>
         </table>
         <?php if($running): ?>
-            <form method="post" action="main.php" onsubmit="if(!confirm('Stop the search? The report keeps the rows done so far.')) return false; return busy(this);">
-                <input type="hidden" name="action" value="stop">
-                <input type="password" name="password" id="stop-pw" placeholder="maintenance tools password" required autocomplete="new-password" style="height:28px; box-sizing:border-box; vertical-align:middle">
-                <input type="submit" value="Stop the search">
-                <button type="button" id="notify-btn" onclick="askNotify()">Notify me</button>
-                <small>This page refreshes itself every 15 seconds. <span id="notify-note">[Notify me]: a desktop notice when the search ends, while this page stays open (any tab).</span></small>
-            </form>
+            <?php // [Stop the search] asks for the password in a dialog box (no password box on the page itself) ?>
+            <button type="button" class="run" onclick="openStop()">Stop the search</button>
+            <small>This page refreshes itself every 15 seconds. <span id="notify-note">A desktop notice comes when the search ends, while this page stays open (any tab).</span></small>
+            <dialog id="stop-dialog">
+                <form method="post" action="main.php" onsubmit="return busy(this);">
+                    <input type="hidden" name="action" value="stop">
+                    <p><b>Stop the search?</b><br><small>The report keeps the rows done so far.</small></p>
+                    <p><input type="password" name="password" id="stop-pw" placeholder="maintenance tools password" required autocomplete="new-password" style="width:260px; height:28px; box-sizing:border-box"></p>
+                    <input type="submit" value="Stop the search">
+                    <button type="button" onclick="document.getElementById('stop-dialog').close()">Cancel</button>
+                    <span class="wait"> Stopping...</span>
+                </form>
+            </dialog>
         <?php endif; ?>
         <details><summary>Log (the last lines)</summary><pre><?php echo h($prog['tail']) ?></pre></details>
     </details></td></tr>
@@ -501,22 +511,25 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
 var RUNNING_LOG = <?php echo json_encode($running && $state ? $state['log'] : null) ?>;
 var TAB_TITLE = <?php echo json_encode($tab_title) ?>;
 <?php if($running || $jobs): ?>
-var PW_TYPED_AT = 0; // when the password for [Stop the search] was last typed in (a password the browser fills in by itself doesn't count)
-(function() { var p = document.getElementById('stop-pw'); if(p) p.addEventListener('keydown', function() { PW_TYPED_AT = Date.now(); }); })();
-setInterval(function() {   // refresh every 15 seconds, but not while the password for [Stop the search] is being typed (in the box, or typed in the last 2 minutes) or the form is being sent
-    var p = document.getElementById('stop-pw');
-    if(p && (document.activeElement === p || (p.value !== '' && Date.now() - PW_TYPED_AT < 120000) || p.form.querySelector('input[type=submit]').disabled)) return;
+function openStop() { var d = document.getElementById('stop-dialog'), p = document.getElementById('stop-pw'); p.value = ''; d.showModal(); p.focus(); }
+setInterval(function() {   // refresh every 15 seconds, but not while the [Stop the search] dialog is open or its form is being sent
+    var d = document.getElementById('stop-dialog');
+    if(d && (d.open || d.querySelector('input[type=submit]').disabled)) return;
     location.href = 'main.php';
 }, 15000);
 <?php endif; ?>
 function store(k, v) { try { if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch(e) { return null; } }
 function dismissBanner() { var r = document.getElementById('banner-row'); if(r) { store('frs_dismissed', r.dataset.log); r.style.display = 'none'; } }
-function askNotify() {
-    if(!('Notification' in window)) { document.getElementById('notify-note').textContent = 'This browser cannot show desktop notices.'; return; }
-    Notification.requestPermission().then(function(p) {
-        if(p === 'granted') { store('frs_notify', RUNNING_LOG); document.getElementById('notify-btn').disabled = true; document.getElementById('notify-note').textContent = 'You will get a desktop notice when it ends.'; }
-        else document.getElementById('notify-note').textContent = 'Desktop notices are blocked for this page in the browser settings.';
-    });
+function askNotifyThenProceed(btn) {
+    // Everyone gets a desktop notice when the search ends (no [Notify me] button). The browser asks for permission only once, and only on a click,
+    // so it's asked here, on [Proceed]; the search starts when the question is answered (allowed or not).
+    if(!('Notification' in window) || Notification.permission !== 'default') return true;
+    var f = btn.form, sent = false;
+    var go = function() { if(sent) return; sent = true; var a = document.createElement('input'); a.type = 'hidden'; a.name = 'action'; a.value = 'proceed'; f.appendChild(a); f.submit(); };
+    busy(f); // "Starting..." while the browser asks
+    try { var q = Notification.requestPermission(go); if(q && q.then) q.then(go, go); } catch(e) { go(); } // Safari: callback; others: a promise
+    setTimeout(go, 30000); // the question left open: start anyway
+    return false;
 }
 try { if(location.search.indexOf('started=') >= 0) history.replaceState(null, '', 'main.php'); } catch(e) {} // a reload doesn't show "Search started" again
 (function() {
@@ -525,8 +538,11 @@ try { if(location.search.indexOf('started=') >= 0) history.replaceState(null, ''
         r.style.display = 'none';
         var ls = document.getElementById('last-search'); if(ls) ls.open = false;           // ... so the Last search section starts hidden too
     }
-    if(RUNNING_LOG && store('frs_notify') === RUNNING_LOG && document.getElementById('notify-btn')) {   // already asked for this search
-        document.getElementById('notify-btn').disabled = true; document.getElementById('notify-note').textContent = 'You will get a desktop notice when it ends.';
+    if(RUNNING_LOG) {                                                                      // a search is running: its end is notified, always
+        store('frs_notify', RUNNING_LOG);
+        var nn = document.getElementById('notify-note');
+        if(nn && !('Notification' in window)) nn.textContent = 'This browser cannot show desktop notices.';
+        else if(nn && Notification.permission === 'denied') nn.textContent = 'Desktop notices are blocked for this page in the browser settings.';
     }
     if(r && store('frs_notify') === r.dataset.log) {                                      // the search we were waiting for has ended: tell once
         store('frs_notify', null);

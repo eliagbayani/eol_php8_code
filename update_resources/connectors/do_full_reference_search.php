@@ -43,8 +43,8 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       The cases are in lib/connectors/FullReferenceSearchAPI_tests.json: add one whenever a problem is fixed. Also [Run Tests] on the web page.
     - Changes nothing else. CrossRef answers are cached (never expire), so a re-run or a resumed run is instant for rows already searched.
     - CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub): our contact email, sent with every call as CrossRef asks ("polite pool").
-    - Polite: one call at a time, at least 1.7 seconds apart (CrossRef answers 429 to searches sent faster; about 2.8 seconds per new
-      reference); after a 429/503, a 1-second pause after each call for the rest of the run. On HTTP 429 (too many requests) or
+    - Polite: one call at a time, a 1-second pause after each (about 3 seconds per new reference); faster paces (1.0-1.7 s between calls)
+      got HTTP 429 (Nov 21, 2026). On HTTP 429 (too many requests) or
       503 (busy) it waits (CrossRef's Retry-After, else 1, 2, 4, 8 minutes); after 5 in a row it stops cleanly and prints the "start" to resume with.
     - What it says (Nov 21, 2026; the user should never have to guess what is happening):
       - a file it can't find or read: an ERROR at once, before any wait (inside Docker only /Volumes/..., /var/www/html/... and /extra/... exist,

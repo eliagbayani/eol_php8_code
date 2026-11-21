@@ -52,15 +52,15 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
-    const SECONDS_PER_NEW = 2.8; // about 2.8 seconds per new reference (about 1.7 calls, at least MIN_GAP_SECONDS apart), for estimates; same as the web page's
+    const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
-    /* (Nov 21, 2026) PACE: calls are one at a time, and the next call starts at least MIN_GAP_SECONDS after the previous one started
-       (or interval/limit + 10% from CrossRef's x-rate-limit-* headers, if that is longer). The headers say 3 per second in the polite pool,
-       but searches (query.bibliographic) got HTTP 429 at 1.0 and 1.2 seconds apart (1 in 12 calls), and at 1.5 s (40 a minute) a long run
-       got one after about 170 calls: the real limit seems to be about 40 searches a minute or a little fewer. So 1.7 s (about 35 a minute). The old scheme (a 1-second pause after each call) was about 1.8-1.9 s apart. After a 429/503: back to the 1-second
-       PAUSE after each call, for the rest of the run. Cached answers need no call and no wait. */
-    const MIN_GAP_SECONDS = 1.7;
-    const PAUSE_SECONDS = 1;    // the pause after every call once CrossRef has asked us to slow down (and the gap before the limit is known)
+    /* PACE: calls are one at a time, with a PAUSE_SECONDS pause after each one (about 1.8-1.9 s from one call's start to the next): thousands of
+       calls without a single HTTP 429. Also never faster than CrossRef's own x-rate-limit-* headers (interval/limit + 10%), should they ever ask
+       for a slower pace than that. Cached answers need no call and no wait.
+       (Nov 21, 2026) Tried and given up: no pause, calls at least 1.0 / 1.2 / 1.5 / 1.7 s apart. The headers say 3 per second (polite pool),
+       but searches got 429 at all of them: 1 in 12 calls at 1.0 and 1.2 s, after about 170 calls at 1.5 s, after about 15 calls at 1.7 s
+       (6 minutes after an earlier 429: CrossRef seems to count over several minutes). The real limit is about where this pause already is. */
+    const PAUSE_SECONDS = 1;    // the pause after every CrossRef (and DataCite) call
     const THROTTLE_LIMIT = 5;   // after this many "429 too many requests" / "503 busy" answers in a row (with waits of 1, 2, 4, 8 minutes), the search stops
     const KEEP_REPORTS = 20;  // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
     const REPORT_RE = '/^[A-Za-z0-9._-]+_DOIs_(\d{8}_\d{6})\.tsv$/'; // e.g. reference_DOIs_20261114_013451.tsv; the time it was made sorts them
@@ -846,7 +846,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         elseif($s < 5400)    $t = "about " . round($s / 60) . " minutes";
         elseif($s < 172800)  $t = "about " . rtrim(rtrim(number_format($s / 3600, 1), '0'), '.') . " hours";
         else                 $t = "about " . rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
-        return "Estimated time: $t" . ($s >= 60 ? ", to finish around " . date("Y-m-d H:i T", time() + $s) : '')
+        return "Estimated time: $t" . ($s >= 60 ? ", to finish around " . date("Y-m-d H:i T", time() + (int) round($s)) : '')
              . " (" . number_format($n['rows']) . " references: " . number_format($n['new']) . " new, sent to CrossRef at about " . self::SECONDS_PER_NEW . " seconds each; "
              . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " too short to search" : '') . ")";
     }
@@ -866,16 +866,16 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     private function call_crossref($url, $opt = null)
     {   /* $opt: the options of the service called: crossref_options (default) or datacite_options (DATACITE): its cache, name and success test.
-           One CrossRef call, politely: one at a time, at CrossRef's own published pace (see PACE), and our contact email in the User-Agent (CROSSREF_MAILTO).
+           One CrossRef call, politely: one at a time, a PAUSE after each call (see PACE), and our contact email in the User-Agent (CROSSREF_MAILTO).
            - 200: the answer is saved in the same cache lookup_with_cache() uses (so it's never asked again) and returned.
            - 429 (too many requests) or 503 (busy): wait -- CrossRef's Retry-After, else 1, 2, 4, 8 minutes -- and try again.
              After THROTTLE_LIMIT such answers in a row, returns 'stop': the search stops cleanly and can be resumed with "start".
            - anything else (no connection, 5xx, ...): tried 3 times, 5 seconds apart; then false (this row = 'error'). */
         $opt = $opt ?? $this->crossref_options; $name = $opt['name'];
-        $pace = &$this->pace[$name]; // per service (CrossRef, DataCite): 'gap' between call starts, 'last' call start, 'slow' after a 429/503
-        if(!is_array($pace)) $pace = array('gap' => self::MIN_GAP_SECONDS, 'last' => 0.0, 'slow' => false);
+        $pace = &$this->pace[$name]; // per service (CrossRef, DataCite): 'gap' between call starts from the x-rate-limit-* headers, 'last' call start
+        if(!is_array($pace)) $pace = array('gap' => 0.0, 'last' => 0.0);
         for($attempt = 1, $other_failures = 0; ; $attempt++) {
-            if(($wait = $pace['last'] + $pace['gap'] - microtime(true)) > 0) usleep((int) round($wait * 1000000)); // never faster than the limit
+            if(($wait = $pace['last'] + $pace['gap'] - microtime(true)) > 0) usleep((int) round($wait * 1000000)); // never faster than the headers' limit
             $pace['last'] = microtime(true);
             $ch = curl_init($url);
             curl_setopt_array($ch, array(CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => true, CURLOPT_FOLLOWLOCATION => true,
@@ -885,10 +885,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $header_size = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             curl_close($ch);
             $headers = $res === false ? '' : substr($res, 0, $header_size);
-            if($pace['slow']) usleep(self::PAUSE_SECONDS * 1000000); // CrossRef asked us to slow down earlier in this run: the old 1-second pause
-            elseif(preg_match('/^x-rate-limit-limit:\s*(\d+)/mi', $headers, $m1) && (int) $m1[1] > 0) { // the limit it gives: e.g. 3 calls per "1s"
+            usleep(self::PAUSE_SECONDS * 1000000); // the pause between calls, whatever the answer
+            if(preg_match('/^x-rate-limit-limit:\s*(\d+)/mi', $headers, $m1) && (int) $m1[1] > 0) { // the limit it gives: e.g. 3 calls per "1s"
                 $interval = preg_match('/^x-rate-limit-interval:\s*(\d+(?:\.\d+)?)\s*s/mi', $headers, $m2) ? (float) $m2[1] : 1.0;
-                $pace['gap'] = max(self::MIN_GAP_SECONDS, 1.1 * $interval / (int) $m1[1]);
+                $pace['gap'] = 1.1 * $interval / (int) $m1[1];
             }
             $body    = $res === false ? '' : substr($res, $header_size);
             if($code == 200 && preg_match('/' . $opt['validation_regex'] . '/', $body)) {
@@ -898,8 +898,6 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             }
             if($code == 404 && (str_contains($url, '/works/10.') || str_contains($url, '/dois/10.'))) return 'missing'; // a DOI it doesn't have (e.g. a DataCite DOI in CrossRef)
             if($code == 429 || $code == 503) {
-                if(!$pace['slow']) { $pace['slow'] = true; $pace['gap'] = (float) self::PAUSE_SECONDS;
-                    echo "$name asked us to slow down (HTTP $code): from now on, a " . self::PAUSE_SECONDS . "-second pause after each call, for the rest of this run.\n"; }
                 $this->throttled_in_a_row = ($this->throttled_in_a_row ?? 0) + 1;
                 if($this->throttled_in_a_row >= self::THROTTLE_LIMIT) return 'stop';
                 $wait = preg_match('/^Retry-After:\s*(\d+)/mi', $headers, $m) ? min((int) $m[1], 600) : 60 * (2 ** ($this->throttled_in_a_row - 1));

@@ -789,7 +789,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     private function count_one_row(&$n, &$seen, $full_reference)
     {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it
         if(mb_strlen($ref) < self::MIN_LENGTH) { $n['skipped']++; return; }
-        $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
+        if(($doi = self::doi_in_text($ref)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // its own DOI: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
+        else $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
         if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat is asked only once
         else { $n['new']++; $seen[$url] = 1; }
     }

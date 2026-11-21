@@ -58,6 +58,8 @@ References (Nov 20, 2026): each reference's identifier is replaced by its DOI as
 found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same code and the same CrossRef/DataCite cache as the tool).
   - Only 'matched' and 'possible' DOIs are used; 'not found', 'skipped' and 'error' references keep their identifier.
   - Every referenceID (MoF, Association, Occurrence, Taxon; several IDs joined by ';' too) is changed the same way, so no link breaks.
+  - A ';' in a DOI (old SICI DOIs, e.g. 10.1656/1528-7092(2003)002[0159:ANSOEC]2.0.CO;2) is written as %3B, since ';' separates referenceIDs;
+    https://doi.org/...2.0.CO%3B2 opens the same page.
   - Two references with the same DOI are merged: the first one's row is kept, and both IDs point to it.
   - Always on. A new full_reference costs about 3 seconds (CrossRef's polite pace); cached ones are instant, so a re-run is fast.
     If CrossRef keeps answering HTTP 429/503, the lookups stop for this run and the remaining references keep their identifiers.
@@ -227,7 +229,8 @@ class AnalyzeMoF_API
             $this->frs->report_row($id, $full, $r); // the tool's report (a 'stop' isn't written)
             $status = $r['status'];
             if($status == 'stop') { $this->frs_stopped = true; $status = 'not searched (CrossRef asked us to slow down)'; }
-            elseif(in_array($status, array('matched', 'possible')) && ($url = (string) @$r['DOI_URL']) !== '') $this->ref_map[$id] = $url;
+            elseif(in_array($status, array('matched', 'possible')) && ($url = (string) @$r['DOI_URL']) !== '')
+                $this->ref_map[$id] = str_replace(';', '%3B', $url); // ';' separates referenceIDs, so it's percent-encoded (old SICI DOIs end in ";2"); doi.org reads it the same
         }
         @$this->ref_counts[$status]++;
         $clean = fn($s) => str_replace(array("\t", "\r", "\n"), ' ', (string) $s);

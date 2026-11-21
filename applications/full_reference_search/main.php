@@ -24,7 +24,7 @@ $refs_page   = "../reference_maintenance/main.php";
 $terms_page  = "../terms_maintenance/main.php";
 $has_password = defined('TERMS_MTCE_PASSWORD') && TERMS_MTCE_PASSWORD !== ''; // [Stop the search] needs the maintenance tools password, as on the Terms and References pages
 $report_re   = '/^[A-Za-z0-9._-]+_DOIs_\d{8}_\d{6}(\.tsv|_guide\.txt)$/';      // the only files [Download] serves
-const MAX_UPLOAD_MB = 20;
+define('MAX_UPLOAD_MB', getenv('MY_ENV') === 'development' ? 100 : 20); // upload limit: 100 MB on the Mac (e.g. 300,000-row parts of a big reference.tab), 20 MB in production (editors.eol.org)
 const PROGRESS_EVERY = 20; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
 const SECONDS_PER_NEW = 3; // about 3 seconds per new reference: CrossRef's answer + FullReferenceSearchAPI::PAUSE_SECONDS (1 s)
 require_library('connectors/ZenodoTraitBankAPI');

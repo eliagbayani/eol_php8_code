@@ -53,7 +53,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
-    const PROGRESS_EVERY = 20; // a progress line ("N rows done ...") every this many rows; the web page reads it
+    const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
     const PAUSE_SECONDS = 1;    // the pause after every CrossRef call (calls are one at a time); cached answers need no call and no pause
     const THROTTLE_LIMIT = 5;   // after this many "429 too many requests" / "503 busy" answers in a row (with waits of 1, 2, 4, 8 minutes), the search stops
     const KEEP_REPORTS = 20;  // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
@@ -123,14 +123,46 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   // Runs the task; also returns its result.
         $task = $this->param['task'] ?? '';
         if($task == 'run_tests') return $this->run_tests(); // no lock: it writes no report; the page doesn't start it while a search runs
-        // one run at a time: a second run waits here until the first one is done. Released when this function returns.
+        if($task != 'search_DOIs_for_full_references') { echo "\nERROR: Unknown task [$task]. Available: search_DOIs_for_full_references, run_tests\n"; return null; }
+        // (Nov 21, 2026) the user is never left guessing: a wrong file is said at once (not after waiting for another search), and a wait is announced
+        if(!self::input_file_ok((string) ($this->param['file'] ?? ''))) return false;
+        // one run at a time (also across the web and Jenkins containers: same lock file): a second run waits here until the first one is done
         $lock = @fopen($this->work_dir . ".full_reference_search.lock", 'c');
-        if($lock) { @chmod($this->work_dir . ".full_reference_search.lock", 0666); flock($lock, LOCK_EX); }
-        $result = null;
-        if($task == 'search_DOIs_for_full_references') $result = $this->search_DOIs_for_full_references();
-        else echo "\nERROR: Unknown task [$task]. Available: search_DOIs_for_full_references, run_tests\n";
+        if($lock) { @chmod($this->work_dir . ".full_reference_search.lock", 0666); $this->wait_for_lock($lock); }
+        @file_put_contents($this->running_file(), json_encode(array('file' => (string) $this->param['file'], 'started' => date("Y-m-d H:i:s"),
+                                                                 'where' => self::where_running(), 'pid' => getmypid()), JSON_UNESCAPED_SLASHES)); // who holds the lock, for a waiting run and the web page
+        @chmod($this->running_file(), 0666);
+        $result = $this->search_DOIs_for_full_references();
+        @unlink($this->running_file());
         if($lock) { flock($lock, LOCK_UN); fclose($lock); }
         return $result;
+    }
+    function running_file() { return $this->work_dir . ".full_reference_search.running.json"; } // the search holding the lock: file, started, where, pid
+    static function where_running() { return is_dir('/var/jenkins_home') ? 'Jenkins' : 'the web container (web page or command line)'; }
+    private static function input_file_ok($file)
+    {   // before any wait: a missing or unreadable file is said at once, with the usual cause inside Docker
+        if($file === '') { echo "\nERROR: No \"file\" given. Nothing was searched.\n  e.g. \"file\": \"" . CONTENT_RESOURCE_LOCAL_PATH . "reference.tab\"\n"; return false; }
+        if(is_file($file) && is_readable($file)) return true;
+        echo "\nERROR: File not found or not readable: [$file]. Nothing was searched.\n";
+        if(!preg_match('#^/(Volumes|var/www/html|extra)/#', $file))
+            echo "  This script runs inside Docker, which sees only /Volumes/..., /var/www/html/... and /extra/... -- not /Users/... or ~/Desktop.\n"
+               . "  Copy the file under /Volumes, e.g. /Volumes/Crucial_2TB/eol_resources/, and give that path.\n";
+        return false;
+    }
+    private function wait_for_lock($lock)
+    {   // takes the one-search-at-a-time lock; if another search holds it, says which one and waits, with a line every 10 minutes
+        if(flock($lock, LOCK_EX | LOCK_NB)) return;
+        $who = @json_decode((string) @file_get_contents($this->running_file()), true);
+        echo "\nWAITING: another search is running" . (is_array($who) ? ": [" . basename((string) @$who['file']) . "], started " . @$who['started'] . ", in " . @$who['where'] : '') . ".\n"
+           . "  Only one search runs at a time (CrossRef is asked politely, one call at a time). This one starts by itself as soon as that one ends.\n"
+           . "  To stop waiting: Ctrl-C (or [Abort] in Jenkins). To stop the other search: [Stop the search] on the web page if it was started there,\n"
+           . "  else Ctrl-C / [Abort] where it runs.\n";
+        $t0 = time(); $next = 600;
+        while(!flock($lock, LOCK_EX | LOCK_NB)) {
+            sleep(5);
+            if(time() - $t0 >= $next) { echo "  still waiting for the other search (" . round((time() - $t0) / 60) . " minutes so far)\n"; $next += 600; }
+        }
+        echo "The other search has ended (waited " . round((time() - $t0) / 60) . " minutes): this one starts now.\n";
     }
     private function search_DOIs_for_full_references()
     {   /* $this->param:
@@ -153,6 +185,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         fwrite($out, implode("\t", self::OUTPUT_COLUMNS) . "\n");
         echo "\nInput: [$file]\nOutput: [$out_file]\nRows: from " . $start . ($limit ? ", at most $limit" : ', to the end') . "\n";
         $this->keep_latest_reports(); // here, not at the end, so stopped searches are counted too; the new report is one of the 20
+        if(($this->param['estimate'] ?? true) !== false) { // the web page shows its own estimate before [Proceed], so it passes "estimate": false
+            echo "Counting the rows searched before (in the cache), for the estimate...\n";
+            if($n = $this->count_rows_to_search($file, $start, $limit)) echo self::estimate_text($n) . "\n";
+        }
+        echo "Searching: a progress line every " . self::PROGRESS_EVERY . " rows (about 2 to 3 minutes when the rows are new; instant when they were searched before).\n";
         $counts = array('matched' => 0, 'possible' => 0, 'not found' => 0, 'skipped' => 0, 'error' => 0);
         $changed = array_fill_keys(array_keys(self::TEXT_CHANGES), 0); // rows changed by each pre-processing rule, for the guide
         $time = time(); $row_no = 0; $done = 0;

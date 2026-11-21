@@ -27,7 +27,7 @@ $terms_page  = "../terms_maintenance/main.php";
 $has_password = defined('TERMS_MTCE_PASSWORD') && TERMS_MTCE_PASSWORD !== ''; // [Stop the search] needs the maintenance tools password, as on the Terms and References pages
 $report_re   = '/^[A-Za-z0-9._-]+_DOIs_\d{8}_\d{6}(\.tsv|_guide\.txt)$/';      // the only files [Download] serves
 define('MAX_UPLOAD_MB', getenv('MY_ENV') === 'development' ? 100 : 20); // upload limit: 100 MB on the Mac (e.g. 300,000-row parts of a big reference.tab), 20 MB in production (editors.eol.org)
-const PROGRESS_EVERY = 20; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
+const PROGRESS_EVERY = 50; // = FullReferenceSearchAPI::PROGRESS_EVERY: the script logs a progress line every this many rows
 const SECONDS_PER_NEW = 3; // about 3 seconds per new reference: CrossRef's answer + FullReferenceSearchAPI::PAUSE_SECONDS (1 s)
 require_library('connectors/ZenodoTraitBankAPI');
 require_library('connectors/GenerateTB_Files_Functions');
@@ -199,7 +199,7 @@ elseif($action == 'proceed') {
     if(!$p || ($_POST['ts'] ?? '') !== $p['ts'] || !is_file($p['saved'])) $out .= "<p class='bad'>The uploaded file wasn't found. Please upload it again.</p>";
     elseif(is_running() || (($st = read_state()) && process_alive($st))) $out .= "<p class='bad'>A search is already running. Wait for it to finish, or stop it, then proceed.</p>";
     else {
-        $param = array('task' => 'search_DOIs_for_full_references', 'file' => $p['saved']);
+        $param = array('task' => 'search_DOIs_for_full_references', 'file' => $p['saved'], 'estimate' => false); // the estimate was shown before [Proceed]
         if($p['limit'] !== '') $param['limit'] = (int) $p['limit'];
         if($p['start'] !== '') $param['start'] = (int) $p['start'];
         $log = "full_reference_search_{$p['ts']}.log";
@@ -243,6 +243,10 @@ elseif($action == 'stop') {
 $state = read_state();
 $jobs = running_jobs();
 $running = is_running() || ($state && process_alive($state));
+// (Nov 21, 2026) a search holding the lock that this page can't see in its own container, e.g. started in Jenkins: said in "Running jobs",
+// not shown as this page's search; its file, start and place come from the script's .full_reference_search.running.json
+$elsewhere = null;
+if(is_running() && !$jobs && !($state && process_alive($state))) { $elsewhere = @json_decode((string) @file_get_contents($work_dir . ".full_reference_search.running.json"), true) ?: array(); $running = false; }
 // "Search started" only while it runs: a short search (e.g. all rows cached) can end before this page loads, and its banner says so
 if(isset($_GET['started']) && $running) $out .= "<p class='good'><b>Search started.</b> Its progress is shown above; this page refreshes itself while it runs.</p>";
 $pending = read_pending();
@@ -262,7 +266,7 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
 ?>
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><title><?php echo h($tab_title) ?></title>
-<?php if($running || $jobs) echo '<noscript><meta http-equiv="refresh" content="15;url=main.php"></noscript>'; // with JS: the refresh in the script at the end, which waits while the password is being typed ?>
+<?php if($running || $jobs || $elsewhere !== null) echo '<noscript><meta http-equiv="refresh" content="15;url=main.php"></noscript>'; // with JS: the refresh in the script at the end, which waits while the password is being typed ?>
 <style>
     /* text links: one fixed color, visited or not (buttons keep their own colors) */
     a:not(.button), a:not(.button):visited { color: #0645ad; }
@@ -367,8 +371,13 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
             <span>See also: <?php if(getenv('MY_ENV') === 'development'): // the References page runs only on the Mac for now ?><a href="<?php echo h($refs_page) ?>">References Maintenance</a> | <?php endif; ?><a href="<?php echo h($terms_page) ?>">Terms Maintenance</a>.</span></span></small>
     </td></tr>
 
-    <tr><td><div class="jobs <?php echo $jobs ? 'busy' : 'idle' ?>"><b>Running jobs</b><br>
-        <?php if(!$jobs) echo "None: no search is running now (from this page or the command line)."
+    <tr><td><div class="jobs <?php echo $jobs || $elsewhere !== null ? 'busy' : 'idle' ?>"><b>Running jobs</b><br>
+        <?php if(!$jobs && $elsewhere !== null)
+                  echo "&bull; search_DOIs_for_full_references: " . h($elsewhere ? basename((string) @$elsewhere['file']) : 'a file')
+                     . "<br>&nbsp;&nbsp;running in " . h($elsewhere['where'] ?? 'another container (e.g. Jenkins)') . (!empty($elsewhere['started']) ? ", started " . h($elsewhere['started']) : '')
+                     . "<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span>"
+                     . "<br>&nbsp;&nbsp;<small>(not from this page: its progress is in its own output, e.g. the Jenkins job's Console Output, and it can only be stopped there. A new search here waits until it ends.)</small>";
+        elseif(!$jobs) echo "None: no search is running now (from this page or the command line)."
                              . ($banner ? " The last search " . array('done' => "has finished", 'stopped' => "was stopped", 'ended' => "ended early")[$banner['kind']] . ($banner['at'] ? " (" . h($banner['at']) . ")" : '') . "." : '');
         else foreach($jobs as $j) {
             $p = $j['param'];
@@ -529,7 +538,7 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
 // The banner and the desktop notice. Browser storage only remembers this viewer's choices; the page works without it.
 var RUNNING_LOG = <?php echo json_encode($running && $state ? $state['log'] : null) ?>;
 var TAB_TITLE = <?php echo json_encode($tab_title) ?>;
-<?php if($running || $jobs): ?>
+<?php if($running || $jobs || $elsewhere !== null): ?>
 function openStop() { var d = document.getElementById('stop-dialog'), p = document.getElementById('stop-pw'); p.value = ''; d.showModal(); p.focus(); }
 setInterval(function() {   // refresh every 15 seconds, but not while the [Stop the search] dialog is open or its form is being sent
     var d = document.getElementById('stop-dialog');

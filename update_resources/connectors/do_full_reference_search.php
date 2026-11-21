@@ -45,6 +45,12 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
     - CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub): our contact email, sent with every call as CrossRef asks ("polite pool").
     - Polite: one call at a time, a 1-second pause after each (about 3 seconds per new reference). On HTTP 429 (too many requests) or
       503 (busy) it waits (CrossRef's Retry-After, else 1, 2, 4, 8 minutes); after 5 in a row it stops cleanly and prints the "start" to resume with.
+    - What it says (Nov 21, 2026; the user should never have to guess what is happening):
+      - a file it can't find or read: an ERROR at once, before any wait (inside Docker only /Volumes/..., /var/www/html/... and /extra/... exist,
+        not /Users/... or ~/Desktop); exit code 1, so a Jenkins build fails
+      - one search at a time, also across the web and Jenkins containers: if another one runs, "WAITING: another search is running: [file],
+        started ..., in ..." and a line every 10 minutes, then "this one starts now"
+      - before the first CrossRef call: the estimate (rows new / searched before, time); then a progress line every 50 rows
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -66,5 +72,9 @@ require_library('connectors/ZenodoTraitBankAPI');
 require_library('connectors/GenerateTB_Files_Functions');
 require_library('connectors/FullReferenceSearchAPI');
 $func = new FullReferenceSearchAPI($param);
-$func->start();
+$result = $func->start();
+if($result === false || $result === null) { // an ERROR line above says why; exit code 1, so Jenkins marks the build as failed instead of successful
+    echo "\nThe run ended with an error (see the ERROR line above). Nothing more was done.\n";
+    exit(1);
+}
 ?>

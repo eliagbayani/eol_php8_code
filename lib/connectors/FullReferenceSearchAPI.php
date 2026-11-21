@@ -13,7 +13,10 @@ namespace php_active_record;
                  (no year in the citation: the first author and the title must agree too)
      possible  : journal, volume and year agree, but the page can't be confirmed (e.g. CrossRef has only the first page) -> look at it
      not found : no candidate agrees; the closest candidate is still described, for review (its DOI is NOT put in the DOI column)
-     skipped   : empty, too short to search, or only a link (e.g. an iNaturalist, GenBank or museum record: not a citation; Nov 21, 2026)
+     skipped   : empty, too short to search, only a link (e.g. an iNaturalist, GenBank or museum record), or a GenBank sequence title
+                 (e.g. "Influenza A virus (...) segment 4 hemagglutinin (HA) gene, complete cds"): not citations (Nov 21, 2026)
+   A 'doi' column in the input file (as in a DwCA reference.tab), when the citation has no DOI of its own, is used as a DOI the citation gives:
+   CrossRef's record of it is read and checked, no search; DOI_source says 'doi column' (Nov 21, 2026).
      error     : CrossRef could not be reached; a re-run tries it again
    Every row gets a review_note in plain words, for the Data Managers' final check.
    Changes nothing else: it only writes a report TSV and a guide (_guide.txt) next to it.
@@ -54,6 +57,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
     const BARE_LINK = '~^(https?://|www\.)\S+$~i'; // (Nov 21, 2026) a full_reference that is only a link, e.g. http://www.ncbi.nlm.nih.gov/nuccore/109628396, https://www.inaturalist.org/observations/...:
                                                    // not searched (CrossRef can't match a link; none of 6,765 did). A link with its own DOI (doi.org/10...) is still used.
+    const GENBANK_TITLE = '/(,? (complete|partial) (cds|sequence|genome|chromosome)|segment \d+,? (complete |partial |cRNA |genomic )?sequence|genome assembly, segment: ?\d+|, whole genome shotgun sequence)\.?$/';
+        // (Nov 21, 2026) a GenBank sequence title, not a citation, e.g. "Influenza A virus (A/chicken/Jiangsu/J2323/2017(H9N2)) segment 4 hemagglutinin (HA) gene, complete cds",
+        // "Influenza A virus genome assembly, segment: 6": not searched. A title that ends otherwise (e.g. "..., partial cds, strain: BRbv611") is still searched.
+        // Only the END of the text counts, so a paper's title about sequences ("... internal transcribed spacer sequence analysis ...") is still searched.
+        // On the 3.5M-row reference.tab (Nov 21, 2026): 1,335,149 rows caught, all with a GenBank (nuccore) uri; 0 of the 224,107 other citations.
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
     /* PACE: calls are one at a time, with a PAUSE_SECONDS pause after each one (about 1.8-1.9 s from one call's start to the next): thousands of
@@ -186,7 +194,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $start = max(1, (int) ($this->param['start'] ?? 1));
         if(!($in = fopen($file, 'r'))) { echo "\nERROR: Cannot read [$file]\n"; return false; }
         $header = explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets($in)), "\r\n"));
-        $col_id = array_search('identifier', $header); $col_ref = array_search('full_reference', $header);
+        $col_id = array_search('identifier', $header); $col_ref = array_search('full_reference', $header); $col_doi = array_search('doi', $header); // 'doi': optional
         if($col_id === false || $col_ref === false) { fclose($in); echo "\nERROR: The header must have 'identifier' and 'full_reference'. Got: [" . implode(', ', $header) . "]\n"; return false; }
 
         $out_file = $this->work_dir . pathinfo($file, PATHINFO_FILENAME) . "_DOIs_" . date("Ymd_His") . ".tsv";
@@ -210,7 +218,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($limit && $done >= $limit) break;
             $f = explode("\t", $line);
             $identifier = (string) ($f[$col_id] ?? ''); $full_reference = (string) ($f[$col_ref] ?? ''); // as in the input file; find_DOI() cleans it
-            $r = $this->find_DOI($full_reference);
+            $r = $this->find_DOI($full_reference, $col_doi !== false ? (string) ($f[$col_doi] ?? '') : '');
             if($r['status'] == 'stop') { $stopped_at = $row_no; break; }
             $counts[$r['status']]++; $done++;
             foreach($r['change_codes'] as $code) $changed[$code]++;
@@ -242,7 +250,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $off = array('author_title_checks' => !$this->author_title_checks ? 'author and title checks are off' : '',
                          'datacite_search' => !$this->datacite_search ? 'the DataCite search is off' : ''); // DATACITE
             if(($why_off = $off[$e['requires'] ?? ''] ?? '') !== '') { $r['result'] = 'skipped'; $r['got'] = $why_off; $res['skipped']++; $res['cases'][] = $r; continue; }
-            $got = $this->find_DOI($t['full_reference']);
+            $got = $this->find_DOI($t['full_reference'], $t['doi'] ?? '');
             if($got['status'] == 'stop') { echo "\nCrossRef keeps asking us to slow down: the tests stopped. Try again later.\n"; $res['stopped'] = true; break; }
             foreach($e as $k => $want) {
                 if($k == 'requires') continue;
@@ -320,8 +328,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     private static function counts_str($counts)
     {   return implode(', ', array_map(fn($k, $v) => "$k $v", array_keys($counts), $counts));
     }
-    function find_DOI($full_reference)
+    function find_DOI($full_reference, $doi_column = '')
     {   // Searches CrossRef for one full_reference and checks its candidates. Returns the OUTPUT_COLUMNS from 'searched_text' on.
+        // $doi_column: the row's 'doi' column, if the input file has one (e.g. "10.1002/ecy.1680"); used when the citation has no DOI of its own.
         $full_reference = self::clean_full_reference($full_reference, $changes); // what is searched and read; the report keeps the original full_reference too
         $ref = $this->parse_full_reference($full_reference);
         $row = array_fill_keys(array_slice(self::OUTPUT_COLUMNS, 2), '');
@@ -330,9 +339,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['change_codes'] = array_keys($changes);      // not a column: counted for the guide
         foreach(array('author', 'year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
-        if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
         if(($doi = self::doi_in_text($full_reference)) !== '') return $this->doi_given($row, $doi, $full_reference); // the citation gives its own DOI: no search
+        if(($doi = self::doi_in_column($doi_column)) !== '') return $this->doi_given($row, $doi, $full_reference, true); // the input file's doi column gives it: no search
+        if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
         if(preg_match(self::BARE_LINK, $full_reference)) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Only a link, not a citation: not searched.'));
+        if(preg_match(self::GENBANK_TITLE, $full_reference)) return array_merge($row, array('status' => 'skipped', 'review_note' => 'A GenBank sequence title, not a citation: not searched.'));
         if(preg_match(self::DATASET_CITATION, $full_reference)) { // (Nov 19, 2026) a dataset cited as one: DataCite first, e.g. "... [Dataset]. Dryad.", "Data from: ..."
             $d = $this->datacite_route(array_merge($row, array('status' => 'not found', 'checks' => '')), $ref, $full_reference, true);
             if(($d['status'] ?? '') === 'stop' || ($d['DOI_source'] ?? '') === 'DataCite') return $d; // else CrossRef, as for any citation
@@ -541,7 +552,16 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $d = @json_decode((string) $json, true);
         return is_array($d['data']['attributes'] ?? null) ? $d['data']['attributes'] : null;
     }
-    private function doi_given($row, $doi, $citation)
+    private function doi_given($row, $doi, $citation, $from_column = false)
+    {   // $from_column: the DOI is from the input file's doi column, not the citation: the same checks; the notes and DOI_source say so
+        $r = $this->doi_given_checks($row, $doi, $citation);
+        if(!$from_column || !isset($r['review_note'])) return $r;
+        if(($r['DOI_source'] ?? '') === 'citation') $r['DOI_source'] = 'doi column';
+        $r['review_note'] = str_replace(array('The citation itself gives this DOI', 'The citation gives the DOI'), array("The input file's doi column gives this DOI", "The input file's doi column gives the DOI"), $r['review_note']);
+        $r['checks'] = str_replace('doi=in the citation', 'doi=in the doi column', (string) ($r['checks'] ?? ''));
+        return $r;
+    }
+    private function doi_given_checks($row, $doi, $citation)
     {   /* The citation gives its own DOI, e.g. "... doi:10.1594/PANGAEA.692046" or "DOI: 10.1080/09670262.2014.982202,2014.": CrossRef's record of it is read
            (one call, cached) instead of a search. A DOI can be mistyped or cut short in a citation, so:
              - CrossRef has it and its title is in the citation (or can't be compared)  -> matched
@@ -655,6 +675,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         while($doi !== '' && (strpbrk(substr($doi, -1), '.,;:') !== false || (substr($doi, -1) === ')' && substr_count($doi, '(') < substr_count($doi, ')'))
                               || (substr($doi, -1) === ']' && substr_count($doi, '[') < substr_count($doi, ']')))) $doi = substr($doi, 0, -1); // "[DOI:10.1126/science.1102289]" (Nov 19, 2026)
         return $doi; // a ")" or "]" that closes one inside it stays, e.g. 10.1016/0044-8486(93)90035-w, 10.1645/0022-3395(2001)087[0340:FLNSAO]2.0.CO;2
+    }
+    static function doi_in_column($s)
+    {   // a DOI from a 'doi' column: "10.1002/ecy.1680", "doi:10...", "https://doi.org/10..."; '' if it doesn't hold one (e.g. "10.101/6/j.pocean.2015.05.011")
+        $s = trim((string) $s);
+        if($s === '') return '';
+        if(preg_match('~^10\.\d{4,9}/~', $s)) $s = "doi:$s"; // the first DOI, e.g. "10.12933/therya-20-785 ISSN 2007-3364", "10.1111/...x, 10.1098/rspb.2007.1547"
+        return self::doi_in_text($s);
     }
     static function doi_url($doi)
     {   // the DOI as a link, e.g. 10.1016/0044-8486(93)90035-w -> https://doi.org/10.1016/0044-8486(93)90035-w; '' when there is no DOI.
@@ -809,11 +836,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   /* For an estimate before a search: of the rows a search of $file would do (same start/limit rules), how many are
              'new'     -> sent to CrossRef (about SECONDS_PER_NEW seconds each),
              'cached'  -> searched before: their answer comes from the cache, instantly,
-             'skipped' -> too short to search, or only a link (find_DOI's rules).
+             'skipped' -> too short to search, only a link, or a GenBank sequence title (find_DOI's rules).
            Makes no call. Returns array('rows' => n, 'new' => n, 'cached' => n, 'skipped' => n), or false. */
         if(!($in = @fopen($file, 'r'))) return false;
         $header = explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets($in)), "\r\n"));
-        $col_ref = array_search('full_reference', $header);
+        $col_ref = array_search('full_reference', $header); $col_doi = array_search('doi', $header);
         if($col_ref === false) { fclose($in); return false; }
         $n = array('rows' => 0, 'new' => 0, 'cached' => 0, 'skipped' => 0); $row_no = 0; $start = max(1, (int) $start); $seen = array();
         while(($line = fgets($in)) !== false) {
@@ -822,7 +849,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($row_no < $start) continue;
             if($limit && $n['rows'] >= $limit) break;
             $n['rows']++;
-            $this->count_one_row($n, $seen, (string) (explode("\t", rtrim($line, "\r\n"))[$col_ref] ?? ''));
+            $f = explode("\t", rtrim($line, "\r\n"));
+            $this->count_one_row($n, $seen, (string) ($f[$col_ref] ?? ''), $col_doi !== false ? (string) ($f[$col_doi] ?? '') : '');
         }
         fclose($in);
         return $n;
@@ -833,11 +861,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         foreach($full_references as $full_reference) { $n['rows']++; $this->count_one_row($n, $seen, (string) $full_reference); }
         return $n;
     }
-    private function count_one_row(&$n, &$seen, $full_reference)
-    {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it
-        if(mb_strlen($ref) < self::MIN_LENGTH) { $n['skipped']++; return; }
-        if(($doi = self::doi_in_text($ref)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // its own DOI: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
-        elseif(preg_match(self::BARE_LINK, $ref)) { $n['skipped']++; return; } // only a link: not searched
+    private function count_one_row(&$n, &$seen, $full_reference, $doi_column = '')
+    {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it, in the same order
+        if(($doi = self::doi_in_text($ref)) !== '' || ($doi = self::doi_in_column($doi_column)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // a DOI given: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
+        elseif(mb_strlen($ref) < self::MIN_LENGTH || preg_match(self::BARE_LINK, $ref) || preg_match(self::GENBANK_TITLE, $ref)) { $n['skipped']++; return; } // not searched
         else $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
         if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat is asked only once
         else { $n['new']++; $seen[$url] = 1; }
@@ -852,7 +879,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         else                 $t = "about " . rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
         return "Estimated time: $t" . ($s >= 60 ? ", to finish around " . date("Y-m-d H:i T", time() + (int) round($s)) : '')
              . " (" . number_format($n['rows']) . " references: " . number_format($n['new']) . " new, sent to CrossRef at about " . self::SECONDS_PER_NEW . " seconds each; "
-             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " skipped (too short, or only a link)" : '') . ")";
+             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " skipped (too short, only a link, or a GenBank sequence title)" : '') . ")";
     }
     private function search_crossref($full_reference, $year)
     {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.
@@ -1211,7 +1238,8 @@ WHAT TO DO WITH EACH STATUS
                right on that list -- but not all, which is why the tool never fills them in as the DOI.
                Usually there is no DOI: old works (before 1900), books, and many regional journals aren't in CrossRef.
                The Biodiversity Heritage Library (biodiversitylibrary.org) may have these.
-  skipped   -> Not searched: too short, or only a link (e.g. an iNaturalist, GenBank or museum record), not a citation.
+  skipped   -> Not searched: too short, only a link (e.g. an iNaturalist, GenBank or museum record), or a GenBank
+               sequence title (e.g. \"... segment 4 hemagglutinin (HA) gene, complete cds\"): not citations.
   error     -> CrossRef couldn't be reached; the search will be redone on the next run.
 
 GOOD TO KNOW
@@ -1238,7 +1266,8 @@ COLUMNS
   text_changes               : what the pre-processing changed in this row, e.g. removed '(Ref. 3)' at the end; empty = nothing
   status, DOI                : the result; DOI only for matched and possible
   DOI_URL                    : the same DOI as a link (https://doi.org/...), to open it in a browser; empty when DOI is empty
-  DOI_source                 : where the DOI was found: CrossRef, DataCite, or citation (written in the citation, checked)
+  DOI_source                 : where the DOI was found: CrossRef, DataCite, citation (written in the citation, checked), or
+                               doi column (the input file's own doi column, checked against CrossRef's record)
   review_note                : what was found, in plain words
   parsed_*                   : the first author's surname, year, journal, volume, issue and page read from the full_reference
   crossref_*                 : the CrossRef record shown (DOI, score, type, year, journal, volume, issue, page, title, and

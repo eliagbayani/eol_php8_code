@@ -1487,6 +1487,58 @@
     "note_contains": "Worth a look: the closest CrossRef candidate, 10.1515/9783110804744.263"
    },
    "why": "A book chapter the citation can't confirm (CrossRef's title spells 'Hesperioidea', the citation 'Hesperoidea'): 'not found', and the DOI column stays empty; but the closest CrossRef candidate scored high (145.7, over HINT_SCORE), so the review_note says it's worth a look. It is the DM's DOI."
+  },
+  {
+   "id": "bare-link-genbank",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "http://www.ncbi.nlm.nih.gov/nuccore/109628396",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only a link"
+   },
+   "why": "A full_reference that is only a link (here a GenBank record) is not a citation: skipped, no CrossRef call. About 1.9M such rows in the big reference.tab; none of 6,765 searched ever matched."
+  },
+  {
+   "id": "bare-link-doi",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "https://doi.org/10.2307/2807718",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/2807718"
+   },
+   "why": "A link that is a DOI is still used (the DOI check comes before the bare-link rule)."
+  },
+  {
+   "id": "genbank-title-1",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Influenza A virus (A/chicken/Jiangsu/J2323/2017(H9N2)) segment 4 hemagglutinin (HA) gene, complete cds",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "GenBank sequence title"
+   },
+   "why": "A GenBank sequence title, not a citation: skipped, no CrossRef call. About 1.34M such rows in the big reference.tab."
+  },
+  {
+   "id": "genbank-title-2",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Influenza A virus genome assembly, segment: 6",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "GenBank sequence title"
+   },
+   "why": "Another GenBank title ending: 'genome assembly, segment: N'."
+  },
+  {
+   "id": "doi-column-1",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Leather, S.R. 1991. Feeding specialisation and host distribution of British and Finnish Prunus feeding macrolepidoptera. OIKOS 60: 40-48.",
+   "doi": "10.2307/3544990",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/3544990",
+    "DOI_source": "doi column"
+   },
+   "why": "The input file's own 'doi' column gives the DOI: CrossRef's record of it is read and checked (title in the citation), no search; DOI_source 'doi column'."
   }
  ]
 }

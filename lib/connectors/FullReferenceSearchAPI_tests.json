@@ -1569,6 +1569,86 @@
     "note_contains": "Only authors and a year"
    },
    "why": "Only authors and a year ('Author (year)'): no title, journal, volume or page, so no DOI can be confirmed: skipped, no CrossRef call. None of 1,202 such citations searched before was matched or possible."
+  },
+  {
+   "id": "no-space-urn",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "urn:catalog:RSKM:OWLPELLET:OP-1629.0012",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "identifier or code with no spaces"
+   },
+   "why": "An identifier with no spaces, not a citation (82,675 such urn:catalog texts in the big reference.tab): skipped, no CrossRef call."
+  },
+  {
+   "id": "no-space-uuid",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "88f93a7c-d8e1-11e2-99a2-0026552be7ea",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "identifier or code with no spaces"
+   },
+   "why": "A UUID, not a citation: skipped."
+  },
+  {
+   "id": "chalcid-db-code",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "XiaoJiZh2012 via Universal Chalcidoidea Database",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Universal Chalcidoidea Database code"
+   },
+   "why": "A code for a reference in the Universal Chalcidoidea Database, not the citation itself: skipped."
+  },
+  {
+   "id": "genbank-form-strain",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Rabies virus G gene for glycoprotein, complete cds, strain: RV/R4A.PHL/2006/Z-06-361",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "GenBank sequence title"
+   },
+   "why": "A GenBank title that ends in the strain (not caught by GENBANK_TITLE, which looks at the end): GENBANK_TITLE_FORMS: skipped."
+  },
+  {
+   "id": "genbank-form-crna",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Influenza A virus (A/equine/United Kingdom/307476/2003(H3N8)) partial viral cRNA for hemagglutinin precursor (HA gene), isolate 307476, clone 42",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "GenBank sequence title"
+   },
+   "why": "A GenBank title starting 'Influenza A virus (': skipped."
+  },
+  {
+   "id": "genbank-form-unverified",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "UNVERIFIED: Porcine epidemic diarrhea virus isolate VN/ND-2/2018 sequence",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "GenBank sequence title"
+   },
+   "why": "A GenBank title marked 'UNVERIFIED:': skipped."
+  },
+  {
+   "id": "afd-page",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. Australian Biological Resources StudyNode, Canberra. Accessed at on 11 Mar 2026.",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Australian Faunal Directory page"
+   },
+   "why": "An Australian Faunal Directory page: a database page, no DOI: skipped."
+  },
+  {
+   "id": "no-space-doi",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "doi:10.1656/058.011.0312",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1656/058.011.0312"
+   },
+   "why": "No spaces, but it is a DOI: the DOI rules come first, so it still gets its DOI (not skipped as an identifier)."
   }
  ]
 }

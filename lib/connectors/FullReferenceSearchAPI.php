@@ -15,7 +15,10 @@ namespace php_active_record;
      not found : no candidate agrees; the closest candidate is still described, for review (its DOI is NOT put in the DOI column)
      skipped   : empty, too short to search, only a link (e.g. an iNaturalist, GenBank or museum record), or a GenBank sequence title
                  (e.g. "Influenza A virus (...) segment 4 hemagglutinin (HA) gene, complete cds"): not citations (Nov 21, 2026);
-                 or only authors and a year (e.g. "Negredo et al. 2011"): too little to confirm a DOI (Nov 21, 2026)
+                 or only authors and a year (e.g. "Negredo et al. 2011"): too little to confirm a DOI (Nov 21, 2026);
+                 or an identifier with no spaces (e.g. "urn:catalog:RSKM:OWLPELLET:OP-1629.0012"), a Universal Chalcidoidea Database code
+                 ("XiaoJiZh2012 via Universal Chalcidoidea Database") or an Australian Faunal Directory page: not citations (Nov 21, 2026).
+                 All these rules are in not_searched_note().
    A 'doi' column in the input file (as in a DwCA reference.tab), when the citation has no DOI of its own, is used as a DOI the citation gives:
    CrossRef's record of it is read and checked, no search; DOI_source says 'doi column' (Nov 21, 2026).
      error     : CrossRef could not be reached; a re-run tries it again
@@ -67,6 +70,17 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // (Nov 21, 2026) only authors and a year, e.g. "Negredo et al. 2011", "Trainer & Knowlton 1968", "Carpenter (1981)": no title, journal, volume or
         // page, so no DOI can be confirmed (STRICT ON PURPOSE): not searched. Of 1,202 such citations searched before, none was matched or possible.
         // 5,577 rows of the 3.5M-row reference.tab. "Smith, J. 2001" (initials) or anything with a title, journal or page is still searched.
+    const GENBANK_TITLE_FORMS = '/^UNVERIFIED: |^Influenza [ABCD] virus \(|, (complete|partial) cds, (strain|isolate|clone)\b|\b(partial )?(viral )?cRNA for\b|\bgenomic RNA, (strain|isolate|clone)\b|\bpartial mRNA for\b|\bgene for [^,]{1,80}, (complete|partial) cds\b/';
+        // (Nov 21, 2026) more GenBank title forms, anywhere in the text: "Rabies virus G gene for glycoprotein, complete cds, strain: RV/R4A.PHL/2006/Z-06-361",
+        // "Influenza A virus (A/equine/...) partial viral cRNA for hemagglutinin precursor (HA gene), isolate 307476, clone 42", "UNVERIFIED: Porcine epidemic
+        // diarrhea virus isolate VN/ND-2/2018 sequence". 13,679 texts of the big reference.tab, all with a GenBank uri; none looks like a citation.
+    const NO_SPACE = '/^\S+$/u';
+        // (Nov 21, 2026) no space at all: an identifier or a code, not a citation, e.g. "urn:catalog:RSKM:OWLPELLET:OP-1629.0012" (82,675 texts),
+        // "88f93a7c-d8e1-11e2-99a2-0026552be7ea", "FB_REF:1234". Checked after the DOI rules, so "doi:10.1656/058.011.0312" still gets its DOI.
+    const CHALCID_DB_CODE = '/^\S+ via Universal Chalcidoidea Database$/';
+        // (Nov 21, 2026) e.g. "XiaoJiZh2012 via Universal Chalcidoidea Database": a code for a reference in that database, not the citation (12,509 texts)
+    const AFD_PAGE = '/^\S+ \d{4}\. Australian Faunal Directory\./';
+        // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
     /* PACE: calls are one at a time, with a PAUSE_SECONDS pause after each one (about 1.8-1.9 s from one call's start to the next): thousands of
@@ -346,10 +360,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
         if(($doi = self::doi_in_text($full_reference)) !== '') return $this->doi_given($row, $doi, $full_reference); // the citation gives its own DOI: no search
         if(($doi = self::doi_in_column($doi_column)) !== '') return $this->doi_given($row, $doi, $full_reference, true); // the input file's doi column gives it: no search
-        if(mb_strlen($full_reference) < self::MIN_LENGTH) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Too short to search.'));
-        if(preg_match(self::BARE_LINK, $full_reference)) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Only a link, not a citation: not searched.'));
-        if(preg_match(self::GENBANK_TITLE, $full_reference)) return array_merge($row, array('status' => 'skipped', 'review_note' => 'A GenBank sequence title, not a citation: not searched.'));
-        if(preg_match(self::AUTHOR_YEAR_ONLY, $full_reference)) return array_merge($row, array('status' => 'skipped', 'review_note' => 'Only authors and a year, not enough to confirm a DOI: not searched.'));
+        if(($note = self::not_searched_note($full_reference)) !== '') return array_merge($row, array('status' => 'skipped', 'review_note' => $note));
         if(preg_match(self::DATASET_CITATION, $full_reference)) { // (Nov 19, 2026) a dataset cited as one: DataCite first, e.g. "... [Dataset]. Dryad.", "Data from: ..."
             $d = $this->datacite_route(array_merge($row, array('status' => 'not found', 'checks' => '')), $ref, $full_reference, true);
             if(($d['status'] ?? '') === 'stop' || ($d['DOI_source'] ?? '') === 'DataCite') return $d; // else CrossRef, as for any citation
@@ -682,6 +693,17 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                               || (substr($doi, -1) === ']' && substr_count($doi, '[') < substr_count($doi, ']')))) $doi = substr($doi, 0, -1); // "[DOI:10.1126/science.1102289]" (Nov 19, 2026)
         return $doi; // a ")" or "]" that closes one inside it stays, e.g. 10.1016/0044-8486(93)90035-w, 10.1645/0022-3395(2001)087[0340:FLNSAO]2.0.CO;2
     }
+    static function not_searched_note($text)
+    {   // why a full_reference (cleaned, with no DOI given) is not sent to CrossRef: its review_note; '' = it is searched. Used by find_DOI() and the estimate.
+        if(mb_strlen($text) < self::MIN_LENGTH)         return 'Too short to search.';
+        if(preg_match(self::BARE_LINK, $text))          return 'Only a link, not a citation: not searched.';
+        if(preg_match(self::NO_SPACE, $text))           return 'An identifier or code with no spaces, not a citation: not searched.';
+        if(preg_match(self::GENBANK_TITLE, $text) || preg_match(self::GENBANK_TITLE_FORMS, $text)) return 'A GenBank sequence title, not a citation: not searched.';
+        if(preg_match(self::CHALCID_DB_CODE, $text))    return 'A Universal Chalcidoidea Database code, not a citation: not searched.';
+        if(preg_match(self::AFD_PAGE, $text))           return 'An Australian Faunal Directory page, not a citation with a DOI: not searched.';
+        if(preg_match(self::AUTHOR_YEAR_ONLY, $text))   return 'Only authors and a year, not enough to confirm a DOI: not searched.';
+        return '';
+    }
     static function doi_in_column($s)
     {   // a DOI from a 'doi' column: "10.1002/ecy.1680", "doi:10...", "https://doi.org/10..."; '' if it doesn't hold one (e.g. "10.101/6/j.pocean.2015.05.011")
         $s = trim((string) $s);
@@ -842,7 +864,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   /* For an estimate before a search: of the rows a search of $file would do (same start/limit rules), how many are
              'new'     -> sent to CrossRef (about SECONDS_PER_NEW seconds each),
              'cached'  -> searched before: their answer comes from the cache, instantly,
-             'skipped' -> too short to search, only a link, a GenBank sequence title, or only authors and a year (find_DOI's rules).
+             'skipped' -> not searched: not_searched_note() (too short, a link, an identifier, a GenBank title, a database code or page, only authors and a year).
            Makes no call. Returns array('rows' => n, 'new' => n, 'cached' => n, 'skipped' => n), or false. */
         if(!($in = @fopen($file, 'r'))) return false;
         $header = explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets($in)), "\r\n"));
@@ -870,7 +892,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     private function count_one_row(&$n, &$seen, $full_reference, $doi_column = '')
     {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it, in the same order
         if(($doi = self::doi_in_text($ref)) !== '' || ($doi = self::doi_in_column($doi_column)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // a DOI given: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
-        elseif(mb_strlen($ref) < self::MIN_LENGTH || preg_match(self::BARE_LINK, $ref) || preg_match(self::GENBANK_TITLE, $ref) || preg_match(self::AUTHOR_YEAR_ONLY, $ref)) { $n['skipped']++; return; } // not searched
+        elseif(self::not_searched_note($ref) !== '') { $n['skipped']++; return; } // not searched (find_DOI's rules)
         else $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
         if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat is asked only once
         else { $n['new']++; $seen[$url] = 1; }
@@ -885,7 +907,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         else                 $t = "about " . rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
         return "Estimated time: $t" . ($s >= 60 ? ", to finish around " . date("Y-m-d H:i T", time() + (int) round($s)) : '')
              . " (" . number_format($n['rows']) . " references: " . number_format($n['new']) . " new, sent to CrossRef at about " . self::SECONDS_PER_NEW . " seconds each; "
-             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " skipped (too short, only a link, a GenBank title, or only authors and a year)" : '') . ")";
+             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " skipped (not citations, or too little to search)" : '') . ")";
     }
     private function search_crossref($full_reference, $year)
     {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.
@@ -1246,7 +1268,9 @@ WHAT TO DO WITH EACH STATUS
                The Biodiversity Heritage Library (biodiversitylibrary.org) may have these.
   skipped   -> Not searched: too short, only a link (e.g. an iNaturalist, GenBank or museum record), or a GenBank
                sequence title (e.g. \"... segment 4 hemagglutinin (HA) gene, complete cds\"): not citations. Or only authors and a
-               year (e.g. \"Negredo et al. 2011\"): no title, journal or page to confirm a DOI with.
+               year (e.g. \"Negredo et al. 2011\"): no title, journal or page to confirm a DOI with. Or an identifier with no
+               spaces (e.g. \"urn:catalog:RSKM:OWLPELLET:OP-1629.0012\"), a Universal Chalcidoidea Database code, or an Australian
+               Faunal Directory page. The review_note says which.
   error     -> CrossRef couldn't be reached; the search will be redone on the next run.
 
 GOOD TO KNOW

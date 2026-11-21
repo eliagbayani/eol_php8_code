@@ -52,9 +52,15 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
-    const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
+    const SECONDS_PER_NEW = 2.5; // about 2.5 seconds per new reference (about 1.7 calls, at least MIN_GAP_SECONDS apart), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
-    const PAUSE_SECONDS = 1;    // the pause after every CrossRef call (calls are one at a time); cached answers need no call and no pause
+    /* (Nov 21, 2026) PACE: calls are one at a time, and the next call starts at least MIN_GAP_SECONDS after the previous one started
+       (or interval/limit + 10% from CrossRef's x-rate-limit-* headers, if that is longer). The headers say 3 per second in the polite pool,
+       but searches (query.bibliographic) got HTTP 429 at 1.0 and 1.2 seconds apart (1 in 12 calls) and none at 1.5 seconds (20 calls),
+       so 1.5 s. The old scheme (a 1-second pause after each call) was about 1.8-1.9 s apart. After a 429/503: back to the 1-second
+       PAUSE after each call, for the rest of the run. Cached answers need no call and no wait. */
+    const MIN_GAP_SECONDS = 1.5;
+    const PAUSE_SECONDS = 1;    // the pause after every call once CrossRef has asked us to slow down (and the gap before the limit is known)
     const THROTTLE_LIMIT = 5;   // after this many "429 too many requests" / "503 busy" answers in a row (with waits of 1, 2, 4, 8 minutes), the search stops
     const KEEP_REPORTS = 20;  // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
     const REPORT_RE = '/^[A-Za-z0-9._-]+_DOIs_(\d{8}_\d{6})\.tsv$/'; // e.g. reference_DOIs_20261114_013451.tsv; the time it was made sorts them
@@ -101,6 +107,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     const FIGURE_COPY_TITLE = '/^(?:figures?|figs?\.?|tables?|plates?)\s*[\dIVX]+[a-z]?\b.{0,20}?\b(?:in|from)\b/i';
     function __construct($param) {
         $this->param = $param; print_r($param);
+        $this->pace = array(); // PACE: per service, the gap between call starts and whether CrossRef asked us to slow down
         $this->author_title_checks = array_key_exists('author_title_checks', (array) $param) ? (bool) $param['author_title_checks'] : self::AUTHOR_TITLE_CHECKS;
         $this->datacite_search = $this->author_title_checks && (array_key_exists('datacite_search', (array) $param) ? (bool) $param['datacite_search'] : self::DATACITE_SEARCH); // DATACITE
         $this->work_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
@@ -797,7 +804,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     function count_rows_to_search($file, $start = 1, $limit = 0)
     {   /* For an estimate before a search: of the rows a search of $file would do (same start/limit rules), how many are
-             'new'     -> sent to CrossRef (about 3 seconds each),
+             'new'     -> sent to CrossRef (about SECONDS_PER_NEW seconds each),
              'cached'  -> searched before: their answer comes from the cache, instantly,
              'skipped' -> too short to search.
            Makes no call. Returns array('rows' => n, 'new' => n, 'cached' => n, 'skipped' => n), or false. */
@@ -859,13 +866,17 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     private function call_crossref($url, $opt = null)
     {   /* $opt: the options of the service called: crossref_options (default) or datacite_options (DATACITE): its cache, name and success test.
-           One CrossRef call, politely: one at a time, a PAUSE after each call, and our contact email in the User-Agent (CROSSREF_MAILTO).
+           One CrossRef call, politely: one at a time, at CrossRef's own published pace (see PACE), and our contact email in the User-Agent (CROSSREF_MAILTO).
            - 200: the answer is saved in the same cache lookup_with_cache() uses (so it's never asked again) and returned.
            - 429 (too many requests) or 503 (busy): wait -- CrossRef's Retry-After, else 1, 2, 4, 8 minutes -- and try again.
              After THROTTLE_LIMIT such answers in a row, returns 'stop': the search stops cleanly and can be resumed with "start".
            - anything else (no connection, 5xx, ...): tried 3 times, 5 seconds apart; then false (this row = 'error'). */
         $opt = $opt ?? $this->crossref_options; $name = $opt['name'];
+        $pace = &$this->pace[$name]; // per service (CrossRef, DataCite): 'gap' between call starts, 'last' call start, 'slow' after a 429/503
+        if(!is_array($pace)) $pace = array('gap' => self::MIN_GAP_SECONDS, 'last' => 0.0, 'slow' => false);
         for($attempt = 1, $other_failures = 0; ; $attempt++) {
+            if(($wait = $pace['last'] + $pace['gap'] - microtime(true)) > 0) usleep((int) round($wait * 1000000)); // never faster than the limit
+            $pace['last'] = microtime(true);
             $ch = curl_init($url);
             curl_setopt_array($ch, array(CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => true, CURLOPT_FOLLOWLOCATION => true,
                                          CURLOPT_CONNECTTIMEOUT => 30, CURLOPT_TIMEOUT => 60, CURLOPT_USERAGENT => $opt['user_agent']));
@@ -873,8 +884,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $header_size = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             curl_close($ch);
-            usleep(self::PAUSE_SECONDS * 1000000); // the pause between calls, whatever the answer
             $headers = $res === false ? '' : substr($res, 0, $header_size);
+            if($pace['slow']) usleep(self::PAUSE_SECONDS * 1000000); // CrossRef asked us to slow down earlier in this run: the old 1-second pause
+            elseif(preg_match('/^x-rate-limit-limit:\s*(\d+)/mi', $headers, $m1) && (int) $m1[1] > 0) { // the limit it gives: e.g. 3 calls per "1s"
+                $interval = preg_match('/^x-rate-limit-interval:\s*(\d+(?:\.\d+)?)\s*s/mi', $headers, $m2) ? (float) $m2[1] : 1.0;
+                $pace['gap'] = max(self::MIN_GAP_SECONDS, 1.1 * $interval / (int) $m1[1]);
+            }
             $body    = $res === false ? '' : substr($res, $header_size);
             if($code == 200 && preg_match('/' . $opt['validation_regex'] . '/', $body)) {
                 $this->throttled_in_a_row = 0;
@@ -883,6 +898,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             }
             if($code == 404 && (str_contains($url, '/works/10.') || str_contains($url, '/dois/10.'))) return 'missing'; // a DOI it doesn't have (e.g. a DataCite DOI in CrossRef)
             if($code == 429 || $code == 503) {
+                if(!$pace['slow']) { $pace['slow'] = true; $pace['gap'] = (float) self::PAUSE_SECONDS;
+                    echo "$name asked us to slow down (HTTP $code): from now on, a " . self::PAUSE_SECONDS . "-second pause after each call, for the rest of this run.\n"; }
                 $this->throttled_in_a_row = ($this->throttled_in_a_row ?? 0) + 1;
                 if($this->throttled_in_a_row >= self::THROTTLE_LIMIT) return 'stop';
                 $wait = preg_match('/^Retry-After:\s*(\d+)/mi', $headers, $m) ? min((int) $m[1], 600) : 60 * (2 ** ($this->throttled_in_a_row - 1));

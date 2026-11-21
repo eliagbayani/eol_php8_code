@@ -226,7 +226,7 @@ $state = read_state();
 $jobs = running_jobs();
 $running = is_running() || ($state && process_alive($state));
 // "Search started" only while it runs: a short search (e.g. all rows cached) can end before this page loads, and its banner says so
-if(isset($_GET['started']) && $running) $out .= "<p class='good'><b>Search started.</b> Its progress is shown below; this page refreshes itself while it runs.</p>";
+if(isset($_GET['started']) && $running) $out .= "<p class='good'><b>Search started.</b> Its progress is shown above; this page refreshes itself while it runs.</p>";
 $pending = read_pending();
 $prog = $state ? progress($state) : null;
 // the banner at the top: how the last search ended (finished / stopped / ended early), until a new file is uploaded or it's dismissed
@@ -239,7 +239,7 @@ $tab_title = $running && $state && $state['to_do'] ? "(" . min(100, round(100 * 
            : ($banner ? array('done' => "✔ Finished", 'stopped' => "■ Stopped", 'ended' => "⚠ Ended early")[$banner['kind']] . ": Full Reference Search" : "Full Reference Search");
 // the reports: newest first
 $reports = array_values(array_filter(scandir($work_dir) ?: array(), fn($n) => preg_match('/_DOIs_\d{8}_\d{6}\.tsv$/', $n) && preg_match($report_re, $n)));
-usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir . $a));
+usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemtime($work_dir . $a));
 ?>
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><title><?php echo h($tab_title) ?></title>
@@ -432,7 +432,7 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
         <?php if($running): ?>
             <form method="post" action="main.php" onsubmit="if(!confirm('Stop the search? The report keeps the rows done so far.')) return false; return busy(this);">
                 <input type="hidden" name="action" value="stop">
-                <input type="password" name="password" id="stop-pw" placeholder="maintenance tools password" required autocomplete="off" style="height:28px; box-sizing:border-box; vertical-align:middle">
+                <input type="password" name="password" id="stop-pw" placeholder="maintenance tools password" required autocomplete="new-password" style="height:28px; box-sizing:border-box; vertical-align:middle">
                 <input type="submit" value="Stop the search">
                 <button type="button" id="notify-btn" onclick="askNotify()">Notify me</button>
                 <small>This page refreshes itself every 15 seconds. <span id="notify-note">[Notify me]: a desktop notice when the search ends, while this page stays open (any tab).</span></small>
@@ -451,8 +451,11 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
             echo "<table class='list'><tr><th>Report</th><th>Date</th><th>Rows</th><th>Size</th><th></th></tr>";
             foreach($reports as $r) {
                 $path = $work_dir . $r; $guide = preg_replace('/\.tsv$/', '_guide.txt', $r);
-                $n = max(0, count(file($path, FILE_SKIP_EMPTY_LINES)) - 1);
-                echo "<tr><td>" . v($r) . "</td><td>" . v(date("Y-m-d H:i", filemtime($path))) . "</td><td>" . v(number_format($n)) . "</td><td>" . v(number_format(filesize($path) / 1024, 0)) . " KB</td>"
+                // a search that has just started deletes the oldest reports (only the newest KEEP_REPORTS are kept), maybe after $reports was read:
+                // a report gone in the meantime is skipped (before, count(false) stopped the page here, without its refresh script)
+                if(!is_array($lines = @file($path, FILE_SKIP_EMPTY_LINES)) || ($mtime = @filemtime($path)) === false) continue;
+                $n = max(0, count($lines) - 1);
+                echo "<tr><td>" . v($r) . "</td><td>" . v(date("Y-m-d H:i", $mtime)) . "</td><td>" . v(number_format($n)) . "</td><td>" . v(number_format((int) @filesize($path) / 1024, 0)) . " KB</td>"
                    . "<td><a class='button' href='main.php?download=" . rawurlencode($r) . "'>Download</a>"
                    . (is_file($work_dir . $guide) ? " <a class='button' href='main.php?download=" . rawurlencode($guide) . "'>Guide</a>" : " <small>(no guide: the search was stopped before the end)</small>") . "</td></tr>";
             }
@@ -498,9 +501,11 @@ usort($reports, fn($a, $b) => filemtime($work_dir . $b) <=> filemtime($work_dir 
 var RUNNING_LOG = <?php echo json_encode($running && $state ? $state['log'] : null) ?>;
 var TAB_TITLE = <?php echo json_encode($tab_title) ?>;
 <?php if($running || $jobs): ?>
-setInterval(function() {   // refresh every 15 seconds, but not while the password for [Stop the search] is being typed or the form is being sent
+var PW_TYPED_AT = 0; // when the password for [Stop the search] was last typed in (a password the browser fills in by itself doesn't count)
+(function() { var p = document.getElementById('stop-pw'); if(p) p.addEventListener('keydown', function() { PW_TYPED_AT = Date.now(); }); })();
+setInterval(function() {   // refresh every 15 seconds, but not while the password for [Stop the search] is being typed (in the box, or typed in the last 2 minutes) or the form is being sent
     var p = document.getElementById('stop-pw');
-    if(p && (p.value !== '' || document.activeElement === p || p.form.querySelector('input[type=submit]').disabled)) return;
+    if(p && (document.activeElement === p || (p.value !== '' && Date.now() - PW_TYPED_AT < 120000) || p.form.querySelector('input[type=submit]').disabled)) return;
     location.href = 'main.php';
 }, 15000);
 <?php endif; ?>

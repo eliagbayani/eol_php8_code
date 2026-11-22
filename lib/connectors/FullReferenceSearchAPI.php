@@ -123,6 +123,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
        and a DOI they don't have (HTTP 404), kept under MISSING_KEY + the URL. Only failures that may pass are not kept: no connection, 5xx, 429/503;
        such a row is marked 'error' and asked again on the next run. A BibTeX entry is rewritten here (no lookup); its search is cached like any other. */
     const MISSING_KEY = 'missing:';
+    /* SHARED PACE (Nov 22, 2026): every process that calls CrossRef or DataCite -- a search in Jenkins, the web page, analyze_MoF -- keeps ONE pace
+       together, through a small file per service in Reference_maintenance/ (.crossref_pace.json, .datacite_pace.json; both Docker containers see it):
+         - a call is made only while holding that file's lock, so there is never more than one call at a time, whichever process makes it
+         - the file says when the next call may start: PAUSE_SECONDS after the last call ended, or after a 429/503 wait, for every process
+       Before, each process kept the pace on its own: two at once (build #2 of the whole reference.tab + analyze_MoF on AmphibiaWeb) doubled it,
+       and CrossRef answered 429. Now a second process just takes turns; neither has to wait for the other to finish. */
+    const PACE_WAIT_NOTE_SECONDS = 15; // a wait for the shared pace longer than this is printed, with the reason
     const MAX_AUTHOR_LOOKUPS = 3; // per row, for a search answered before AUTHORS IN THE SEARCH only: each candidate that passes the checks costs one call for its authors (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
     // (Nov 19, 2026) titles of records that are a journal's or book's furniture, not a work: never the answer
@@ -367,8 +374,29 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['change_codes'] = array_keys($changes);      // not a column: counted for the guide
         foreach(array('author', 'year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
-        if(($doi = self::doi_in_text($full_reference)) !== '') return $this->doi_given($row, $doi, $full_reference); // the citation gives its own DOI: no search
-        if(($doi = self::doi_in_column($doi_column)) !== '') return $this->doi_given($row, $doi, $full_reference, true); // the input file's doi column gives it: no search
+        if($cands = self::doi_candidates($full_reference, $span)) { // the citation gives its own DOI: no search
+            foreach($cands as $doi) { $r = $this->doi_given($row, $doi, $full_reference); if(!self::doi_unregistered($r)) return $r; }
+            /* (Nov 22, 2026) neither CrossRef nor DataCite has it (mistyped, or cut short): never used as the DOI. The citation without it is searched
+               like any other, and the note says which DOI it gave. Before, it was 'possible' with that DOI, e.g. "https://doi.org/10.2305/IUCN.UK". */
+            $s2 = str_replace("\xC2\xA0", ' ', $full_reference);
+            $without = trim(preg_replace('/\s+/', ' ', substr($s2, 0, $span[0]) . ' ' . substr($s2, $span[0] + $span[1])), " .,;");
+            $r = $this->find_DOI($without, $doi_column);
+            if(!in_array($r['status'] ?? '', array('stop', 'error'))) {
+                $r['searched_text'] = $without;
+                $r['text_changes'] = trim("left out its DOI " . $cands[0] . " (neither CrossRef nor DataCite has it)" . (($row['text_changes'] ?? '') !== '' ? "; " . $row['text_changes'] : '') . (($r['text_changes'] ?? '') !== '' ? "; " . $r['text_changes'] : ''));
+                $r['review_note'] = "The citation gives the DOI " . $cands[0] . ", but neither CrossRef nor DataCite has it (mistyped or cut short), so the citation was searched without it. " . ($r['review_note'] ?? '');
+                $r['change_codes'] = array_values(array_unique(array_merge($row['change_codes'] ?? array(), $r['change_codes'] ?? array())));
+            }
+            return $r;
+        }
+        if(($doi = self::doi_in_column($doi_column)) !== '') { // the input file's doi column gives it: no search
+            $r = $this->doi_given($row, $doi, $full_reference, true);
+            if(!self::doi_unregistered($r)) return $r;
+            $r = $this->find_DOI($full_reference); // (Nov 22, 2026) neither CrossRef nor DataCite has it: never used; the citation is searched (see above)
+            if(!in_array($r['status'] ?? '', array('stop', 'error')))
+                $r['review_note'] = "The input file's doi column gives the DOI $doi, but neither CrossRef nor DataCite has it (mistyped or cut short), so the citation was searched. " . ($r['review_note'] ?? '');
+            return $r;
+        }
         if(($note = self::not_searched_note($full_reference)) !== '') return array_merge($row, array('status' => 'skipped', 'review_note' => $note));
         if(preg_match(self::DATASET_CITATION, $full_reference)) { // (Nov 19, 2026) a dataset cited as one: DataCite first, e.g. "... [Dataset]. Dryad.", "Data from: ..."
             $d = $this->datacite_route(array_merge($row, array('status' => 'not found', 'checks' => '')), $ref, $full_reference, true);
@@ -706,11 +734,33 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     static function doi_in_text($s)
     {   // a DOI written in the citation itself, e.g. "doi:10.1594/PANGAEA.692046", "DOI: 10.1080/09670262.2014.982202,", "https://doi.org/10..."; '' if none
-        if(!preg_match('~(?:\bdoi\s*[:.]?\s*|https?://(?:dx\.)?doi\.org/)(10\.\d{4,9}/[^\s"<>,]+)~i', $s, $m)) return ''; // no comma: in "DOI 10.1007/s40415-014-0048-3,2014." the year follows
-        $doi = $m[1];
-        while($doi !== '' && (strpbrk(substr($doi, -1), '.,;:') !== false || (substr($doi, -1) === ')' && substr_count($doi, '(') < substr_count($doi, ')'))
+        $c = self::doi_candidates($s);
+        return $c ? $c[0] : '';
+    }
+    static function doi_candidates($s, &$span = null)
+    {   /* The DOI written in the citation, as a list to try in order (empty: none); $span = array(start, length) of its text, with "doi:" or the link.
+           (Nov 22, 2026) - a non-breaking space ends it like a space: "...T58571A11805014.en.<nbsp>Downloaded on ..." gave the DOI "...en. Downloaded"
+                          - a DOI split by a space is joined first, then the part before the space is tried: "10.2305/IUCN.UK .2004.RLTS.T54548A11165473.en"
+                            and "10.2305/IUCN.UK.2013- 2.RLTS.T59494A16943488.en" (IUCN Red List citations) */
+        $s = str_replace("\xC2\xA0", ' ', (string) $s); // a non-breaking space -> a space; $span is on this text (find_DOI() cuts the same text)
+        if(!preg_match('~(?:\bdoi\s*[:.]?\s*|https?://(?:dx\.)?doi\.org/)(10\.\d{4,9}/[^\s"<>,]+)~i', $s, $m, PREG_OFFSET_CAPTURE)) return array(); // no comma: in "DOI 10.1007/s40415-014-0048-3,2014." the year follows
+        $cut = self::trim_doi($m[1][0]); $end = $m[1][1] + strlen($m[1][0]); $out = array();
+        $rest = substr($s, $m[1][1] + strlen($cut));
+        if(preg_match('~^\s+(\.[A-Za-z0-9][^\s"<>,]*)~', $rest, $j) || (str_ends_with($cut, '-') && preg_match('~^\s+(\d[^\s"<>,]*)~', $rest, $j))) {
+            $out[] = self::trim_doi($cut . $j[1]); $end = $m[1][1] + strlen($cut) + strlen($j[0]);
+        }
+        $out[] = $cut;
+        $span = array($m[0][1], $end - $m[0][1]);
+        return array_values(array_unique(array_filter($out, fn($d) => $d !== '')));
+    }
+    private static function trim_doi($doi)
+    {   while($doi !== '' && (strpbrk(substr($doi, -1), '.,;:') !== false || (substr($doi, -1) === ')' && substr_count($doi, '(') < substr_count($doi, ')'))
                               || (substr($doi, -1) === ']' && substr_count($doi, '[') < substr_count($doi, ']')))) $doi = substr($doi, 0, -1); // "[DOI:10.1126/science.1102289]" (Nov 19, 2026)
         return $doi; // a ")" or "]" that closes one inside it stays, e.g. 10.1016/0044-8486(93)90035-w, 10.1645/0022-3395(2001)087[0340:FLNSAO]2.0.CO;2
+    }
+    private static function doi_unregistered($r)
+    {   // doi_given() found that neither CrossRef nor DataCite has the DOI (not 'in DataCite')
+        return ($r['status'] ?? '') === 'possible' && str_contains((string) @$r['checks'], 'not in CrossRef') && !str_contains((string) @$r['checks'], 'in DataCite');
     }
     static function not_searched_note($text)
     {   // why a full_reference (cleaned, with no DOI given) is not sent to CrossRef: its review_note; '' = it is searched. Used by find_DOI() and the estimate.
@@ -1010,6 +1060,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(!is_array($pace)) $pace = array('gap' => 0.0, 'last' => 0.0);
         for($attempt = 1, $other_failures = 0; ; $attempt++) {
             if(($wait = $pace['last'] + $pace['gap'] - microtime(true)) > 0) usleep((int) round($wait * 1000000)); // never faster than the headers' limit
+            $shared = $this->shared_pace_take($name); // SHARED PACE: our turn, after any other process's call and pause
             $pace['last'] = microtime(true);
             $ch = curl_init($url);
             curl_setopt_array($ch, array(CURLOPT_RETURNTRANSFER => true, CURLOPT_HEADER => true, CURLOPT_FOLLOWLOCATION => true,
@@ -1019,6 +1070,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $header_size = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             curl_close($ch);
             $headers = $res === false ? '' : substr($res, 0, $header_size);
+            $this->shared_pace_release($shared, microtime(true) + self::PAUSE_SECONDS); // SHARED PACE: the next call, by any process, after the pause
             usleep(self::PAUSE_SECONDS * 1000000); // the pause between calls, whatever the answer
             if(preg_match('/^x-rate-limit-limit:\s*(\d+)/mi', $headers, $m1) && (int) $m1[1] > 0) { // the limit it gives: e.g. 3 calls per "1s"
                 $interval = preg_match('/^x-rate-limit-interval:\s*(\d+(?:\.\d+)?)\s*s/mi', $headers, $m2) ? (float) $m2[1] : 1.0;
@@ -1040,12 +1092,46 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                 $wait = preg_match('/^Retry-After:\s*(\d+)/mi', $headers, $m) ? min((int) $m[1], 600) : 60 * (2 ** ($this->throttled_in_a_row - 1));
                 echo "$name answered HTTP $code (" . ($code == 429 ? 'too many requests' : 'busy') . "): waiting " . $wait . " seconds, then trying again"
                    . " ($this->throttled_in_a_row of " . self::THROTTLE_LIMIT . " before stopping).\n";
+                $this->shared_pace_push($name, microtime(true) + $wait, "$name answered HTTP $code"); // SHARED PACE: every process waits too
                 sleep(max(1, $wait));
                 continue;
             }
             if(++$other_failures >= 3) { echo "$name call failed (HTTP $code) 3 times; this row is marked 'error' and will be tried again on the next run.\n"; return false; }
             sleep(5);
         }
+    }
+    private function shared_pace_file($name)
+    {   return $this->work_dir . "." . strtolower($name) . "_pace.json"; } // e.g. Reference_maintenance/.crossref_pace.json
+    private function shared_pace_take($name)
+    {   /* SHARED PACE: takes the service's lock (one call at a time, across processes) and waits until the next call may start.
+           Returns the open file (kept locked during the call), or null if the file can't be used (then only this process's own pace applies). */
+        if(!($h = @fopen($this->shared_pace_file($name), 'c+'))) return null;
+        $t0 = microtime(true);
+        if(!flock($h, LOCK_EX)) { fclose($h); return null; } // waits while another process is making its call
+        $said = microtime(true) - $t0 > self::PACE_WAIT_NOTE_SECONDS;
+        if($said) echo "Waited " . round(microtime(true) - $t0) . " seconds for another run's $name call to end (one call at a time, shared by every run).\n";
+        rewind($h); $p = @json_decode((string) stream_get_contents($h), true);
+        if(($wait = (float) ($p['next'] ?? 0) - microtime(true)) > 0) {
+            if($wait > self::PACE_WAIT_NOTE_SECONDS) echo "Waiting " . round($wait) . " seconds before the next $name call: " . ($p['why'] ?? 'the shared pace') . " (shared by every run).\n";
+            usleep((int) round(min($wait, 900) * 1000000));
+        }
+        return $h;
+    }
+    private function shared_pace_release($h, $next)
+    {   // SHARED PACE: the next call (by any process) may start at $next; the lock is released
+        if(!$h) return;
+        ftruncate($h, 0); rewind($h); fwrite($h, json_encode(array('next' => $next, 'why' => 'the pause after each call', 'pid' => getmypid(), 'at' => date('Y-m-d H:i:s'))));
+        fflush($h); flock($h, LOCK_UN); fclose($h);
+    }
+    private function shared_pace_push($name, $next, $why)
+    {   // SHARED PACE: after a 429/503, every process waits as long as this one
+        if(!($h = @fopen($this->shared_pace_file($name), 'c+'))) return;
+        if(flock($h, LOCK_EX)) {
+            rewind($h); $p = @json_decode((string) stream_get_contents($h), true);
+            if($next > (float) ($p['next'] ?? 0)) { ftruncate($h, 0); rewind($h); fwrite($h, json_encode(array('next' => $next, 'why' => $why, 'pid' => getmypid(), 'at' => date('Y-m-d H:i:s')))); fflush($h); }
+            flock($h, LOCK_UN);
+        }
+        fclose($h);
     }
     private function save_to_cache($url, $body, $opt = null)
     {   // the same file lookup_with_cache($url, $opt) reads: <cache>/crossref/ab/cd/<md5>.cache (DataCite: <cache>/datacite/...)

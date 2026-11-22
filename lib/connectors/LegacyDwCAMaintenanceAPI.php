@@ -6,7 +6,7 @@ Downloads go to [CONTENT_RESOURCE_LOCAL_PATH]/Legacy_DwCA_files/ (the References
 Re-uses the Zenodo download code of ZenodoTraitBankAPI.
 Tasks:
 - download_file_from_zenodo: see process_legacy_dwca.php
-- convert_dwca_to_new_input_files: a legacy DwCA -> TraitBank input files Taxon.tsv and Traits.tsv, the same kind of files as the
+- convert_dwca_to_new_input_files: a legacy DwCA -> TraitBank input files Taxon.tsv, Traits.tsv and References.tsv, the same kind of files as the
   Zenodo TraitBank datasets' input_files (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/). Rules in process_legacy_dwca.php.
 ----------------------------------------------------
 */
@@ -114,6 +114,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $this->conv_temp_dir = '';
         $this->conv_debug = array();
         $this->conv_columns = array();
+        $this->conv_ref_used = array(); // referenceIDs used in Traits.tsv
         echo "\nConverting [$dwca]\n      -> [{$this->conv_out_dir}input_files/]\n";
 
         // read the DwCA
@@ -127,6 +128,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $taxon_meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
         $mof_meta   = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
         $occ_meta   = @$tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
+        $ref_meta   = @$tables['http://eol.org/schema/reference/reference'][0];
         if(!$taxon_meta) self::conv_exit("The DwCA has no taxon table.");
         if(!$mof_meta)   self::conv_exit("The DwCA has no MoF (measurement or fact) table.");
         if(!$occ_meta)   self::conv_exit("The DwCA has no occurrence table: it's needed to link each MoF row to its taxon (occurrenceID -> taxonID).");
@@ -140,6 +142,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $occ      = self::conv_read_occurrences($occ_meta);
         $children = self::conv_collect_child_metadata($mof_meta);
         self::conv_write_traits($mof_meta, $this->conv_out_dir . "input_files/Traits.tsv", $taxa, $occ, $children);
+        self::conv_write_references($ref_meta, $this->conv_out_dir . "input_files/References.tsv");
 
         recursive_rmdir($this->conv_temp_dir);
         foreach($this->conv_debug as $topic => $arr) { // counts as "name: count" lines in the report
@@ -147,13 +150,15 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         }
         Functions::start_print_debug($this->conv_debug, $name . "_convert", $out_root);
         echo "\nReport: [$out_root/{$name}_convert_debug_" . date('Y-m-d') . ".txt]\nDone: [{$this->conv_out_dir}input_files/]\n";
-        return array('Taxon' => $this->conv_out_dir . "input_files/Taxon.tsv", 'Traits' => $this->conv_out_dir . "input_files/Traits.tsv");
+        return array('Taxon' => $this->conv_out_dir . "input_files/Taxon.tsv", 'Traits' => $this->conv_out_dir . "input_files/Traits.tsv",
+                     'References' => $this->conv_out_dir . "input_files/References.tsv");
     }
     private function conv_input_row_counts($tables)
     {   // rows per file in the legacy DwCA (header and blank lines not counted), and what the conversion does with each file
         $use = array('http://rs.tdwg.org/dwc/terms/taxon'             => 'Taxon.tsv',
                      'http://rs.tdwg.org/dwc/terms/measurementorfact' => 'Traits.tsv',
-                     'http://rs.tdwg.org/dwc/terms/occurrence'        => 'links MoF rows to their taxa; extra columns go to Traits.tsv');
+                     'http://rs.tdwg.org/dwc/terms/occurrence'        => 'links MoF rows to their taxa; extra columns go to Traits.tsv',
+                     'http://eol.org/schema/reference/reference'      => 'References.tsv (only the references Traits.tsv uses)');
         $topic = "Rows in the legacy DwCA (input)";
         echo "\n$topic:\n";
         foreach($tables as $row_type => $metas) {
@@ -351,6 +356,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             if(isset($rec['referenceID']) && $rec['referenceID'] !== '') {
                 $new = self::conv_reference_ids($rec['referenceID']);
                 if($new !== $rec['referenceID']) { $ref_changed++; $rec['referenceID'] = $new; }
+                foreach(explode('|', $rec['referenceID']) as $id) if($id !== '') $this->conv_ref_used[$id] = '';
             }
             $out = array();
             foreach($head as $c) $out[] = (string) @$rec[$c];
@@ -376,6 +382,50 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                        "Traits.tsv columns: " . implode(", ", $head));
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
         echo "\n";
+    }
+    private function conv_write_references($meta, $file)
+    {   // reference table -> References.tsv (identifier, full_reference, as the shared TB_files/22776838_References/input_files/references.tsv):
+        // only the references Traits.tsv uses, in the order of the reference table; compared with the shared references.tsv
+        $topic = "References.tsv";
+        $f = Functions::file_open($file, "w");
+        fwrite($f, "identifier\tfull_reference\n");
+        $written = array(); $blank = 0;
+        if($meta) {
+            $cols = array_values(self::conv_table_columns($meta));
+            foreach(array('identifier', 'full_reference') as $c) if(!in_array($c, $cols)) { fclose($f); self::conv_exit("Reference table [" . basename($meta->file_uri) . "] has no [$c] column."); }
+            foreach(self::conv_table_rows($meta) as list($line, $rec)) {
+                $id = $rec['identifier'];
+                if(!isset($this->conv_ref_used[$id]) || isset($written[$id])) continue; // not used in Traits.tsv, or a duplicate identifier (first kept)
+                $full = trim(preg_replace('/\s+/', ' ', $rec['full_reference'])); // no tabs or line breaks inside a field
+                if($full === '') { $blank++; $this->conv_debug["References.tsv: blank full_reference (written anyway)"][$id] = ''; }
+                fwrite($f, "$id\t$full\n");
+                $written[$id] = $full;
+            }
+        }
+        fclose($f);
+        $missing = array_diff_key($this->conv_ref_used, $written);
+        foreach(array_keys($missing) as $id) $this->conv_debug["References.tsv: referenceID used in Traits.tsv but not in the reference table"][$id] = '';
+
+        // compared with the shared references (TB_files/22776838_References/input_files/references.tsv)
+        $shared_file = @glob(rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/22776838_*/input_files/references.tsv")[0];
+        $in_shared = 0; $differs = 0;
+        if($shared_file && ($h = fopen($shared_file, 'r'))) {
+            while(($row = fgets($h)) !== false) {
+                $tmp = explode("\t", rtrim($row, "\r\n"));
+                $id = trim((string) @$tmp[0]);
+                if(!isset($written[$id])) continue;
+                $in_shared++;
+                $theirs = trim(preg_replace('/\s+/', ' ', (string) @$tmp[1]));
+                if($theirs !== $written[$id]) { $differs++; $this->conv_debug["References.tsv: already in the shared references.tsv, with a different full_reference"]["$id -- ours: [{$written[$id]}] shared: [$theirs]"] = ''; }
+            }
+            fclose($h);
+        }
+        $lines = array("References.tsv rows: " . count($written) . " (of " . count($this->conv_ref_used) . " distinct referenceIDs in Traits.tsv); not in the reference table: " . count($missing) . "; blank full_reference: $blank",
+                       $shared_file ? "Already in the shared references.tsv: $in_shared (same full_reference: " . ($in_shared - $differs) . ", different: $differs); new: " . (count($written) - $in_shared)
+                                    : "Shared references.tsv (TB_files/22776838_*/input_files/) not found: not compared");
+        foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
+        echo "\n";
+        if(!$meta && $this->conv_ref_used) echo "\nWARNING: the DwCA has no reference table: References.tsv has only its header.\n";
     }
     const ARCHIVE_TYPES = array('.tar.gz', '.tgz', '.zip'); // supported Zenodo file types; ".tar.gz" and ".zip" as "file_type"
     private function archive_type($file)

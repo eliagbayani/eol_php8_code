@@ -22,7 +22,7 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "conc
     - Converts a legacy DwCA into TraitBank input files, the same kind as the Zenodo TraitBank datasets' input_files
       (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/):
       input:  CONTENT_RESOURCE_LOCAL_PATH/[concept_id]_[supplied_name]_TB_1_0.tar.gz            e.g. 13318109_AmphibiaWeb_TB_1_0.tar.gz
-      output: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_TraitBank/input_files/Taxon.tsv and Traits.tsv
+      output: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_TraitBank/input_files/Taxon.tsv, Traits.tsv and References.tsv
       report: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_convert_debug_[date].txt
       The output folder is made fresh each run; nothing is left behind if the run terminates.
     - The report starts with the rows in each file of the legacy DwCA (MoF: traits and child rows) and what is done with each file.
@@ -46,7 +46,10 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "conc
         An occurrence table with only occurrenceID and taxonID adds nothing (still used to find each trait's taxon).
       - referenceID: multiple IDs joined with ";" are joined with "|" instead, unique. The ";" of old-style DOIs stays (e.g. ...2.0.CO;2).
       - Columns: measurementID, taxonID, scientificName, taxonKey, the other MoF columns, the new columns, then source and referenceID.
-    - Columns in a file's header row that aren't in meta.xml are read too (reported). The association table and reference.tab aren't used.
+    - References.tsv = the reference table (reference.tab): identifier, full_reference, as the shared references
+      (TB_files/22776838_References/input_files/references.tsv), only the references used in Traits.tsv' referenceID.
+      Reported: referenceIDs not in the reference table, and how many are already in the shared references.tsv (same or different full_reference).
+    - Columns in a file's header row that aren't in meta.xml are read too (reported). The association table isn't used.
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

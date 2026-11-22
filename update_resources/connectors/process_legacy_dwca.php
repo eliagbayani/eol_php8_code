@@ -33,6 +33,9 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "conc
         or the table has both EOLid and taxonKey. A duplicate taxonID: only its first row is written (reported).
       - Columns: taxonID, canonicalName, scientificName, parentNameUsageID, taxonKey, taxonMap, taxonRank, kingdom, phylum, class, order,
         family, superfamily, genus, higherClassification, taxonRemarks, source (those present), then any other column, e.g. furtherInformationURL.
+      - higherClassification: no "|" at its start or end ('Animalia|Chordata|...|Ranidae|' -> 'Animalia|Chordata|...|Ranidae').
+      - taxonRemarks: match_taxa_2DH's notes are removed (e.g. 'Trait: [ IndexGroup:[Tetrapoda] - IndexHC:[...] ]', 'No canonical match');
+        other remarks are kept. If no remark is left in any row, the column is left out (reported).
     - Traits.tsv = the MoF table (measurement_or_fact_specific.tab or measurement_or_fact.tab):
       - one row per MoF row without a parentMeasurementID (traits, and context rows, i.e. measurementOfTaxon not true);
         occurrenceID, measurementOfTaxon and parentMeasurementID aren't carried over.

@@ -238,6 +238,17 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         if($has_eolid && in_array('taxonKey', $cols)) self::conv_exit("$where has both EOLid and taxonKey columns. EOLid becomes taxonKey, so it must have only one of them.");
         if(!$has_eolid && !in_array('taxonKey', $cols)) self::conv_exit("$where has no [taxonKey] column (nor EOLid, which becomes taxonKey). $required");
         if($has_eolid) $cols[array_search('EOLid', $cols)] = 'taxonKey';
+        // taxonRemarks: only real remarks are kept (match_taxa_2DH's notes removed); the column is left out if no real remark is left
+        $remarks = array('kept' => 0, 'notes removed' => 0);
+        if(in_array('taxonRemarks', $cols)) {
+            $any = false;
+            foreach(self::conv_table_rows($meta) as list($line, $rec)) if(self::conv_clean_taxon_remarks($rec['taxonRemarks']) !== '') { $any = true; break; }
+            if(!$any) {
+                $cols = array_values(array_diff($cols, array('taxonRemarks')));
+                $l = "Taxon.tsv: taxonRemarks left out, it had only match_taxa_2DH's notes (e.g. 'Trait: [ IndexGroup:[...] ... ]', 'No canonical match')";
+                echo "\n$l"; $this->conv_debug["Counts"][$l] = '';
+            }
+        }
         $order = array_merge(array_values(array_intersect(self::TAXON_COLUMNS, $cols)), array_values(array_diff($cols, self::TAXON_COLUMNS)));
 
         $f = Functions::file_open($file, "w");
@@ -245,6 +256,13 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $taxa = array(); $written = 0;
         foreach(self::conv_table_rows($meta) as list($line, $rec)) {
             if($has_eolid) { $rec['taxonKey'] = $rec['EOLid']; unset($rec['EOLid']); }
+            if(isset($rec['higherClassification'])) $rec['higherClassification'] = trim($rec['higherClassification'], "| "); // 'Animalia|...|Ranidae|' -> 'Animalia|...|Ranidae'
+            if(in_array('taxonRemarks', $order)) {
+                $clean = self::conv_clean_taxon_remarks($rec['taxonRemarks']);
+                if($clean !== $rec['taxonRemarks']) $remarks['notes removed']++;
+                if($clean !== '') $remarks['kept']++;
+                $rec['taxonRemarks'] = $clean;
+            }
             if($rec['taxonID'] === '')        { fclose($f); self::conv_exit("$where, line $line: blank taxonID (scientificName [{$rec['scientificName']}]). $required"); }
             if($rec['scientificName'] === '') { fclose($f); self::conv_exit("$where, line $line: blank scientificName (taxonID [{$rec['taxonID']}]). $required"); }
             if(isset($taxa[$rec['taxonID']])) { // keep the first
@@ -260,7 +278,24 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         fclose($f);
         echo "\nTaxon.tsv: [" . number_format($written) . "] rows" . ($has_eolid ? ", EOLid renamed taxonKey" : '') . ".\n";
         $this->conv_debug["Counts"]["Taxon.tsv rows: $written" . ($has_eolid ? " (EOLid renamed taxonKey)" : '')] = '';
+        if(in_array('taxonRemarks', $order)) {
+            $l = "Taxon.tsv taxonRemarks: real remarks kept in {$remarks['kept']} rows; match_taxa_2DH's notes removed in {$remarks['notes removed']} rows";
+            echo "$l\n"; $this->conv_debug["Counts"][$l] = '';
+        }
         return $taxa;
+    }
+    private function conv_clean_taxon_remarks($str)
+    {   // taxonRemarks without the notes match_taxa_2DH.php writes while matching names to EOL IDs (DwCA_MatchTaxa2DH.php), e.g.
+        // 'Trait: [ IndexGroup:[Tetrapoda] - IndexHC:[...] ]', 'No canonical match'. Notes are joined to other remarks with ' || '.
+        $notes = array('Cannot be matched at all', 'No canonical match', 'No higherClassification', 'With higherClassification but cannot be mapped to any index group.');
+        $keep = array();
+        foreach(explode(' || ', (string) $str) as $part) {
+            $part = trim(str_replace('-no rank-', '', $part));
+            $part = trim(preg_replace('/\s*=>\s*conflict IndexGroup mapping \[[^\]]*\]/', '', $part));
+            if($part === '' || in_array($part, $notes) || preg_match('/^Trait: \[ IndexGroup:/', $part)) continue;
+            $keep[] = $part;
+        }
+        return implode(' || ', $keep);
     }
     private function conv_read_occurrences($meta)
     {   // occurrenceID => array('taxonID' => ..., 'meta' => array(column => value)); 'meta' = any other non-blank column, e.g. sex, lifeStage

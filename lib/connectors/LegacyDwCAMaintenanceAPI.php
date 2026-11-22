@@ -4,8 +4,17 @@ namespace php_active_record;
 Called from: update_resources/connectors/process_legacy_dwca.php
 Downloads go to [CONTENT_RESOURCE_LOCAL_PATH]/Legacy_DwCA_files/ (the References/TraitBank tasks use TB_files/).
 Re-uses the Zenodo download code of ZenodoTraitBankAPI.
+Tasks:
+- download_file_from_zenodo: see process_legacy_dwca.php
+- convert_dwca_to_new_input_files: a legacy DwCA -> TraitBank input files Taxon.tsv and Traits.tsv, the same kind of files as the
+  Zenodo TraitBank datasets' input_files (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/). Rules in process_legacy_dwca.php.
 ----------------------------------------------------
 */
+// convert_dwca_to_new_input_files: child MoF records (with a parentMeasurementID) that must NOT become a metadata column in Traits.tsv.
+// By short name (e.g. 'contributor') or full measurementType URI (e.g. 'http://purl.org/dc/terms/contributor').
+// Default: none excluded, every child record becomes a column. Edit this list as needed.
+$GLOBALS['excluded_metadata_as_columns'] = array();
+
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
@@ -27,6 +36,9 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
 
         if($task == 'download_file_from_zenodo') {
             $result = self::download_file_from_zenodo();
+        }
+        elseif($task == 'convert_dwca_to_new_input_files') {
+            $result = self::convert_dwca_to_new_input_files();
         }
         else echo "\nERROR: Unknown task [$task].\n";
 
@@ -79,6 +91,260 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             $paths['final'] = $final;
         }
         return $paths;
+    }
+    /*================================================================= convert_dwca_to_new_input_files =================================================================*/
+    // Taxon.tsv: these columns first, in this order (when present), then every other taxon column in file order
+    const TAXON_COLUMNS = array('taxonID', 'canonicalName', 'scientificName', 'parentNameUsageID', 'taxonKey', 'taxonMap', 'taxonRank', 'kingdom', 'phylum',
+                                'class', 'order', 'family', 'superfamily', 'genus', 'higherClassification', 'taxonRemarks', 'source');
+    const MOF_NOT_CARRIED = array('occurrenceID', 'measurementOfTaxon', 'parentMeasurementID'); // MoF columns not written to Traits.tsv
+    const TRAITS_FIRST    = array('measurementID', 'taxonID', 'scientificName', 'taxonKey');      // Traits.tsv: first columns
+    const TRAITS_LAST     = array('source', 'referenceID');                                       // Traits.tsv: last columns, as in the Zenodo TraitBank datasets
+    function convert_dwca_to_new_input_files()
+    {   // e.g. concept_id 13318109, supplied_name AmphibiaWeb:
+        //   CONTENT_RESOURCE_LOCAL_PATH/13318109_AmphibiaWeb_TB_1_0.tar.gz -> TB_files_from_DwCA/13318109_AmphibiaWeb_TraitBank/input_files/Taxon.tsv and Traits.tsv
+        $concept_id = trim((string) @$this->param['concept_id']);
+        if(!preg_match('/^\d+$/', $concept_id)) exit("\nERROR: Missing or invalid \"concept_id\", e.g. \"concept_id\": \"13318109\".\n");
+        $supplied_name = trim((string) @$this->param['supplied_name']);
+        if(!preg_match('/^[A-Za-z0-9_-]+$/', $supplied_name)) exit("\nERROR: Missing or invalid \"supplied_name\" [$supplied_name]: letters, digits, _ and - only, e.g. \"supplied_name\": \"AmphibiaWeb\".\n");
+        $name = $concept_id . "_" . $supplied_name;
+        $dwca = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/" . $name . "_TB_1_0.tar.gz";
+        if(!is_file($dwca)) exit("\nERROR: Legacy DwCA not found: [$dwca]\n");
+        $out_root = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files_from_DwCA";
+        $this->conv_out_dir = "$out_root/{$name}_TraitBank/";
+        $this->conv_temp_dir = '';
+        $this->conv_debug = array();
+        $this->conv_columns = array();
+        echo "\nConverting [$dwca]\n      -> [{$this->conv_out_dir}input_files/]\n";
+
+        // read the DwCA
+        require_library('connectors/INBioAPI');
+        $func = new INBioAPI();
+        $paths = $func->extract_archive_file($dwca, "meta.xml", array('timeout' => 172800, 'expire_seconds' => 0));
+        if(!$paths) exit("\nERROR: Cannot extract [$dwca], or it has no meta.xml.\n");
+        $this->conv_temp_dir = $paths['temp_dir'];
+        $harvester = new ContentArchiveReader(NULL, $paths['archive_path']);
+        $tables = $harvester->tables; // keys are lower-case rowTypes
+        $taxon_meta = @$tables['http://rs.tdwg.org/dwc/terms/taxon'][0];
+        $mof_meta   = @$tables['http://rs.tdwg.org/dwc/terms/measurementorfact'][0];
+        $occ_meta   = @$tables['http://rs.tdwg.org/dwc/terms/occurrence'][0];
+        if(!$taxon_meta) self::conv_exit("The DwCA has no taxon table.");
+        if(!$mof_meta)   self::conv_exit("The DwCA has no MoF (measurement or fact) table.");
+        if(!$occ_meta)   self::conv_exit("The DwCA has no occurrence table: it's needed to link each MoF row to its taxon (occurrenceID -> taxonID).");
+
+        // a fresh output folder each run
+        if(is_dir($this->conv_out_dir)) recursive_rmdir($this->conv_out_dir);
+        if(!mkdir($this->conv_out_dir . "input_files/", 0775, true)) self::conv_exit("Cannot create folder [{$this->conv_out_dir}input_files/].");
+
+        $taxa     = self::conv_write_taxon($taxon_meta, $this->conv_out_dir . "input_files/Taxon.tsv");
+        $occ      = self::conv_read_occurrences($occ_meta);
+        $children = self::conv_collect_child_metadata($mof_meta);
+        self::conv_write_traits($mof_meta, $this->conv_out_dir . "input_files/Traits.tsv", $taxa, $occ, $children);
+
+        recursive_rmdir($this->conv_temp_dir);
+        foreach($this->conv_debug as $topic => $arr) { // counts as "name: count" lines in the report
+            foreach($arr as $sub => $v) if(is_int($v)) { unset($this->conv_debug[$topic][$sub]); $this->conv_debug[$topic]["$sub: $v"] = ''; }
+        }
+        Functions::start_print_debug($this->conv_debug, $name . "_convert", $out_root);
+        echo "\nReport: [$out_root/{$name}_convert_debug_" . date('Y-m-d') . ".txt]\nDone: [{$this->conv_out_dir}input_files/]\n";
+        return array('Taxon' => $this->conv_out_dir . "input_files/Taxon.tsv", 'Traits' => $this->conv_out_dir . "input_files/Traits.tsv");
+    }
+    private function conv_exit($reason)
+    {   // stops the conversion: no half-written output is left
+        echo "\nERROR: $reason\nWill terminate.\n";
+        if($this->conv_temp_dir && is_dir($this->conv_temp_dir)) recursive_rmdir($this->conv_temp_dir);
+        if(@$this->conv_out_dir && is_dir($this->conv_out_dir)) recursive_rmdir($this->conv_out_dir);
+        exit(1);
+    }
+    private function conv_short_name($uri)
+    {   // column name from a term URI, e.g. 'http://purl.org/dc/terms/contributor' -> 'contributor' (same rule as Functions::shorten_record())
+        return (string) key(Functions::shorten_record(array($uri => '')));
+    }
+    private function conv_table_columns($meta)
+    {   // column position => name, from meta.xml; plus columns in the file's header row beyond those in meta.xml (e.g. sex, lifeStage added by hand)
+        if(isset($this->conv_columns[$meta->file_uri])) return $this->conv_columns[$meta->file_uri];
+        $names = array();
+        foreach($meta->fields as $index => $field) if($field['term']) $names[$index] = self::conv_short_name($field['term']);
+        if($meta->ignore_header_lines && ($f = fopen($meta->file_uri, 'r'))) {
+            $head = explode("\t", rtrim((string) fgets($f), "\r\n"));
+            fclose($f);
+            $max = $names ? max(array_keys($names)) : -1;
+            foreach($head as $index => $h) {
+                $h = trim($h);
+                if($index <= $max || $h === '' || in_array($h, $names)) continue;
+                $names[$index] = $h;
+                $this->conv_debug["Columns read from the file's header row (not in meta.xml)"][basename($meta->file_uri) . ": $h"] = '';
+            }
+        }
+        return $this->conv_columns[$meta->file_uri] = $names;
+    }
+    private function conv_table_rows($meta)
+    {   // yields array(line number, record keyed by column name)
+        $names = self::conv_table_columns($meta);
+        $i = 0;
+        foreach(new FileIterator($meta->file_uri) as $row) {
+            $i++;
+            if($i <= (int) $meta->ignore_header_lines) continue;
+            $row = rtrim((string) $row, "\r\n");
+            if(trim($row) === '') continue;
+            $tmp = explode("\t", $row);
+            $rec = array();
+            foreach($names as $index => $col) $rec[$col] = trim((string) @$tmp[$index]);
+            yield array($i, $rec);
+        }
+    }
+    private function conv_write_taxon($meta, $file)
+    {   // taxon table -> Taxon.tsv (EOLid renamed taxonKey). Returns taxonID => array(scientificName, taxonKey)
+        $where = "Taxon table [" . basename($meta->file_uri) . "]";
+        $cols = array_values(self::conv_table_columns($meta));
+        $required = "Required: taxonID, scientificName (never blank), taxonKey (or EOLid) and taxonMap (may be blank).";
+        foreach(array('taxonID', 'scientificName', 'taxonMap') as $c) if(!in_array($c, $cols)) self::conv_exit("$where has no [$c] column. $required");
+        $has_eolid = in_array('EOLid', $cols);
+        if($has_eolid && in_array('taxonKey', $cols)) self::conv_exit("$where has both EOLid and taxonKey columns. EOLid becomes taxonKey, so it must have only one of them.");
+        if(!$has_eolid && !in_array('taxonKey', $cols)) self::conv_exit("$where has no [taxonKey] column (nor EOLid, which becomes taxonKey). $required");
+        if($has_eolid) $cols[array_search('EOLid', $cols)] = 'taxonKey';
+        $order = array_merge(array_values(array_intersect(self::TAXON_COLUMNS, $cols)), array_values(array_diff($cols, self::TAXON_COLUMNS)));
+
+        $f = Functions::file_open($file, "w");
+        fwrite($f, implode("\t", $order) . "\n");
+        $taxa = array(); $written = 0;
+        foreach(self::conv_table_rows($meta) as list($line, $rec)) {
+            if($has_eolid) { $rec['taxonKey'] = $rec['EOLid']; unset($rec['EOLid']); }
+            if($rec['taxonID'] === '')        { fclose($f); self::conv_exit("$where, line $line: blank taxonID (scientificName [{$rec['scientificName']}]). $required"); }
+            if($rec['scientificName'] === '') { fclose($f); self::conv_exit("$where, line $line: blank scientificName (taxonID [{$rec['taxonID']}]). $required"); }
+            if(isset($taxa[$rec['taxonID']])) { // keep the first
+                $this->conv_debug["Taxon: duplicate taxonID, only its first row written"]["taxonID {$rec['taxonID']}, line $line"] = '';
+                continue;
+            }
+            $out = array();
+            foreach($order as $c) $out[] = @$rec[$c];
+            fwrite($f, implode("\t", $out) . "\n");
+            $taxa[$rec['taxonID']] = array($rec['scientificName'], $rec['taxonKey']);
+            $written++;
+        }
+        fclose($f);
+        echo "\nTaxon.tsv: [" . number_format($written) . "] rows" . ($has_eolid ? ", EOLid renamed taxonKey" : '') . ".\n";
+        $this->conv_debug["Counts"]["Taxon.tsv rows: $written" . ($has_eolid ? " (EOLid renamed taxonKey)" : '')] = '';
+        return $taxa;
+    }
+    private function conv_read_occurrences($meta)
+    {   // occurrenceID => array('taxonID' => ..., 'meta' => array(column => value)); 'meta' = any other non-blank column, e.g. sex, lifeStage
+        $where = "Occurrence table [" . basename($meta->file_uri) . "]";
+        $cols = array_values(self::conv_table_columns($meta));
+        foreach(array('occurrenceID', 'taxonID') as $c) if(!in_array($c, $cols)) self::conv_exit("$where has no [$c] column.");
+        $extra = array_values(array_diff($cols, array('occurrenceID', 'taxonID')));
+        $occ = array(); $n = 0;
+        foreach(self::conv_table_rows($meta) as list($line, $rec)) {
+            $n++;
+            $m = array();
+            foreach($extra as $c) if($rec[$c] !== '') $m[$c] = $rec[$c];
+            $occ[$rec['occurrenceID']] = array('taxonID' => $rec['taxonID'], 'meta' => $m);
+        }
+        $this->conv_occ_columns = $extra;
+        $msg = "Occurrence rows: $n; " . ($extra ? "columns added to Traits.tsv: " . implode(", ", $extra) : "only occurrenceID and taxonID, used only to link MoF rows to their taxa");
+        echo "\n$msg\n";
+        $this->conv_debug["Counts"][$msg] = '';
+        return $occ;
+    }
+    private function conv_collect_child_metadata($meta)
+    {   // MoF pass 1: child rows (with a parentMeasurementID) -> top-level measurementID => array(column => values)
+        $where = "MoF table [" . basename($meta->file_uri) . "]";
+        $cols = array_values(self::conv_table_columns($meta));
+        foreach(array('measurementID', 'occurrenceID', 'measurementType', 'measurementValue') as $c) if(!in_array($c, $cols)) self::conv_exit("$where has no [$c] column.");
+        $excluded = array_flip((array) @$GLOBALS['excluded_metadata_as_columns']);
+        $parent_of = array(); $child_vals = array();
+        $this->conv_child_columns = array(); // first-seen order
+        foreach(self::conv_table_rows($meta) as list($line, $rec)) {
+            $pID = (string) @$rec['parentMeasurementID'];
+            if($pID === '') continue;
+            $parent_of[$rec['measurementID']] = $pID;
+            $col = self::conv_short_name($rec['measurementType']);
+            if(isset($excluded[$col]) || isset($excluded[$rec['measurementType']])) { @$this->conv_debug["Child rows not made into columns (excluded_metadata_as_columns)"][$col]++; continue; }
+            if($rec['measurementValue'] === '' || $col === '') { @$this->conv_debug["Child rows left out: blank measurementType or measurementValue"]["$where"]++; continue; }
+            if(in_array($col, array_merge(self::TRAITS_FIRST, self::MOF_NOT_CARRIED))) { @$this->conv_debug["Child rows left out: their column name is reserved"][$col]++; continue; }
+            $child_vals[$rec['measurementID']] = array($col, $rec['measurementValue']);
+            $this->conv_child_columns[$col] = '';
+        }
+        $this->conv_child_columns = array_keys($this->conv_child_columns);
+        $children = array();
+        foreach($child_vals as $mID => $cv) {
+            // the top-level ancestor: a grandchild's values go to the trait at the top of its chain
+            $top = $mID; $seen = array();
+            while(isset($parent_of[$top]) && !isset($seen[$top])) { $seen[$top] = ''; $top = $parent_of[$top]; }
+            if(isset($parent_of[$top])) { $this->conv_debug["Child rows left out: parentMeasurementID loop"][$mID] = ''; continue; }
+            $children[$top][$cv[0]][] = $cv[1];
+        }
+        $this->conv_child_total = count($parent_of);
+        return $children;
+    }
+    private function conv_merge_values($existing, $vals)
+    {   // "a|b" + array(b, c) -> "a|b|c": pipe-separated, unique, no blanks
+        $all = $existing === '' ? array() : explode('|', $existing);
+        $all = array_filter(array_map('trim', array_merge($all, $vals)), fn($v) => $v !== '');
+        return implode('|', array_values(array_unique($all)));
+    }
+    private function conv_reference_ids($str)
+    {   // "a;b" -> "a|b". Every ";" is a separator except the one in old-style (SICI) DOIs, which end in "CO;2" or "co;2-3",
+        // e.g. https://doi.org/10.1890/0012-9615(2001)071[0401:RAROAL]2.0.CO;2 -- protected first, restored after the split.
+        $str = preg_replace('/(co);(\d(?:-[0-9a-z])?)(?=\s*(?:;|\||$))/i', "$1\x01$2", $str);
+        $parts = preg_split('/[;|]/', $str);
+        return self::conv_merge_values('', str_replace("\x01", ';', $parts));
+    }
+    private function conv_write_traits($meta, $file, $taxa, $occ, $children)
+    {   // MoF pass 2: every row without a parentMeasurementID -> a Traits.tsv row
+        $mof_cols = array_values(array_diff(self::conv_table_columns($meta), self::MOF_NOT_CARRIED));
+        $meta_cols = array_values(array_diff(array_merge($this->conv_child_columns, $this->conv_occ_columns), $mof_cols, self::TRAITS_FIRST, self::MOF_NOT_CARRIED));
+        $all = array_values(array_unique(array_merge($mof_cols, $meta_cols)));
+        $head = array_merge(self::TRAITS_FIRST, array_values(array_diff($all, self::TRAITS_FIRST, self::TRAITS_LAST)), array_values(array_intersect(self::TRAITS_LAST, $all)));
+
+        $f = Functions::file_open($file, "w");
+        fwrite($f, implode("\t", $head) . "\n");
+        $written = 0; $context = 0; $ref_changed = 0; $used = array();
+        $skip = array('no occurrence' => 0, 'no taxon' => 0);
+        foreach(self::conv_table_rows($meta) as list($line, $rec)) {
+            if((string) @$rec['parentMeasurementID'] !== '') continue; // child rows are columns of their parent
+            $mID = $rec['measurementID'];
+            if(!($o = @$occ[$rec['occurrenceID']])) {
+                $skip['no occurrence']++;
+                $this->conv_debug["Traits left out: occurrenceID not in the occurrence table"][$rec['occurrenceID']] = '';
+                continue;
+            }
+            if(!($t = @$taxa[$o['taxonID']])) {
+                $skip['no taxon']++;
+                $this->conv_debug["Traits left out: the occurrence's taxonID not in the taxon table"][$o['taxonID']] = '';
+                continue;
+            }
+            if(strtolower((string) @$rec['measurementOfTaxon']) != 'true') $context++;
+            $rec['taxonID'] = $o['taxonID']; $rec['scientificName'] = $t[0]; $rec['taxonKey'] = $t[1];
+            foreach(@$children[$mID] ?: array() as $col => $vals) $rec[$col] = self::conv_merge_values((string) @$rec[$col], $vals);
+            foreach($o['meta'] as $col => $val) if(in_array($col, $head)) $rec[$col] = self::conv_merge_values((string) @$rec[$col], array($val));
+            if(isset($rec['referenceID']) && $rec['referenceID'] !== '') {
+                $new = self::conv_reference_ids($rec['referenceID']);
+                if($new !== $rec['referenceID']) { $ref_changed++; $rec['referenceID'] = $new; }
+            }
+            $out = array();
+            foreach($head as $c) $out[] = (string) @$rec[$c];
+            fwrite($f, implode("\t", $out) . "\n");
+            $used[$mID] = '';
+            $written++;
+        }
+        fclose($f);
+
+        // child rows whose top-level parent wasn't written
+        foreach($children as $top => $cols) {
+            if(isset($used[$top])) continue;
+            foreach($cols as $col => $vals) @$this->conv_debug["Child rows left out: their parent trait isn't in Traits.tsv"]["$col (parent $top)"] += count($vals);
+        }
+        $merged = array();
+        foreach($children as $top => $cols) if(isset($used[$top])) foreach($cols as $col => $vals) @$merged[$col] += count($vals);
+
+        $lines = array("Traits.tsv rows: $written (MoF rows without a parentMeasurementID)",
+                       "Child MoF rows: {$this->conv_child_total}" . ($merged ? "; added to their parent trait as columns: " . implode(", ", array_map(fn($c, $n) => "$c $n", array_keys($merged), $merged)) : ''),
+                       "Context rows (no parentMeasurementID, measurementOfTaxon not true), written as trait rows: $context",
+                       "Traits left out: occurrenceID not in the occurrence table: {$skip['no occurrence']}; taxonID not in the taxon table: {$skip['no taxon']}",
+                       "referenceID: ';' changed to '|' in $ref_changed rows",
+                       "Traits.tsv columns: " . implode(", ", $head));
+        foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
+        echo "\n";
     }
     const ARCHIVE_TYPES = array('.tar.gz', '.tgz', '.zip'); // supported Zenodo file types; ".tar.gz" and ".zip" as "file_type"
     private function archive_type($file)

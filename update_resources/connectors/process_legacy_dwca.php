@@ -17,6 +17,35 @@ php process_legacy_dwca.php _ '{"task": "download_file_from_zenodo", "concept_id
     - "file_type": ".tar.gz" or ".zip". Zenodo's file is converted if it is the other type (e.g. Archive.zip -> .tar.gz; files at the top of the
       archive, Mac __MACOSX/ and ._ files left out), or copied as is if it is already that type.
     - Not redone if the final version is already newer than the downloaded file.
+
+php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "concept_id": "13318109", "supplied_name": "AmphibiaWeb"}'
+    - Converts a legacy DwCA into TraitBank input files, the same kind as the Zenodo TraitBank datasets' input_files
+      (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/):
+      input:  CONTENT_RESOURCE_LOCAL_PATH/[concept_id]_[supplied_name]_TB_1_0.tar.gz            e.g. 13318109_AmphibiaWeb_TB_1_0.tar.gz
+      output: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_TraitBank/input_files/Taxon.tsv and Traits.tsv
+      report: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_convert_debug_[date].txt
+      The output folder is made fresh each run; nothing is left behind if the run terminates.
+    - Taxon.tsv = the taxon table:
+      - EOLid is renamed taxonKey.
+      - Required columns: taxonID, scientificName, taxonKey (or EOLid) and taxonMap. taxonID and scientificName may never be blank;
+        taxonKey and taxonMap may. Terminates with the reason if a column is missing, a taxonID or scientificName is blank,
+        or the table has both EOLid and taxonKey. A duplicate taxonID: only its first row is written (reported).
+      - Columns: taxonID, canonicalName, scientificName, parentNameUsageID, taxonKey, taxonMap, taxonRank, kingdom, phylum, class, order,
+        family, superfamily, genus, higherClassification, taxonRemarks, source (those present), then any other column, e.g. furtherInformationURL.
+    - Traits.tsv = the MoF table (measurement_or_fact_specific.tab or measurement_or_fact.tab):
+      - one row per MoF row without a parentMeasurementID (traits, and context rows, i.e. measurementOfTaxon not true);
+        occurrenceID, measurementOfTaxon and parentMeasurementID aren't carried over.
+      - taxonID, scientificName and taxonKey added, via occurrenceID -> the occurrence's taxonID -> Taxon. A MoF row whose occurrence or
+        taxon isn't found is left out (reported).
+      - child rows (with a parentMeasurementID) become columns of their parent trait: column = the measurementType's short name, value =
+        measurementValue, e.g. measurementType http://purl.org/dc/terms/contributor -> column "contributor". A grandchild goes to the trait
+        at the top of its chain. If the column already exists (e.g. MoF's own contributor column), the values are joined with "|", unique.
+        Child records listed in $GLOBALS['excluded_metadata_as_columns'] (top of LegacyDwCAMaintenanceAPI.php) aren't made into columns.
+      - occurrence columns other than occurrenceID and taxonID (e.g. sex, lifeStage) are added to each trait of that occurrence, the same way.
+        An occurrence table with only occurrenceID and taxonID adds nothing (still used to find each trait's taxon).
+      - referenceID: multiple IDs joined with ";" are joined with "|" instead, unique. The ";" of old-style DOIs stays (e.g. ...2.0.CO;2).
+      - Columns: measurementID, taxonID, scientificName, taxonKey, the other MoF columns, the new columns, then source and referenceID.
+    - Columns in a file's header row that aren't in meta.xml are read too (reported). The association table and reference.tab aren't used.
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development

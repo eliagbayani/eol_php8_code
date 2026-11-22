@@ -19,6 +19,9 @@ php process_legacy_dwca.php _ '{"task": "download_file_from_zenodo", "concept_id
     - Not redone if the final version is already newer than the downloaded file.
 
 php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "concept_id": "13318109", "supplied_name": "AmphibiaWeb"}'
+php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "source": "13318109_AmphibiaWeb_TB_1_0.tar.gz"}'
+    - The two are the same: "source" is the input file's name in CONTENT_RESOURCE_LOCAL_PATH ([concept_id]_[supplied_name]_TB_1_0.tar.gz, no folder);
+      the output folder and the report are named from it. If "source" and "concept_id"/"supplied_name" are both given, they must name the same file.
     - Converts a legacy DwCA into TraitBank input files, the same kind as the Zenodo TraitBank datasets' input_files
       (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/):
       input:  CONTENT_RESOURCE_LOCAL_PATH/[concept_id]_[supplied_name]_TB_1_0.tar.gz            e.g. 13318109_AmphibiaWeb_TB_1_0.tar.gz

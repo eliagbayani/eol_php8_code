@@ -100,13 +100,27 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
     const TRAITS_FIRST    = array('measurementID', 'taxonID', 'scientificName', 'taxonKey');      // Traits.tsv: first columns
     const TRAITS_LAST     = array('source', 'referenceID');                                       // Traits.tsv: last columns, as in the Zenodo TraitBank datasets
     function convert_dwca_to_new_input_files()
-    {   // e.g. concept_id 13318109, supplied_name AmphibiaWeb:
+    {   // e.g. concept_id 13318109, supplied_name AmphibiaWeb -- or the same as "source": "13318109_AmphibiaWeb_TB_1_0.tar.gz":
         //   CONTENT_RESOURCE_LOCAL_PATH/13318109_AmphibiaWeb_TB_1_0.tar.gz -> TB_files_from_DwCA/13318109_AmphibiaWeb_TraitBank/input_files/Taxon.tsv and Traits.tsv
-        $concept_id = trim((string) @$this->param['concept_id']);
-        if(!preg_match('/^\d+$/', $concept_id)) exit("\nERROR: Missing or invalid \"concept_id\", e.g. \"concept_id\": \"13318109\".\n");
+        $both_ways = "Give either \"concept_id\" + \"supplied_name\", e.g. \"concept_id\": \"13318109\", \"supplied_name\": \"AmphibiaWeb\", or \"source\", e.g. \"source\": \"13318109_AmphibiaWeb_TB_1_0.tar.gz\".";
+        $concept_id    = trim((string) @$this->param['concept_id']);
         $supplied_name = trim((string) @$this->param['supplied_name']);
-        if(!preg_match('/^[A-Za-z0-9_-]+$/', $supplied_name)) exit("\nERROR: Missing or invalid \"supplied_name\" [$supplied_name]: letters, digits, _ and - only, e.g. \"supplied_name\": \"AmphibiaWeb\".\n");
-        $name = $concept_id . "_" . $supplied_name;
+        $source        = trim((string) @$this->param['source']);
+        if($source !== '') { // the input file's name in CONTENT_RESOURCE_LOCAL_PATH: [concept_id]_[supplied_name]_TB_1_0.tar.gz
+            if(strpos($source, '/') !== false || strpos($source, '\\') !== false) exit("\nERROR: \"source\" [$source] must be a file name only (no folder): the file in CONTENT_RESOURCE_LOCAL_PATH, e.g. \"source\": \"13318109_AmphibiaWeb_TB_1_0.tar.gz\".\n");
+            if(!preg_match('/^(\d+_[A-Za-z0-9_-]+)_TB_1_0\.tar\.gz$/', $source, $m)) exit("\nERROR: Invalid \"source\" [$source]: it must be [concept_id]_[supplied_name]_TB_1_0.tar.gz (supplied_name: letters, digits, _ and - only), e.g. \"source\": \"13318109_AmphibiaWeb_TB_1_0.tar.gz\".\n");
+            $name = $m[1];
+            if($concept_id !== '' || $supplied_name !== '') { // also given: must name the same file
+                $other = $concept_id . "_" . $supplied_name;
+                if($other !== $name) exit("\nERROR: \"source\" [$source] and \"concept_id\" + \"supplied_name\" [{$other}_TB_1_0.tar.gz] name different files. Give only one of them.\n");
+            }
+        }
+        else {
+            if($concept_id === '' && $supplied_name === '') exit("\nERROR: No input given. $both_ways\n");
+            if(!preg_match('/^\d+$/', $concept_id)) exit("\nERROR: Missing or invalid \"concept_id\" [$concept_id]. $both_ways\n");
+            if(!preg_match('/^[A-Za-z0-9_-]+$/', $supplied_name)) exit("\nERROR: Missing or invalid \"supplied_name\" [$supplied_name]: letters, digits, _ and - only. $both_ways\n");
+            $name = $concept_id . "_" . $supplied_name;
+        }
         $dwca = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/" . $name . "_TB_1_0.tar.gz";
         if(!is_file($dwca)) exit("\nERROR: Legacy DwCA not found: [$dwca]\n");
         $out_root = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files_from_DwCA";

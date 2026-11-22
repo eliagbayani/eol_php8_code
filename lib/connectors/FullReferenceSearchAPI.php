@@ -114,7 +114,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
        It needs the author and title checks (they confirm a DataCite record), so it's off when they are off. A DataCite DOI is at most 'possible'. */
     const DATACITE_SEARCH = true;
     const HINT_SCORE = 80; // (Nov 19, 2026) a 'not found' row whose closest CrossRef candidate scores this or more gets a "worth a look" hint (candidate_hint)
-    const MAX_AUTHOR_LOOKUPS = 3; // per row: CrossRef's search answer has no authors, so each candidate that passes the checks costs one call (cached)
+    /* (Nov 22, 2026) AUTHORS IN THE SEARCH: the search asks CrossRef for 'author' too, so a candidate's authors come with the search answer, at no extra call.
+       Before, each candidate that passed the other checks cost one more call (https://api.crossref.org/works/<DOI>) for its authors: with mostly matched
+       rows that was 2 calls a row, about 4 s instead of 2 (in build #18 of the whole reference.tab, 763 of 1,824 calls in an hour).
+       A search answered before this change (cached under the URL without 'author') is still read from the cache, and its candidates' authors still come
+       from their own records (cached too), as before: nothing searched before is asked again. */
+    const MAX_AUTHOR_LOOKUPS = 3; // per row, for a search answered before AUTHORS IN THE SEARCH only: each candidate that passes the checks costs one call for its authors (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
     // (Nov 19, 2026) titles of records that are a journal's or book's furniture, not a work: never the answer
     const NOT_A_WORK_TITLE = '/^(?:(?:table of )?contents?|content ?snapshots?|front matter|back matter|front cover|back cover|cover|issue information|editorial board|masthead|index|title page|preface|errat(?:a|um)|corrigend(?:a|um))\s*$|\bTable of Contents\s*$/i';
@@ -391,7 +396,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                     // the citation often doesn't name, e.g. Bradshaw 1981 "Pages 1395-1434 in A. Keast, editor. Ecological Biogeography of Australia" in "Monographiae Biologicae"
                     $jneeded = (string) @$item['type'] === 'journal-article';
                     if($share !== null && $share >= 0.9 && (!$jneeded || $jshare === null || $jshare >= 0.7)) {
-                        $authors = $lookups < self::MAX_AUTHOR_LOOKUPS ? $this->crossref_authors((string) @$item['DOI'], $lookups) : null;
+                        $authors = ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given'])) ? $this->crossref_authors($item, $lookups) : null;
                         if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
                         $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
                         if($a['score'] >= 2) {
@@ -408,7 +413,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                        ("Amphibia-Reptilia 27" for 28, "Geological Magazine 25" for 3) or the journal's old name ("Journal of Eukaryotic Microbiology 8" is
                        "The Journal of Protozoology" 8) -- while the first author agrees exactly and at least 90% of CrossRef's title (3+ words) is in the citation:
                        'possible' (never 'matched'), with a note naming what differs. */
-                    $authors = $lookups < self::MAX_AUTHOR_LOOKUPS ? $this->crossref_authors((string) @$item['DOI'], $lookups) : null;
+                    $authors = ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given'])) ? $this->crossref_authors($item, $lookups) : null;
                     if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
                     $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
                     if($a['score'] >= 3) {
@@ -418,7 +423,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                     }
                 }
                 elseif($c['status'] != 'not found') {
-                    $authors = ($ref['author'] !== '' && $lookups < self::MAX_AUTHOR_LOOKUPS) ? $this->crossref_authors((string) @$item['DOI'], $lookups) : null;
+                    $authors = ($ref['author'] !== '' && ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given']))) ? $this->crossref_authors($item, $lookups) : null;
                     if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
                     $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
                     $c['checks'] = array_merge($c['checks'], $a['checks']);
@@ -622,17 +627,24 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $d = @json_decode((string) $json, true);
         return ($d['status'] ?? '') === 'ok' ? (array) $d['message'] : null;
     }
-    private function crossref_authors($doi, &$lookups)
-    {   /* AUTHOR/TITLE: the authors' surnames of one CrossRef record (CrossRef's search answer doesn't include them): https://api.crossref.org/works/<DOI>,
-           politely and cached like the search. Returns a list (empty: CrossRef lists none), null (couldn't be read) or 'stop' (CrossRef asks us to slow down). */
+    private function crossref_authors($item, &$lookups)
+    {   /* AUTHOR/TITLE: the authors' surnames of one CrossRef candidate. Returns a list (empty: CrossRef lists none), null (couldn't be read) or 'stop' (CrossRef asks us to slow down).
+           AUTHORS IN THE SEARCH: from the search answer itself (no call); for a search answered before that change, from the record
+           https://api.crossref.org/works/<DOI>, politely and cached like the search. */
+        if(isset($item['_authors_given'])) return self::author_surnames((array) @$item['author']);
+        $doi = (string) @$item['DOI'];
         if($doi === '') return null;
         $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
         if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options);
         else { $lookups++; $json = $this->call_crossref($url); if($json === 'stop') return 'stop'; if($json === false || $json === 'missing') return null; }
         $d = @json_decode((string) $json, true);
         if(($d['status'] ?? '') !== 'ok') return null;
+        return self::author_surnames((array) @$d['message']['author']);
+    }
+    private static function author_surnames($list)
+    {   // CrossRef's 'author' list => surnames ('family', or 'name' for an organization)
         $names = array();
-        foreach((array) @$d['message']['author'] as $a) { $n = trim((string) ($a['family'] ?? $a['name'] ?? '')); if($n !== '') $names[] = $n; }
+        foreach($list as $a) { $n = trim((string) ($a['family'] ?? $a['name'] ?? '')); if($n !== '') $names[] = $n; }
         return $names;
     }
     private function author_title_check($surname, $authors, $citation, $title)
@@ -854,9 +866,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         return $ref;
     }
-    private function crossref_url($full_reference, $year)
-    {   // the CrossRef search for one full_reference; also the key of its cached answer
-        $q = array('query.bibliographic' => $full_reference, 'rows' => 5, 'select' => 'DOI,score,title,container-title,volume,issue,page,issued,published,type');
+    private function crossref_url($full_reference, $year, $with_authors = true)
+    {   /* the CrossRef search for one full_reference; also the key of its cached answer.
+           $with_authors = false: the URL used before AUTHORS IN THE SEARCH (Nov 22, 2026), to find a search answered before it in the cache */
+        $q = array('query.bibliographic' => $full_reference, 'rows' => 5, 'select' => 'DOI,score,title,container-title,volume,issue,page,issued,published,type' . ($with_authors ? ',author' : ''));
         if($year) $q['filter'] = "from-pub-date:" . ($year - 1) . ",until-pub-date:" . ($year + 1);
         return $this->crossref_works_url . "?" . http_build_query($q);
     }
@@ -893,8 +906,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it, in the same order
         if(($doi = self::doi_in_text($ref)) !== '' || ($doi = self::doi_in_column($doi_column)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // a DOI given: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
         elseif(self::not_searched_note($ref) !== '') { $n['skipped']++; return; } // not searched (find_DOI's rules)
-        else $url = $this->crossref_url($ref, $this->parse_full_reference($ref)['year']);
-        if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options)) $n['cached']++; // a repeat is asked only once
+        else { $year = $this->parse_full_reference($ref)['year']; $url = $this->crossref_url($ref, $year); $old = $this->crossref_url($ref, $year, false); }
+        if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options) || (isset($old) && Functions::url_already_cached($old, $this->crossref_options))) $n['cached']++; // a repeat is asked only once; a search answered before AUTHORS IN THE SEARCH is cached too
         else { $n['new']++; $seen[$url] = 1; }
     }
     static function estimate_text($n)
@@ -913,7 +926,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.
            false = this row failed (marked 'error', tried again on the next run); 'stop' = CrossRef keeps asking us to slow down: stop the search.
            A cached answer is used as is: the same full_reference is never sent twice. */
-        $url = $this->crossref_url($full_reference, $year);
+        $old = $this->crossref_url($full_reference, $year, false); // AUTHORS IN THE SEARCH: a search answered before it, without the authors
+        $given = !Functions::url_already_cached($old, $this->crossref_options);
+        $url = $given ? $this->crossref_url($full_reference, $year) : $old;
         if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options); // read from the cache, no call
         else {
             $json = $this->call_crossref($url);
@@ -921,7 +936,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
         $d = @json_decode((string) $json, true);
         if(($d['status'] ?? '') !== 'ok') return false;
-        return $d['message']['items'] ?? array();
+        $items = $d['message']['items'] ?? array();
+        if($given) foreach($items as &$item) $item['_authors_given'] = true; // their 'author' lists came with the answer (a candidate without one has none)
+        unset($item);
+        return $items;
     }
     private function call_crossref($url, $opt = null)
     {   /* $opt: the options of the service called: crossref_options (default) or datacite_options (DATACITE): its cache, name and success test.
@@ -1204,8 +1222,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     a candidate can still be 'possible' (never 'matched') when nothing differs, the first author agrees (or nearly), at
     least 90% of CrossRef's title is in the citation, and, for a journal article, the journal is named in the citation.
     E.g. old books with DOIs from the Biodiversity Heritage Library (10.5962/bhl.title...). Check the edition.
-  - The authors cost one CrossRef call for each candidate that passes the other checks (at most " . self::MAX_AUTHOR_LOOKUPS . " a row, cached),
-    so a search can take a little longer than its estimate.
+  - The authors come with CrossRef's search answer, at no extra call. (For a citation searched before Nov 22, 2026, they come from
+    each candidate's own CrossRef record, cached.)
 "
             : "  OFF for this report: only journal, volume, issue, year and page were compared (see HOW IT WAS DONE).
 ";

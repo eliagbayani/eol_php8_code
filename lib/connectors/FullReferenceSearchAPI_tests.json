@@ -1885,6 +1885,69 @@
     "DOI": ""
    },
    "why": "A BibTeX @techreport (a catalogue) with no DOI: not found."
+  },
+  {
+   "id": "genbank-link-matched",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Roy,M., Rochet,J., Manzi,S., Jargeat,P., Gryta,H., Moreau,P.A. and Gardes,M., What determines Alnus-associated ectomycorrhizal community diversity and specificity? A comparison of host and habitat effects at a regional scale. New Phytol. 198 (4), 1228-1238 (2013). https://www.ncbi.nlm.nih.gov/nuccore/JX990008",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1111/nph.12212",
+    "text_changes_contains": "GenBank link"
+   },
+   "why": "A GenBank record link at the end is removed before the search: it points to one sequence, not the paper. The result is the same as with the link."
+  },
+  {
+   "id": "genbank-link-other-sequence",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Roy,M., Rochet,J., Manzi,S., Jargeat,P., Gryta,H., Moreau,P.A. and Gardes,M., What determines Alnus-associated ectomycorrhizal community diversity and specificity? A comparison of host and habitat effects at a regional scale. New Phytol. 198 (4), 1228-1238 (2013). https://www.ncbi.nlm.nih.gov/nuccore/JX990012",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1111/nph.12212",
+    "text_changes_contains": "GenBank link"
+   },
+   "why": "The same paper cited for another sequence: without its link it is the same text, so it shares the first one's CrossRef search (one call for all copies)."
+  },
+  {
+   "id": "genbank-link-none",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Roy,M., Rochet,J., Manzi,S., Jargeat,P., Gryta,H., Moreau,P.A. and Gardes,M., What determines Alnus-associated ectomycorrhizal community diversity and specificity? A comparison of host and habitat effects at a regional scale. New Phytol. 198 (4), 1228-1238 (2013).",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1111/nph.12212"
+   },
+   "why": "The same citation without a link gives the same DOI: removing the link changes nothing else."
+  },
+  {
+   "id": "genbank-link-possible",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Timling I, A Dahlberg, DA Walker, M Gardes, JY Charcosset, JM Welker, and DL Taylor, Distribution and drivers of ectomycorrhizal fungal communities across the North American Arctic. Ecosphere 3 (11), 111 (2012). https://www.ncbi.nlm.nih.gov/nuccore/JX630567",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1890/es12-00217.1",
+    "text_changes_contains": "GenBank link"
+   },
+   "why": "Stays 'possible' as with the link (2,024 rows checked on Nov 23, 2026: every status and DOI the same with and without the link)."
+  },
+  {
+   "id": "genbank-link-not-found",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Southam,H., Reports on the ectomycorrhizal fungal community of whitebark pine in interior British Columbia: endemism, non-mycorrhizal planted seedlings and sick trees. https://www.ncbi.nlm.nih.gov/nuccore/MZ018229",
+   "expect": {
+    "status": "not found",
+    "text_changes_contains": "GenBank link"
+   },
+   "why": "A report with no volume or pages stays 'not found' without its link."
+  },
+  {
+   "id": "genbank-link-space-before-accession",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "Han,Q.S., ECM fungal community associated with Pinus tabulaeformis. https://www.ncbi.nlm.nih.gov/nuccore/ LC627457",
+   "expect": {
+    "status": "not found",
+    "text_changes_contains": "GenBank link"
+   },
+   "why": "A link written with a space before the accession number is removed too."
   }
  ]
 }

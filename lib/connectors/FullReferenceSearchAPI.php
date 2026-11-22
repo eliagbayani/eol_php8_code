@@ -59,6 +59,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                                  'crossref_DOI', 'crossref_score', 'crossref_type', 'crossref_year', 'crossref_journal',
                                  'crossref_volume', 'crossref_issue', 'crossref_page', 'crossref_title', 'crossref_authors', 'checks');
     const MIN_LENGTH = 10; // shorter full_reference values aren't searched
+    const GENBANK_LINK_AT_END = '~\s+https?://(?:www\.)?ncbi\.nlm\.nih\.gov/nuccore/\s?[A-Za-z0-9_.]+/?\s*$~i'; // (Nov 23, 2026) see TEXT_CHANGES 'genbank_link'
     const BARE_LINK = '~^(https?://|www\.)\S+$~i'; // (Nov 21, 2026) a full_reference that is only a link, e.g. http://www.ncbi.nlm.nih.gov/nuccore/109628396, https://www.inaturalist.org/observations/...:
                                                    // not searched (CrossRef can't match a link; none of 6,765 did). A link with its own DOI (doi.org/10...) is still used.
     const GENBANK_TITLE = '/(,? (complete|partial) (cds|sequence|genome|chromosome)|segment \d+,? (complete |partial |cRNA |genomic )?sequence|genome assembly, segment: ?\d+|, whole genome shotgun sequence)\.?$/';
@@ -793,6 +794,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         'quotes' => "Double quotes around the whole full_reference were removed, and doubled quotes inside (\"\") made single, e.g. '\"Lebour, M. V. (1917). ...\"' -> 'Lebour, M. V. (1917). ...'. A spreadsheet adds them when it saves a file as text.",
         'ref_n'  => "A FishBase reference number at the very end, e.g. '(Ref. 3)', was removed. It is FishBase's own number, not part of the citation, and can mislead CrossRef.",
         'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine', '(ed.)0 Tilapia' -> '(ed.) Tilapia' (the '(ed.)' is kept). The year itself is missing in these citations, so the year couldn't be checked.",
+        'genbank_link' => "A GenBank record link at the end, e.g. '... Appl. Environ. Microbiol. 75 (23), 7527-7536 (2009). https://www.ncbi.nlm.nih.gov/nuccore/EU554750', was removed. It points to one sequence, not to the paper; the same paper is cited once per sequence, each with its own link, so without it they share one CrossRef search (on the 3.5M-row reference.tab, Nov 23, 2026: 20,625 rows, about 960 different citations).",
         'bibtex' => "A BibTeX entry, e.g. '@article{57591, author = {Charles, J.G.}, journal = {Biocontrol Science and Technology}, pages = {405-418}, title = {A survey of mealybugs ...}, volume = {3(4)}, year = {1993} }', was written as a plain citation: 'Charles, J.G. (1993). A survey of mealybugs .... Biocontrol Science and Technology, 3(4), 405-418.', so its journal, volume, year and page can be read and checked. A doi field is kept as 'doi:...', so that DOI is checked instead of searched. Only the fields of a citation are used (authors, year, title, journal or book, volume, number, pages, publisher, doi); notes, abstracts, keywords and URLs are left out.");
     private static function drop_title($j)
     {   /* "Title. Journal" -> "Journal", for citations like "Boucher RC (2004) New concepts of ... lung disease. Eur Resp J 23: 146-158", where the
@@ -829,6 +831,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $word = $m[1][0]; $fixed = (str_ends_with($word, '.') || str_ends_with($word, ')')) ? $word : $word . '.';
             $changes['zero'] = "removed a stray '0' after the authors ('" . $word . "0' -> '" . $fixed . "')";
             $s = substr($s, 0, $m[0][1]) . $fixed . substr($s, $m[0][1] + strlen($m[0][0]));
+        }
+        // (Nov 23, 2026) a GenBank record link at the end: "... 75 (23), 7527-7536 (2009). https://www.ncbi.nlm.nih.gov/nuccore/EU554750" -> "... 75 (23), 7527-7536 (2009)."
+        // Only after a citation (a bare link stays, and is not searched: BARE_LINK); a link anywhere else in the text stays.
+        if(preg_match(self::GENBANK_LINK_AT_END, $s, $m) && trim(substr($s, 0, -strlen($m[0]))) !== '') {
+            $changes['genbank_link'] = "removed the GenBank link at the end ('" . trim($m[0]) . "')"; $s = rtrim(substr($s, 0, -strlen($m[0])));
         }
         if(($b = self::bibtex_to_citation($s)) !== '') { $changes['bibtex'] = "wrote the BibTeX entry as a plain citation"; $s = $b; } // (Nov 22, 2026)
         return $s; // nothing else changes, so every other full_reference keeps its cached CrossRef answer

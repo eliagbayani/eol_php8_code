@@ -119,6 +119,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
        rows that was 2 calls a row, about 4 s instead of 2 (in build #18 of the whole reference.tab, 763 of 1,824 calls in an hour).
        A search answered before this change (cached under the URL without 'author') is still read from the cache, and its candidates' authors still come
        from their own records (cached too), as before: nothing searched before is asked again. */
+    /* CACHE (Nov 22, 2026): every answer is kept for good, so nothing is asked twice: CrossRef's and DataCite's searches and records, empty answers too,
+       and a DOI they don't have (HTTP 404), kept under MISSING_KEY + the URL. Only failures that may pass are not kept: no connection, 5xx, 429/503;
+       such a row is marked 'error' and asked again on the next run. A BibTeX entry is rewritten here (no lookup); its search is cached like any other. */
+    const MISSING_KEY = 'missing:';
     const MAX_AUTHOR_LOOKUPS = 3; // per row, for a search answered before AUTHORS IN THE SEARCH only: each candidate that passes the checks costs one call for its authors (cached)
     const NOT_AN_ARTICLE = array('journal-issue', 'journal-volume', 'journal', 'component', 'proceedings', 'book-series', 'book-set', 'report-series');
     // (Nov 19, 2026) titles of records that are a journal's or book's furniture, not a work: never the answer
@@ -569,6 +573,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     private function datacite_work($doi)
     {   // DATACITE: DataCite's record of one DOI (https://api.datacite.org/dois/<DOI>): its 'attributes', 'missing' (DataCite doesn't have it), null (couldn't be read) or 'stop'
         $url = $this->datacite_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
+        if($this->missing_cached($url, $this->datacite_options)) return 'missing'; // CACHE: a 404 before
         if(Functions::url_already_cached($url, $this->datacite_options)) $json = Functions::lookup_with_cache($url, $this->datacite_options);
         else { $json = $this->call_crossref($url, $this->datacite_options); if($json === 'stop' || $json === 'missing') return $json; if($json === false) return null; }
         $d = @json_decode((string) $json, true);
@@ -622,6 +627,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     private function crossref_work($doi)
     {   // CrossRef's record of one DOI (https://api.crossref.org/works/<DOI>, politely, cached): its 'message', 'missing' (404: CrossRef doesn't have it), null (couldn't be read) or 'stop'
         $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
+        if($this->missing_cached($url)) return 'missing'; // CACHE: a 404 before
         if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options);
         else { $json = $this->call_crossref($url); if($json === 'stop' || $json === 'missing') return $json; if($json === false) return null; }
         $d = @json_decode((string) $json, true);
@@ -635,6 +641,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $doi = (string) @$item['DOI'];
         if($doi === '') return null;
         $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
+        if($this->missing_cached($url)) return null; // CACHE: a 404 before
         if(Functions::url_already_cached($url, $this->crossref_options)) $json = Functions::lookup_with_cache($url, $this->crossref_options);
         else { $lookups++; $json = $this->call_crossref($url); if($json === 'stop') return 'stop'; if($json === false || $json === 'missing') return null; }
         $d = @json_decode((string) $json, true);
@@ -955,7 +962,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(($doi = self::doi_in_text($ref)) !== '' || ($doi = self::doi_in_column($doi_column)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // a DOI given: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
         elseif(self::not_searched_note($ref) !== '') { $n['skipped']++; return; } // not searched (find_DOI's rules)
         else { $year = $this->parse_full_reference($ref)['year']; $url = $this->crossref_url($ref, $year); $old = $this->crossref_url($ref, $year, false); }
-        if(isset($seen[$url]) || Functions::url_already_cached($url, $this->crossref_options) || (isset($old) && Functions::url_already_cached($old, $this->crossref_options))) $n['cached']++; // a repeat is asked only once; a search answered before AUTHORS IN THE SEARCH is cached too
+        $missing_known = isset($doi) && $doi !== '' && $this->missing_cached($url) && (!$this->datacite_search
+                         || ($dc = $this->datacite_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"))) && (Functions::url_already_cached($dc, $this->datacite_options) || $this->missing_cached($dc, $this->datacite_options)));
+        if(isset($seen[$url]) || $missing_known || Functions::url_already_cached($url, $this->crossref_options) || (isset($old) && Functions::url_already_cached($old, $this->crossref_options))) $n['cached']++; // a repeat is asked only once; a search answered before AUTHORS IN THE SEARCH is cached too
         else { $n['new']++; $seen[$url] = 1; }
     }
     static function estimate_text($n)
@@ -1021,7 +1030,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                 $this->save_to_cache($url, $body, $opt);
                 return $body;
             }
-            if($code == 404 && (str_contains($url, '/works/10.') || str_contains($url, '/dois/10.'))) return 'missing'; // a DOI it doesn't have (e.g. a DataCite DOI in CrossRef)
+            if($code == 404 && (str_contains($url, '/works/10.') || str_contains($url, '/dois/10.'))) { // a DOI it doesn't have (e.g. a DataCite DOI in CrossRef)
+                $this->save_to_cache(self::MISSING_KEY . $url, "HTTP 404 on " . date('Y-m-d') . ": not registered here", $opt); // CACHE: never asked again (Nov 22, 2026)
+                return 'missing';
+            }
             if($code == 429 || $code == 503) {
                 $this->throttled_in_a_row = ($this->throttled_in_a_row ?? 0) + 1;
                 if($this->throttled_in_a_row >= self::THROTTLE_LIMIT) return 'stop';
@@ -1037,11 +1049,17 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     private function save_to_cache($url, $body, $opt = null)
     {   // the same file lookup_with_cache($url, $opt) reads: <cache>/crossref/ab/cd/<md5>.cache (DataCite: <cache>/datacite/...)
-        $opt = $opt ?? $this->crossref_options;
-        $md5 = md5($url);
-        $dir = DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . $opt['resource_id'] . "/" . substr($md5, 0, 2) . "/" . substr($md5, 2, 2) . "/";
-        if(!is_dir($dir)) @mkdir($dir, 0777, true);
-        @file_put_contents($dir . "$md5.cache", $body);
+        $file = $this->cache_file($url, $opt);
+        if(!is_dir(dirname($file))) @mkdir(dirname($file), 0777, true);
+        @file_put_contents($file, $body);
+    }
+    private function cache_file($url, $opt = null)
+    {   $opt = $opt ?? $this->crossref_options; $md5 = md5($url);
+        return DOC_ROOT . $GLOBALS['MAIN_CACHE_PATH'] . $opt['resource_id'] . "/" . substr($md5, 0, 2) . "/" . substr($md5, 2, 2) . "/$md5.cache";
+    }
+    private function missing_cached($url, $opt = null)
+    {   // CACHE: CrossRef (or DataCite) answered 404 for this DOI before: it isn't registered there, so it isn't asked again
+        return is_file($this->cache_file(self::MISSING_KEY . $url, $opt));
     }
     private static function item_year($item)
     {   return (string) (@$item['issued']['date-parts'][0][0] ?: @$item['published']['date-parts'][0][0]);
@@ -1070,7 +1088,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // only after a part that reads like a title -- a word of 4+ letters not cut short with a ".", or a long one (e.g. "Arborimuspomo.") -- and
         // only at the end of a sentence: after ")", "?", "!" or a word of 5+ letters and a "." ("symbioses.", "gecko."), never after an abbreviation
         // ("Bot.", "Mem.", "Zool."): "Mem. Torrey Bot. Club" must not give "Club" or "Torrey Bot. Club" (= "Bulletin of the Torrey Botanical Club", another series)
-        if(preg_match_all('/[.?!)]\s+/u', $zone, $b, PREG_OFFSET_CAPTURE))
+        // (Nov 22, 2026) also when closing quotes follow the end of the title, e.g. AmphibiaWeb's "''New World direct-developing frogs ...'' Zootaxa"
+        // or "\"Title.\" Journal": before, "Zootaxa" wasn't found there, so such a citation was only 'possible' ("the journal differs")
+        if(preg_match_all('/[.?!)](?:\'\'|["\x{201D}\x{2019}])?\s+/u', $zone, $b, PREG_OFFSET_CAPTURE))
             foreach($b[0] as $x) {
                 $head = substr($zone, 0, $x[1] + 1);
                 if(!preg_match('/\p{L}{4,}(?![\p{L}.])|\p{L}{8,}/u', $head)) continue;

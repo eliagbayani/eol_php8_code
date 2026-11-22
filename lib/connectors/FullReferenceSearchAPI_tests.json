@@ -1671,6 +1671,16 @@
     "DOI_source": "citation"
    },
    "why": "A BibTeX entry's doi field is kept as 'doi:...', so that DOI is checked instead of searched."
+  },
+  {
+   "id": "quoted-title-amphibiaweb",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Giri, V. B., Gower, D. J., Gaikwad, K. S., and Wilkinson, M. (2011). ''A second species of Gegeneophis Peters (Amphibia: Gymnophiona: Caeciliidae) lacking secondary annular grooves.'' Zootaxa, 2815, 49-58.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.11646/zootaxa.2815.1.1.3"
+   },
+   "why": "The title is in two single quotes (''Title.'' Journal), AmphibiaWeb's style: the journal is found right after the closing quotes, so it agrees with CrossRef's (Zootaxa) instead of 'the journal differs'."
   }
  ]
 }

@@ -60,7 +60,13 @@ found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same cod
   - Every referenceID (MoF, Association, Occurrence, Taxon; several IDs joined by ';' too) is changed the same way, so no link breaks.
   - A ';' in a DOI (old SICI DOIs, e.g. 10.1656/1528-7092(2003)002[0159:ANSOEC]2.0.CO;2) is written as %3B, since ';' separates referenceIDs;
     https://doi.org/...2.0.CO%3B2 opens the same page.
-  - Two references with the same DOI are merged: the first one's row is kept, and both IDs point to it.
+  - Two references with the same DOI are merged: one row is kept, and every ID points to it (Nov 22, 2026: the better one, not just the first):
+      1. 'matched' over 'possible'
+      2. then the one more of whose parts agree with CrossRef's record (journal, volume, issue, year, page, author, title)
+      3. then the one with more parts read from it (author, year, journal, volume, issue, page): the more complete citation
+      4. then the one that needed fewer clean-ups before the search (e.g. %...% markup, HTML): the cleaner text
+      5. then the longer full_reference; and last, the first one in the file
+    Each merge is listed in the debug report: the reference kept and the ones dropped, with their status and counts.
   - Always on. A new full_reference costs about 3 seconds (CrossRef's polite pace); cached ones are instant, so a re-run is fast.
     If CrossRef keeps answering HTTP 429/503, the lookups stop for this run and the remaining references keep their identifiers.
   - Every reference with its result: resources/neo4j_analyzed/[resource_id]_references_DOI_[date].tsv
@@ -148,6 +154,7 @@ class AnalyzeMoF_API
         $this->missing_occ = array('rows' => 0, 'occurrenceIDs' => array());
         // References: old identifier => DOI_URL, by Full Reference Search (see "References" at the top of this file)
         $this->ref_map = array();
+        $this->ref_best = array(); // DOI_URL => the reference kept when several have it: array('key' => ranking, 'id' => identifier, 'info' => for the debug report)
         $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::lookup_reference_DOIs($meta);
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) { $this->occ_exists = array(); self::process_table($meta, 'collect_occ', 'occurrence'); }
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'mof');
@@ -166,8 +173,12 @@ class AnalyzeMoF_API
         // --------------------- 2nd pass: write extensions, excluding every record linked to a deleted occurrence or deleted parent measurement
         $this->ref_written = array(); $this->ref_merged = 0;
         $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'reference');
-        if($this->ref_merged) { echo "\nReferences merged (same DOI as an earlier one): [{$this->ref_merged}]\n"; $this->debug['References: identifier replaced by DOI_URL']["merged (same DOI as an earlier reference): {$this->ref_merged}"] = ''; }
-        unset($this->ref_written);
+        if($this->ref_merged) {
+            echo "\nReferences merged (same DOI as another, the better one kept): [{$this->ref_merged}]\n";
+            $this->debug['References: identifier replaced by DOI_URL']["merged (same DOI as another reference; the better one kept): {$this->ref_merged}"] = '';
+            foreach($this->ref_best as $url => $b) if($b['dropped']) $this->debug['References merged (same DOI): the one kept, then the ones dropped']["$url: kept " . $b['info'] . "; dropped " . implode("; ", $b['dropped'])] = '';
+        }
+        unset($this->ref_written, $this->ref_best);
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'taxon');
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
         unset($this->occ_exists); // free memory; only needed for rule 8 on MoF
@@ -230,12 +241,27 @@ class AnalyzeMoF_API
             $status = $r['status'];
             if($status == 'stop') { $this->frs_stopped = true; $status = 'not searched (CrossRef asked us to slow down)'; }
             elseif(in_array($status, array('matched', 'possible')) && ($url = (string) @$r['DOI_URL']) !== '')
-                $this->ref_map[$id] = str_replace(';', '%3B', $url); // ';' separates referenceIDs, so it's percent-encoded (old SICI DOIs end in ";2"); doi.org reads it the same
+            {
+                $this->ref_map[$id] = $url = str_replace(';', '%3B', $url); // ';' separates referenceIDs, so it's percent-encoded (old SICI DOIs end in ";2"); doi.org reads it the same
+                self::rank_reference($url, $id, $full, $r);
+            }
         }
         @$this->ref_counts[$status]++;
         $clean = fn($s) => str_replace(array("\t", "\r", "\n"), ' ', (string) $s);
         fwrite($this->ref_tsv, implode("\t", array_map($clean, array($id, $status, $this->ref_map[$id] ?? '', $this->ref_map[$id] ?? $id, $full))) . "\n");
         if($this->ref_done % 100 == 0) { fflush($this->ref_tsv); echo "\n  references: " . number_format($this->ref_done) . " done, " . number_format(count($this->ref_map)) . " with a DOI"; }
+    }
+    private function rank_reference($url, $id, $full, $r)
+    {   // MERGE: of the references with the same DOI_URL, the one to keep (see "References" at the top): the highest key wins; on a tie, the first one
+        $agree = preg_match_all('/\b(?:journal|volume|issue|year|page|author|title)=(?:OK|nearly|first page|next to it|in the citation)\b/', (string) @$r['checks']);
+        $parts = 0; foreach(array('author', 'year', 'journal', 'volume', 'issue', 'page') as $k) if(trim((string) @$r["parsed_$k"]) !== '') $parts++;
+        $changes = count((array) @$r['change_codes']);
+        $key = array($r['status'] == 'matched' ? 1 : 0, $agree, $parts, -$changes, mb_strlen(trim($full)));
+        $info = "$id ({$r['status']}, $agree agree, $parts parts read, $changes clean-ups, " . mb_strlen(trim($full)) . " characters)";
+        $best = $this->ref_best[$url] ?? null;
+        if(!$best) { $this->ref_best[$url] = array('key' => $key, 'id' => $id, 'info' => $info, 'dropped' => array()); return; }
+        if($key > $best['key']) { $this->ref_best[$url] = array('key' => $key, 'id' => $id, 'info' => $info, 'dropped' => array_merge($best['dropped'], array($best['info']))); return; }
+        $this->ref_best[$url]['dropped'][] = $info;
     }
     private function map_reference_ids($value)
     {   // referenceID(s), e.g. "a1;b2": each old identifier replaced by its DOI_URL (ref_map); duplicates removed, order kept
@@ -394,9 +420,10 @@ class AnalyzeMoF_API
                     }
                 }
 
-                if($class == "reference") { // identifier -> its DOI_URL; a reference with a DOI already written is merged into it
-                    $new = $this->ref_map[(string) @$rec['identifier']] ?? (string) @$rec['identifier'];
-                    if(isset($this->ref_written[$new])) { $this->ref_merged++; continue; }
+                if($class == "reference") { // identifier -> its DOI_URL; of the references with the same DOI only the best is written (MERGE, rank_reference())
+                    $old = (string) @$rec['identifier']; $new = $this->ref_map[$old] ?? $old;
+                    if(isset($this->ref_map[$old]) && $this->ref_best[$new]['id'] !== $old) { $this->ref_merged++; continue; }
+                    if(isset($this->ref_written[$new])) { $this->ref_merged++; continue; } // the same identifier twice in the source
                     $this->ref_written[$new] = '';
                     $rec['identifier'] = $new;
                 }

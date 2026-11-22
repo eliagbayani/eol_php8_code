@@ -130,6 +130,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         if(!$taxon_meta) self::conv_exit("The DwCA has no taxon table.");
         if(!$mof_meta)   self::conv_exit("The DwCA has no MoF (measurement or fact) table.");
         if(!$occ_meta)   self::conv_exit("The DwCA has no occurrence table: it's needed to link each MoF row to its taxon (occurrenceID -> taxonID).");
+        self::conv_input_row_counts($tables);
 
         // a fresh output folder each run
         if(is_dir($this->conv_out_dir)) recursive_rmdir($this->conv_out_dir);
@@ -147,6 +148,36 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         Functions::start_print_debug($this->conv_debug, $name . "_convert", $out_root);
         echo "\nReport: [$out_root/{$name}_convert_debug_" . date('Y-m-d') . ".txt]\nDone: [{$this->conv_out_dir}input_files/]\n";
         return array('Taxon' => $this->conv_out_dir . "input_files/Taxon.tsv", 'Traits' => $this->conv_out_dir . "input_files/Traits.tsv");
+    }
+    private function conv_input_row_counts($tables)
+    {   // rows per file in the legacy DwCA (header and blank lines not counted), and what the conversion does with each file
+        $use = array('http://rs.tdwg.org/dwc/terms/taxon'             => 'Taxon.tsv',
+                     'http://rs.tdwg.org/dwc/terms/measurementorfact' => 'Traits.tsv',
+                     'http://rs.tdwg.org/dwc/terms/occurrence'        => 'links MoF rows to their taxa; extra columns go to Traits.tsv');
+        $topic = "Rows in the legacy DwCA (input)";
+        echo "\n$topic:\n";
+        foreach($tables as $row_type => $metas) {
+            foreach($metas as $meta) {
+                $n = 0; $i = 0;
+                if($f = fopen($meta->file_uri, 'r')) {
+                    while(($row = fgets($f)) !== false) {
+                        $i++;
+                        if($i <= (int) $meta->ignore_header_lines || trim($row) === '') continue;
+                        $n++;
+                    }
+                    fclose($f);
+                }
+                $extra = '';
+                if($row_type == 'http://rs.tdwg.org/dwc/terms/measurementorfact') {
+                    $child = 0;
+                    foreach(self::conv_table_rows($meta) as list($line, $rec)) if((string) @$rec['parentMeasurementID'] !== '') $child++;
+                    $extra = " (" . number_format($n - $child) . " without a parentMeasurementID, " . number_format($child) . " child rows)";
+                }
+                $l = str_pad(basename($meta->file_uri), 32) . str_pad(number_format($n), 10, ' ', STR_PAD_LEFT) . " rows$extra -- " . (@$use[$row_type] ?: "not used") . " [$row_type]";
+                echo " - $l\n";
+                $this->conv_debug[$topic][$l] = '';
+            }
+        }
     }
     private function conv_exit($reason)
     {   // stops the conversion: no half-written output is left

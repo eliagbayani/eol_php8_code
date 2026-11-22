@@ -25,6 +25,7 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "conc
       output: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_TraitBank/input_files/Taxon.tsv and Traits.tsv
       report: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_convert_debug_[date].txt
       The output folder is made fresh each run; nothing is left behind if the run terminates.
+    - The report starts with the rows in each file of the legacy DwCA (MoF: traits and child rows) and what is done with each file.
     - Taxon.tsv = the taxon table:
       - EOLid is renamed taxonKey.
       - Required columns: taxonID, scientificName, taxonKey (or EOLid) and taxonMap. taxonID and scientificName may never be blank;

@@ -1681,6 +1681,210 @@
     "DOI": "10.11646/zootaxa.2815.1.1.3"
    },
    "why": "The title is in two single quotes (''Title.'' Journal), AmphibiaWeb's style: the journal is found right after the closing quotes, so it agrees with CrossRef's (Zootaxa) instead of 'the journal differs'."
+  },
+  {
+   "id": "doi-split-by-space",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Schulte, R., Salas, A., Angulo, A., Lötters, S. (2004). Atelopus seminiferus. The IUCN Red List of Threatened Species 2004: e.T54548A11165473.http://dx.doi.org/10.2305/IUCN.UK .2004.RLTS.T54548A11165473.en. Downloaded on 14 October 2016.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2305/IUCN.UK.2004.RLTS.T54548A11165473.en"
+   },
+   "why": "The DOI in the citation is split by a space ('10.2305/IUCN.UK .2004.RLTS...'): it is joined back first, and CrossRef has the joined DOI. Never the cut part '10.2305/IUCN.UK'."
+  },
+  {
+   "id": "doi-before-nbsp",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Das, I., Dutta, S., Vijayakumar, S.P. (2004). “Ingerana charlesdarwini”. The IUCN Red List of Threatened Species 2004: e.T58571A11805014. http://dx.doi.org/10.2305/IUCN.UK.2004.RLTS.T58571A11805014.en. Downloaded on 18 March 2019.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2305/IUCN.UK.2004.RLTS.T58571A11805014.en"
+   },
+   "why": "A non-breaking space ends the DOI like a space: the word after it ('Downloaded') is not part of the DOI."
+  },
+  {
+   "id": "doi-cut-short-searched",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Natale, G. S., Alcalde, L., Herrera, R., Cajade, R., Schaefer, E. F., Marangoni, F., and Trudeau, V. L. (2010). ''Underwater acoustic communication in the macrophagic carnivorous larvae of Ceratophrys ornata (Anura: Ceratophryidae).'' Acta Zoologica, published online before print, February 26, 2010, (doi: 10.1111/j.1463-).",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1111/j.1463-6395.2009.00445.x",
+    "note_contains": "neither CrossRef nor DataCite has it"
+   },
+   "why": "The citation's DOI is cut short ('10.1111/j.1463-'): neither CrossRef nor DataCite has it, so it is never used; the citation is searched without it and the real DOI is found."
+  },
+  {
+   "id": "aw-journal-city-after-title",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Kuwabara, K., Suzuki, N., Wakabayashi, F., Ashikaga, H., Inoue, T. and Kobara, J. (1989). ''Breeding the Japanese Giant Salamander at Asa Zoological Park.'' International Zoo Yearbook, London, 28, 22-31.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1111/j.1748-1090.1989.tb03249.x"
+   },
+   "why": "''Title.'' International Zoo Yearbook, London, 28, 22-31: CrossRef's 'International Zoo Yearbook' is found in the text after the title, with the city after it."
+  },
+  {
+   "id": "aw-journal-long-subtitle",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Cartledge, V.A., Withers P.C., Thompson G.G., and McMaster K.A. (2006). ''Water Relations of the Burrowing Sandhill Frog, Arenophryne rotunda.'' Journal of Comparative Physiology B: Biochemical, Systemic, and Environmental Physiology, 176(4), 295-302.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1007/s00360-005-0051-x"
+   },
+   "why": "The citation adds the journal's subtitle (Journal of Comparative Physiology B: Biochemical, Systemic, and Environmental Physiology); CrossRef has 'Journal of Comparative Physiology B'."
+  },
+  {
+   "id": "aw-journal-older-name",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Roberts, J.D. (1984). ''Terrestrial egg and deposition and direct development in Arenophryne rotunda, a myobatrachid frog from the coastal sand dunes at Shark Bay, Western Australia.'' Australian Wildlife Research, 11, 191-200.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1071/wr9840191"
+   },
+   "why": "'Australian Wildlife Research' (the old name) contains CrossRef's 'Wildlife Research'; volume, year and page agree."
+  },
+  {
+   "id": "aw-journal-pnas-full-name",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Vredenburg, V. T. (2004). ''Reversing introduced species effects: Experimental removal of introduced fish leads to rapid recovery of a declining frog.'' Proceedings of the National Academy of Sciences of the United States of America, 101, 7646-7650.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1073/pnas.0402321101"
+   },
+   "why": "'Proceedings of the National Academy of Sciences of the United States of America' agrees with CrossRef's 'Proceedings of the National Academy of Sciences'."
+  },
+  {
+   "id": "aw-no-pages-in-crossref",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Quah, E. S. H., Shahrul Anuar, M. S., Grismer, L. O., Wood Jr., P. L., Siti Azizah, M. N., Muin, M. A. (2017). ''A new species of frog of the genus Abavorana Oliver, Prendini, Kraus & Raxworthy 2015 (Anura: Ranidae) from Gunung Jerai, Kedah, northwestern Peninsular Malaysia.'' Zootaxa, 4320(2), 272-288.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.11646/zootaxa.4320.2.4",
+    "note_contains": "CrossRef has no page numbers"
+   },
+   "why": "Everything agrees, but CrossRef lists this Zootaxa article without pages, so the page can't be checked: 'possible', never 'matched'."
+  },
+  {
+   "id": "aw-book-edition",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Trauth, S. E., Robison, H. W., and Plummer, M. V. (2004). The Amphibians and Reptiles of Arkansas. The University of Arkansas Press, Fayetteville, Arkansas.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1353/book.124499"
+   },
+   "why": "A book (no volume or pages): year, first author and title agree, at most 'possible' (another edition has its own DOI)."
+  },
+  {
+   "id": "aw-journal-renamed",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Arntzen, J. W. and Garcia-Paris, M. (1995). ''Morphological and allozyme studies of midwife toads (genus Alytes), including the description of two new taxa from Spain.'' Contributions to Zoology, 65(1), 5-34.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1163/26660644-06501002"
+   },
+   "why": "Cited as 'Contributions to Zoology', which CrossRef lists under its old name 'Bijdragen tot de Dierkunde': the journal differs, so 'possible'."
+  },
+  {
+   "id": "aw-volume-differs",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Formas, J.R. and L. Brieva (2004). The tadpoles of Alsodes vanzolinii and A. verrucosus (Anura: Leptodactylidae) with descriptions of their internal oral and chondrocranial morphology. Amphibia-Reptilia 24: 151-164.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1163/1568538041231238"
+   },
+   "why": "Journal, year, author and title agree, but the volume is 24 in the citation and 25 in CrossRef: 'possible', for a person to check."
+  },
+  {
+   "id": "aw-volume-is-year",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Taylor, E. H. (1941). ''Two new ambystomid salamanders from Chihuahua.'' Copeia, 3, 143-146.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/1437737"
+   },
+   "why": "Copeia '3' in the citation, '1941' as CrossRef's volume: 'possible', never 'matched'."
+  },
+  {
+   "id": "aw-field-guide-no-doi",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Stebbins, R. C. (1985). A Field Guide to Western Reptiles and Amphibians. Houghton Mifflin, Boston.",
+   "expect": {
+    "status": "not found",
+    "DOI": ""
+   },
+   "why": "A field guide with no volume or pages: no DOI can be confirmed, so none is given."
+  },
+  {
+   "id": "aw-iucn-entry-no-doi",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Angulo, A., Icochea, J., Castro, F., and Rueda, J. V. 2004. Adelophryne adiastola. In: IUCN 2010. IUCN Red List of Threatened Species. Version 2010.1. www.iucnredlist.org. Downloaded on 07 April 2010.",
+   "expect": {
+    "status": "not found",
+    "DOI": ""
+   },
+   "why": "An IUCN Red List entry without a DOI in the citation: not found (never a DOI guessed from a search)."
+  },
+  {
+   "id": "aw-mistyped-doi",
+   "source": "AmphibiaWeb reference.tab (Nov 2026)",
+   "full_reference": "Takahashi, M. K., Okada, S. and Fukuda, Y. (2016), From embryos to larvae: seven-month-long paternal care by male Japanese giant salamander. J Zool. doi:10.1111/jzo.1243",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "note_contains": "neither CrossRef nor DataCite has it"
+   },
+   "why": "The citation's DOI 10.1111/jzo.1243 is registered nowhere (mistyped): it is never used, and the citation alone can't confirm one."
+  },
+  {
+   "id": "bibtex-volume-with-issue",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "@article{65063, author = {Gahan, A.B.}, booktitle = {Bulletin of Entomological Research}, journal = {Bulletin of Entomological Research}, month = {dec}, day = {7}, pages = {149-153}, title = {On some chalcidoid scale parasites from Java.}, volume = {18(2)}, year = {1927}, stated_year = {1927}, year_suffix = {b}, issn = {0007-4853} }",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0007485300019829",
+    "text_changes_contains": "BibTeX"
+   },
+   "why": "A BibTeX volume like '18(2)' is read as volume 18, issue 2."
+  },
+  {
+   "id": "bibtex-book",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "@book{karsten_deutsche_1880, address = {Berlin,}, title = {Deutsche {Flora}. {Pharmaceutisch}-medicinische {Botanik}. {Ein} {Grundriss} der systematischen {Botanik} zum {Selbststudium} für {Aerzte}, {Apotheker} und {Botaniker},}, url = {https://www.biodiversitylibrary.org/item/44795}, publisher = {J. M. Spaeth,}, author = {Karsten, H.}, year = {1880}, note = {Pages: 1-1334}, }",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.12026"
+   },
+   "why": "A BibTeX @book becomes 'Author (year). Title. Publisher.': a book is at most 'possible'."
+  },
+  {
+   "id": "bibtex-incollection",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "@incollection{chaubey2019raiwbtf, address = {Cham}, title = {Recent {Advancement} and the {Way} {Forward} for {Cordyceps}}, isbn = {978-3-030-14845-4 978-3-030-14846-1}, url = {http://link.springer.com/10.1007/978-3-030-14846-1_15}, language = {en}, urldate = {2020-02-20}, booktitle = {Recent {Advancement} in {White} {Biotechnology} {Through} {Fungi}}, publisher = {Springer International Publishing}, author = {Chaubey, Rahul and Singh, Jitendra and Baig, Mohammed Muzeruddin and Kumar, Amit}, editor = {Yadav, Ajar Nath and Singh, Sangram and Mishra, Shashank and Gupta, Arti}, year = {2019}, doi = {10.1007/978-3-030-14846-1_15}, pages = {441--474}, }",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1007/978-3-030-14846-1_15"
+   },
+   "why": "A BibTeX @incollection (a book chapter) becomes '... Title. In: Book, pages.'"
+  },
+  {
+   "id": "bibtex-thesis",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "@phdthesis{dekesel1997, type = {{PhD} thesis}, title = {Contribution towards the study of the specificity of {Laboulbeniales} ({Fungi} , {Ascomycetes}), with particular reference to the transmission, habitat preference and host- range of {Laboulbenia} slackensis}, school = {Universiteit Antwerpen Universitaire}, author = {De Kesel, André}, year = {1997}, doi = {10.6084/m9.figshare.7039880}, }",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.6084/m9.figshare.7039880"
+   },
+   "why": "A BibTeX @phdthesis with its DOI: that DOI is checked."
+  },
+  {
+   "id": "bibtex-techreport-no-doi",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "@techreport{castrillo2017a, address = {Ithaca, New York, USA}, title = {{ARS} {Collection} of {Entomopathogenic} {Fungal} {Cultures} - {Catalog} of strains}, language = {en}, institution = {USDA-Emerging Pests and Pathogens Research Unit}, author = {Castrillo, Louela A and Wheeler, Micheal M}, year = {2017}, keywords = { No DOI found}, pages = {641}, }",
+   "expect": {
+    "status": "not found",
+    "DOI": ""
+   },
+   "why": "A BibTeX @techreport (a catalogue) with no DOI: not found."
   }
  ]
 }

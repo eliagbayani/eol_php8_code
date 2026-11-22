@@ -1649,6 +1649,28 @@
     "DOI": "10.1656/058.011.0312"
    },
    "why": "No spaces, but it is a DOI: the DOI rules come first, so it still gets its DOI (not skipped as an identifier)."
+  },
+  {
+   "id": "bibtex-1",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "@article{71353, author = {Howard, L.O.}, booktitle = {Canadian Entomologist}, journal = {The Canadian Entomologist}, month = {mar}, day = {7}, pages = {102-103}, title = {A new Canadian species of Copidosoma.}, volume = {39(3)}, year = {1907}, stated_year = {1907}, year_suffix = {a}, issn = {0008-347X} }",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.4039/ent39102-3",
+    "text_changes_contains": "BibTeX"
+   },
+   "why": "A BibTeX entry is written as a plain citation before the search, so its journal, volume, issue, year and page are read and checked. Before, the whole entry was searched and it was 'not found'."
+  },
+  {
+   "id": "bibtex-doi",
+   "source": "reference.tab (3.5M rows, Nov 2026)",
+   "full_reference": "@article{haelewaters2015m, title = {New and interesting {Laboulbeniales} from southern and southeastern {Asia}}, volume = {129}, issn = {00934666, 21548889}, url = {http://openurl.ingenta.com/content/xref?genre=article&issn=0093-4666&volume=129&issue=2&spage=439}, doi = {10.5248/129.439}, abstract = {Two new species of Laboulbenia from the Philippines are described and illustrated: Laboulbenia erotylidarum on an erotylid beetle (Coleoptera, Erotylidae) and Laboulbenia poplitea on Craspedophorus sp. (Coleoptera, Carabidae). In addition, we present ten new records of Laboulbeniales from several countries in southern and southeastern Asia on coleopteran hosts. These are Blasticomyces lispini from Borneo (Indonesia), Cantharomyces orientalis from the Philippines, Dimeromyces rugosus on Leiochrodes sp. from Sumatra (Indonesia), Laboulbenia anoplogenii on Clivina sp. from India, L. cafii on Remus corallicola from Singapore, L. satanas from the Philippines, L. timurensis on Clivina inopaca from Papua New Guinea, Monoicomyces stenusae on Silusa sp. from the Philippines, Ormomyces clivinae on Clivina sp. from India, and Peyritschiella princeps on Philonthus tardus from Lombok (Indonesia).}, language = {en}, number = {2}, urldate = {2019-12-11}, journal = {Mycotaxon}, author = {Haelewaters, Danny and Yaakop, Salman}, month = jan, year = {2015}, pages = {439--454}, }",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.5248/129.439",
+    "DOI_source": "citation"
+   },
+   "why": "A BibTeX entry's doi field is kept as 'doi:...', so that DOI is checked instead of searched."
   }
  ]
 }

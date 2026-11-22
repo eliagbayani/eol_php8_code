@@ -735,7 +735,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         'spaces' => "Spaces at the start or end of the full_reference were removed.",
         'quotes' => "Double quotes around the whole full_reference were removed, and doubled quotes inside (\"\") made single, e.g. '\"Lebour, M. V. (1917). ...\"' -> 'Lebour, M. V. (1917). ...'. A spreadsheet adds them when it saves a file as text.",
         'ref_n'  => "A FishBase reference number at the very end, e.g. '(Ref. 3)', was removed. It is FishBase's own number, not part of the citation, and can mislead CrossRef.",
-        'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine', '(ed.)0 Tilapia' -> '(ed.) Tilapia' (the '(ed.)' is kept). The year itself is missing in these citations, so the year couldn't be checked.");
+        'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine', '(ed.)0 Tilapia' -> '(ed.) Tilapia' (the '(ed.)' is kept). The year itself is missing in these citations, so the year couldn't be checked.",
+        'bibtex' => "A BibTeX entry, e.g. '@article{57591, author = {Charles, J.G.}, journal = {Biocontrol Science and Technology}, pages = {405-418}, title = {A survey of mealybugs ...}, volume = {3(4)}, year = {1993} }', was written as a plain citation: 'Charles, J.G. (1993). A survey of mealybugs .... Biocontrol Science and Technology, 3(4), 405-418.', so its journal, volume, year and page can be read and checked. A doi field is kept as 'doi:...', so that DOI is checked instead of searched. Only the fields of a citation are used (authors, year, title, journal or book, volume, number, pages, publisher, doi); notes, abstracts, keywords and URLs are left out.");
     private static function drop_title($j)
     {   /* "Title. Journal" -> "Journal", for citations like "Boucher RC (2004) New concepts of ... lung disease. Eur Resp J 23: 146-158", where the
            title sits between the year and the journal. Cut at the last ". " (or "? ", "! ") after a word (e.g. "disease.", "NBD1.") and before a capital
@@ -772,7 +773,54 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $changes['zero'] = "removed a stray '0' after the authors ('" . $word . "0' -> '" . $fixed . "')";
             $s = substr($s, 0, $m[0][1]) . $fixed . substr($s, $m[0][1] + strlen($m[0][0]));
         }
+        if(($b = self::bibtex_to_citation($s)) !== '') { $changes['bibtex'] = "wrote the BibTeX entry as a plain citation"; $s = $b; } // (Nov 22, 2026)
         return $s; // nothing else changes, so every other full_reference keeps its cached CrossRef answer
+    }
+    static function bibtex_fields($s)
+    {   // (Nov 22, 2026) a BibTeX entry '@article{key, author = {...}, year = {1993}, ...}' => array('type' => 'article', 'fields' => array(name => value)); null if it isn't one
+        if(!preg_match('/^@([a-z]+)\s*\{[^,{}]*,/i', $s, $m)) return null;
+        $type = strtolower($m[1]); $i = strlen($m[0]); $n = strlen($s); $fields = array();
+        while(preg_match('/\G[\s,]*([a-z_]+)\s*=\s*/i', $s, $f, 0, $i)) {
+            $i += strlen($f[0]); $name = strtolower($f[1]);
+            if($i < $n && $s[$i] === '{') { // a value in braces, with braces inside it: {Revisin de las {Laboulbeniales} {Argentinas}}
+                for($depth = 0, $j = $i; $j < $n; $j++) { if($s[$j] === '{') $depth++; elseif($s[$j] === '}' && --$depth == 0) break; }
+                if($j >= $n) return null;
+                $v = substr($s, $i + 1, $j - $i - 1); $i = $j + 1;
+            }
+            elseif($i < $n && $s[$i] === '"') { if(($j = strpos($s, '"', $i + 1)) === false) return null; $v = substr($s, $i + 1, $j - $i - 1); $i = $j + 1; }
+            elseif(preg_match('/\G[^,}\s]+/', $s, $w, 0, $i)) { $v = $w[0]; $i += strlen($v); }
+            else break;
+            $v = preg_replace('/\\\\[`\'^"~=.uvHtcdbk]\s*\{?\s*(\p{L})\s*\}?/u', '$1', $v); // LaTeX accents: {\'e} -> e
+            $v = preg_replace('/\\\\[a-z]+\s*|\\\\/i', '', $v);                                   // other LaTeX commands
+            $v = trim(preg_replace('/\s+/u', ' ', str_replace(array('{', '}'), '', $v)));
+            if($v !== '' && !isset($fields[$name])) $fields[$name] = $v;
+        }
+        return $fields ? array('type' => $type, 'fields' => $fields) : null;
+    }
+    static function bibtex_to_citation($s)
+    {   /* (Nov 22, 2026) a BibTeX entry as a plain citation, '' if $s isn't one (see TEXT_CHANGES 'bibtex'):
+           "Authors (year). Title. Journal, volume(number), pages. doi:..." -- e.g. 12,512 rows of the big reference.tab, mostly from the Universal Chalcidoidea Database.
+           Before, the whole entry went to CrossRef, and none of its parts could be read or checked: 1 matched in the first 752. */
+        if(!($b = self::bibtex_fields($s))) return '';
+        $f = $b['fields']; $type = $b['type'];
+        $authors = array_values(array_filter(array_map('trim', preg_split('/\s+and\s+/i', $f['author'] ?? ($f['editor'] ?? '')))));
+        $who = count($authors) > 1 ? implode(', ', array_slice($authors, 0, -1)) . ' & ' . end($authors) : ($authors[0] ?? '');
+        if(!isset($f['author']) && $who !== '') $who .= count($authors) > 1 ? ' (eds.)' : ' (ed.)';
+        $year = preg_match('/\b(1[5-9]|20)\d\d\b/', $f['year'] ?? '', $y) ? $y[0] : '';
+        $title = rtrim($f['title'] ?? '', ' .');
+        $pages = str_replace(array('--', '–', '—'), '-', $f['pages'] ?? '');
+        $vol = $f['volume'] ?? '';
+        if(($f['number'] ?? '') !== '' && !str_contains($vol, '(')) $vol .= ($vol !== '' ? '(' . $f['number'] . ')' : $f['number']);
+        if(in_array($type, array('article', 'misc'))) $in = $f['journal'] ?? ($f['booktitle'] ?? '');
+        elseif(isset($f['booktitle']) && $type !== 'book') $in = 'In: ' . ($f['editor'] ?? '') . (isset($f['editor']) ? ' (ed.), ' : '') . $f['booktitle'];
+        else $in = $f['publisher'] ?? ($f['school'] ?? ($f['institution'] ?? ''));
+        if(in_array($type, array('book', 'inbook', 'incollection')) && isset($f['publisher']) && !str_contains($in, $f['publisher'])) $in .= ($in !== '' ? '. ' : '') . $f['publisher'];
+        $out = $who . ($year !== '' ? " ($year)" : '') . '.';
+        if($title !== '') $out .= " $title.";
+        $tail = implode(', ', array_filter(array(rtrim($in, ' .'), $vol, $pages), fn($x) => $x !== ''));
+        if($tail !== '') $out .= " $tail.";
+        if(($doi = trim(preg_replace('~^https?://(dx\.)?doi\.org/~i', '', $f['doi'] ?? ''))) !== '' && str_starts_with($doi, '10.')) $out .= " doi:$doi";
+        return trim(preg_replace('/\s+/u', ' ', $out));
     }
     function parse_full_reference($s)
     {   /* Reads the year, journal, volume, issue and page(s) from a full_reference, e.g.

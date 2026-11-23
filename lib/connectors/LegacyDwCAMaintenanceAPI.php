@@ -23,7 +23,7 @@ $GLOBALS['taxon_columns'] = array('taxonID', 'TaxonID', 'canonicalName', 'scient
 $GLOBALS['trait_columns'] = array('measurementID', 'taxonID', 'TaxonID', 'scientificName', 'taxonKey', 'infer', 'exclude', 'measurementType',
     'measurementValue', 'measurementRemarks', 'measurementUnit', 'statisticalMethod', 'lifeStage', 'sex', 'bodyPart', 'SampleSize',
     'verbatimScientificName', 'Standard_Deviation', // Standard_Deviation: http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#Standard_Deviation
-    'source', 'referenceID');
+    'source', 'referenceID', 'contributor');
 
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
@@ -281,6 +281,13 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 echo "\n$l"; $this->conv_debug["Counts"][$l] = '';
             }
         }
+        // furtherInformationURL goes into source: appended with "|" if source already has a value; pipe-separated values are unique
+        $has_url = in_array('furtherInformationURL', $cols);
+        if($has_url) {
+            $cols = array_values(array_diff($cols, array('furtherInformationURL')));
+            if(!in_array('source', $cols)) $cols[] = 'source';
+        }
+        $url = array('moved' => 0, 'appended' => 0, 'already there' => 0);
         $order = array_merge(array_values(array_intersect(self::TAXON_COLUMNS, $cols)), array_values(array_diff($cols, self::TAXON_COLUMNS)));
 
         $f = Functions::file_open($file, "w");
@@ -302,6 +309,15 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 $this->conv_debug["Taxon: duplicate taxonID, only its first row written"]["taxonID {$rec['taxonID']}, line " . number_format($line)] = '';
                 continue;
             }
+            if($has_url) {
+                $u = trim((string) $rec['furtherInformationURL']); $s = trim((string) @$rec['source']);
+                if($u !== '') {
+                    if(in_array($u, array_map('trim', explode('|', $s)))) $url['already there']++;
+                    else { $url['moved']++; if($s !== '') $url['appended']++; }
+                }
+                $rec['source'] = self::conv_merge_values($s, array($u));
+                unset($rec['furtherInformationURL']);
+            }
             $out = array();
             foreach($order as $c) $out[] = @$rec[$c];
             fwrite($f, implode("\t", $out) . "\n");
@@ -311,6 +327,11 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         fclose($f);
         echo "\nTaxon.tsv: [" . number_format($written) . "] rows" . ($has_eolid ? ", EOLid renamed taxonKey" : '') . ".\n";
         $this->conv_debug["Counts"]["Taxon.tsv rows: " . number_format($written) . ($has_eolid ? " (EOLid renamed taxonKey)" : '')] = '';
+        if($has_url) {
+            $l = "Taxon.tsv: furtherInformationURL put in source in " . number_format($url['moved']) . " rows (appended with \"|\" to an existing source in " .
+                 number_format($url['appended']) . "; already in source, not repeated, in " . number_format($url['already there']) . ")";
+            echo "$l\n"; $this->conv_debug["Counts"][$l] = '';
+        }
         if(in_array('taxonRemarks', $order)) {
             $l = "Taxon.tsv taxonRemarks: real remarks kept in " . number_format($remarks['kept']) . " rows; match_taxa_2DH's notes removed in " . number_format($remarks['notes removed']) . " rows";
             echo "$l\n"; $this->conv_debug["Counts"][$l] = '';

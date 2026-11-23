@@ -35,7 +35,8 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "sour
         taxonKey and taxonMap may. Terminates with the reason if a column is missing, a taxonID or scientificName is blank,
         or the table has both EOLid and taxonKey. A duplicate taxonID: only its first row is written (reported).
       - Columns: taxonID, canonicalName, scientificName, parentNameUsageID, taxonKey, taxonMap, taxonRank, kingdom, phylum, class, order,
-        family, superfamily, genus, higherClassification, taxonRemarks, source (those present), then any other column, e.g. furtherInformationURL.
+        family, superfamily, genus, higherClassification, taxonRemarks, source (those present), then any other column.
+      - furtherInformationURL goes into source: appended with "|" if source already has a value; pipe-separated values are unique (reported).
       - higherClassification: no "|" at its start or end ('Animalia|Chordata|...|Ranidae|' -> 'Animalia|Chordata|...|Ranidae').
       - taxonRemarks: match_taxa_2DH's notes are removed (e.g. 'Trait: [ IndexGroup:[Tetrapoda] - IndexHC:[...] ]', 'No canonical match');
         other remarks are kept. If no remark is left in any row, the column is left out (reported).

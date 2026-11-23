@@ -80,6 +80,11 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // "88f93a7c-d8e1-11e2-99a2-0026552be7ea", "FB_REF:1234". Checked after the DOI rules, so "doi:10.1656/058.011.0312" still gets its DOI.
     const CHALCID_DB_CODE = '/^\S+ via Universal Chalcidoidea Database$/';
         // (Nov 21, 2026) e.g. "XiaoJiZh2012 via Universal Chalcidoidea Database": a code for a reference in that database, not the citation (12,509 texts)
+    // (Nov 23, 2026) FishBase's web pages: OBIS distribution maps and FAO-FIGIS species fact sheets (no DOI), e.g.
+    //   "Ocean Biogeographic Information System. Data Extent Map: OBIS Stored Distribution-Abalistes stellaris. (data sourced from ...)",
+    //   "FAO-FIGIS. A world overview of species of interest to fisheries. Chapter: Engraulis ringens. Retrieved on 30 May 2005, from www.fao.org/figis/..."
+    //   (on reference_fishbase.tab: 496 rows; none in GloBI's reference.tab)
+    const FISHBASE_WEB_PAGE = '/^Ocean Biogeographic Information System\. |\bA world overview of species of interest to fisheries\. Chapter: /u';
     const AFD_PAGE = '/^\S+ \d{4}\. Australian Faunal Directory\./';
         // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
@@ -369,6 +374,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // $doi_column: the row's 'doi' column, if the input file has one (e.g. "10.1002/ecy.1680"); used when the citation has no DOI of its own.
         $full_reference = self::clean_full_reference($full_reference, $changes); // what is searched and read; the report keeps the original full_reference too
         $ref = $this->parse_full_reference($full_reference);
+        if(self::year_lost($changes) && !self::year_as_volume($full_reference, $ref['year'])) $ref['year'] = ''; // (Nov 23, 2026) FishBase lost the year: a year elsewhere in the text isn't it (see TEXT_CHANGES 'zero'); a volume numbered by its year stays, e.g. "Copeia 1993(3):665"
         $row = array_fill_keys(array_slice(self::OUTPUT_COLUMNS, 2), '');
         $row['searched_text'] = $full_reference;
         $row['text_changes'] = implode('; ', $changes);   // every change made before the search, in plain words; empty = none
@@ -771,6 +777,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(preg_match(self::GENBANK_TITLE, $text) || preg_match(self::GENBANK_TITLE_FORMS, $text)) return 'A GenBank sequence title, not a citation: not searched.';
         if(preg_match(self::CHALCID_DB_CODE, $text))    return 'A Universal Chalcidoidea Database code, not a citation: not searched.';
         if(preg_match(self::AFD_PAGE, $text))           return 'An Australian Faunal Directory page, not a citation with a DOI: not searched.';
+        if(preg_match(self::FISHBASE_WEB_PAGE, $text))  return 'An OBIS distribution map or an FAO-FIGIS species fact sheet (a web page), not a citation with a DOI: not searched.';
         if(preg_match(self::AUTHOR_YEAR_ONLY, $text))   return 'Only authors and a year, not enough to confirm a DOI: not searched.';
         return '';
     }
@@ -792,8 +799,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     const TEXT_CHANGES = array(
         'spaces' => "Spaces at the start or end of the full_reference were removed.",
         'quotes' => "Double quotes around the whole full_reference were removed, and doubled quotes inside (\"\") made single, e.g. '\"Lebour, M. V. (1917). ...\"' -> 'Lebour, M. V. (1917). ...'. A spreadsheet adds them when it saves a file as text.",
+        'html'   => "HTML codes were written as the characters they stand for, e.g. 'Côte d&#39;Ivoire' -> 'Côte d'Ivoire', 'Lucr&#259;ri' -> 'Lucrări', '&amp;' -> '&', so the title and journal read as written (Nov 23, 2026; 2,051 rows of reference_fishbase.tab).",
         'ref_n'  => "A FishBase reference number at the very end, e.g. '(Ref. 3)', was removed. It is FishBase's own number, not part of the citation, and can mislead CrossRef.",
-        'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine', '(ed.)0 Tilapia' -> '(ed.) Tilapia' (the '(ed.)' is kept). The year itself is missing in these citations, so the year couldn't be checked.",
+        'zero'   => "A stray '0' glued to the last author name, where FishBase exports put the year, was removed, e.g. 'Ruwet0 Ecology' -> 'Ruwet. Ecology', 'E.0 Tilapiine' -> 'E. Tilapiine', '(ed.)0 Tilapia' -> '(ed.) Tilapia' (the '(ed.)' is kept). The year itself is missing in these citations, so the year couldn't be checked. (Nov 23, 2026) When the citation also ends with FishBase's reference number, no year is taken from elsewhere in the text, as it isn't the citation's: e.g. a species authority, '... Coryphaena hippurus (Linnaeus, 1758) in Maltese waters ... Medit. Mar. Sci. 16(2):334-345'; so the CrossRef search isn't limited to the wrong years. A year where the volume goes stays the year, e.g. 'Copeia 1993(3):665-687', 'Proc. Zool. Soc. Lond. 1899:98-143'. Journal, volume, page, first author and title are still checked.",
         'genbank_link' => "A GenBank record link at the end, e.g. '... Appl. Environ. Microbiol. 75 (23), 7527-7536 (2009). https://www.ncbi.nlm.nih.gov/nuccore/EU554750', was removed. It points to one sequence, not to the paper; the same paper is cited once per sequence, each with its own link, so without it they share one CrossRef search (on the 3.5M-row reference.tab, Nov 23, 2026: 20,625 rows, about 960 different citations).",
         'bibtex' => "A BibTeX entry, e.g. '@article{57591, author = {Charles, J.G.}, journal = {Biocontrol Science and Technology}, pages = {405-418}, title = {A survey of mealybugs ...}, volume = {3(4)}, year = {1993} }', was written as a plain citation: 'Charles, J.G. (1993). A survey of mealybugs .... Biocontrol Science and Technology, 3(4), 405-418.', so its journal, volume, year and page can be read and checked. A doi field is kept as 'doi:...', so that DOI is checked instead of searched. Only the fields of a citation are used (authors, year, title, journal or book, volume, number, pages, publisher, doi); notes, abstracts, keywords and URLs are left out.");
     private static function drop_title($j)
@@ -808,6 +816,15 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if(preg_match_all('/\b\p{L}{4,}\b(?![.])/u', substr($j, 0, $cut), $w) >= 3) return substr($j, $cut);
         }
         return $j;
+    }
+    private static function year_lost($changes)
+    {   /* (Nov 23, 2026) a FishBase citation whose year was lost: FishBase's '0' where the year was ('zero') and its reference number at the end ('ref_n').
+           Both, as the '0' rule alone also fires on other citations that have their year, e.g. "... (2015). ... Version 1.0 Smithsonian ..." (4 in GloBI's reference.tab). */
+        return isset($changes['zero']) && isset($changes['ref_n']);
+    }
+    private static function year_as_volume($s, $year)
+    {   // (Nov 23, 2026) the year is where the volume goes, e.g. "Copeia 1993(3):665-687", "Proc. Zool. Soc. Lond. 1899:98-143": a real year, kept when FishBase lost the year
+        return $year !== '' && (bool) preg_match('/(?<![\w.])' . $year . '\s*(?:\([^()]{1,20}\))?\s*:\s*\d/', $s);
     }
     static function clean_full_reference($s, &$changes = null)
     {   /* $changes: code => the change in plain words, for this text (empty: nothing was changed). Every rule is in TEXT_CHANGES.
@@ -825,6 +842,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $inner = substr($s, 1, -1); $doubled = str_contains($inner, '""');
             $changes['quotes'] = "removed the quotes around the whole citation" . ($doubled ? ", and made the doubled quotes inside single" : '');
             $s = trim(str_replace('""', '"', $inner));
+        }
+        // (Nov 23, 2026) HTML codes written as their characters: "Côte d&#39;Ivoire" -> "Côte d'Ivoire", "Lucr&#259;ri" -> "Lucrări"
+        if(preg_match('/&(?:#\d{1,7}|#x[0-9a-f]{1,6}|[a-z][a-z0-9]{1,30});/i', $s) && ($t = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8')) !== $s) {
+            $changes['html'] = "wrote HTML codes as their characters (e.g. '" . (preg_match('/&(?:#\d{1,7}|#x[0-9a-f]{1,6}|[a-z][a-z0-9]{1,30});/i', $s, $e) ? $e[0] : '') . "')"; $s = $t;
         }
         if(preg_match('/\s*(\(Ref\.\s*\d+\))\s*$/u', $s, $m)) { $changes['ref_n'] = "removed '" . $m[1] . "' at the end"; $s = rtrim(substr($s, 0, -strlen($m[0]))); }
         if(preg_match('/(\S*[\p{L}.)])0(?=\s+\p{Lu})/u', $s, $m, PREG_OFFSET_CAPTURE)) { // only the first one: "E.0 " -> "E. ", "Ruwet0 " -> "Ruwet. ", "(ed.)0 " -> "(ed.) "
@@ -1015,10 +1036,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         return $n;
     }
     private function count_one_row(&$n, &$seen, $full_reference, $doi_column = '')
-    {   $ref = self::clean_full_reference(trim($full_reference)); // as find_DOI() searches it, in the same order
+    {   $ref = self::clean_full_reference(trim($full_reference), $changes); // as find_DOI() searches it, in the same order
         if(($doi = self::doi_in_text($ref)) !== '' || ($doi = self::doi_in_column($doi_column)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // a DOI given: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
         elseif(self::not_searched_note($ref) !== '') { $n['skipped']++; return; } // not searched (find_DOI's rules)
-        else { $year = $this->parse_full_reference($ref)['year']; $url = $this->crossref_url($ref, $year); $old = $this->crossref_url($ref, $year, false); }
+        else { $year = $this->parse_full_reference($ref)['year']; if(self::year_lost($changes) && !self::year_as_volume($ref, $year)) $year = ''; $url = $this->crossref_url($ref, $year); $old = $this->crossref_url($ref, $year, false); }
         $missing_known = isset($doi) && $doi !== '' && $this->missing_cached($url) && (!$this->datacite_search
                          || ($dc = $this->datacite_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"))) && (Functions::url_already_cached($dc, $this->datacite_options) || $this->missing_cached($dc, $this->datacite_options)));
         if(isset($seen[$url]) || $missing_known || Functions::url_already_cached($url, $this->crossref_options) || (isset($old) && Functions::url_already_cached($old, $this->crossref_options))) $n['cached']++; // a repeat is asked only once; a search answered before AUTHORS IN THE SEARCH is cached too

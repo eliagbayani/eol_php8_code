@@ -1948,6 +1948,81 @@
     "text_changes_contains": "GenBank link"
    },
    "why": "A link written with a space before the accession number is removed too."
+  },
+  {
+   "id": "fishbase-authority-year",
+   "source": "reference_fishbase.tab (39,381 rows, Nov 2026)",
+   "full_reference": "Takahashi, T. and K. Nakaya0 Callochromis stappersii (Boulenger, 1914) from Lake Tanganyika, a junior synonym of C. pleurospilus (Boulenger, 1906) (Perciformes, Cichlidae). Ichthyol. Res. 45(4):413-418. (Ref. 35977)",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1007/bf02725196",
+    "parsed_year": ""
+   },
+   "why": "FishBase lost the year (its '0'): the species authority '(Boulenger, 1914)' isn't the year. Before, the search was limited to 1913-1915 and the 1998 paper was 'not found' (70 sample rows like it: 25 gained a DOI, none got worse)."
+  },
+  {
+   "id": "fishbase-authority-year-2",
+   "source": "reference_fishbase.tab (39,381 rows, Nov 2026)",
+   "full_reference": "Rae, G.A. and J. Calvo0 Fecundity and reproductive habits in Patagonotothen tessellata (Richardson, 1845) from the Beagle Channel, Argentina. Antarc. Sci. 7:235-240. (Ref. 57915)",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1017/s0954102095000332",
+    "parsed_year": ""
+   },
+   "why": "The same: '(Richardson, 1845)' isn't the year; the 1995 article is found by its journal, volume, page, first author and title."
+  },
+  {
+   "id": "fishbase-volume-is-year",
+   "source": "reference_fishbase.tab (39,381 rows, Nov 2026)",
+   "full_reference": "Fink, W.L.0 Revision of the piranha genus Pygocentrus. Copeia 1993(3):665-687. (Ref. 27142)",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1447228",
+    "parsed_year": "1993"
+   },
+   "why": "A volume numbered by its year (Copeia) is the year, even when FishBase lost it: kept and checked. Without it, this was 'possible'."
+  },
+  {
+   "id": "fishbase-obis-map",
+   "source": "reference_fishbase.tab (39,381 rows, Nov 2026)",
+   "full_reference": "Ocean Biogeographic Information System0 Rouleina guentheri Data Extent Map (from OBIS Australia/ C Square Mapper). (data sourced from FishBase DiGIR Provider-Philippine Server, Australian Museum (OZCAM), Southampton Oceanography Center Discovery Collections Midwater Database, IndOBIS, Indian Ocean Node of OBIS (INDOBIS), MV Ichthyology (OZCAM)). Retrieved August 28, 2006 at www.iobis.org. (Ref. 57332)",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "OBIS distribution map"
+   },
+   "why": "An OBIS distribution map (a web page) has no DOI: not searched (284 rows)."
+  },
+  {
+   "id": "fishbase-figis-fact-sheet",
+   "source": "reference_fishbase.tab (39,381 rows, Nov 2026)",
+   "full_reference": "FAO-FIGIS0 A world overview of species of interest to fisheries. Chapter: Rastrelliger brachysoma. Retrieved on 06 July 2005, from www.fao.org/figis/servlet/species?fid=2477. 2p. FIGIS Species Fact Sheets. Species Identification and Data Programme-SIDP, FAO-FIGIS (Ref. 54858)",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "FAO-FIGIS species fact sheet"
+   },
+   "why": "An FAO-FIGIS species fact sheet (a web page) has no DOI: not searched (214 rows)."
+  },
+  {
+   "id": "fishbase-html-codes",
+   "source": "reference_fishbase.tab (39,381 rows, Nov 2026)",
+   "full_reference": "Akalin, S., D. İlhan, A. Ünlüoğlu, Z. Tosunoğlu and O. Özaydin0 İzmir Körfezi&#39;nde iki iskorpit türünün (Scorpaena notata ve Scorpaena porcus) boy-ağirlok iliskişi ve metrik-meristik özellikleri. J. Fish. Sci. 5(4):291-299. (Ref. 91094)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.3153/jfscom.2011033",
+    "text_changes_contains": "HTML codes",
+    "searched_text_contains": "Körfezi'nde"
+   },
+   "why": "HTML codes are written as their characters before the search ('&#39;' -> \"'\"); the result is the same as before (50 sample rows: no change)."
+  },
+  {
+   "id": "year-kept-version-1-0",
+   "source": "reference.tab (GloBI, 3.5M rows, Nov 2026)",
+   "full_reference": "Robertson DR and Tassell J Van (2015). Shorefishes of the Greater Caribbean: online information system. Version 1.0 Smithsonian Tropical Research Institute, Balboa, Panama.",
+   "expect": {
+    "status": "not found",
+    "parsed_year": "2015"
+   },
+   "why": "FishBase's '0' rule also fires on 'Version 1.0 Smithsonian', but without FishBase's '(Ref. N)' the year is kept: only FishBase citations lost theirs."
   }
  ]
 }

@@ -6,7 +6,7 @@ Uses ZenodoTraitBankAPI::upload_new_version_to_zenodo():
     2. stops if that version already has this exact file (same name and md5): nothing to upload;
     3. makes a new version draft (Zenodo copies the other files into it, so they are kept);
     4. replaces the file of the same name, or adds it if the dataset doesn't have it; checks the md5 after uploading;
-    5. sets publication_date to today (UTC) [+ a version label];
+    5. sets publication_date and the Dates entry "updated" to today (UTC) [+ a version label];
     6. stops at the draft, for review on Zenodo; publishes only with "publish": 1 -- a published version CANNOT be deleted.
     If something fails before publishing, the draft is discarded, so a leftover draft won't block the next run.
 

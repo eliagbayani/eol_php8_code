@@ -639,7 +639,7 @@ class ZenodoTraitBankAPI
             echo "  - make a new version draft of record $record_id, with its files: [" . implode('], [', $keys) . "]\n";
             foreach ($remove as $old) echo "  - remove [$old]\n";
             echo "  - " . (in_array($filename, $keys) ? "replace [$filename] with" : "add [$filename]:") . " [$local_file] (" . number_format(filesize($local_file)) . " bytes, md5 $md5)\n";
-            echo "  - set publication_date " . gmdate("Y-m-d") . (isset($options['version']) ? ", version " . $options['version'] : '') . "\n";
+            echo "  - set publication_date " . gmdate("Y-m-d") . " and the Dates entry \"updated\" " . gmdate("Y-m-d") . (isset($options['version']) ? ", version " . $options['version'] : '') . "\n";
             if (!empty($options['tool'])) echo "  - add at the bottom of the description: " . strip_tags(self::auto_upload_line((string) $options['tool'])) . "\n";
             echo "  - " . ($publish ? "PUBLISH it (cannot be undone)" : "stop at the draft, for review on Zenodo (not published)") . "\n";
             $this->last_upload_status = 'dry_run';
@@ -704,11 +704,22 @@ class ZenodoTraitBankAPI
             if ($kept) $metadata['dates'] = $kept; else unset($metadata['dates']);
         }
         $metadata['publication_date'] = gmdate("Y-m-d"); // UTC, as Zenodo dates its records
-        if (isset($options['version'])) $metadata['version'] = (string) $options['version'];
-        if (!empty($options['tool'])) $metadata['description'] = self::add_auto_upload_line((string) ($metadata['description'] ?? ''), (string) $options['tool']);
+        $no_updated = $metadata; // fallback, in case Zenodo refuses the "updated" date entry below
+        // Dates: one "updated" entry = today (UTC), replacing an earlier one; shown on the record page under Dates
+        $dates = array_values(array_filter((array) ($metadata['dates'] ?? array()), fn($d) => strtolower((string) ($d['type'] ?? '')) !== 'updated'));
+        $dates[] = array('start' => gmdate("Y-m-d"), 'end' => gmdate("Y-m-d"), 'type' => 'updated');
+        $metadata['dates'] = $dates;
+        if (isset($options['version'])) $metadata['version'] = $no_updated['version'] = (string) $options['version'];
+        if (!empty($options['tool'])) $metadata['description'] = $no_updated['description'] = self::add_auto_upload_line((string) ($metadata['description'] ?? ''), (string) $options['tool']);
         [$code, $res] = $this->zenodo_api_request('PUT', "$domain/api/deposit/depositions/$draft_id", $token, array('metadata' => $metadata));
+        $updated_date = ($code == 200);
+        if ($code == 400 && stripos(json_encode($res), 'dates') !== false) { // the "updated" entry was refused: keep the upload, without it
+            echo "Zenodo refused the \"updated\" date entry (HTTP 400): " . $this->zenodo_error_message($res) . "\nUpdating the metadata without it...\n";
+            $metadata = $no_updated;
+            [$code, $res] = $this->zenodo_api_request('PUT', "$domain/api/deposit/depositions/$draft_id", $token, array('metadata' => $metadata));
+        }
         if ($code != 200) return $discard("Cannot update the draft's metadata (HTTP $code): " . $this->zenodo_error_message($res));
-        echo "Draft metadata: publication_date " . $metadata['publication_date'] . ", version " . ($metadata['version'] ?? '(none)') . "\n";
+        echo "Draft metadata: publication_date " . $metadata['publication_date'] . ($updated_date ? ", Dates: updated " . gmdate("Y-m-d") : '') . ", version " . ($metadata['version'] ?? '(none)') . "\n";
         if (!empty($options['tool'])) echo "Description ends with: " . strip_tags(self::auto_upload_line((string) $options['tool'])) . "\n";
 
         $ret = array('draft_id' => $draft_id, 'draft_url' => $html, 'published' => false, 'record_id' => null, 'doi' => null);

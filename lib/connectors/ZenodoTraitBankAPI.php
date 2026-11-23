@@ -696,6 +696,13 @@ class ZenodoTraitBankAPI
         // 4. metadata: the draft keeps the previous version's metadata; set today's publication date (required to publish) [+ version]
         $metadata = $draft['metadata'] ?? array();
         unset($metadata['prereserve_doi']); // read-only
+        // dates entries without a date (e.g. FishBase 12730071: [{"type":"created"},{"type":"updated"}]) make Zenodo refuse the update:
+        // HTTP 400 "metadata.dates: Invalid date provided." They carry nothing, so they are dropped.
+        if (isset($metadata['dates']) && is_array($metadata['dates'])) {
+            $kept = array_values(array_filter($metadata['dates'], fn($d) => trim((string) ($d['start'] ?? '')) !== '' || trim((string) ($d['end'] ?? '')) !== '' || trim((string) ($d['date'] ?? '')) !== ''));
+            if (($n = count($metadata['dates']) - count($kept)) > 0) echo "Removed $n date entr" . ($n == 1 ? "y" : "ies") . " without a date from the metadata (Zenodo refuses them)\n";
+            if ($kept) $metadata['dates'] = $kept; else unset($metadata['dates']);
+        }
         $metadata['publication_date'] = gmdate("Y-m-d"); // UTC, as Zenodo dates its records
         if (isset($options['version'])) $metadata['version'] = (string) $options['version'];
         if (!empty($options['tool'])) $metadata['description'] = self::add_auto_upload_line((string) ($metadata['description'] ?? ''), (string) $options['tool']);

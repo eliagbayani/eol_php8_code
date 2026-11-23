@@ -24,6 +24,8 @@ class ZenodoTraitBankAPI
     // master references.tsv changes, it is copied here by copy_to_github_folder().
     const GITHUB_COPY_FOLDER = '/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/';
 
+    public $last_upload_status = ''; // set by upload_new_version_to_zenodo(): draft, published, dry_run, unchanged or error
+
     function __construct($folder = null, $query = null)
     {
         $this->download_options = array(
@@ -602,8 +604,12 @@ class ZenodoTraitBankAPI
                           see add_auto_upload_line()). Without it the description is left as copied from the previous version.
             'token'    => Zenodo token; default the ZENODO_TOKEN constant. Sent only in the Authorization header.
             'domain'   => default $this->api['domain'] or https://zenodo.org; e.g. https://sandbox.zenodo.org (needs a sandbox token)
+            'dry_run'  => true: only checks (the file, the token, the latest version, the same-file rule, 'remove_files') and says what
+                          would be done; no draft is made and nothing is uploaded. Returns array('dry_run' => true, ...).
         Returns array('draft_id', 'draft_url', 'published', 'record_id', 'doi'), or false.
-        If something fails before publishing, the new draft is discarded, so a leftover draft won't block the next run. */
+        $this->last_upload_status says why: 'draft', 'published', 'dry_run', 'unchanged' (Zenodo already has this exact file; not an error)
+        or 'error'. If something fails before publishing, the new draft is discarded, so a leftover draft won't block the next run. */
+        $this->last_upload_status = 'error';
         $publish  = !empty($options['publish']);
         $filename = $options['filename'] ?? basename($local_file);
         $token    = $options['token'] ?? (defined('ZENODO_TOKEN') ? ZENODO_TOKEN : '');
@@ -621,8 +627,23 @@ class ZenodoTraitBankAPI
         foreach ($latest['files'] as $f) {
             if ($f['key'] === $filename && strtolower((string) $f['checksum']) === "md5:$md5") {
                 echo "Zenodo's latest version (record $record_id) already has this exact file [$filename] (md5 $md5). Nothing was uploaded.\n";
+                $this->last_upload_status = 'unchanged';
                 return false;
             }
+        }
+        if (!empty($options['dry_run'])) { // say what would be done, change nothing on Zenodo
+            $keys = array_column($latest['files'] ?? array(), 'key');
+            $remove = array_values(array_diff((array) ($options['remove_files'] ?? array()), array($filename)));
+            foreach ($remove as $old) if (!in_array($old, $keys)) { echo "ERROR: [$old] (remove_files) is not in the latest version. Its files: [" . implode('], [', $keys) . "]\n"; return false; }
+            echo "DRY RUN, nothing was changed on Zenodo. A run without \"dry_run\" would:\n";
+            echo "  - make a new version draft of record $record_id, with its files: [" . implode('], [', $keys) . "]\n";
+            foreach ($remove as $old) echo "  - remove [$old]\n";
+            echo "  - " . (in_array($filename, $keys) ? "replace [$filename] with" : "add [$filename]:") . " [$local_file] (" . number_format(filesize($local_file)) . " bytes, md5 $md5)\n";
+            echo "  - set publication_date " . gmdate("Y-m-d") . (isset($options['version']) ? ", version " . $options['version'] : '') . "\n";
+            if (!empty($options['tool'])) echo "  - add at the bottom of the description: " . strip_tags(self::auto_upload_line((string) $options['tool'])) . "\n";
+            echo "  - " . ($publish ? "PUBLISH it (cannot be undone)" : "stop at the draft, for review on Zenodo (not published)") . "\n";
+            $this->last_upload_status = 'dry_run';
+            return array('dry_run' => true, 'record_id' => $record_id, 'files' => $keys, 'md5' => $md5);
         }
 
         // 2. new-version draft. Zenodo returns the original record, with the draft at links.latest_draft
@@ -687,6 +708,7 @@ class ZenodoTraitBankAPI
         if (!$publish) {
             echo "Draft ready for review, NOT published: $html\n";
             echo "Publish it there, or run again with 'publish' => true. Until it is published or discarded, no other new version can be started.\n";
+            $this->last_upload_status = 'draft';
             return $ret;
         }
 
@@ -697,6 +719,7 @@ class ZenodoTraitBankAPI
         $ret['record_id'] = $res['record_id'] ?? $res['id'] ?? $draft_id;
         $ret['doi']       = $res['doi'] ?? null;
         echo "Published new version: record " . $ret['record_id'] . ($ret['doi'] ? ", DOI " . $ret['doi'] : '') . "\n";
+        $this->last_upload_status = 'published';
         return $ret;
     }
     static function auto_upload_line($tool)

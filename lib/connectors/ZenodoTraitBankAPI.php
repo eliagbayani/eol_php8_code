@@ -771,10 +771,31 @@ class ZenodoTraitBankAPI
         }
         if ($upload_file !== null) { // stream the file, so large files aren't loaded into memory
             $fp = fopen($upload_file, "r");
+            $size = filesize($upload_file);
             $headers[] = "Content-Type: application/octet-stream";
+            $headers[] = "Expect:"; // no "100-continue" round trip: send the file at once, as `curl --upload-file` did for our earlier big uploads
             $opts[CURLOPT_UPLOAD] = true;
             $opts[CURLOPT_INFILE] = $fp;
-            $opts[CURLOPT_INFILESIZE] = filesize($upload_file);
+            $opts[CURLOPT_INFILESIZE] = $size;
+            // (Nov 23, 2026) HTTP/1.1 for the file: over HTTP/2 (libcurl's default), 38 MB went at about 35 KB/s for 18 minutes,
+            // then Zenodo's front server answered "400 Bad request". Our earlier big uploads (curl --upload-file) worked.
+            $opts[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_1_1;
+            $opts[CURLOPT_UPLOAD_BUFFERSIZE] = 1024 * 1024;
+            // a stalled upload fails within 2 minutes, instead of hanging: less than 10 KB/s for 120 s
+            $opts[CURLOPT_LOW_SPEED_LIMIT] = 10240; $opts[CURLOPT_LOW_SPEED_TIME] = 120;
+            // progress: a line every 10% or every minute, so the user sees it going
+            $t0 = microtime(true); $last = array('pct' => -10, 't' => $t0);
+            $opts[CURLOPT_NOPROGRESS] = false;
+            $opts[CURLOPT_XFERINFOFUNCTION] = function ($ch, $dl_total, $dl_now, $ul_total, $ul_now) use ($size, $t0, &$last) {
+                if ($size <= 0) return 0;
+                $pct = (int) floor(100 * $ul_now / $size); $now = microtime(true);
+                if ($pct >= $last['pct'] + 10 || ($now - $last['t'] >= 60 && $ul_now < $size)) {
+                    $secs = max(0.001, $now - $t0);
+                    echo "  uploaded " . number_format($ul_now) . " of " . number_format($size) . " bytes ($pct%), " . number_format($ul_now / 1024 / $secs) . " KB/s, " . round($secs) . " s\n";
+                    $last = array('pct' => $pct - $pct % 10, 't' => $now);
+                }
+                return 0;
+            };
         }
         $opts[CURLOPT_HTTPHEADER] = $headers;
         curl_setopt_array($ch, $opts);

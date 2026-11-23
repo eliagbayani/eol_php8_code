@@ -237,10 +237,10 @@ elseif($action == 'proceed') {
 }
 elseif($action == 'tests' && getenv('MY_ENV') === 'development') { // the Tests section is on the Mac only, not on eol-archive
     // [Run Tests]: the known cases (problems fixed before, CrossRef's own sample citations), with the same command as on the command line.
-    // Not while a search runs: both would call CrossRef at once. Writes no report; the results go to full_reference_search_tests_last.json.
-    $st = read_state();
-    if(is_running() || ($st && process_alive($st))) $tests_msg = "<p class='bad'>A search is running: run the tests after it ends, so CrossRef isn't asked by both at once. Nothing was run.</p>";
-    else { shell_exec("cd " . escapeshellarg($connectors) . " && php do_full_reference_search.php _ " . escapeshellarg('{"task": "run_tests"}') . " 2>&1"); $tests_ran = true; }
+    // Also while a search runs (here or in Jenkins): both keep the one SHARED PACE (.crossref_pace.json, .datacite_pace.json), so CrossRef
+    // is never asked faster than by one search alone; a test needing a new call just waits its turn. Writes no report; the results go to
+    // full_reference_search_tests_last.json.
+    shell_exec("cd " . escapeshellarg($connectors) . " && php do_full_reference_search.php _ " . escapeshellarg('{"task": "run_tests"}') . " 2>&1"); $tests_ran = true;
 }
 elseif($action == 'cancel') {
     $p = read_pending();
@@ -348,7 +348,8 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
     .banner .btns { display: flex; flex-direction: column; gap: 6px; } /* [Download] with [Guide] below it */
     details.reports > summary { cursor: pointer; } /* "Available reports": hidden until its title is clicked; a click again hides it */
 </style>
-<script>function busy(f) { f.querySelectorAll('input[type=submit]').forEach(function(b){ b.disabled = true; }); var w = f.querySelector('.wait'); if(w) w.style.display = 'inline'; return true; }</script>
+<script>var FORM_SENT = false; // set by busy(): the page's 15-second refresh mustn't cut off a form being sent (e.g. [Run Tests], up to a minute)
+function busy(f) { FORM_SENT = true; f.querySelectorAll('input[type=submit]').forEach(function(b){ b.disabled = true; }); var w = f.querySelector('.wait'); if(w) w.style.display = 'inline'; return true; }</script>
 </head>
 <body>
 <table border="1" cellpadding="15" cellspacing="1" align="center" width="75%">
@@ -532,9 +533,9 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
         works registered twice, …) and CrossRef's own 7 sample citations. Run them after any change to the tool: a FAIL means the change conflicts with a known fact.
         They write no report. The cases are in <code>lib/connectors/FullReferenceSearchAPI_tests.json</code>; add one whenever a problem is fixed.</small>
         <form method="post" action="main.php" onsubmit="return busy(this);">
-            <input type="hidden" name="action" value="tests"><input type="submit" value="Run Tests" <?php if($running) echo "disabled title='Not while a search runs'" ?>>
+            <input type="hidden" name="action" value="tests"><input type="submit" value="Run Tests">
             <span class="wait">This can take a minute. Working<span class='dots' aria-hidden='true'><span>.</span><span>.</span><span>.</span></span></span>
-            <?php if($running) echo "<small>Not while a search runs.</small>" ?>
+            <?php if($running || $elsewhere !== null) echo "<small>A search is running: the tests share its pace with CrossRef, so a test that needs a new call waits its turn (cached ones are instant).</small>" ?>
         </form>
         <?php if(!empty($tests_msg)) echo $tests_msg;
         if($tests) {
@@ -562,7 +563,7 @@ var TAB_TITLE = <?php echo json_encode($tab_title) ?>;
 function openStop() { var d = document.getElementById('stop-dialog'), p = document.getElementById('stop-pw'); p.value = ''; d.showModal(); p.focus(); }
 setInterval(function() {   // refresh every 15 seconds, but not while the [Stop the search] dialog is open or its form is being sent
     var d = document.getElementById('stop-dialog');
-    if(d && (d.open || d.querySelector('input[type=submit]').disabled)) return;
+    if(FORM_SENT || (d && (d.open || d.querySelector('input[type=submit]').disabled))) return;
     location.href = 'main.php';
 }, 15000);
 <?php endif; ?>

@@ -170,7 +170,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
 
         recursive_rmdir($this->conv_temp_dir);
         foreach($this->conv_debug as $topic => $arr) { // counts as "name: count" lines in the report
-            foreach($arr as $sub => $v) if(is_int($v)) { unset($this->conv_debug[$topic][$sub]); $this->conv_debug[$topic]["$sub: $v"] = ''; }
+            foreach($arr as $sub => $v) if(is_int($v)) { unset($this->conv_debug[$topic][$sub]); $this->conv_debug[$topic]["$sub: " . number_format($v)] = ''; }
         }
         Functions::start_print_debug($this->conv_debug, $name . "_convert", $out_root);
         echo "\nReport: [$out_root/{$name}_convert_debug_" . date('Y-m-d') . ".txt]\nDone: [{$this->conv_out_dir}input_files/]\n";
@@ -220,7 +220,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $topic = "New columns: not in the 21 Zenodo TraitBank datasets (kept)";
         $new = array_values(array_diff($columns, $known));
         if(!$new) { echo "\n$file_label: no new columns"; $this->conv_debug[$topic]["$file_label: no new columns"] = ''; return; }
-        echo "\nNOTE: $file_label has " . count($new) . " column(s) not in the 21 Zenodo TraitBank datasets: " . implode(', ', $new) . " (kept)";
+        echo "\nNOTE: $file_label has " . number_format(count($new)) . " column(s) not in the 21 Zenodo TraitBank datasets: " . implode(', ', $new) . " (kept)";
         foreach($new as $c) $this->conv_debug[$topic]["$file_label: $c"] = '';
     }
     private function conv_short_name($uri)
@@ -296,10 +296,10 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 if($clean !== '') $remarks['kept']++;
                 $rec['taxonRemarks'] = $clean;
             }
-            if($rec['taxonID'] === '')        { fclose($f); self::conv_exit("$where, line $line: blank taxonID (scientificName [{$rec['scientificName']}]). $required"); }
-            if($rec['scientificName'] === '') { fclose($f); self::conv_exit("$where, line $line: blank scientificName (taxonID [{$rec['taxonID']}]). $required"); }
+            if($rec['taxonID'] === '')        { fclose($f); self::conv_exit("$where, line " . number_format($line) . ": blank taxonID (scientificName [{$rec['scientificName']}]). $required"); }
+            if($rec['scientificName'] === '') { fclose($f); self::conv_exit("$where, line " . number_format($line) . ": blank scientificName (taxonID [{$rec['taxonID']}]). $required"); }
             if(isset($taxa[$rec['taxonID']])) { // keep the first
-                $this->conv_debug["Taxon: duplicate taxonID, only its first row written"]["taxonID {$rec['taxonID']}, line $line"] = '';
+                $this->conv_debug["Taxon: duplicate taxonID, only its first row written"]["taxonID {$rec['taxonID']}, line " . number_format($line)] = '';
                 continue;
             }
             $out = array();
@@ -310,9 +310,9 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         }
         fclose($f);
         echo "\nTaxon.tsv: [" . number_format($written) . "] rows" . ($has_eolid ? ", EOLid renamed taxonKey" : '') . ".\n";
-        $this->conv_debug["Counts"]["Taxon.tsv rows: $written" . ($has_eolid ? " (EOLid renamed taxonKey)" : '')] = '';
+        $this->conv_debug["Counts"]["Taxon.tsv rows: " . number_format($written) . ($has_eolid ? " (EOLid renamed taxonKey)" : '')] = '';
         if(in_array('taxonRemarks', $order)) {
-            $l = "Taxon.tsv taxonRemarks: real remarks kept in {$remarks['kept']} rows; match_taxa_2DH's notes removed in {$remarks['notes removed']} rows";
+            $l = "Taxon.tsv taxonRemarks: real remarks kept in " . number_format($remarks['kept']) . " rows; match_taxa_2DH's notes removed in " . number_format($remarks['notes removed']) . " rows";
             echo "$l\n"; $this->conv_debug["Counts"][$l] = '';
         }
         return $taxa;
@@ -344,7 +344,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             $occ[$rec['occurrenceID']] = array('taxonID' => $rec['taxonID'], 'meta' => $m);
         }
         $this->conv_occ_columns = $extra;
-        $msg = "Occurrence rows: $n; " . ($extra ? "columns added to Traits.tsv: " . implode(", ", $extra) : "only occurrenceID and taxonID, used only to link MoF rows to their taxa");
+        $msg = "Occurrence rows: " . number_format($n) . "; " . ($extra ? "columns added to Traits.tsv: " . implode(", ", $extra) : "only occurrenceID and taxonID, used only to link MoF rows to their taxa");
         echo "\n$msg\n";
         $this->conv_debug["Counts"][$msg] = '';
         return $occ;
@@ -443,11 +443,11 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $merged = array();
         foreach($children as $top => $cols) if(isset($used[$top])) foreach($cols as $col => $vals) @$merged[$col] += count($vals);
 
-        $lines = array("Traits.tsv rows: $written (MoF rows without a parentMeasurementID)",
-                       "Child MoF rows: {$this->conv_child_total}" . ($merged ? "; added to their parent trait as columns: " . implode(", ", array_map(fn($c, $n) => "$c $n", array_keys($merged), $merged)) : ''),
-                       "Context rows (no parentMeasurementID, measurementOfTaxon not true), written as trait rows: $context",
-                       "Traits left out: occurrenceID not in the occurrence table: {$skip['no occurrence']}; taxonID not in the taxon table: {$skip['no taxon']}",
-                       "referenceID: ';' changed to '|' in $ref_changed rows",
+        $lines = array("Traits.tsv rows: " . number_format($written) . " (MoF rows without a parentMeasurementID)",
+                       "Child MoF rows: " . number_format($this->conv_child_total) . ($merged ? "; added to their parent trait as columns: " . implode(", ", array_map(fn($c, $n) => "$c " . number_format($n), array_keys($merged), $merged)) : ''),
+                       "Context rows (no parentMeasurementID, measurementOfTaxon not true), written as trait rows: " . number_format($context),
+                       "Traits left out: occurrenceID not in the occurrence table: " . number_format($skip['no occurrence']) . "; taxonID not in the taxon table: " . number_format($skip['no taxon']),
+                       "referenceID: ';' changed to '|' in " . number_format($ref_changed) . " rows",
                        "Traits.tsv columns: " . implode(", ", $head));
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
         echo "\n";
@@ -489,8 +489,8 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             }
             fclose($h);
         }
-        $lines = array("References.tsv rows: " . count($written) . " (of " . count($this->conv_ref_used) . " distinct referenceIDs in Traits.tsv); not in the reference table: " . count($missing) . "; blank full_reference: $blank",
-                       $shared_file ? "Already in the shared references.tsv: $in_shared (same full_reference: " . ($in_shared - $differs) . ", different: $differs); new: " . (count($written) - $in_shared)
+        $lines = array("References.tsv rows: " . number_format(count($written)) . " (of " . number_format(count($this->conv_ref_used)) . " distinct referenceIDs in Traits.tsv); not in the reference table: " . number_format(count($missing)) . "; blank full_reference: " . number_format($blank),
+                       $shared_file ? "Already in the shared references.tsv: " . number_format($in_shared) . " (same full_reference: " . number_format($in_shared - $differs) . ", different: " . number_format($differs) . "); new: " . number_format(count($written) - $in_shared)
                                     : "Shared references.tsv (TB_files/22776838_*/input_files/) not found: not compared");
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
         echo "\n";
@@ -509,7 +509,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         if(count($paths) == 1) return reset($paths);
         $archives = array_values(array_filter($paths, fn($p) => self::archive_type($p)));
         if(count($archives) == 1) return $archives[0];
-        echo "\nThe Zenodo record has " . count($archives) . " archive files among its " . count($paths) . " files:\n - " . implode("\n - ", $paths) . "\n";
+        echo "\nThe Zenodo record has " . number_format(count($archives)) . " archive files among its " . number_format(count($paths)) . " files:\n - " . implode("\n - ", $paths) . "\n";
         return false;
     }
     private function save_final_version($source, $final, $file_type, $temp_dir)

@@ -2043,6 +2043,46 @@
     "note_contains": "Only a first author, year, journal and volume"
    },
    "why": "The same form, with a year in the journal's name."
+  },
+  {
+   "id": "short-citation-part",
+   "source": "reference.tab (GloBI, 3.5M rows, Nov 2026)",
+   "full_reference": "Hertig C, 1996, J Gen Virol, 77 ( Pt 4)",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only a first author, year, journal and volume"
+   },
+   "why": "The short form with a part of the volume: no title or page, skipped (316 rows like it; the searched ones were all 'not found')."
+  },
+  {
+   "id": "short-citation-supplement",
+   "source": "reference.tab (GloBI, 3.5M rows, Nov 2026)",
+   "full_reference": "Torres-Anjel MJ, 1988, Rev Infect Dis, 10 Suppl 4",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only a first author, year, journal and volume"
+   },
+   "why": "The short form with a supplement (about 110 rows)."
+  },
+  {
+   "id": "short-citation-no-volume",
+   "source": "reference.tab (GloBI, 3.5M rows, Nov 2026)",
+   "full_reference": "Van Der Maaten MJ, 1975, Bibl Haematol,",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only a first author, year, journal and volume"
+   },
+   "why": "The short form with no volume (196 rows)."
+  },
+  {
+   "id": "short-citation-with-pages-searched",
+   "source": "made from a GloBI short citation, with its pages added",
+   "full_reference": "Hertig C, 1996, J Gen Virol, 77, 631-640",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1099/0022-1317-77-4-631"
+   },
+   "why": "With pages, the citation can be checked, so it is searched (and here matched: journal, volume, year, first author and page agree): only the form with nothing after the volume (or its part or supplement) is skipped."
   }
  ]
 }

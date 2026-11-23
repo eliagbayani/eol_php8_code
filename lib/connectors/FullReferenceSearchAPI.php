@@ -88,7 +88,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     // (Nov 23, 2026) a short citation: first author, year, journal and volume only, no title or page, e.g. "Brodie SJ, 1998, J Virol, 72",
     //   "Onuma M, 1992, J Acquir Immune Defic Syndr (1988), 5": no article can be confirmed from it (on GloBI's reference.tab: 18,080 rows, all 'not found'
     //   in the 1,083 searched). No /u: some of these names have broken UTF-8 (e.g. "Erd\xEFlyi K"), which /u would never match.
-    const SHORT_CITATION = '/^[^,]{2,60}, (?:1[5-9]|20)\d\d, [^,]{2,80}, [0-9A-Za-z]{1,6}$/';
+    //   (Nov 23, 2026, widened) also a part or supplement, a double volume, or no volume: "77 ( Pt 4)", "60 (Pt 5)", "39 Pt 2", "10 Suppl 4", "129 Suppl",
+    //   "141 Spec No", "454-455", "Van Der Maaten MJ, 1975, Bibl Haematol," (661 more rows; the 108 searched were all 'not found')
+    const SHORT_CITATION = '/^[^,]{2,60}, (?:1[5-9]|20)\d\d, [^,]{2,80},(?: [0-9A-Za-z]{1,6}(?:-\d{1,6})?(?: ?\( ?Pt [0-9A-Za-z]{1,3} ?\)| Pt [0-9A-Za-z]{1,3}| Suppl(?: [0-9A-Za-z]{1,3})?| Spec No)?)?$/';
     const AFD_PAGE = '/^\S+ \d{4}\. Australian Faunal Directory\./';
         // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's

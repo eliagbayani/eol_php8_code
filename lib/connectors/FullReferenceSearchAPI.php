@@ -85,6 +85,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     //   "FAO-FIGIS. A world overview of species of interest to fisheries. Chapter: Engraulis ringens. Retrieved on 30 May 2005, from www.fao.org/figis/..."
     //   (on reference_fishbase.tab: 496 rows; none in GloBI's reference.tab)
     const FISHBASE_WEB_PAGE = '/^Ocean Biogeographic Information System\. |\bA world overview of species of interest to fisheries\. Chapter: /u';
+    // (Nov 23, 2026) a short citation: first author, year, journal and volume only, no title or page, e.g. "Brodie SJ, 1998, J Virol, 72",
+    //   "Onuma M, 1992, J Acquir Immune Defic Syndr (1988), 5": no article can be confirmed from it (on GloBI's reference.tab: 18,080 rows, all 'not found'
+    //   in the 1,083 searched). No /u: some of these names have broken UTF-8 (e.g. "Erd\xEFlyi K"), which /u would never match.
+    const SHORT_CITATION = '/^[^,]{2,60}, (?:1[5-9]|20)\d\d, [^,]{2,80}, [0-9A-Za-z]{1,6}$/';
     const AFD_PAGE = '/^\S+ \d{4}\. Australian Faunal Directory\./';
         // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
@@ -778,6 +782,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(preg_match(self::CHALCID_DB_CODE, $text))    return 'A Universal Chalcidoidea Database code, not a citation: not searched.';
         if(preg_match(self::AFD_PAGE, $text))           return 'An Australian Faunal Directory page, not a citation with a DOI: not searched.';
         if(preg_match(self::FISHBASE_WEB_PAGE, $text))  return 'An OBIS distribution map or an FAO-FIGIS species fact sheet (a web page), not a citation with a DOI: not searched.';
+        if(preg_match(self::SHORT_CITATION, $text))     return 'Only a first author, year, journal and volume (no title or page), not enough to confirm a DOI: not searched.';
         if(preg_match(self::AUTHOR_YEAR_ONLY, $text))   return 'Only authors and a year, not enough to confirm a DOI: not searched.';
         return '';
     }

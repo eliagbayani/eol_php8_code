@@ -2023,6 +2023,26 @@
     "parsed_year": "2015"
    },
    "why": "FishBase's '0' rule also fires on 'Version 1.0 Smithsonian', but without FishBase's '(Ref. N)' the year is kept: only FishBase citations lost theirs."
+  },
+  {
+   "id": "short-citation-skipped",
+   "source": "reference.tab (GloBI, 3.5M rows, Nov 2026)",
+   "full_reference": "Brodie SJ, 1998, J Virol, 72",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only a first author, year, journal and volume"
+   },
+   "why": "First author, year, journal and volume only (no title or page): no article can be confirmed. Before, each was searched in CrossRef and DataCite (about 4-5 s) and always 'not found' (1,121 of 18,080 searched)."
+  },
+  {
+   "id": "short-citation-journal-with-year",
+   "source": "reference.tab (GloBI, 3.5M rows, Nov 2026)",
+   "full_reference": "Onuma M, 1992, J Acquir Immune Defic Syndr (1988), 5",
+   "expect": {
+    "status": "skipped",
+    "note_contains": "Only a first author, year, journal and volume"
+   },
+   "why": "The same form, with a year in the journal's name."
   }
  ]
 }

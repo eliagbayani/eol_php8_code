@@ -15,6 +15,16 @@ Tasks:
 // Default: none excluded, every child record becomes a column. Edit this list as needed.
 $GLOBALS['excluded_metadata_as_columns'] = array();
 
+// convert_dwca_to_new_input_files: the columns of the 21 Zenodo TraitBank datasets (their input_files taxon.tsv/taxon.txt and traits.tsv headers,
+// as of Nov 2026), by short name. Columns of Taxon.tsv / Traits.tsv not in these lists are kept, and listed on screen and in the report
+// as new columns introduced by the legacy DwCA. taxonID and TaxonID: both spellings are used by the datasets. Add new columns here as needed.
+$GLOBALS['taxon_columns'] = array('taxonID', 'TaxonID', 'canonicalName', 'scientificName', 'parentNameUsageID', 'taxonRank', 'taxonKey', 'taxonMap',
+    'taxonRemarks', 'source', 'higherClassification', 'kingdom', 'phylum', 'class', 'order', 'family', 'superfamily', 'genus');
+$GLOBALS['trait_columns'] = array('measurementID', 'taxonID', 'TaxonID', 'scientificName', 'taxonKey', 'infer', 'exclude', 'measurementType',
+    'measurementValue', 'measurementRemarks', 'measurementUnit', 'statisticalMethod', 'lifeStage', 'sex', 'bodyPart', 'SampleSize',
+    'verbatimScientificName', 'Standard_Deviation', // Standard_Deviation: http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#Standard_Deviation
+    'source', 'referenceID');
+
 use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
@@ -205,6 +215,14 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         if(@$this->conv_out_dir && is_dir($this->conv_out_dir)) recursive_rmdir($this->conv_out_dir);
         exit(1);
     }
+    private function conv_report_new_columns($file_label, $columns, $known)
+    {   // information only: columns not in the 21 Zenodo TraitBank datasets ($GLOBALS['taxon_columns'] / ['trait_columns']) are kept
+        $topic = "New columns: not in the 21 Zenodo TraitBank datasets (kept)";
+        $new = array_values(array_diff($columns, $known));
+        if(!$new) { echo "\n$file_label: no new columns"; $this->conv_debug[$topic]["$file_label: no new columns"] = ''; return; }
+        echo "\nNOTE: $file_label has " . count($new) . " column(s) not in the 21 Zenodo TraitBank datasets: " . implode(', ', $new) . " (kept)";
+        foreach($new as $c) $this->conv_debug[$topic]["$file_label: $c"] = '';
+    }
     private function conv_short_name($uri)
     {   // column name from a term URI, e.g. 'http://purl.org/dc/terms/contributor' -> 'contributor' (same rule as Functions::shorten_record())
         return (string) key(Functions::shorten_record(array($uri => '')));
@@ -267,6 +285,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
 
         $f = Functions::file_open($file, "w");
         fwrite($f, implode("\t", $order) . "\n");
+        self::conv_report_new_columns('Taxon.tsv', $order, $GLOBALS['taxon_columns']);
         $taxa = array(); $written = 0;
         foreach(self::conv_table_rows($meta) as list($line, $rec)) {
             if($has_eolid) { $rec['taxonKey'] = $rec['EOLid']; unset($rec['EOLid']); }
@@ -383,6 +402,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
 
         $f = Functions::file_open($file, "w");
         fwrite($f, implode("\t", $head) . "\n");
+        self::conv_report_new_columns('Traits.tsv', $head, $GLOBALS['trait_columns']);
         $written = 0; $context = 0; $ref_changed = 0; $used = array();
         $skip = array('no occurrence' => 0, 'no taxon' => 0);
         foreach(self::conv_table_rows($meta) as list($line, $rec)) {

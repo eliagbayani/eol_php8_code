@@ -55,6 +55,8 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "sour
     - References.tsv = the reference table (reference.tab): identifier, full_reference, as the shared references
       (TB_files/22776838_References/input_files/references.tsv), only the references used in Traits.tsv' referenceID.
       Reported: referenceIDs not in the reference table, and how many are already in the shared references.tsv (same or different full_reference).
+    - New columns: columns of Taxon.tsv / Traits.tsv not in $GLOBALS['taxon_columns'] / ['trait_columns'] (top of LegacyDwCAMaintenanceAPI.php,
+      the columns of the 21 Zenodo TraitBank datasets) are kept, and listed on screen and in the report.
     - Columns in a file's header row that aren't in meta.xml are read too (reported). The association table isn't used.
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");

@@ -403,7 +403,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $f = Functions::file_open($file, "w");
         fwrite($f, implode("\t", $head) . "\n");
         self::conv_report_new_columns('Traits.tsv', $head, $GLOBALS['trait_columns']);
-        $written = 0; $context = 0; $ref_changed = 0; $used = array();
+        $written = 0; $context = 0; $ref_changed = 0; $used = array(); $taxa_with_traits = array();
         $skip = array('no occurrence' => 0, 'no taxon' => 0);
         foreach(self::conv_table_rows($meta) as list($line, $rec)) {
             if((string) @$rec['parentMeasurementID'] !== '') continue; // child rows are columns of their parent
@@ -431,6 +431,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             foreach($head as $c) $out[] = (string) @$rec[$c];
             fwrite($f, implode("\t", $out) . "\n");
             $used[$mID] = '';
+            $taxa_with_traits[$o['taxonID']] = '';
             $written++;
         }
         fclose($f);
@@ -444,6 +445,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         foreach($children as $top => $cols) if(isset($used[$top])) foreach($cols as $col => $vals) @$merged[$col] += count($vals);
 
         $lines = array("Traits.tsv rows: " . number_format($written) . " (MoF rows without a parentMeasurementID)",
+                       "Taxa with traits: " . number_format(count($taxa_with_traits)) . " (of " . number_format(count($taxa)) . " in Taxon.tsv)",
                        "Child MoF rows: " . number_format($this->conv_child_total) . ($merged ? "; added to their parent trait as columns: " . implode(", ", array_map(fn($c, $n) => "$c " . number_format($n), array_keys($merged), $merged)) : ''),
                        "Context rows (no parentMeasurementID, measurementOfTaxon not true), written as trait rows: " . number_format($context),
                        "Traits left out: occurrenceID not in the occurrence table: " . number_format($skip['no occurrence']) . "; taxonID not in the taxon table: " . number_format($skip['no taxon']),

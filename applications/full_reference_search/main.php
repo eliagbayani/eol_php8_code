@@ -55,6 +55,27 @@ function report_counts($path)
     fclose($fh);
     return array('rows' => $rows, 'counts' => implode(', ', array_map(fn($k, $v) => "$k $v", array_keys($c), $c)));
 }
+function report_rows($path)
+{   // a report's data rows (lines minus the header), or false if it's gone. Read in 1 MB pieces, never the whole file at once:
+    // a report can be over 1 GB (GloBI, 3.5M rows), and file() of it ran the page out of memory (Nov 23, 2026), so the page stopped
+    // before its script and the banner's [x] did nothing. The count is kept in .report_rows.json by size and date, so an unchanged
+    // report isn't read again at each refresh.
+    clearstatcache(true, $path);
+    if(($size = @filesize($path)) === false || ($mtime = @filemtime($path)) === false) return false;
+    $cache_file = dirname($path) . '/.report_rows.json'; $name = basename($path);
+    $cache = @json_decode((string) @file_get_contents($cache_file), true); if(!is_array($cache)) $cache = array();
+    if(isset($cache[$name]) && $cache[$name]['size'] === $size && $cache[$name]['mtime'] === $mtime) return $cache[$name]['rows'];
+    if(!($fh = @fopen($path, 'r'))) return false;
+    $lines = 0; $last = '';
+    while(!feof($fh)) { $buf = fread($fh, 1048576); if($buf === false || $buf === '') break; $lines += substr_count($buf, "\n"); $last = substr($buf, -1); }
+    fclose($fh);
+    if($size > 0 && $last !== "\n") $lines++; // the last line without its newline
+    $rows = max(0, $lines - 1);
+    foreach(array_keys($cache) as $k) if(!is_file(dirname($path) . '/' . $k)) unset($cache[$k]); // forget deleted reports
+    $cache[$name] = array('size' => $size, 'mtime' => $mtime, 'rows' => $rows);
+    @file_put_contents($cache_file, json_encode($cache), LOCK_EX);
+    return $rows;
+}
 function counts_html($counts)
 {   // "matched 11, possible 7, ..." -> the numbers in green, the words as they are
     return preg_replace('/(\d+)/', "<span class='val'>$1</span>", h($counts));
@@ -491,8 +512,7 @@ usort($reports, fn($a, $b) => (int) @filemtime($work_dir . $b) <=> (int) @filemt
                 $path = $work_dir . $r; $guide = preg_replace('/\.tsv$/', '_guide.txt', $r);
                 // a search that has just started deletes the oldest reports (only the newest KEEP_REPORTS are kept), maybe after $reports was read:
                 // a report gone in the meantime is skipped (before, count(false) stopped the page here, without its refresh script)
-                if(!is_array($lines = @file($path, FILE_SKIP_EMPTY_LINES)) || ($mtime = @filemtime($path)) === false) continue;
-                $n = max(0, count($lines) - 1);
+                if(($n = report_rows($path)) === false || ($mtime = @filemtime($path)) === false) continue;
                 echo "<tr><td>" . v($r) . "</td><td>" . v(date("Y-m-d H:i", $mtime)) . "</td><td>" . v(number_format($n)) . "</td><td>" . v(number_format((int) @filesize($path) / 1024, 0)) . " KB</td>"
                    . "<td><a class='button' href='main.php?download=" . rawurlencode($r) . "'>Download</a>"
                    . (is_file($work_dir . $guide) ? " <a class='button' href='main.php?download=" . rawurlencode($guide) . "'>Guide</a>" : " <small>(no guide: the search was stopped before the end)</small>") . "</td></tr>";

@@ -38,6 +38,7 @@ class DHConnLib_TB
         $this->main_path = "/Volumes/Crucial_4TB/d_w_h/EOL Dynamic Hierarchy Active Version/dh226/taxon.tsv"; //latest from Katja 17Jul2025
         $this->main_path = CONTENT_RESOURCE_LOCAL_PATH . "/dh226/taxon.tsv"; //exactly same file as above; for K8s */
         $this->main_path = CONTENT_RESOURCE_LOCAL_PATH . "/from_Zenodo/TraitBank_Reference_Hierarchy/tbHierarchyV091.tsv";
+        $this->main_path = CONTENT_RESOURCE_LOCAL_PATH . "/from_Zenodo/TraitBank_Reference_Hierarchy/tbHierarchyV092.tsv";
 
         if ($val = $path_to_taxa_file) $this->main_path = $val;
         echo "\npath_to_taxa_file: [$this->main_path]\n";

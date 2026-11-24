@@ -2205,7 +2205,9 @@
   {
    "id": "min-year-before",
    "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
-   "min_year": 1900,
+   "options": {
+    "min_year": 1900
+   },
    "full_reference": "1823. Mém. Mus. Hist. Nat.,10: 359,1823.",
    "expect": {
     "status": "skipped",
@@ -2217,7 +2219,9 @@
   {
    "id": "min-year-same-year-searched",
    "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
-   "min_year": 1998,
+   "options": {
+    "min_year": 1998
+   },
    "full_reference": "1998. Brittonia,50(1): 59,1998.",
    "expect": {
     "status": "matched",
@@ -2229,7 +2233,9 @@
   {
    "id": "min-year-no-year-searched",
    "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
-   "min_year": 1950,
+   "options": {
+    "min_year": 1950
+   },
    "full_reference": "Simpson and Galbraith-Jour. Physiology, Vol. 33, p. 225.",
    "expect": {
     "status": "possible",
@@ -2240,13 +2246,100 @@
   {
    "id": "min-year-doi-given-checked",
    "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
-   "min_year": 2100,
+   "options": {
+    "min_year": 2100
+   },
    "full_reference": "Schulte, R., Salas, A., Angulo, A., Lötters, S. (2004). Atelopus seminiferus. The IUCN Red List of Threatened Species 2004: e.T54548A11165473.http://dx.doi.org/10.2305/IUCN.UK .2004.RLTS.T54548A11165473.en. Downloaded on 14 October 2016.",
    "expect": {
     "status": "matched",
     "DOI": "10.2305/IUCN.UK.2004.RLTS.T54548A11165473.en"
    },
    "why": "A citation that gives its own DOI is still checked under a min_year (no search is needed), even when its year is before it."
+  },
+  {
+   "id": "options-ok-both",
+   "source": "analyze_MoF / do_full_reference_search options (Nov 25, 2026)",
+   "check_options": {
+    "min_year": 1900,
+    "datacite_search": false
+   },
+   "full_reference": "",
+   "expect": {
+    "error_contains": ""
+   },
+   "why": "The options analyze_MoF passes on for Brazilian Flora are accepted."
+  },
+  {
+   "id": "options-ok-none",
+   "source": "analyze_MoF / do_full_reference_search options (Nov 25, 2026)",
+   "check_options": {},
+   "full_reference": "",
+   "expect": {
+    "error_contains": ""
+   },
+   "why": "No options: the defaults (no year limit, DataCite on), as analyze_MoF did before."
+  },
+  {
+   "id": "options-ok-year-as-text",
+   "source": "analyze_MoF / do_full_reference_search options (Nov 25, 2026)",
+   "check_options": {
+    "min_year": "1900"
+   },
+   "full_reference": "",
+   "expect": {
+    "error_contains": ""
+   },
+   "why": "A year in quotes is accepted too."
+  },
+  {
+   "id": "options-bad-year-letters",
+   "source": "analyze_MoF / do_full_reference_search options (Nov 25, 2026)",
+   "check_options": {
+    "min_year": "19OO"
+   },
+   "full_reference": "",
+   "expect": {
+    "error_contains": "\"min_year\" must be a year"
+   },
+   "why": "A mistyped year (letter O for zero) stops the run before any work."
+  },
+  {
+   "id": "options-bad-year-fraction",
+   "source": "analyze_MoF / do_full_reference_search options (Nov 25, 2026)",
+   "check_options": {
+    "min_year": 1899.5
+   },
+   "full_reference": "",
+   "expect": {
+    "error_contains": "\"min_year\" must be a year"
+   },
+   "why": "Not a whole year: stops the run."
+  },
+  {
+   "id": "options-bad-datacite-quoted",
+   "source": "analyze_MoF / do_full_reference_search options (Nov 25, 2026)",
+   "check_options": {
+    "datacite_search": "false"
+   },
+   "full_reference": "",
+   "expect": {
+    "error_contains": "\"datacite_search\" must be true or false"
+   },
+   "why": "A quoted \"false\" would have counted as on (DataCite searched): stops the run instead."
+  },
+  {
+   "id": "options-datacite-off-in-case",
+   "source": "analyze_MoF / do_full_reference_search options (Nov 25, 2026)",
+   "options": {
+    "datacite_search": false
+   },
+   "full_reference": "\"Gotsis-Skretas, O., Pagou, K. and Ignatiades, L., 2008. Microplankton abundance in the euphotic zone of the Aegean Sea in winter 1995.\"",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "With \"datacite_search\": false (as analyze_MoF can now pass on), the PANGAEA dataset that DataCite finds (styles-harvard-2: possible 10.1594/pangaea.691325) is not looked up there."
   }
  ]
 }

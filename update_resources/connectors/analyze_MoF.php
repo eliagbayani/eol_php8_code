@@ -5,6 +5,11 @@ php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "fishbase_fin
 php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "13318109_AmphibiaWeb_finale"}'
     Also replaces each reference identifier with its DOI_URL found by Full Reference Search ('matched' or 'possible'),
     and every referenceID with it. See "References" in lib/connectors/AnalyzeMoF_API.php.
+    Options for that search (Nov 25, 2026), as in do_full_reference_search.php; without them: no year limit, DataCite on (as before):
+      "min_year": 1900         -> references published before 1900 are 'skipped', not searched (they keep their identifier)
+      "datacite_search": false -> CrossRef only
+    e.g. Brazilian Flora, with the same options as its Full Reference Search run (so every lookup comes from the cache):
+php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "<Brazilian Flora id>", "min_year": 1900, "datacite_search": false}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -17,7 +22,19 @@ $timestart = time_elapsed();
 
 // print_r($argv);
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
-$param                     = json_decode(@$argv[2], true); // print_r($param); exit;
+$param                     = json_decode((string) @$argv[2], true); // print_r($param); exit;
+if(!is_array($param) || empty($param['resource_id'])) { // (Nov 25, 2026) say why, and stop before any work
+    echo "\nERROR: the parameters can't be used: " . (!is_array($param) ? "they aren't valid JSON (" . json_last_error_msg() . ")" : "no \"resource_id\"") . ". Nothing was done. Got: [" . @$argv[2] . "]";
+    if(!is_array($param) && preg_match('/^\s*(#|\/\/)/m', (string) @$argv[2])) echo "\nA line starts with # or //: JSON has no comments. Delete that line, or move it outside the quotes (in Jenkins, below the command).";
+    echo "\ne.g. php analyze_MoF.php _ '{\"resource_id\": \"13318109_AmphibiaWeb_finale\"}'\n";
+    exit(1);
+}
+// Full Reference Search options for the references (Nov 25, 2026): passed on as given; checked here, before any work
+$frs_options = array_intersect_key($param, array_flip(array('min_year', 'datacite_search')));
+require_library('connectors/ZenodoTraitBankAPI'); // GenerateTB_Files_Functions needs it (as in do_full_reference_search.php)
+require_library('connectors/GenerateTB_Files_Functions');
+require_library('connectors/FullReferenceSearchAPI');
+if(($err = FullReferenceSearchAPI::options_error($frs_options)) !== '') { echo "\nERROR: $err. Nothing was done.\n"; exit(1); }
 $resource_id = $param['resource_id'];
 
 $tmp_id = $param['resource_id']; //e.g. "fishbase_final"
@@ -38,14 +55,15 @@ if(!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
 ftruncate($lock, 0); fwrite($lock, "started ".date('Y-m-d H:i:s T')." by pid ".getmypid()." on ".gethostname()); fflush($lock);
 // */
 
-process_resource_url($dwca_file, $resource_id, $timestart);
+process_resource_url($dwca_file, $resource_id, $timestart, $frs_options);
 
 flock($lock, LOCK_UN); fclose($lock); @unlink($lock_file);
 
-function process_resource_url($dwca_file, $resource_id, $timestart)
+function process_resource_url($dwca_file, $resource_id, $timestart, $frs_options = array())
 {
     require_library('connectors/DwCA_Utility');
     $params['resource'] = "analyze_MoF";
+    $params['frs_options'] = $frs_options; // for AnalyzeMoF_API's Full Reference Search
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
     $preferred_rowtypes = array();
     $excluded_rowtypes = array();

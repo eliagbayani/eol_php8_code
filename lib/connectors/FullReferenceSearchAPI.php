@@ -173,7 +173,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $this->pace = array(); // PACE: per service, the gap between call starts and whether CrossRef asked us to slow down
         $this->author_title_checks = array_key_exists('author_title_checks', (array) $param) ? (bool) $param['author_title_checks'] : self::AUTHOR_TITLE_CHECKS;
         $this->datacite_search = $this->author_title_checks && (array_key_exists('datacite_search', (array) $param) ? (bool) $param['datacite_search'] : self::DATACITE_SEARCH); // DATACITE
-        $this->min_year = self::min_year_param($param); // MIN YEAR: 0 = off (the default); false = not a valid year (start() says so)
+        $this->min_year = self::min_year_param($param); // MIN YEAR: 0 = off (the default); false = not a valid year (options_error() says so)
         $this->min_year_skips = 0; // MIN YEAR: rows skipped by it, for the guide
         $this->work_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
         if(!is_dir($this->work_dir)) @mkdir($this->work_dir, 0777, true);
@@ -198,7 +198,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if($task != 'search_DOIs_for_full_references') { echo "\nERROR: Unknown task [$task]. Available: search_DOIs_for_full_references, run_tests\n"; return null; }
         // (Nov 21, 2026) the user is never left guessing: a wrong file is said at once (not after waiting for another search), and a wait is announced
         if(!self::input_file_ok((string) ($this->param['file'] ?? ''))) return false;
-        if($this->min_year === false) { echo "\nERROR: \"min_year\" must be a year, e.g. \"min_year\": 1900 (rows published before it are skipped). Got: [" . json_encode($this->param['min_year']) . "]. Nothing was searched.\n"; return false; }
+        if(($err = self::options_error($this->param)) !== '') { echo "\nERROR: $err. Nothing was searched.\n"; return false; }
         // one run at a time (also across the web and Jenkins containers: same lock file): a second run waits here until the first one is done
         $lock = @fopen($this->work_dir . ".full_reference_search.lock", 'c');
         if($lock) { @chmod($this->work_dir . ".full_reference_search.lock", 0666); $this->wait_for_lock($lock); }
@@ -308,9 +308,20 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $off = array('author_title_checks' => !$this->author_title_checks ? 'author and title checks are off' : '',
                          'datacite_search' => !$this->datacite_search ? 'the DataCite search is off' : ''); // DATACITE
             if(($why_off = $off[$e['requires'] ?? ''] ?? '') !== '') { $r['result'] = 'skipped'; $r['got'] = $why_off; $res['skipped']++; $res['cases'][] = $r; continue; }
-            $keep = $this->min_year; if(isset($t['min_year'])) $this->min_year = (int) $t['min_year']; // MIN YEAR: a case can set the run's "min_year"
+            if(isset($t['check_options'])) { // (Nov 25, 2026) a case that checks options_error() for a run's options: "error_contains" ('' = no error)
+                $err = self::options_error($t['check_options']);
+                if($e['error_contains'] === '' ? $err !== '' : !str_contains($err, $e['error_contains'])) $r['problems'][] = "options error: expected " . ($e['error_contains'] === '' ? "none" : "\"{$e['error_contains']}\"") . ", got \"$err\"";
+                $r['result'] = $r['problems'] ? 'FAIL' : 'PASS'; $res[$r['problems'] ? 'failed' : 'passed']++;
+                $r['got'] = $err; $r['expected'] = $e['error_contains']; $r['review_note'] = ''; $res['cases'][] = $r;
+                echo str_pad($r['result'], 5) . " " . $t['id'] . ($r['problems'] ? "\n      " . implode("\n      ", $r['problems']) : '') . "\n";
+                continue;
+            }
+            // a case can set the run's options (Nov 25, 2026), e.g. "options": {"min_year": 1900, "datacite_search": false}
+            $keep = array($this->min_year, $this->datacite_search); $o = (array) ($t['options'] ?? array());
+            if(isset($o['min_year'])) $this->min_year = (int) $o['min_year'];
+            if(isset($o['datacite_search'])) $this->datacite_search = $this->author_title_checks && (bool) $o['datacite_search'];
             $got = $this->find_DOI($t['full_reference'], $t['doi'] ?? '');
-            $this->min_year = $keep;
+            list($this->min_year, $this->datacite_search) = $keep;
             if($got['status'] == 'stop') { echo "\nCrossRef keeps asking us to slow down: the tests stopped. Try again later.\n"; $res['stopped'] = true; break; }
             foreach($e as $k => $want) {
                 if($k == 'requires') continue;
@@ -840,6 +851,15 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(preg_match(self::FISHBASE_WEB_PAGE, $text))  return 'An OBIS distribution map or an FAO-FIGIS species fact sheet (a web page), not a citation with a DOI: not searched.';
         if(preg_match(self::SHORT_CITATION, $text))     return 'Only a first author, year, journal and volume (no title or page), not enough to confirm a DOI: not searched.';
         if(preg_match(self::AUTHOR_YEAR_ONLY, $text))   return 'Only authors and a year, not enough to confirm a DOI: not searched.';
+        return '';
+    }
+    static function options_error($param)
+    {   /* (Nov 25, 2026) the run's options, checked before any work: '' = all fine, else what is wrong (the caller prints it as an ERROR and stops).
+           Used by start() and by analyze_MoF.php, which passes "min_year" and "datacite_search" on to the search. */
+        $p = (array) $param;
+        if(self::min_year_param($p) === false) return "\"min_year\" must be a year, e.g. \"min_year\": 1900 (rows published before it are skipped). Got: [" . json_encode($p['min_year']) . "]";
+        foreach(array('datacite_search', 'author_title_checks') as $k) // a quoted "false" would count as on
+            if(array_key_exists($k, $p) && !is_bool($p[$k])) return "\"$k\" must be true or false, without quotes, e.g. \"$k\": false. Got: [" . json_encode($p[$k]) . "]";
         return '';
     }
     private static function min_year_param($param)

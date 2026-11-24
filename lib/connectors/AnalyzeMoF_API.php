@@ -67,6 +67,10 @@ found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same cod
       4. then the one that needed fewer clean-ups before the search (e.g. %...% markup, HTML): the cleaner text
       5. then the longer full_reference; and last, the first one in the file
     Each merge is listed in the debug report: the reference kept and the ones dropped, with their status and counts.
+  - Options for the search (Nov 25, 2026), from analyze_MoF.php's JSON, as in do_full_reference_search.php: "min_year" (e.g. 1900: references
+    published before it are 'skipped', not searched, and keep their identifier) and "datacite_search" (false: CrossRef only). Without them:
+    no year limit and DataCite on. Use the same options as the resource's Full Reference Search run, so the lookups come from the cache.
+    They are said in the run log and the debug report.
   - Always on. A new full_reference costs about 3 seconds (CrossRef's polite pace); cached ones are instant, so a re-run is fast.
     If CrossRef keeps answering HTTP 429/503, the lookups stop for this run and the remaining references keep their identifiers.
   - Every reference with its result: resources/neo4j_analyzed/[resource_id]_references_DOI_[date].tsv
@@ -99,9 +103,10 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class AnalyzeMoF_API
 {
-    function __construct($archive_builder, $resource_id, $archive_path)
+    function __construct($archive_builder, $resource_id, $archive_path, $frs_options = array())
     {
         $this->resource_id = $resource_id;
+        $this->frs_options = (array) $frs_options; // Full Reference Search options: "min_year", "datacite_search" (Nov 25, 2026)
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
         $this->download_options = array('cache' => 1, 'resource_id' => $resource_id, 'expire_seconds' => 60*60*24*1, 'download_wait_time' => 500000, 'timeout' => 10800, 'download_attempts' => 1, 'delay_in_minutes' => 1);
@@ -205,7 +210,10 @@ class AnalyzeMoF_API
         // for 'matched' and 'possible' only, and writes every reference's result to neo4j_analyzed/[resource_id]_references_DOI_[date].tsv.
         require_library('connectors/GenerateTB_Files_Functions');
         require_library('connectors/FullReferenceSearchAPI');
-        $this->frs = new FullReferenceSearchAPI(array()); // its defaults: author/title checks and DataCite on, as the tool
+        $this->frs = new FullReferenceSearchAPI($this->frs_options); // the run's options (none: its defaults, author/title checks and DataCite on, as the tool)
+        $o = "Full Reference Search options: " . (!empty($this->frs_options['min_year']) ? "min_year " . (int) $this->frs_options['min_year'] . " (references published before it are skipped, not searched)" : "no year limit")
+           . "; DataCite " . ($this->frs->datacite_search ? "on" : "off (CrossRef only)");
+        echo "\n$o\n"; $this->debug['References: identifier replaced by DOI_URL'][$o] = '';
         $this->frs->report_open($this->resource_id . "_reference"); // the tool's own report + guide, in Reference_maintenance/
         $file = $this->neo4j_analyzed_folder . "/" . $this->resource_id . "_references_DOI_" . date("Y-m-d") . ".tsv";
         $this->ref_tsv = fopen($file, 'w');

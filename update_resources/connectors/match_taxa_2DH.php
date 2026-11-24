@@ -10,6 +10,9 @@ php match_taxa_2DH.php _ '{"resource_id": "WoRMS2EoL"                           
 php match_taxa_2DH.php _ '{"resource_id": "23067562_Bioc_and_Natu_Prod-with-hC_neo4j_1" ,"resource_type": "TB_dwca"}'
 php match_taxa_2DH.php _ '{"resource_id": "13318109_AmphibiaWeb-with-hC_neo4j_1", "AncestryIndexVer": "new", "resource_type": "legacy_dwca"}'
 
+Synonym matches (DH synonyms, incl. Step 5) are made only when the taxon's taxonRank is species|variety|subspecies|form|infraspecific name.
+A blank taxonRank gets no synonym match (24Nov2026). "AncestryIndexVer" is not used; the Ancestry Index is always the 'new' one.
+
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace
 - DHConnLib_8.code-workspace

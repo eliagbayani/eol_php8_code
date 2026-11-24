@@ -643,7 +643,11 @@ class DwCA_MatchTaxa2DH_Functions
                     else { 
                         if(!$fromSynonymsYN) {
                             // echo "\n---> Going to Step 5...\n";
-                            if($syn_pair = self::name_matching_through_synonyms($rec)) $pairz[] = $syn_pair; //go step 5
+                            // Synonym matches only for species and certain subspecific ranks (24Nov2026); blank taxonRank = no synonym match.
+                            if(self::synonym_match_allowedYN(@$rec['taxonRank'])) {
+                                if($syn_pair = self::name_matching_through_synonyms($rec)) $pairz[] = $syn_pair; //go step 5
+                            }
+                            else @$this->debug['Synonym match skipped: rank not allowed (Step 5)']++;
                         }
                     }
                 }
@@ -918,6 +922,12 @@ class DwCA_MatchTaxa2DH_Functions
             else { if($this->debugNow) echo "\nNo synonyms for canonicalName: [$canonicalName]\n"; }
         }
         if($this->debugNow) echo "\n --- end syn ---\n";
+    }
+    function synonym_match_allowedYN($rank) //synonym matches only for: species|variety|subspecies|form|infraspecific name (24Nov2026)
+    {
+        $rank = strtolower(trim((string) $rank));
+        if(!$rank) return false;
+        return in_array($rank, $this->synonym_match_ranks);
     }
     function filter_reks_by_what($reks, $tax_status) //possible tax_status values: 'accepted' OR 'synonym'
     {   /* print_r($this->DH->DHCanonical_info['Aa brevis']);

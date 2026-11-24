@@ -52,6 +52,9 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         $this->ok_match_subspecific_ranks = array('subspecies', 'variety', 'form', 'forma', 'infraspecies', 'infraspecific name', 'infrasubspecific name', 'subvariety', 'subform', 'proles', 'lusus', 'forma specialis');
         $this->ok_match_subspecific_ranks[] = 'species group';
         $this->ok_match_subspecific_ranks[] = 'species subgroup';
+        // Synonym matches only for species and these subspecific ranks (24Nov2026): automatic synonym matches for higher taxa often give poor results.
+        // A taxon with a blank taxonRank gets no synonym match. Used by synonym_match_allowedYN().
+        $this->synonym_match_ranks = array('species', 'variety', 'subspecies', 'form', 'infraspecific name');
         
         // tar -czf Brazilian_Flora_Eli_neo4j_1.tar.gz Brazilian_Flora_Eli_neo4j_1/ -> generate .tar.gz
 
@@ -320,16 +323,24 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     // /* NEW Eli's initiative only: many match canonicalNames only to synonyms, we handle it here: 28Sep2026 EEEEEEEE
                     $synonymSaviorYN = false;
                     if(!$reks) {
-                        if($reks = self::filter_reks_by_what($orig_reks, 'synonym')) {
-                            $synonymSaviorYN = true;
-                            $fromSynonyms = true;
+                        // Synonym matches only for species and certain subspecific ranks (24Nov2026); blank taxonRank = no synonym match.
+                        if(self::synonym_match_allowedYN($taxonRank)) {
+                            if($reks = self::filter_reks_by_what($orig_reks, 'synonym')) {
+                                $synonymSaviorYN = true;
+                                $fromSynonyms = true;
+                            }
                         }
                     }
                     // EEEEEEEE */
 
-                    if(!$reks) { exit("\nERROR: It should not come here anymore...\n");
-                        // self::write_2archive($rec); @$this->debug['Has canonical match with DH but without eolID']++; continue;  //OBSOLETE
-                        self::write_2archive($rec); @$this->debug['Has canonical match with DH but to a synonym']++; continue;      //MOVING FORWARD
+                    if(!$reks) { //name matches only DH synonyms, but the taxon's rank does not allow synonym matching (24Nov2026)
+                        @$this->debug['Synonym match skipped: rank not allowed']++;
+                        $rec['EOLid'] = '';
+                        $rec['taxonRemarks'] = $this->add_remarks((string) @$rec['taxonRemarks'], 'Only DH synonym match; synonym matching only for species and subspecific ranks');
+                        $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
+                        $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
+                        self::for_reporting($rec);
+                        self::write_2archive($rec); continue;
                     }
                     $rec['EOLid'] = '';
                     $rec['taxonRemarks'] = '';

@@ -647,7 +647,7 @@ class DwCA_MatchTaxa2DH_Functions
                             if(self::synonym_match_allowedYN(@$rec['taxonRank'])) {
                                 if($syn_pair = self::name_matching_through_synonyms($rec)) $pairz[] = $syn_pair; //go step 5
                             }
-                            else @$this->debug['Synonym match skipped: rank not allowed (Step 5)']++;
+                            else { @$this->debug['Synonym match skipped: rank not allowed (Step 5)']++; $this->step5_skipped_for_rank = true; }
                         }
                     }
                 }

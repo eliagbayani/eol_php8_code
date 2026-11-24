@@ -55,6 +55,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         // Synonym matches only for species and these subspecific ranks (24Nov2026): automatic synonym matches for higher taxa often give poor results.
         // A taxon with a blank taxonRank gets no synonym match. Used by synonym_match_allowedYN().
         $this->synonym_match_ranks = array('species', 'variety', 'subspecies', 'form', 'infraspecific name');
+        $this->synonym_rank_remark = 'No synonym match: synonym matching only for species and subspecific ranks'; //taxonRemarks for a taxon whose synonym match was not tried because of its rank
         
         // tar -czf Brazilian_Flora_Eli_neo4j_1.tar.gz Brazilian_Flora_Eli_neo4j_1/ -> generate .tar.gz
 
@@ -336,7 +337,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     if(!$reks) { //name matches only DH synonyms, but the taxon's rank does not allow synonym matching (24Nov2026)
                         @$this->debug['Synonym match skipped: rank not allowed']++;
                         $rec['EOLid'] = '';
-                        $rec['taxonRemarks'] = $this->add_remarks((string) @$rec['taxonRemarks'], 'Only DH synonym match; synonym matching only for species and subspecific ranks');
+                        $rec['taxonRemarks'] = $this->add_remarks((string) @$rec['taxonRemarks'], $this->synonym_rank_remark);
                         $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                         $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
                         self::for_reporting($rec);
@@ -371,7 +372,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                     // /* ----- NEW IMPLELENTATION ----- new detailed entire workflow
                     if($can_proceed_with_AIndex_check) {
                         if($ret = self::matching_routine_using_rank_v2($rec, $reks)) { //Step 3: Name matching - rank compatibility
-                            
+                            $this->step5_skipped_for_rank = false; //set in name_matching_ancestry_compatibility() when Step 5 is not tried because of the taxon's rank
                             if($ret2 = self::name_matching_ancestry_compatibility($ret, $fromSynonyms)) { //Step 4: Name matching - ancestry compatibility
                                 if($this->debugNow) {
                                     print_r($ret2); exit("\nACCEPTED NAME: Reached this point.\n");
@@ -448,6 +449,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                             }
                             else { //incompatible ancestry
                                 if($this->debugNow) echo "\n => incompatible ancestry \n";
+                                if($this->step5_skipped_for_rank) $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], $this->synonym_rank_remark);
                                 $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                                 $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
                             }

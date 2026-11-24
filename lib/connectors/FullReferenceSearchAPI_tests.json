@@ -220,11 +220,13 @@
    "source": "reference.tab",
    "full_reference": "1981. Acta Amazonica,11: 852,1981.",
    "expect": {
-    "status": "matched",
-    "DOI": "10.1590/1809-43921981114852",
-    "parsed_author": ""
+    "status": "not found",
+    "DOI": "",
+    "parsed_author": "",
+    "note_contains": "another work in CrossRef is on the same page",
+    "requires": "author_title_checks"
    },
-   "why": "As above: no author in this citation."
+   "why": "As above: no author in this citation. (Nov 24, 2026) NUMBERS ONLY: page 852 is the last page of one article (849-852, Rutaceae) and the first of another (852-854, Myristicaceae); without an author or title the citation can't tell which, so no DOI. Was 'matched' to the second."
   },
   {
    "id": "reference-cbb36d2d",
@@ -2083,6 +2085,168 @@
     "DOI": "10.1099/0022-1317-77-4-631"
    },
    "why": "With pages, the citation can be checked, so it is searched (and here matched: journal, volume, year, first author and page agree): only the form with nothing after the volume (or its part or supplement) is skipped."
+  },
+  {
+   "id": "numbers-only-journal-unknown",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "1954. Bull. Mus. Natl. Hist. Nat.,ser. 2, 26: 551,1954.",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "note_contains": "the journal name couldn't be compared",
+    "requires": "author_title_checks"
+   },
+   "why": "NUMBERS ONLY: no author, no title, and the journal couldn't be read (the 'ser. 2,' is in the way): volume 26, page 551 and 1954 alone gave CHEST Journal 'Pleural Biopsy'. Too little to confirm a DOI."
+  },
+  {
+   "id": "numbers-only-no-pages-in-crossref",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "1989. Kew Bull.,44: 285,1989.",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "note_contains": "the page cited couldn't be confirmed",
+    "requires": "author_title_checks"
+   },
+   "why": "NUMBERS ONLY: Kew Bulletin 44 agrees, but CrossRef's candidate ('Erratum to Harley') has no pages, so page 285 can't be confirmed: no DOI."
+  },
+  {
+   "id": "numbers-only-several-notes-on-the-page",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "1970. Taxon,19: 304,1970.",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "NUMBERS ONLY: Taxon 19: 304 has four works on that page (a committee report, an erratum, two short papers): no DOI. Was 'matched' to 'General Committe'."
+  },
+  {
+   "id": "numbers-only-other-page-unparsed-author",
+   "source": "an earlier report (GloBI / FishBase / Data Managers' sheet), rechecked Nov 24, 2026",
+   "full_reference": "Kessler Jr., K.J.. 1985. Mycosphaerella leaf spot of black walnut. Pl. Dis. 69:1092-1094",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "The parser can't read 'Kessler Jr., K.J.' and CrossRef's candidate (Plant Disease 69: 903, another title) has none of its names: only the numbers are left, and page 1092 isn't confirmed in it. Was a wrong 'possible'."
+  },
+  {
+   "id": "numbers-only-kept-notizblatt",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "1914. Notizbl. Königl. Bot. Gart. Berlin,6: 143,1914.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/3994528"
+   },
+   "why": "Must stay: no author or title, but the journal, volume, year and first page agree, CrossRef lists an author and no other work is on that page."
+  },
+  {
+   "id": "numbers-only-kept-taxon",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "1976. Taxon,25: 594,1976.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1220117"
+   },
+   "why": "Must stay: a numbers-only citation that points to one authored article."
+  },
+  {
+   "id": "numbers-only-kept-bhl-part",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "1982. Phytologia,51: 316,1982.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.5962/bhl.part.13620"
+   },
+   "why": "Must stay: a numbers-only citation matched to a BHL article (part) DOI."
+  },
+  {
+   "id": "numbers-only-not-unparsed-author-initials-first",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "R.L. Soares Neto et al.. 2018. Phytotaxa,334(1): 28,2018.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.11646/phytotaxa.334.1.4"
+   },
+   "why": "Must stay 'possible': the parser doesn't read 'R.L. Soares Neto', but CrossRef's author NETO is in the citation, so it isn't numbers only."
+  },
+  {
+   "id": "numbers-only-not-unparsed-author-semicolon",
+   "source": "Brazilian Flora (BrazilianFlora_reference.tab), Nov 24, 2026",
+   "full_reference": "Kuthubutheen; Nawawi. 1991. MR,95: 158,1991.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1016/s0953-7562(09)81005-8"
+   },
+   "why": "Must stay 'possible': the authors 'Kuthubutheen; Nawawi' aren't read by the parser but are CrossRef's authors."
+  },
+  {
+   "id": "numbers-only-not-longer-citation",
+   "source": "an earlier report (GloBI / FishBase / Data Managers' sheet), rechecked Nov 24, 2026",
+   "full_reference": "Simpson and Galbraith-Jour. Physiology, Vol. 33, p. 225.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1113/jphysiol.1905.sp001124"
+   },
+   "why": "Must stay 'possible' (the Data Managers' DOI): CrossRef's authors aren't in the cached search, and the citation has more than the numbers and a journal (two names), so it isn't numbers only."
+  },
+  {
+   "id": "numbers-only-not-titled-citation",
+   "source": "an earlier report (GloBI / FishBase / Data Managers' sheet), rechecked Nov 24, 2026",
+   "full_reference": "Poyarkov Jr., N. A., Chatmongkon, S., Pawangkhanant, P., Akrachai, A., Van Duong, T., Korost, D. V., Che, J. (2018). ''A new genus and three new species of miniaturized microhylid frogs from Indochina (Amphibia: Anura: Microhylidae: Asterophryinae).'' Zoological research , 39(3), 130-157.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.24272/j.issn.2095-8137.2018.019"
+   },
+   "why": "Must stay 'possible': a titled citation whose author the parser misses ('Poyarkov Jr.') and whose CrossRef record has a Chinese title and journal: not numbers only."
+  },
+  {
+   "id": "min-year-before",
+   "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
+   "min_year": 1900,
+   "full_reference": "1823. Mém. Mus. Hist. Nat.,10: 359,1823.",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "Published in 1823, before 1900"
+   },
+   "why": "With \"min_year\": 1900, a citation published in 1823 is skipped, not searched: CrossRef has almost no DOIs that old (1 in 443 sampled Brazilian Flora citations before 1900)."
+  },
+  {
+   "id": "min-year-same-year-searched",
+   "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
+   "min_year": 1998,
+   "full_reference": "1998. Brittonia,50(1): 59,1998.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/2807718",
+    "parsed_author": ""
+   },
+   "why": "A citation published in the min_year itself (1998) is searched as usual: only years before it are skipped."
+  },
+  {
+   "id": "min-year-no-year-searched",
+   "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
+   "min_year": 1950,
+   "full_reference": "Simpson and Galbraith-Jour. Physiology, Vol. 33, p. 225.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1113/jphysiol.1905.sp001124"
+   },
+   "why": "A citation with no year is still searched under a min_year: here a 1905 paper (DOI 10.1113/jphysiol.1905.sp001124) whose citation gives no year."
+  },
+  {
+   "id": "min-year-doi-given-checked",
+   "source": "Brazilian Flora: \"min_year\" option (Nov 25, 2026)",
+   "min_year": 2100,
+   "full_reference": "Schulte, R., Salas, A., Angulo, A., Lötters, S. (2004). Atelopus seminiferus. The IUCN Red List of Threatened Species 2004: e.T54548A11165473.http://dx.doi.org/10.2305/IUCN.UK .2004.RLTS.T54548A11165473.en. Downloaded on 14 October 2016.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2305/IUCN.UK.2004.RLTS.T54548A11165473.en"
+   },
+   "why": "A citation that gives its own DOI is still checked under a min_year (no search is needed), even when its year is before it."
   }
  ]
 }

@@ -19,6 +19,9 @@ namespace php_active_record;
                  or an identifier with no spaces (e.g. "urn:catalog:RSKM:OWLPELLET:OP-1629.0012"), a Universal Chalcidoidea Database code
                  ("XiaoJiZh2012 via Universal Chalcidoidea Database") or an Australian Faunal Directory page: not citations (Nov 21, 2026).
                  All these rules are in not_searched_note().
+                 Or (only when the run asks for it, "min_year": e.g. 1900) published before that year: CrossRef has almost no DOIs for
+                 works that old (Brazilian Flora, Nov 25, 2026: 1 in 443 sampled citations before 1900). A row with no year is still searched,
+                 and a citation that gives its own DOI is still checked. See min_year_note().
    A 'doi' column in the input file (as in a DwCA reference.tab), when the citation has no DOI of its own, is used as a DOI the citation gives:
    CrossRef's record of it is read and checked, no search; DOI_source says 'doi column' (Nov 21, 2026).
      error     : CrossRef could not be reached; a re-run tries it again
@@ -30,6 +33,9 @@ namespace php_active_record;
    wrong ones are left out on purpose: short-titled book chapters ("Azollaceae"), misspelled journal names, under 90% of a book's or
    chapter's title, CrossRef's 1st candidate when only the author and year agree. A citation without a year (FishBase) is 'matched' only
    if the first author and the title also agree.
+   (Nov 24, 2026) NUMBERS ONLY: a citation with no author and no title (e.g. Brazilian Flora's "1990. Brittonia,42(3): 177,1990.") gets a DOI only when
+   the journal agrees, the page cited is confirmed, CrossRef lists authors for the work and no other work is on that page; else 'not found'.
+   See numbers_only_doubt().
 
    CHECKED AGAINST THE DATA MANAGERS' DOIs (Nov 19, 2026): the Google Sheet "doi match tests" (Sheet1), 3,561 citations, each with a DOI
    found by a Data Manager (column 'matched doi'), many by hand: https://docs.google.com/spreadsheets/d/1dtNG5qNIT_Y7E2JlR8QCboC1YWn6IwabMV9TQ2fJL4w/edit?gid=0
@@ -167,6 +173,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $this->pace = array(); // PACE: per service, the gap between call starts and whether CrossRef asked us to slow down
         $this->author_title_checks = array_key_exists('author_title_checks', (array) $param) ? (bool) $param['author_title_checks'] : self::AUTHOR_TITLE_CHECKS;
         $this->datacite_search = $this->author_title_checks && (array_key_exists('datacite_search', (array) $param) ? (bool) $param['datacite_search'] : self::DATACITE_SEARCH); // DATACITE
+        $this->min_year = self::min_year_param($param); // MIN YEAR: 0 = off (the default); false = not a valid year (start() says so)
+        $this->min_year_skips = 0; // MIN YEAR: rows skipped by it, for the guide
         $this->work_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
         if(!is_dir($this->work_dir)) @mkdir($this->work_dir, 0777, true);
         // CrossRef's "polite pool" (twice the rate limit) needs an email: optional constant CROSSREF_MAILTO in config/environments/<env>.php (not in GitHub).
@@ -190,6 +198,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if($task != 'search_DOIs_for_full_references') { echo "\nERROR: Unknown task [$task]. Available: search_DOIs_for_full_references, run_tests\n"; return null; }
         // (Nov 21, 2026) the user is never left guessing: a wrong file is said at once (not after waiting for another search), and a wait is announced
         if(!self::input_file_ok((string) ($this->param['file'] ?? ''))) return false;
+        if($this->min_year === false) { echo "\nERROR: \"min_year\" must be a year, e.g. \"min_year\": 1900 (rows published before it are skipped). Got: [" . json_encode($this->param['min_year']) . "]. Nothing was searched.\n"; return false; }
         // one run at a time (also across the web and Jenkins containers: same lock file): a second run waits here until the first one is done
         $lock = @fopen($this->work_dir . ".full_reference_search.lock", 'c');
         if($lock) { @chmod($this->work_dir . ".full_reference_search.lock", 0666); $this->wait_for_lock($lock); }
@@ -233,6 +242,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             'file'  => required, TSV whose header has 'identifier' and 'full_reference', e.g. reference.tab
             'limit' => optional, search only this many rows (e.g. 200 for a test)
             'start' => optional, begin at this data row (1 = the first row after the header)
+            'min_year' => optional, e.g. 1900: rows published before it are 'skipped', not searched (see min_year_note())
         Writes <file name>_DOIs_<YYYYmmdd_HHMMSS>.tsv in Reference_maintenance/, row by row (a stopped run keeps what it did),
         and <same>_guide.txt explaining it for the Data Managers. Returns array('file' => output path, 'counts' => status => n), or false. */
         $file = (string) ($this->param['file'] ?? '');
@@ -248,6 +258,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $out = fopen($out_file, 'w');
         fwrite($out, implode("\t", self::OUTPUT_COLUMNS) . "\n");
         echo "\nInput: [$file]\nOutput: [$out_file]\nRows: from " . $start . ($limit ? ", at most $limit" : ', to the end') . "\n";
+        if($this->min_year) echo "Year limit (\"min_year\": {$this->min_year}): rows published before {$this->min_year} are skipped, not searched; rows with no year are searched.\n";
         $this->keep_latest_reports(); // here, not at the end, so stopped searches are counted too; the new report is one of the 20
         if(($this->param['estimate'] ?? true) !== false) { // the web page shows its own estimate before [Proceed], so it passes "estimate": false
             echo "Counting the rows searched before (in the cache), for the estimate...\n";
@@ -297,7 +308,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $off = array('author_title_checks' => !$this->author_title_checks ? 'author and title checks are off' : '',
                          'datacite_search' => !$this->datacite_search ? 'the DataCite search is off' : ''); // DATACITE
             if(($why_off = $off[$e['requires'] ?? ''] ?? '') !== '') { $r['result'] = 'skipped'; $r['got'] = $why_off; $res['skipped']++; $res['cases'][] = $r; continue; }
+            $keep = $this->min_year; if(isset($t['min_year'])) $this->min_year = (int) $t['min_year']; // MIN YEAR: a case can set the run's "min_year"
             $got = $this->find_DOI($t['full_reference'], $t['doi'] ?? '');
+            $this->min_year = $keep;
             if($got['status'] == 'stop') { echo "\nCrossRef keeps asking us to slow down: the tests stopped. Try again later.\n"; $res['stopped'] = true; break; }
             foreach($e as $k => $want) {
                 if($k == 'requires') continue;
@@ -411,6 +424,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             return $r;
         }
         if(($note = self::not_searched_note($full_reference)) !== '') return array_merge($row, array('status' => 'skipped', 'review_note' => $note));
+        if(($note = $this->min_year_note($ref['year'])) !== '') { $this->min_year_skips++; return array_merge($row, array('status' => 'skipped', 'review_note' => $note)); } // MIN YEAR (only when the run asks)
         if(preg_match(self::DATASET_CITATION, $full_reference)) { // (Nov 19, 2026) a dataset cited as one: DataCite first, e.g. "... [Dataset]. Dryad.", "Data from: ..."
             $d = $this->datacite_route(array_merge($row, array('status' => 'not found', 'checks' => '')), $ref, $full_reference, true);
             if(($d['status'] ?? '') === 'stop' || ($d['DOI_source'] ?? '') === 'DataCite') return $d; // else CrossRef, as for any citation
@@ -494,6 +508,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             // (Nov 19, 2026) no year to compare (e.g. FishBase's "Boulenger, G.A.0 ..."): 'matched' also needs the first author and the title to agree
             if($this->author_title_checks && $c['status'] == 'matched' && !preg_grep('/^year=/', $c['checks'])
                && !(preg_grep('/^author=(?:OK|nearly)/', $c['checks']) && preg_grep('/^title=OK/', $c['checks']))) $c['status'] = 'possible';
+            if($this->author_title_checks && $c['status'] != 'not found' && ($why = $this->numbers_only_doubt($ref, $full_reference, $c, $item, $items, $i, $lookups)) !== '') {
+                if($why === 'stop') return array('status' => 'stop', 'change_codes' => array());
+                $c['status'] = 'not found'; $c['why'] = 'numbers only'; $c['doubt'] = $why;
+            }
             $key = array($rank[$c['status']] - (($c['via'] ?? '') === 'typo' ? 0.5 : 0) - ((string) @$item['type'] === 'posted-content' ? 0.25 : 0), // TYPO: below any other 'possible';
                          $c['agree'], $author_score, $title_share, -$i);                                                                   // a preprint below the published article (Nov 19, 2026)
             if(!$best || $key > $best['key']) $best = array('key' => $key, 'c' => $c, 'item' => $item, 'i' => $i);
@@ -732,6 +750,42 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $cw = array_flip(self::words($citation));
         return count(array_filter($tw, fn($w) => isset($cw[$w]))) / count($tw);
     }
+    private function numbers_only_doubt($ref, $citation, $c, $item, $items, $i, &$lookups)
+    {   /* (Nov 24, 2026) NUMBERS ONLY: a citation with no author and no title that CrossRef's title can be compared with, e.g. Brazilian Flora's
+           "1990. Brittonia,42(3): 177,1990." -- only journal, volume, page and year are left to check, and many works share them (notes, reviews,
+           errata, several short papers on one page). Such a candidate is kept only when the numbers point to one authored article:
+             - the journal agrees (not just "couldn't be compared"): "1954. Bull. Mus. Natl. Hist. Nat.,ser. 2, 26: 551" is not CHEST Journal 26:551;
+             - the page cited is confirmed (the article's first page, or inside its range): not "CrossRef has no pages" ("Erratum to Harley", Kew Bull. 44)
+               nor "only the first page is known";
+             - CrossRef lists authors for it: a record without any is a book review, an erratum, a note or a committee report, e.g. Brittonia 42(3): 177
+               "New Generation Guide to Fungi of Britain and Europe." (a review);
+             - no other candidate of the same journal and volume, with another title, is on that page too: Taxon 19: 304 has four
+               ("General Committe", an erratum, "Trivalved Capsules in Bixa L.", "Typification of Nothocestrum").
+           Returns '' (keep it), the reason in plain words (-> 'not found'), or 'stop'. */
+        if($ref['author'] !== '') return '';
+        $share = self::title_share($citation, (string) @$item['title'][0]);
+        if($share !== null && $share >= 0.5) return ''; // the citation has CrossRef's title: not numbers only
+        $authors = (isset($item['_authors_given']) || $lookups < self::MAX_AUTHOR_LOOKUPS) ? $this->crossref_authors($item, $lookups) : null;
+        if($authors === 'stop') return 'stop';
+        // an author the parser couldn't read is still there, e.g. "R.L. Soares Neto et al..", "Kuthubutheen; Nawawi.", "Poyarkov Jr., N. A.": not numbers only
+        if(is_array($authors) && $authors) { $cw = array_flip(self::words($citation));
+            foreach($authors as $a) foreach(self::words($a) as $w) if(mb_strlen($w) >= 3 && isset($cw[$w])) return ''; }
+        // CrossRef's authors unknown (not in a search answered before AUTHORS IN THE SEARCH) or none: only a short citation is numbers only, at most
+        // 3 words besides the journal's, e.g. "Krause, K.. 1914. Notizbl. Königl. Bot. Gart. Berlin,6: 145" -- not "Simpson and Galbraith-Jour. Physiology,
+        // Vol. 33, p. 225." or a titled citation whose author the parser missed ("Poyarkov Jr., N. A., ... (2018). ''A new genus ...'' Zoological research")
+        if(!(is_array($authors) && $authors) && count(array_diff(self::words($citation), self::words($ref['journal']))) > 3) return '';
+        if(!in_array('journal=OK', $c['checks'])) return "the journal name couldn't be compared";
+        if(!preg_grep('/^page=(?:first page|in )/', $c['checks'])) return "the page cited couldn't be confirmed in the article's pages";
+        if(is_array($authors) && !$authors) return "CrossRef lists no authors for it (often a review, an erratum or a note)";
+        $cited = (int) $ref['page']; $norm = fn($t) => preg_replace('/[^a-z0-9]/', '', mb_strtolower(strip_tags((string) $t)));
+        foreach($items as $j => $it) {
+            if($j == $i || $norm(@$it['title'][0]) === $norm(@$item['title'][0])) continue;
+            if(ltrim(trim((string) @$it['volume']), '0') !== ltrim(trim((string) @$item['volume']), '0') || $this->journal_agrees($ref['journal'], (string) @$it['container-title'][0]) !== true) continue;
+            if(preg_match('/^(\d+)(?:\s*-\s*(\d+))?$/', trim((string) @$it['page']), $p) && ($cited == (int) $p[1] || (isset($p[2]) && $cited > (int) $p[1] && $cited <= (int) $p[2])))
+                return "another work in CrossRef is on the same page (" . $it['DOI'] . ", \"" . mb_substr(trim(strip_tags((string) @$it['title'][0])), 0, 60) . "\")";
+        }
+        return '';
+    }
     private function same_pages_elsewhere($best, $items, $best_i)
     {   // other candidates with the same journal, volume and first page as the one chosen, and another DOI: the same work registered twice, perhaps
         $first = fn($p) => preg_match('/^\s*(\d+)/', (string) $p, $m) ? $m[1] : '';
@@ -787,6 +841,18 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(preg_match(self::SHORT_CITATION, $text))     return 'Only a first author, year, journal and volume (no title or page), not enough to confirm a DOI: not searched.';
         if(preg_match(self::AUTHOR_YEAR_ONLY, $text))   return 'Only authors and a year, not enough to confirm a DOI: not searched.';
         return '';
+    }
+    private static function min_year_param($param)
+    {   // MIN YEAR (Nov 25, 2026): the run's "min_year" as a year (e.g. 1900 or "1900"); 0 when not given (off); false when it isn't a year
+        $v = ((array) $param)['min_year'] ?? null;
+        if($v === null || $v === '' || $v === 0 || $v === false) return 0;
+        return (is_int($v) || (is_string($v) && ctype_digit(trim($v)))) && (int) $v >= 1000 && (int) $v <= (int) date('Y') + 1 ? (int) $v : false;
+    }
+    private function min_year_note($year)
+    {   // why a row is skipped by the run's "min_year" (its review_note); '' = it is searched: no limit, no year read, or the year isn't before it.
+        // $year: the year read from the citation (find_DOI's, after its own fixes). Used by find_DOI() and the estimate.
+        if(!$this->min_year || !preg_match('/^\d{4}$/', (string) $year) || (int) $year >= $this->min_year) return '';
+        return "Published in $year, before {$this->min_year} (this run's \"min_year\"): not searched. CrossRef has almost no DOIs for works that old.";
     }
     static function doi_in_column($s)
     {   // a DOI from a 'doi' column: "10.1002/ecy.1680", "doi:10...", "https://doi.org/10..."; '' if it doesn't hold one (e.g. "10.101/6/j.pocean.2015.05.011")
@@ -1046,7 +1112,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     {   $ref = self::clean_full_reference(trim($full_reference), $changes); // as find_DOI() searches it, in the same order
         if(($doi = self::doi_in_text($ref)) !== '' || ($doi = self::doi_in_column($doi_column)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // a DOI given: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
         elseif(self::not_searched_note($ref) !== '') { $n['skipped']++; return; } // not searched (find_DOI's rules)
-        else { $year = $this->parse_full_reference($ref)['year']; if(self::year_lost($changes) && !self::year_as_volume($ref, $year)) $year = ''; $url = $this->crossref_url($ref, $year); $old = $this->crossref_url($ref, $year, false); }
+        else { $year = $this->parse_full_reference($ref)['year']; if(self::year_lost($changes) && !self::year_as_volume($ref, $year)) $year = '';
+               if($this->min_year_note($year) !== '') { $n['old'] = ($n['old'] ?? 0) + 1; $n['min_year'] = $this->min_year; return; } // MIN YEAR: skipped, not searched
+               $url = $this->crossref_url($ref, $year); $old = $this->crossref_url($ref, $year, false); }
         $missing_known = isset($doi) && $doi !== '' && $this->missing_cached($url) && (!$this->datacite_search
                          || ($dc = $this->datacite_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"))) && (Functions::url_already_cached($dc, $this->datacite_options) || $this->missing_cached($dc, $this->datacite_options)));
         if(isset($seen[$url]) || $missing_known || Functions::url_already_cached($url, $this->crossref_options) || (isset($old) && Functions::url_already_cached($old, $this->crossref_options))) $n['cached']++; // a repeat is asked only once; a search answered before AUTHORS IN THE SEARCH is cached too
@@ -1062,7 +1130,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         else                 $t = "about " . rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
         return "Estimated time: $t" . ($s >= 60 ? ", to finish around " . date("Y-m-d H:i T", time() + (int) round($s)) : '')
              . " (" . number_format($n['rows']) . " references: " . number_format($n['new']) . " new, sent to CrossRef at about " . self::SECONDS_PER_NEW . " seconds each; "
-             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " skipped (not citations, or too little to search)" : '') . ")";
+             . number_format($n['cached']) . " searched before, instant from the cache" . ($n['skipped'] ? "; " . number_format($n['skipped']) . " skipped (not citations, or too little to search)" : '')
+             . (!empty($n['old']) ? "; " . number_format($n['old']) . " skipped as published before " . $n['min_year'] . " (\"min_year\")" : '') . ")";
     }
     private function search_crossref($full_reference, $year)
     {   /* the top 5 CrossRef candidates (best score first), only from the year and the years next to it when a year was read.
@@ -1349,6 +1418,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             case 'volume':        $n = "CrossRef's top 5 candidates include \"{$row['crossref_journal']}\", but none from volume {$ref['volume']}."; break;
             case 'issue':         $n = "CrossRef's top 5 candidates include \"{$row['crossref_journal']}\" volume {$ref['volume']}, but none from issue {$ref['issue']} with this page."; break;
             case 'year':          $n = "CrossRef's closest candidate is from a different year."; break;
+            case 'numbers only':  $n = "$agree, but the citation has no author or title, so only the numbers could be compared, and " . ($c['doubt'] ?? '') . ": too little to confirm a DOI."; break;
             case 'no CrossRef volume': $n = "$agree, but CrossRef has no volume number for its closest record, and its first author and title couldn't both be confirmed."; break;
             case 'page':          $n = "$agree, but $cited isn't in the article's pages ({$row['crossref_page']}): the article cited may not be in CrossRef."; break;
             case 'author and title': // AUTHOR/TITLE
@@ -1438,7 +1508,8 @@ RESULT
   matched   : {$c['matched']}
   possible  : {$c['possible']}
   not found : {$c['not found']}
-  skipped   : {$c['skipped']}
+  skipped   : {$c['skipped']}" . ($this->min_year ? " (" . number_format($this->min_year_skips) . " of them published before {$this->min_year}: this run's \"min_year\", not searched;
+              CrossRef has almost no DOIs for works that old. Rows with no year were searched.)" : '') . "
   error     : {$c['error']}
 
 BEFORE THE SEARCH (pre-processing)

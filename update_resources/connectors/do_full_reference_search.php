@@ -38,6 +38,11 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
     - DataCite, a second search (on by default, with the author and title checks): rows CrossRef can't confirm and with no volume or pages
       (datasets, reports, theses, books) are also searched in DataCite, e.g. PANGAEA and GBIF datasets; at most 'possible'.
       To turn it off for a run: add "datacite_search": false (for good, or to remove it: see DATACITE_SEARCH in FullReferenceSearchAPI.php)
+    - Year limit (Nov 25, 2026), off by default: add "min_year": 1900 to skip rows published before 1900, e.g.
+      php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", "file": "/path/reference.tab", "min_year": 1900}'
+      They are in the report as 'skipped' (review_note: "Published in 1823, before 1900 ..."), so the report still has every row; the estimate
+      and the guide count them. CrossRef has almost no DOIs for works that old (Brazilian Flora: 1 in 443 sampled citations before 1900), so
+      this saves hours on old floras. A row with no year is still searched, and a citation that gives its own DOI is still checked.
     - Tests: the known cases (problems fixed before, CrossRef's own sample citations, citation styles) must still give their expected results:
       php do_full_reference_search.php _ '{"task": "run_tests"}'
       The cases are in lib/connectors/FullReferenceSearchAPI_tests.json: add one whenever a problem is fixed. Also [Run Tests] on the web page.
@@ -64,7 +69,10 @@ $timestart = time_elapsed();
 $params['jenkins_or_cron'] = @$argv[1]; //not needed here
 $param                     = json_decode((string)@$argv[2], true);
 if(!is_array($param) || empty($param['task'])) {
-    echo "\nERROR: the parameters aren't valid JSON with a \"task\". Got: [" . @$argv[2] . "]";
+    // (Nov 25, 2026) say why: e.g. a Jenkins line commented out with "###" inside the JSON (JSON has no comments), or a missing comma
+    $why = !is_array($param) ? "it isn't valid JSON (" . json_last_error_msg() . ")" : "it has no \"task\"";
+    echo "\nERROR: the parameters can't be used: $why. Nothing was searched. Got: [" . @$argv[2] . "]";
+    if(!is_array($param) && preg_match('/^\s*(#|\/\/)/m', (string) @$argv[2])) echo "\nA line starts with # or //: JSON has no comments. Delete that line, or move it outside the quotes (in Jenkins, below the command).";
     echo "\nPut the JSON in single quotes, e.g. php do_full_reference_search.php _ '{\"task\": \"search_DOIs_for_full_references\", \"file\": \"...\"}'\n";
     exit(1);
 }

@@ -56,6 +56,10 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         // A taxon with a blank taxonRank gets no synonym match. Used by synonym_match_allowedYN().
         $this->synonym_match_ranks = array('species', 'variety', 'subspecies', 'form', 'infraspecific name');
         $this->synonym_rank_remark = 'No synonym match: synonym matching only for species and subspecific ranks'; //taxonRemarks for a taxon whose synonym match was not tried because of its rank
+        // Orthographic variants (24Nov2026): an unmatched taxon of the ranks above is matched through gnparser's stemmed canonical. See try_orthographic_variant().
+        $this->orth_bucket = 'With DH EOLid assignments (orthographic variant)';
+        $this->taxon_stem = array();    //taxon canonicalName => stemmed canonical
+        $this->DH_by_stem = array();    //stemmed canonical => DH canonicalNames with that stem (only stems of this DwCA's taxa)
         
         // tar -czf Brazilian_Flora_Eli_neo4j_1.tar.gz Brazilian_Flora_Eli_neo4j_1/ -> generate .tar.gz
 
@@ -225,6 +229,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
         ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
         self::process_table($meta, 'generate_synonyms_info');
+        self::prepare_orthographic_variants(); //stems of this DwCA's taxa and the DH names that share them
         self::process_table($meta, 'match_canonical');
         // self::process_table($meta, 'write_archive'); // COPIED TEMPLATE
         self::debug_reports();
@@ -340,6 +345,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                         $rec['taxonRemarks'] = $this->add_remarks((string) @$rec['taxonRemarks'], $this->synonym_rank_remark);
                         $rec['taxonRemarks'] = $this->add_remarks($rec['taxonRemarks'], 'Cannot be matched at all');
                         $this->add_to_bucket('Cannot be matched at all', $taxonID, $rec);
+                        $rec = self::try_orthographic_variant($rec, 'Cannot be matched at all');
                         self::for_reporting($rec);
                         self::write_2archive($rec); continue;
                     }
@@ -498,6 +504,11 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 }
                 ----- */
 
+                if(!@$rec['EOLid']) { //orthographic variants (24Nov2026)
+                    if(isset($this->debug['No canonical match'][$taxonID]))            $rec = self::try_orthographic_variant($rec, 'No canonical match');
+                    elseif(isset($this->debug['Cannot be matched at all'][$taxonID]))  $rec = self::try_orthographic_variant($rec, 'Cannot be matched at all');
+                }
+
                 self::for_reporting($rec);
                 // /* uncomment in real operation
                 self::write_2archive($rec); continue; //todo: $rec here has case where value is boolean; see jenkins 
@@ -506,6 +517,7 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
             } //end match_canonical
             //========================================================================================================= 
             elseif($what == 'generate_synonyms_info') {
+                if($canonicalName && self::synonym_match_allowedYN($taxonRank)) $this->taxon_stem[$canonicalName] = ''; //orthographic variants: stems filled in prepare_orthographic_variants()
                 $this->DWCA[$taxonID] = array("c" => $canonicalName, "r" => $taxonRank); //get all records, should be no filter here
                 @$this->debug['taxonomicStatus'][$taxonomicStatus]++; //stats only
                 if($acceptedNameUsageID) {
@@ -544,6 +556,132 @@ class DwCA_MatchTaxa2DH extends DwCA_MatchTaxa2DH_Functions
                 if($val = $rec['old_taxonKey']) $this->debug5['Has old_taxonKey but name-matching script failed to assign one'][$val] = '';
             }
         }
+    }
+    /* ======================== Orthographic variants (24Nov2026) ========================
+    If a name for a species or a subspecific rank (variety|subspecies|form|infraspecific name) cannot be matched to an accepted name or synonym in the DH,
+    get its stemmed canonical from gnparser and look for DH names with the same stemmed canonical. Candidates must pass the rank and ancestry compatibility tests.
+    Best one: accepted > synonym, then same rank > compatible rank, then same Ancestry Index group > different but compatible (> one empty).
+    Still no unique best -> leave the name unmatched. A match gets taxonMap 'auto' and taxonRemarks "orthographic variant of [DH name]". */
+    private function prepare_orthographic_variants()
+    {
+        echo "\nOrthographic variants: taxa of allowed ranks: ".number_format(count($this->taxon_stem));
+        if(!$this->taxon_stem) return;
+        $this->taxon_stem = self::gnparser_stems(array_keys($this->taxon_stem));
+        $stems = array();
+        foreach($this->taxon_stem as $c => $stem) if($stem) $stems[$stem] = '';
+        $file = self::get_DH_stem_file();
+        $handle = fopen($file, 'r'); $n = 0;
+        while(($line = fgets($handle)) !== false) {
+            $parts = explode("\t", rtrim($line, "\r\n"));
+            if(count($parts) < 2) continue;
+            if(isset($stems[$parts[1]])) { $this->DH_by_stem[$parts[1]][] = $parts[0]; $n++; }
+        }
+        fclose($handle);
+        echo "\nOrthographic variants: DH names sharing a stem with this DwCA's taxa: ".number_format($n)."\n";
+    }
+    private function get_DH_stem_file()
+    {   // canonicalName \t stemmed, for every DH canonicalName of 2 or more words. Built once per DH version, next to the DH file.
+        $dh = $this->DH->main_path;
+        $file = preg_replace('/\.tsv$/', '', $dh) . "_stemmed.tsv";
+        if(file_exists($file) && filesize($file) && filemtime($file) >= filemtime($dh)) return $file;
+        echo "\nBuilding DH stem file: [$file] ...\n";
+        $names = array();
+        foreach(array_keys($this->DH->DHCanonical_info) as $c) {
+            $c = (string) $c;
+            if(strpos(trim($c), ' ') !== false) $names[] = $c;
+        }
+        $stems = self::gnparser_stems($names); unset($names);
+        $tmp = $file.".tmp";
+        $WRITE = fopen($tmp, 'w');
+        foreach($stems as $c => $stem) if($stem) fwrite($WRITE, "$c\t$stem\n");
+        fclose($WRITE);
+        rename($tmp, $file);
+        echo "\nDH stem file built: ".number_format(count($stems))." names\n";
+        return $file;
+    }
+    private function gnparser_stems($names)
+    {   // one gnparser run for all names: name => stemmed canonical ('' if not parsed)
+        $in = tempnam(sys_get_temp_dir(), 'gnp_in_'); $out = tempnam(sys_get_temp_dir(), 'gnp_out_');
+        $WRITE = fopen($in, 'w');
+        foreach($names as $c) fwrite($WRITE, str_replace(array("\t", "\n", "\r"), ' ', $c)."\n");
+        fclose($WRITE);
+        $cmd = "gnparser -f tsv -j 8 < ".escapeshellarg($in)." > ".escapeshellarg($out)." 2>/dev/null";
+        exec($cmd, $o, $ret);
+        if($ret !== 0) exit("\nERROR: gnparser failed [$ret]: $cmd\n");
+        $stems = array_fill_keys(array_map('strval', $names), '');
+        $handle = fopen($out, 'r'); $i = 0;
+        while(($line = fgets($handle)) !== false) { $i++;
+            if($i == 1) continue; //header: Id Verbatim Cardinality CanonicalStem CanonicalSimple ...
+            $parts = explode("\t", rtrim($line, "\r\n"));
+            $verbatim = (string) @$parts[1];
+            if(isset($stems[$verbatim])) $stems[$verbatim] = (string) @$parts[3];
+        }
+        fclose($handle); unlink($in); unlink($out);
+        return $stems;
+    }
+    private function try_orthographic_variant($rec, $from_bucket)
+    {
+        $taxonID = $rec['taxonID'];
+        $canonical = (string) @$rec['canonicalName'];
+        if(!self::synonym_match_allowedYN(@$rec['taxonRank'])) return $rec;
+        if(!$stem = @$this->taxon_stem[$canonical]) return $rec;
+        $names = array();
+        foreach(@$this->DH_by_stem[$stem] ?? array() as $c) if($c !== $canonical) $names[] = $c;
+        if(!$names) return $rec;
+        @$this->debug['orth']['tried']++;
+
+        // the taxon's Ancestry Index group, without the side effects of can_proceedYN_using_AncestryIndex()
+        if(!@$rec['higherClassification']) return $rec;
+        $r2 = $rec; $r2['taxonRemarks'] = '';
+        $r2 = self::let_us_try_to_assign_an_IndexGroup($r2);
+        if(substr((string) @$r2['taxonRemarks'], 0, 6) != 'Trait:') return $rec;
+        $ai_remark = $r2['taxonRemarks'];
+
+        $best = array(); $best_score = false;
+        foreach($names as $c) {
+            foreach(@$this->DH->DHCanonical_info[$c] ?? array() as $rek) {
+                if(!$ret = $this->matching_routine_using_rank_v2($r2, array($rek))) continue;                       //rank compatibility
+                $isSyn = ($rek['s'] == 'n');
+                if(!$ret2 = $this->name_matching_ancestry_compatibility($ret, $isSyn, false)) continue;               //ancestry compatibility, no Step 5
+                $pair = $ret2[0];
+                $p_rec = $pair[0]; $p_rek = $pair[1];
+                $rank_level = (@$p_rec['taxonRank'] == $p_rek['r']) ? 2 : 1;
+                if($p_rec['AI'] && $p_rek['AI']) $ai_level = ($p_rec['AI'] == $p_rek['AI']) ? 3 : 2;
+                else                             $ai_level = 1;
+                $score = array($isSyn ? 0 : 1, $rank_level, $ai_level);
+                if($best_score === false || $score > $best_score) { $best_score = $score; $best = array($pair); }
+                elseif($score == $best_score) $best[] = $pair;
+            }
+        }
+        if(!$best) return $rec;
+        if(count($best) > 1) { //no unique best -> leave unmatched
+            @$this->debug['orth']['ties']++;
+            $rec['taxonRemarks'] = $this->add_remarks((string) @$rec['taxonRemarks'], 'multiple orthographic variant matches');
+            $this->debug[$from_bucket][$taxonID] = $rec;
+            return $rec;
+        }
+        $pair = $best[0];
+        $assigned = self::major_assignment($pair);
+        if(!$assigned['EOLid']) return $rec;
+
+        // taxonRemarks: drop the 'unmatched' notes, keep the rest; Ancestry Index note first, then the orthographic variant note
+        $keep = array();
+        foreach(explode(' || ', (string) @$rec['taxonRemarks']) as $part) {
+            $part = trim($part);
+            if($part === '' || in_array($part, array('No canonical match', 'Cannot be matched at all')) || substr($part, 0, 6) == 'Trait:') continue;
+            $keep[] = $part;
+        }
+        array_unshift($keep, $ai_remark);
+        $keep[] = 'orthographic variant of '.$pair[1]['c'];
+        $rec['taxonRemarks'] = implode(' || ', $keep);
+        $rec['EOLid'] = $assigned['EOLid'];
+        $rec['taxonMap'] = 'auto';
+
+        unset($this->debug[$from_bucket][$taxonID]);
+        if($from_bucket == 'No canonical match') @$this->debug['orth']['matched from A']++;
+        else                                     @$this->debug['orth']['matched from B']++;
+        $this->add_to_bucket($this->orth_bucket, $taxonID, $rec);
+        return $rec;
     }
     private function major_assignment($pair)
     {   // print_r($pair); exit("\nstopx 1\n");

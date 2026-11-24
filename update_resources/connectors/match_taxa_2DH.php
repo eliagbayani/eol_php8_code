@@ -11,7 +11,10 @@ php match_taxa_2DH.php _ '{"resource_id": "23067562_Bioc_and_Natu_Prod-with-hC_n
 php match_taxa_2DH.php _ '{"resource_id": "13318109_AmphibiaWeb-with-hC_neo4j_1", "AncestryIndexVer": "new", "resource_type": "legacy_dwca"}'
 
 Synonym matches (DH synonyms, incl. Step 5) are made only when the taxon's taxonRank is species|variety|subspecies|form|infraspecific name.
-A blank taxonRank gets no synonym match (24Nov2026). "AncestryIndexVer" is not used; the Ancestry Index is always the 'new' one.
+A blank taxonRank gets no synonym match (24Nov2026).
+Orthographic variants (24Nov2026): a taxon of those ranks still unmatched is matched through gnparser's stemmed canonical to a DH name with the same stem
+that passes the rank and ancestry tests (best: accepted > synonym, same rank, same Ancestry Index group; a tie stays unmatched).
+taxonMap 'auto', taxonRemarks "orthographic variant of [DH name]". DH stems are cached in tbHierarchyV092_stemmed.tsv, built once next to the DH file. "AncestryIndexVer" is not used; the Ancestry Index is always the 'new' one.
 
 These ff. workspaces work together:
 - generate_higherClassification_8.code-workspace

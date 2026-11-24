@@ -175,8 +175,11 @@ class DwCA_MatchTaxa2DH_Functions
         // echo "\n -> B5. Successful synonym match but accepted taxon does not have eolID: [" . number_format($Successful_syn_but_accepted_taxon_no_eolID) . "]";
         $dup_B = self::count_duplicate_taxonID_rows(array('With DH EOLid assignments (accepted name)', 'With DH EOLid assignments (synonym)', 'Cannot be matched at all'));
         if($dup_B) echo "\n -> B4. Duplicate taxonID rows (2nd row in the same bucket as the 1st, counted once in B1-B3): [" . number_format($dup_B) . "]";
+        $orth_A = (int) @$this->debug['orth']['matched from A'];
+        $orth_B = (int) @$this->debug['orth']['matched from B'];
+        if($orth_B) echo "\n -> B5. Orthographic variant matches (exact name matched, but could not be used): [" . number_format($orth_B) . "]";
         $sum = $cannot_be_matched_at_all + $With_eolID_assignments + $matched_thru_a_synonym + $has_canonical_match_with_DH_to_a_synonym + $Successful_syn_but_accepted_taxon_no_eolID // + $With_EOLid_but_not_matched;
-               + $dup_B;
+               + $dup_B + $orth_B;
         $diff = @$this->debug['Has canonical match'] - $sum;
         echo "\n -> Total = [".number_format($sum)."]";
         if($diff != 0) echo "\nDIFF SHOULD BE ZERO [".number_format($diff)."]\n";
@@ -208,17 +211,23 @@ class DwCA_MatchTaxa2DH_Functions
         echo "\nsum [".number_format($sum)."] should be equal to [Matches made without_OR_lacking ancestry info]. DIFF SHOULD BE ZERO [".number_format($diff)."].\n";
         */
 
+        echo "\n\nD. Orthographic variants (species and subspecific ranks, unmatched after the steps above):";
+        echo "\n -> tried (DH names share the stemmed canonical): " . number_format((int) @$this->debug['orth']['tried']);
+        echo "\n -> matched: " . number_format($orth_A + $orth_B) . " (from A: " . number_format($orth_A) . ", from B: " . number_format($orth_B) . ")";
+        echo "\n -> no unique best match, left unmatched: " . number_format((int) @$this->debug['orth']['ties']);
+
         echo "\n\nTotal taxa from taxon.tab: "      . number_format(@$this->debug['total taxa'] ?? 0);
         echo "\nBreakdown:";
         echo "\n -> excluded: invalid taxa: "       . number_format(@$this->debug['excluded: invalid taxa'] ?? 0);
         echo "\n -> excluded: no canonicalName: "   . self::number_format_eli(@$this->debug['excluded: no canonicalName']);
         echo "\n -> excluded: already has EOLid: "  . self::number_format_eli(@$this->debug['excluded: already has EOLid']) . " - (taxonMap = 'man')";
         echo "\n -> A. No canonical match: [" . number_format(count(@$this->debug['No canonical match'] ?? array())) . "]";
+        if($orth_A) echo "\n -> A1. No canonical match, but matched as an orthographic variant: [" . number_format($orth_A) . "]";
         $dup_A = self::count_duplicate_taxonID_rows(array('No canonical match'));
         if($dup_A) echo "\n -> A2. Duplicate taxonID rows (counted once in A): [" . number_format($dup_A) . "]";
         echo "\n -> B. Has canonical match: [" . number_format(@$this->debug['Has canonical match'] ?? 0) . "]";
         $sum = @$this->debug['excluded: invalid taxa'] + @$this->debug['excluded: no canonicalName'] + @$this->debug['excluded: already has EOLid']
-               + count(@$this->debug['No canonical match'] ?? array()) + $dup_A
+               + count(@$this->debug['No canonical match'] ?? array()) + $dup_A + $orth_A
                + @$this->debug['Has canonical match'];
         $diff = $sum - @$this->debug['total taxa'];
         echo "\nTotal = [".number_format($sum)."]";
@@ -307,7 +316,7 @@ class DwCA_MatchTaxa2DH_Functions
     {   echo "\nPrinting logs...";
         $indexes = array('No canonical match', 'Cannot be matched at all', 'With DH EOLid assignments (accepted name)',
                          'Matches made without_OR_lacking ancestry info', 'With DH EOLid assignments (synonym)', 
-                         'incompatible_multimatches_v2', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2'); //compatible_multimatches_v1
+                         'incompatible_multimatches_v2', 'No_hits_in_AncestryIndex', 'compatible_multimatches_v2', 'With DH EOLid assignments (orthographic variant)'); //compatible_multimatches_v1
         // excluded: 'With EOLid but not matched'
         // excluded: 'Successful synonym match but accepted taxon does not have eolID'
         foreach($indexes as $index) { echo "\n-> $index ...";
@@ -464,7 +473,7 @@ class DwCA_MatchTaxa2DH_Functions
             If one rank is section or section botany and the other is something else (but not empty), discard the match
             If one rank is subsection or subsection botany and the other is something else (but not empty), discard the match ---*/        
     }
-    function name_matching_ancestry_compatibility($pairs, $fromSynonymsYN) //Step 4: Name matching - ancestry compatibility
+    function name_matching_ancestry_compatibility($pairs, $fromSynonymsYN, $allowStep5YN = true) //Step 4: Name matching - ancestry compatibility; $allowStep5YN false for orthographic variants
     {   /*Array(
             [0] => Array(
                     [0] => Array(
@@ -641,7 +650,7 @@ class DwCA_MatchTaxa2DH_Functions
                 if($rec['AI'] != $rek['AI']) {
                     if(self::are_the_IndexValues_compatible(array($rec['AI'], $rek['AI']))) $pairz[] = array($rec, $rek);
                     else { 
-                        if(!$fromSynonymsYN) {
+                        if(!$fromSynonymsYN && $allowStep5YN) {
                             // echo "\n---> Going to Step 5...\n";
                             // Synonym matches only for species and certain subspecific ranks (24Nov2026); blank taxonRank = no synonym match.
                             if(self::synonym_match_allowedYN(@$rec['taxonRank'])) {

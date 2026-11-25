@@ -155,11 +155,12 @@
    "source": "FishBase (false alarm)",
    "full_reference": "Cui, J., X. Ren and Q. Yu0 Nuclear DNA content variation in fishes. Cytologia 56:425-429. (Ref. 12384)",
    "expect": {
-    "status": "possible",
+    "status": "matched",
     "DOI": "10.1508/cytologia.56.425",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
     "requires": "author_title_checks"
    },
-   "why": "CrossRef has the authors' given names where the surnames belong, so the author check says 'differs'; the title agrees 100%, so it must stay 'possible'."
+   "why": "CrossRef has the authors' given names where the surnames belong (\"Jianxun; Xiuhai; Qixing\"). Until Nov 25, 2026 the author check said 'differs' and it stayed 'possible'; now the mix-up is recognised (Cui is the first author's given name in CrossRef), and with the title agreeing 100% and page 425 confirmed it is 'matched'."
   },
   {
    "id": "fishbase-c1491358",
@@ -2340,6 +2341,343 @@
     "requires": "author_title_checks"
    },
    "why": "With \"datacite_search\": false (as analyze_MoF can now pass on), the PANGAEA dataset that DataCite finds (styles-harvard-2: possible 10.1594/pangaea.691325) is not looked up there."
+  },
+  {
+   "id": "dm-aw-garcia-paris-owner-doi",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): Crossref's other doi is correct. The first does not resolve today...",
+   "full_reference": "Garcia-Paris, M., and Jockusch, E. L. (1999). ''A mitochondrial DNA perspective on the evolution of Iberian Discoglossus (Amphibia: Anura).'' Journal of Zoology, (248), 209-218.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1111/j.1469-7998.1999.tb01197.x",
+    "note_contains": "10.1017/s0952836999006081 is an older publisher's DOI",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 2: the same article has two DOIs. 10.1017/s0952836999006081 (Cambridge's prefix, before the journal moved) goes to Wiley's old link service; CrossRef lists Wiley (10.1111) as the owner of both, so its own DOI is used (owners_twin())."
+  },
+  {
+   "id": "dm-aw-jared-poison-frogs",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): https://doi.org/10.1016/j.cub.2015.06.061",
+   "full_reference": "Jared, C., Mailho-Fontana, P.L., Antoniazzi, M.M., Mendes, V.A., Barbaro, K.C., Rodrigues, M.T., Brodie, E.D Jr. (2015). ''Venomous Frogs Use Heads as Weapons.'' Current Biology, 25, 1-5.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1016/j.cub.2015.06.061",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 2: was 'possible' 10.1016/j.cub.2015.06.044 (\"Poison frogs\", Stynoski et al.), another work in the same volume. Authors and title both disagree, so it's rejected; the article itself (the DOI the Data Manager found) is then 'possible', as the citation gives page \"1-5\"."
+  },
+  {
+   "id": "dm-aw-dunn-trout",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): https://doi.org/10.2307/1437298",
+   "full_reference": "Dunn, E. R. (1954). ''The status of Siredon gracilis Baird.'' Copeia, 1954, 135-136.",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 3: was 'possible' 10.2307/1440665 (\"Trout\", Hazzard and Bergman), another work in the same volume of Copeia: authors and title both disagree."
+  },
+  {
+   "id": "dm-aw-cuevas-names-mixed",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (firstname/lastname)",
+   "full_reference": "Cuevas P., C. C. (2008). ''A new species of the genus Alsodes (Anura: Neobatrachia) from the Nothofagus forest, coastal range, southern Chile, identified by its karyotype.'' Zootaxa, 1771, 43-53.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.11646/zootaxa.1771.1.4",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef has the family name \"P.\" and Cuevas in the given name: not differing authors. Still 'possible': CrossRef has no pages."
+  },
+  {
+   "id": "dm-aw-gerlinde-given-as-surname",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (firstname/lastname)",
+   "full_reference": "Gerlinde, H. (1999). ''Notes on the natural history and habitat use of Eleutherodactylus fitzingeri (Anura: Leptodactylidae).'' Amphibia-Reptilia, 20, 65-72.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1163/156853899x00060",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: the citation gives the first name as the surname (\"Gerlinde, H.\" for Gerlinde Höbel)."
+  },
+  {
+   "id": "dm-aw-pasmans-names-mixed",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (firstname/lastname)",
+   "full_reference": "Pasmans, F., Janssens, G., Sparreboom, M., Jiang, J., and Nishikawa, K. (2012). ''Reproduction, Development, and Growth Response to Captive Diets in the Shangcheng Stout Salamander, Pachyhynobius Shangchengensis (Amphibia, Urodela, Hynobiidae).'' Asian Herpetological Research, 3(3), 192-197.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.3724/sp.j.1245.2012.00192",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef has given names as family names (\"Frank; Geert; Max ...\")."
+  },
+  {
+   "id": "dm-aw-yuan-names-mixed",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (firstname/lastname)",
+   "full_reference": "Yuan, Z., Zhao, H., Jiang, K., Hou, M., He, L., Murphy, R.W., Che, J. (2014). ''Phylogenetic relationships of the genus Paramesotriton (Caudata: Salamandridae) with the description of a new species from Qixiling Nature Reserve, Jiangxi, southeastern China and a key to the species.'' Asian Herpetological Research , 5, 67-79.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.3724/sp.j.1245.2014.00067",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef has given names as family names (\"Zhiyong; Haipeng ...\")."
+  },
+  {
+   "id": "dm-aw-mendelson-suffix-as-surname",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (firstname/lastname)",
+   "full_reference": "Mendelson, J. R., III, and Toal, III, K.R. (1996). ''A new species of Hyla (Anura: Hylidae) from the Sierra Madre del Sur of Oaxaca, Mexico, with comments on Hyla chryses and Hyla mykter.'' Journal of Herpetology, 30, 326-333.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2307/1565169",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef has the suffix \"III\" as the family name and Mendelson in the given name."
+  },
+  {
+   "id": "dm-aw-poyarkov-unchanged",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (firstname/lastname)",
+   "full_reference": "Poyarkov Jr., N. A., Chatmongkon, S., Pawangkhanant, P., Akrachai, A., Van Duong, T., Korost, D. V., Che, J. (2018). ''A new genus and three new species of miniaturized microhylid frogs from Indochina (Amphibia: Anura: Microhylidae: Asterophryinae).'' Zoological research , 39(3), 130-157.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.24272/j.issn.2095-8137.2018.019",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5 list: unchanged (the journal is in Chinese in CrossRef; the parser misses \"Poyarkov Jr.\")."
+  },
+  {
+   "id": "dm-aw-stet-sket-kept-possible",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (fuzzy)",
+   "full_reference": "Stet, B., and Arntzen, J. W. (1994). ''A black, non-troglomorphic amphibian from the karst of Slovenia: Proteus anguinus parkelj n. ssp. (Urodela: Proteidae).'' Bijdragen tot de Dierkunde, 64(1), 33-53.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1163/26660644-06401002",
+    "checks_contains": "author=differs",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: \"Stet\" for \"Sket\" stays 'author=differs' (one letter in a short name is too often another person), but the title agrees, so it stays 'possible'."
+  },
+  {
+   "id": "dm-aw-leon-garbled-letter",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (fuzzy) (subset)",
+   "full_reference": "León, P., and Kezer, J. (1978). ''The localization of 5S RNA genes on chromosomes of plethodontid salamanders.'' Chromosoma, 65, 213-230.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1007/bf00327618",
+    "checks_contains": "author=OK (a garbled letter in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef has \"Le�n\" for León."
+  },
+  {
+   "id": "dm-aw-fong-longer-surname",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (fuzzy) (subset)",
+   "full_reference": "Fong, A., and Navarro, N. (2001). ''Checklist of amphibians and reptiles of the Sagua-Baracoa Mountains, Eastern Cuba.'' Smithsonian Herpetological Information Service, 130, 1-13.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.5479/si.23317515.130.1",
+    "checks_contains": "author=OK (part of a longer surname in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef has \"Fong G.\"."
+  },
+  {
+   "id": "dm-aw-nguyen-names-mixed",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (fuzzy) (subset)",
+   "full_reference": "Nguyen, Q.T., Hendrix, R., Bohme, W., Vu, .N.T., Ziegler, T. (2008). ''A new species of the genus Philautus (Amphibia: Anura: Rhacophoridae) from Truong Son Range, Quang Binh Province, central Vietnam.'' Zootaxa , 1925, 1-13.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.11646/zootaxa.1925.1.1",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef's first author is \"TRUONG\" with Nguyen in the given name. Still 'possible': CrossRef has no pages."
+  },
+  {
+   "id": "dm-aw-gillespie-in-press-unchanged",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (in press)",
+   "full_reference": "Gillespie, G.R. (in press). ''Impacts of sediment loads, tadpole density, and food type on the growth and development of tadpoles of the Spotted Tree Frog Litoria spenceri: an in-stream experiment.'' Biological Conservation.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1016/s0006-3207(01)00127-6",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5 list: \"in press\" citation, unchanged."
+  },
+  {
+   "id": "dm-aw-bas-longer-surname",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): match (subset)",
+   "full_reference": "Bas, S. (1982). ''La comunidad herpetológica de Caurel: Biogeografía y Ecología.'' Amphibia-Reptilia, 3(1), 1-26.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1163/156853882x00121",
+    "checks_contains": "author=OK (part of a longer surname in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 5: CrossRef has \"Bas Lopez\"."
+  },
+  {
+   "id": "dm-aw-holbrooke-series-unchanged",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): technically the containing series of the volume",
+   "full_reference": "Holbrooke, J.E. (1836). North American Herpetology; or a Description of the Reptiles Inhabiting the United States. Volume II. J. Dobson, Philadelphia, US.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5962/bhl.title.51821",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 7: the containing series, as the Data Manager noted; no change wanted."
+  },
+  {
+   "id": "dm-aw-starrett-volume-unchanged",
+   "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): technically, the containing volume of a chapter",
+   "full_reference": "Starrett, P. (1960). ''Descriptions of tadpoles of Middle American frogs.'' Miscellaneous Publications Museum of Zoology, University of Michigan, 110, 5-37.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.3998/mpub.12946896",
+    "requires": "author_title_checks"
+   },
+   "why": "Para 7: the containing volume of a chapter, as the Data Manager noted; no change wanted."
+  },
+  {
+   "id": "dm-sheet-hu-names-mixed",
+   "source": "The Data Manager's sheet 'doi match tests'",
+   "full_reference": "Hu, H. 1983. On gymnodinium cyaneum Hu. Chinese Journal of Oceanology and Limnology 1:198-199.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1007/bf02900485",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "The Data Manager's sheet row 1001 (her DOI): CrossRef has \"Hongjun\" as the family name and Hu in the given name; was 'possible' with 'author=differs'."
+  },
+  {
+   "id": "bf-kuhlmann-author-and-title",
+   "source": "Brazilian Flora (Nov 25, 2026)",
+   "full_reference": "Kuhlmann, J.G.. 1935. Notizbl. Königl. Bot. Gart. Berlin,12(115): 558,1935.",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "Brazilian Flora: was 'possible' 10.2307/3994848 (\"Bromeliaceae novae V\" by Harms, same volume of Notizblatt): the authors differ and the citation has no title to confirm it."
+  },
+  {
+   "id": "globi-nag-raj-part-of-surname",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Nag Raj, T.R.. 1977. Miscellaneous microfungi. II.. Canad. J. Bot. 55:757-765",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1139/b77-091",
+    "checks_contains": "author=OK (part of the surname in the citation)",
+    "requires": "author_title_checks"
+   },
+   "why": "\"Nag Raj, T.R.\": CrossRef has the family name \"Raj\". The title (\"Miscellaneous microfungi. II.\") is too short to compare, so without this the authors-and-title rule would reject the right DOI."
+  },
+  {
+   "id": "globi-le-ru-co-authors",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "@article{76837, author = {Le Ru, B. and Iziquel, Y. and Biassangama, A. and Kiyindou, A.}, booktitle = {Entomophaga}, journal = {Entomophaga}, month = {apr}, day = {30}, pages = {499-511}, title = {Variations in the abundance of the cassava mealybug, Phenacoccus manihoti, before and after the introduction into the Congo in 1982 of mealybug parasitoid Epidinocarsis lopezi (Hymenoptera; Encyrtidae) obtained from America.}, volume = {36(4)}, year = {1992}, stated_year = {1992}, issn = {0013-8959} }",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1007/bf02374432",
+    "checks_contains": "author=OK (3 co-authors agree)",
+    "requires": "author_title_checks"
+   },
+   "why": "CrossRef has \"Rü\" for Le Ru, but Iziquel, Biassangama and Kiyindou are in the citation's author list; the citation gives the French title in English (35%), so without this the authors-and-title rule would reject the right DOI."
+  },
+  {
+   "id": "globi-martignoni-joined-references",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Groner, A. 1986. Specificity and safety of baculoviruses. pp. 177-202 in: Granados, R.R. and Federici, B.A. [eds.], The biology of baculoviruses, Vol 1: Biological properties and molecular biology. CRC Press, Boca Raton. ; Adams, J.R., and McClintock, J.T. 1991. Baculoviridae. nuclear polyhedrosis viruses Part 1. Nuclear polyhedrosis viruses of insects. pp. 87-204 in Adams, J.R. and Bonami, J.R. [Eds.] Atlas of Invertebrate Viruses. CRC Press, Boston.; Belloncik, S., Lavallee, C., and Hamelin, C. 1986. Relative pathogenicity of nuclear polyhedrosis viruses from Mamestra brassicae, Euxoa messoria, Agrotis segetum, Autographa californica, and Heliothis spp. for larvae of Euxoa scandens (Lepidoptera: Noctuidae). J. Invertebr. Pathol. 47:8-11.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1016/0022-2011(86)90157-6",
+    "checks_contains": "author=differs",
+    "requires": "author_title_checks"
+   },
+   "why": "Several references joined in one text: the DOI is for the second one (Belloncik et al. 1986). Its authors come after the first reference's year, so they don't count as co-authors, and it stays 'possible', not 'matched'."
+  },
+  {
+   "id": "aw-elias-editors-not-co-authors",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Elias, P. and Wake, D. (1983). ''Nyctanolis pernix, a new genus and species of plethodontid salamander from Northwestern Guatemala and Chiapas, Mexico.'' Advances in Herpetology and Evolutionary Biology: Essays in Honor of Ernest E. Williams. G. J. Rhodin and K. Miyata, eds., Museum of Comparative Zoology, Harvard, Cambridge.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.5281/zenodo.16342507",
+    "requires": "datacite_search"
+   },
+   "why": "A chapter: the book's editors (Rhodin, Miyata), named after the title, must not count as co-authors, or the whole book's BHL DOI (10.5962/bhl.title.53661) would replace the chapter's own DOI. Its DOI is a Zenodo DOI found in DataCite."
+  },
+  {
+   "id": "globi-lee-park-not-co-authors",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Lee, Y., Kim, G.H., Kim, Y., Park, S.Y., and Koh, Y.J.. 2019. First report of twig dieback caused by %Neopestalotiopsis clavispora% on blueberry in Korea. Pl. Dis. 103(5):1023",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1094/pdis-10-18-1734-pdn",
+    "checks_contains": "author=OK",
+    "requires": "author_title_checks"
+   },
+   "why": "\"Park\" twice in CrossRef's list (\"Seo; Back; Park; Park\", another Plant Disease report) counts once: not 2 co-authors. The right report, by Lee et al., is found instead."
+  },
+  {
+   "id": "globi-kwon-co-authors",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Kwon, J.-H., Kang, S.-W., Kim, J.-S., and Park, C.-S.. 2002. Blue mold on melon (%Cucumis melo%) caused by %Penicillium oxalicum%. Res. Pl. Dis. 8(4):220-223",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.5423/rpd.2002.8.4.220",
+    "checks_contains": "author=OK (2 co-authors agree)",
+    "requires": "author_title_checks"
+   },
+   "why": "CrossRef has the first author as \"Wwon\" (a typo for Kwon); Kang and Kim agree, and so do the title and numbers."
+  },
+  {
+   "id": "dm-sheet-powell-owner-doi",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Powell, M. J. 1984. Fine structure of the unwalled thallus of Rozella polyphagi in its host Polyphagus euglenae. Mycologia 76:1039-1048.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1080/00275514.1984.12023948",
+    "requires": "author_title_checks"
+   },
+   "why": "The Data Manager's DOI: Mycologia moved from JSTOR (10.2307/3793019) to Taylor & Francis, which CrossRef lists as the owner; the owner's DOI is used."
+  },
+  {
+   "id": "fishbase-dou-owner-doi",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Dou, S. and D. Chen0 Taxonomy, biology and abundance of icefishes, or noodlefishes (Salangidae), in the Yellow River estuary of the Bohai Sea, China. J. Fish Biol. 45(5):737-748. (Ref. 42266)",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1111/j.1095-8649.1994.tb00940.x",
+    "checks_contains": "author=OK (first and last names mixed up in CrossRef)",
+    "requires": "author_title_checks"
+   },
+   "why": "Journal of Fish Biology: 10.1006/jfbi.1994.1173 (Academic Press, before the move) and 10.1111/j.1095-8649.1994.tb00940.x (Wiley, the owner); the owner's DOI is used."
+  },
+  {
+   "id": "fishbase-qasim-author-and-title",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Qasim, S.Z. and V.S. Bhatt0 The growth of the freshwater murrel, Ophicephalus punctatus Bloch. Hydrobiologia 36:165-177. (Ref. 39627)",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "Was 'possible' 10.1007/bf00751289 \"Studies on the growth of Ophicephalus striatus Bloch\" by Bhatt: another paper (another species) in the same volume; authors differ and the title only partly agrees (60%)."
+  },
+  {
+   "id": "globi-miller-author-and-title",
+   "source": "Recheck for the Data Manager's review of AmphibiaWeb (Nov 25, 2026)",
+   "full_reference": "Miller, M.E., and Amador, J.M.. 1985. An epidemic of downy mildew (%Peronospora destructor%) of onion in Texas. Pl. Dis. 69:268",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "Was 'possible' \"Powdery Mildew (Oidiopsis taurica) on Onion in California\" by Laemmlen for an onion downy mildew epidemic in Texas by Miller & Amador: authors differ, title partly (33%)."
   }
  ]
 }

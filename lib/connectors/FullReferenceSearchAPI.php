@@ -449,7 +449,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         }
 
         // the best candidate: matched > possible > not found; then the most checks that agree; then CrossRef's order (best score first)
-        $rank = array('matched' => 2, 'possible' => 1, 'not found' => 0); $best = null; $lookups = 0;
+        $rank = array('matched' => 2, 'possible' => 1, 'not found' => 0); $best = null; $lookups = 0; $all = array();
         foreach($items as $i => $item) {
             $c = $this->check_candidate($ref, $item);
             $author_score = 1; $title_share = 0; $item['_authors'] = '';
@@ -466,9 +466,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                     // the citation often doesn't name, e.g. Bradshaw 1981 "Pages 1395-1434 in A. Keast, editor. Ecological Biogeography of Australia" in "Monographiae Biologicae"
                     $jneeded = (string) @$item['type'] === 'journal-article';
                     if($share !== null && $share >= 0.9 && (!$jneeded || $jshare === null || $jshare >= 0.7)) {
-                        $authors = ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given'])) ? $this->crossref_authors($item, $lookups) : null;
+                        $first = null; $authors = ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given'])) ? $this->crossref_authors($item, $lookups, $first) : null;
                         if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
-                        $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
+                        $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0], $first);
                         if($a['score'] >= 2) {
                             $c['status'] = 'possible'; $c['via'] = 'author and title'; $c['why'] = '';
                             $jin = $jshare !== null && $jshare >= 0.7;
@@ -483,9 +483,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                        ("Amphibia-Reptilia 27" for 28, "Geological Magazine 25" for 3) or the journal's old name ("Journal of Eukaryotic Microbiology 8" is
                        "The Journal of Protozoology" 8) -- while the first author agrees exactly and at least 90% of CrossRef's title (3+ words) is in the citation:
                        'possible' (never 'matched'), with a note naming what differs. */
-                    $authors = ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given'])) ? $this->crossref_authors($item, $lookups) : null;
+                    $first = null; $authors = ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given'])) ? $this->crossref_authors($item, $lookups, $first) : null;
                     if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
-                    $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
+                    $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0], $first);
                     if($a['score'] >= 3) {
                         $c['status'] = 'possible'; $c['via'] = 'typo'; $c['why'] = '';
                         $c['checks'] = array_merge($c['checks'], $a['checks']); // no extra 'agree', and ranked below any other 'possible' (see $key)
@@ -493,17 +493,21 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                     }
                 }
                 elseif($c['status'] != 'not found') {
-                    $authors = ($ref['author'] !== '' && ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given']))) ? $this->crossref_authors($item, $lookups) : null;
+                    $first = null; $authors = ($ref['author'] !== '' && ($lookups < self::MAX_AUTHOR_LOOKUPS || isset($item['_authors_given']))) ? $this->crossref_authors($item, $lookups, $first) : null;
                     if($authors === 'stop') return array('status' => 'stop', 'change_codes' => array());
-                    $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0]);
+                    $a = $this->author_title_check($ref['author'], $authors, $full_reference, (string) @$item['title'][0], $first);
                     $c['checks'] = array_merge($c['checks'], $a['checks']);
                     $author_score = $a['score']; $item['_authors'] = is_array($authors) ? implode('; ', $authors) : '';
                     if($a['differs'] && $c['status'] == 'matched') $c['status'] = 'possible'; // the numbers agree but the authors don't: a person checks it
-                    // both disagree -- the authors differ AND under 30% of CrossRef's title is in the citation -- so it's another work: not found.
+                    // both disagree -- the authors differ AND CrossRef's title doesn't agree -- so it's another work: not found.
                     // e.g. "King, R.P. Growth performance of Nigerian fish stocks. Naga 20(2):31-35" vs a paper on chickens by Ibe, vol. 20 p. 25-31.
-                    // One alone is never enough: CrossRef's names can be garbled (given names as surnames), and many citations have no title.
+                    // (Nov 25, 2026, the Data Manager's review of AmphibiaWeb) "doesn't agree" was under 30% of the title; now it is anything but title=OK
+                    // (70%+): 'partly', or a title too short to compare. Her two wrong 'possible' DOIs were Jared 2015 "Venomous frogs use heads as weapons"
+                    // -> "Poison frogs" (Stynoski et al.) and Dunn 1954 "The status of Siredon gracilis" -> "Trout" (Hazzard and Bergman), same journal
+                    // and volume; while all 12 right ones whose authors "differed" had title=OK. CrossRef's name mix-ups no longer count as differing
+                    // (crossref_name_mixup()). One alone is never enough: a citation without a title, or with a title CrossRef has in other words, keeps its DOI when the first author agrees.
                     $share = self::title_share($full_reference, (string) @$item['title'][0]);
-                    if($a['differs'] && $share !== null && $share < 0.3) { $c['status'] = 'not found'; $c['why'] = 'author and title'; }
+                    if($a['differs'] && ($share === null || $share < 0.7)) { $c['status'] = 'not found'; $c['why'] = 'author and title'; }
                     // (added Nov 19, 2026) CrossRef has no volume for it (e.g. "Mammalian Species" 593 vs JSTOR's record): the first author must agree exactly,
                     // as in a series like that every number starts at page 1 in the same year
                     // and the title (Nov 19, 2026): when CrossRef's journal agrees, half of its title (3+ words) in the citation; when the journal can't be compared
@@ -525,7 +529,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             }
             $key = array($rank[$c['status']] - (($c['via'] ?? '') === 'typo' ? 0.5 : 0) - ((string) @$item['type'] === 'posted-content' ? 0.25 : 0), // TYPO: below any other 'possible';
                          $c['agree'], $author_score, $title_share, -$i);                                                                   // a preprint below the published article (Nov 19, 2026)
-            if(!$best || $key > $best['key']) $best = array('key' => $key, 'c' => $c, 'item' => $item, 'i' => $i);
+            $all[$i] = array('key' => $key, 'c' => $c, 'item' => $item, 'i' => $i); // every candidate, for the owner's DOI below
+            if(!$best || $key > $best['key']) $best = $all[$i];
+        }
+        if($best['c']['status'] != 'not found') { // the same work registered twice: the current publisher's DOI (Nov 25, 2026)
+            $j = $this->owners_twin($best, $all);
+            if($j === 'stop') return array('status' => 'stop', 'change_codes' => array());
+            if($j !== null) { $old = (string) $best['item']['DOI']; $best = $all[$j]; $best['c']['owner_swap'] = array('old' => $old, 'owner' => self::doi_prefix($best['item']['DOI'])); }
         }
         $c = $best['c']; $item = $best['item'];
         $c['also'] = $c['status'] == 'not found' ? array() : $this->same_pages_elsewhere($item, $items, $best['i']); // the same work registered twice?
@@ -703,11 +713,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $d = @json_decode((string) $json, true);
         return ($d['status'] ?? '') === 'ok' ? (array) $d['message'] : null;
     }
-    private function crossref_authors($item, &$lookups)
-    {   /* AUTHOR/TITLE: the authors' surnames of one CrossRef candidate. Returns a list (empty: CrossRef lists none), null (couldn't be read) or 'stop' (CrossRef asks us to slow down).
+    private function crossref_authors($item, &$lookups, &$first = null)
+    {   // $first (Nov 25, 2026): CrossRef's first author as it lists it (given, family), for author_title_check()'s name mix-ups
+        $first = null;   /* AUTHOR/TITLE: the authors' surnames of one CrossRef candidate. Returns a list (empty: CrossRef lists none), null (couldn't be read) or 'stop' (CrossRef asks us to slow down).
            AUTHORS IN THE SEARCH: from the search answer itself (no call); for a search answered before that change, from the record
            https://api.crossref.org/works/<DOI>, politely and cached like the search. */
-        if(isset($item['_authors_given'])) return self::author_surnames((array) @$item['author']);
+        if(isset($item['_authors_given'])) { $first = ((array) @$item['author'])[0] ?? null; return self::author_surnames((array) @$item['author']); }
         $doi = (string) @$item['DOI'];
         if($doi === '') return null;
         $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/"));
@@ -716,6 +727,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         else { $lookups++; $json = $this->call_crossref($url); if($json === 'stop') return 'stop'; if($json === false || $json === 'missing') return null; }
         $d = @json_decode((string) $json, true);
         if(($d['status'] ?? '') !== 'ok') return null;
+        $first = ((array) @$d['message']['author'])[0] ?? null;
         return self::author_surnames((array) @$d['message']['author']);
     }
     private static function author_surnames($list)
@@ -724,9 +736,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         foreach($list as $a) { $n = trim((string) ($a['family'] ?? $a['name'] ?? '')); if($n !== '') $names[] = $n; }
         return $names;
     }
-    private function author_title_check($surname, $authors, $citation, $title)
+    private function author_title_check($surname, $authors, $citation, $title, $first = null)
     {   /* AUTHOR/TITLE: the checks to add, a score for ranking candidates (3 = the author agrees, 2 = nearly, 1 = can't tell, 0 = differs), and whether it differs.
-           The surname may be any of CrossRef's authors; accents and capitals don't count; up to 2 letters off counts as nearly (OCR slips, e.g. "Boulesger"). */
+           The surname may be any of CrossRef's authors; accents and capitals don't count; up to 2 letters off counts as nearly (OCR slips, e.g. "Boulesger").
+           $first: CrossRef's first author (given, family), from crossref_authors(), for CrossRef's name mix-ups (crossref_name_mixup(), Nov 25, 2026). */
         $r = array('checks' => array(), 'score' => 1, 'differs' => false);
         $norm = function($x) { $x = mb_strtolower((string) $x); $t = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $x); return preg_replace('/[^a-z]/', '', $t !== false ? $t : $x); };
         $sn = $norm($surname);
@@ -740,6 +753,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
                 if($an === $sn || (strlen($an) >= 4 && str_ends_with($sn, $an)) || (strlen($sn) >= 4 && str_ends_with($an, $sn))) { $r['checks'][] = 'author=OK'; $r['score'] = 3; $near = null; break; }
                 if(min(strlen($an), strlen($sn)) >= 5 && levenshtein($an, $sn) <= 2) $near = $a;
             }
+            if($near !== null && ($how = self::crossref_name_mixup($sn, $authors, $first, $norm, (string) $surname, $citation)) !== '') { $r['checks'][] = "author=OK ($how)"; $r['score'] = 3; $near = null; }
             if($near) { $r['checks'][] = "author=nearly ($near)"; $r['score'] = 2; }
             elseif($near === '') { $r['checks'][] = 'author=differs'; $r['score'] = 0; $r['differs'] = true; }
         }
@@ -747,6 +761,36 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if($share === null) $r['checks'][] = 'title=unknown';
         else $r['checks'][] = 'title=' . ($share >= 0.7 ? 'OK' : ($share >= 0.3 ? 'partly' : 'not in citation')) . ' (' . round(100 * $share) . '%)';
         return $r;
+    }
+    private static function crossref_name_mixup($sn, $authors, $first, $norm, $surname = '', $citation = '')
+    {   /* (Nov 25, 2026, from the Data Manager's review of AmphibiaWeb's 'possible' DOIs) the citation's first-author surname ($sn, as $norm() gives it)
+           is in CrossRef after all, written another way; '' = no. The reason is said in the checks, e.g. "author=OK (part of a longer surname in CrossRef)".
+           - one word of a longer surname: "Fong" in "Fong G.", "Bas" in "Bas Lopez", "Oliveira" in "de Oliveira F." (3+ letters)
+           - a garbled letter in CrossRef, where \u{FFFD} stands for one letter: "León" in "Le\u{FFFD}n" (4+ letters)
+           - CrossRef's FIRST author has it as the given name: given and family names mixed up ("Pasmans" given, "Frank" family; "Yuan" given,
+             "Zhiyong" family; "Joseph R. Mendelson" given, "III" family), or the citation gives the first name as the surname ("Gerlinde, H." for Gerlinde Höbel).
+             Only the first author, so a co-author's first name can't make a match.
+           - one word of the citation's own longer surname: "Nag Raj" for CrossRef's "Raj" (3+ letters)
+           - the co-authors agree: 2 or more different surnames (4+ letters) of CrossRef's other authors are in the citation's author list (before its year), e.g. "Le Ru, B. and Iziquel, Y.
+             and Biassangama, A. and Kiyindou, A." for CrossRef's "Rü; Iziquel; Biassangama; Kiyindou"
+           Not a one-letter difference in a short name ("Stet" for "Sket"): too often another person. */
+        foreach(array_slice($authors, 0, 1) as $a) { // CrossRef's first author only: "Subba Rao" is not CrossRef's "Bahadur; Rao"
+            $parts = preg_split('/[\s\-]+/u', trim((string) $a));
+            if(count($parts) > 1) foreach($parts as $p) if(strlen($norm($p)) >= 3 && $norm($p) === $sn) return 'part of a longer surname in CrossRef';
+            if(str_contains((string) $a, "\u{FFFD}") && strlen($sn) >= 4 && preg_match('/^' . implode('[a-z]', array_map($norm, explode("\u{FFFD}", (string) $a))) . '$/', $sn))
+                return 'a garbled letter in CrossRef';
+        }
+        if(is_array($first)) foreach(preg_split('/[\s.\-]+/u', (string) ($first['given'] ?? '')) as $g)
+            if($norm($g) !== '' && $norm($g) === $sn) return "first and last names mixed up in CrossRef";
+        $own = preg_split('/[\s\-]+/u', trim($surname));
+        if(count($own) > 1) foreach($own as $p) if(strlen($norm($p)) >= 3 && $norm($p) === $norm($authors[0] ?? '')) return 'part of the surname in the citation';
+        // co-authors: only names before the citation's first year (its author list), each name once. Not editors after the title (Elias & Wake 1983 in
+        // "Advances in Herpetology ... G. J. Rhodin and K. Miyata, eds."), nor another reference joined to it ("Martignoni ... 51 pp.; Belloncik, S., ...")
+        $zone = preg_match('/^(.*?)\b(?:1[5-9]\d\d|20\d\d)\b/su', $citation, $m) ? $m[1] : $citation;
+        $cw = array(); foreach(preg_split('/[^\p{L}]+/u', $zone) as $w) if($w !== '') $cw[$norm($w)] = 1;
+        $co = 0; $seen = array(); foreach(array_slice($authors, 1) as $a) { $k = $norm($a); if(strlen($k) >= 4 && isset($cw[$k]) && !isset($seen[$k])) { $co++; $seen[$k] = 1; } }
+        if($co >= 2) return "$co co-authors agree";
+        return '';
     }
     private static function squashed_title_in($citation, $title)
     {   // (Nov 19, 2026) CrossRef's title (6+ letters), without spaces and punctuation, is in the citation without them: "Pseudois nayaur and Pseudois schaeferi" in "Pseudoisnayaur and Pseudoisschaeferi"
@@ -799,16 +843,45 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     private function same_pages_elsewhere($best, $items, $best_i)
     {   // other candidates with the same journal, volume and first page as the one chosen, and another DOI: the same work registered twice, perhaps
-        $first = fn($p) => preg_match('/^\s*(\d+)/', (string) $p, $m) ? $m[1] : '';
         $also = array();
-        foreach($items as $i => $it) {
-            if($i == $best_i || (string) @$it['DOI'] === (string) @$best['DOI'] || $first(@$it['page']) === '') continue;
-            if(mb_strtolower((string) @$it['container-title'][0]) === mb_strtolower((string) @$best['container-title'][0])
-               && ltrim((string) @$it['volume'], '0') === ltrim((string) @$best['volume'], '0') && $first(@$it['page']) === $first(@$best['page'])
-               && (trim((string) @$best['volume']) !== '' || trim((string) @$it['issue']) === trim((string) @$best['issue']))) // no volume (Mammalian Species): the same number too (Nov 19, 2026)
+        foreach($items as $i => $it)
+            if($i != $best_i && self::same_pages($best, $it))
                 $also[] = $it['DOI'] . " (" . (@$it['issue'] !== null && @$it['issue'] !== '' ? "issue " . $it['issue'] . ", " : '') . "pages " . @$it['page'] . ", " . self::item_year($it) . ")";
-        }
         return $also;
+    }
+    private static function same_pages($best, $it)
+    {   // $it has the same journal, volume and first page as $best, and another DOI
+        $first = fn($p) => preg_match('/^\s*(\d+)/', (string) $p, $m) ? $m[1] : '';
+        if((string) @$it['DOI'] === (string) @$best['DOI'] || $first(@$it['page']) === '') return false;
+        return mb_strtolower((string) @$it['container-title'][0]) === mb_strtolower((string) @$best['container-title'][0])
+            && ltrim((string) @$it['volume'], '0') === ltrim((string) @$best['volume'], '0') && $first(@$it['page']) === $first(@$best['page'])
+            && (trim((string) @$best['volume']) !== '' || trim((string) @$it['issue']) === trim((string) @$best['issue'])); // no volume (Mammalian Species): the same number too (Nov 19, 2026)
+    }
+    static function doi_prefix($doi) { return strtolower((string) strstr((string) $doi, '/', true)); } // "10.1017/s0952836999006081" -> "10.1017"
+    private function owners_twin($best, $all)
+    {   /* (Nov 25, 2026, the Data Manager's review of AmphibiaWeb) The same work registered twice, and the DOI chosen has an older publisher's prefix:
+           the index of the twin with the current publisher's own DOI, null (keep the one chosen) or 'stop'.
+           E.g. Garcia-Paris & Jockusch 1999, Journal of Zoology 248: 209-218, has 10.1017/s0952836999006081 (Cambridge's, from before the
+           journal moved) and 10.1111/j.1469-7998.1999.tb01197.x; CrossRef lists Wiley (prefix 10.1111) as the owner of both, and the old DOI
+           goes to Wiley's old link service, which may not open the article. Whether a DOI's page opens can't be tested reliably (publishers
+           block automated checks, and it changes from day to day), but the owner can be read from CrossRef: its record's 'prefix'.
+           Only a twin as good as the one chosen (the same status), whose own prefix is the owner's, and only when exactly one is. One extra call
+           (the chosen DOI's record), and one per twin with the owner's prefix; cached for good. */
+        $twins = array();
+        foreach($all as $j => $o) if($j != $best['i'] && $o['c']['status'] === $best['c']['status'] && self::same_pages($best['item'], $o['item'])) $twins[] = $j;
+        if(!$twins) return null;
+        $w = $this->crossref_work((string) $best['item']['DOI']);
+        if($w === 'stop') return 'stop';
+        $owner = is_array($w) ? strtolower((string) @$w['prefix']) : '';
+        if($owner === '' || self::doi_prefix($best['item']['DOI']) === $owner) return null;
+        $hits = array();
+        foreach($twins as $j) {
+            if(self::doi_prefix($all[$j]['item']['DOI']) !== $owner) continue;
+            $wj = $this->crossref_work((string) $all[$j]['item']['DOI']);
+            if($wj === 'stop') return 'stop';
+            if(is_array($wj) && strtolower((string) @$wj['prefix']) === $owner) $hits[] = $j;
+        }
+        return count($hits) == 1 ? $hits[0] : null;
     }
     static function doi_in_text($s)
     {   // a DOI written in the citation itself, e.g. "doi:10.1594/PANGAEA.692046", "DOI: 10.1080/09670262.2014.982202,", "https://doi.org/10..."; '' if none
@@ -1442,8 +1515,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             case 'no CrossRef volume': $n = "$agree, but CrossRef has no volume number for its closest record, and its first author and title couldn't both be confirmed."; break;
             case 'page':          $n = "$agree, but $cited isn't in the article's pages ({$row['crossref_page']}): the article cited may not be in CrossRef."; break;
             case 'author and title': // AUTHOR/TITLE
-                $n = "$agree, but it's another work: the authors differ (the citation has \"{$ref['author']}\", CrossRef has \"{$row['crossref_authors']}\")"
-                   . " and CrossRef's title isn't in the citation."; break;
+                $n = "$agree, but it's probably another work in the same issue: the authors differ (the citation has \"{$ref['author']}\", CrossRef has \"{$row['crossref_authors']}\")"
+                   . " and CrossRef's title, \"" . mb_substr($row['crossref_title'], 0, 80) . "\", doesn't agree with the citation."; break;
             default:              $n = "No CrossRef record agrees with this citation.";
         }
         return $n . $closest . $this->note_old_work($ref);
@@ -1453,9 +1526,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $n = '';
         foreach($c['checks'] as $k) {
             if(str_starts_with($k, 'author=nearly')) $n .= " The first author is spelled slightly differently in CrossRef (\"" . substr($k, 15, -1) . "\" for \"{$ref['author']}\").";
+            if(preg_match('/^author=OK \((.+)\)$/', $k, $m)) $n .= " The first author agrees, though CrossRef writes the names differently ({$m[1]}: \"{$row['crossref_authors']}\").";
             if($k === 'author=differs') $n .= " The authors differ: the citation has \"{$ref['author']}\", CrossRef has \"{$row['crossref_authors']}\". Check that this is the work cited.";
         }
-        if(!empty($c['also'])) $n .= " CrossRef also has " . implode(' and ', $c['also']) . " for the same journal, volume and first page: possibly the same work registered twice. Check which DOI to use.";
+        if(!empty($c['owner_swap'])) $n .= " CrossRef also has " . implode(' and ', $c['also']) . " for the same journal, volume and first page: the same work registered twice."
+            . " This DOI is used because it is the current publisher's own (CrossRef lists prefix {$c['owner_swap']['owner']} as the owner); {$c['owner_swap']['old']} is an older publisher's DOI for it.";
+        elseif(!empty($c['also'])) $n .= " CrossRef also has " . implode(' and ', $c['also']) . " for the same journal, volume and first page: possibly the same work registered twice. Check which DOI to use.";
         return $n;
     }
     private function agreed_text($checks)
@@ -1463,7 +1539,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $names = array();
         foreach(array('journal', 'volume', 'issue', 'year') as $k)
             if(in_array("$k=OK", $checks) || ($k == 'year' && in_array('year=next to it', $checks)) || ($k == 'journal' && in_array('journal=in the citation', $checks))) $names[] = $k;
-        if(in_array('author=OK', $checks)) $names[] = 'first author'; // AUTHOR/TITLE
+        if(preg_grep('/^author=OK\b/', $checks)) $names[] = 'first author'; // AUTHOR/TITLE (also "author=OK (first and last names mixed up in CrossRef)")
         foreach($checks as $k) if(str_starts_with($k, 'title=OK')) $names[] = 'title'; // AUTHOR/TITLE
         if(!$names) return "Nothing could be compared";
         $last = array_pop($names);
@@ -1493,10 +1569,14 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     title=OK / partly / not in citation (with the share of CrossRef's title words found in the citation) / unknown.
   - They break ties between candidates whose journal, volume, year and page agree equally.
   - A candidate whose numbers all agree but whose authors clearly differ is 'possible', not 'matched', with a note.
-  - Only when BOTH disagree -- the authors differ AND under 30% of CrossRef's title is in the citation -- is a candidate
-    rejected ('not found'), e.g. a fish paper whose volume and page happen to match a paper on chickens. One alone is never
+  - Only when BOTH disagree -- the authors differ AND CrossRef's title doesn't agree (under 70% of it in the citation,
+    or too short to compare) -- is a candidate rejected ('not found'): it's usually another work in the same issue, e.g.
+    'Poison frogs' for 'Venomous frogs use heads as weapons' in the same volume of Current Biology. One alone is never
     enough: CrossRef's author and title data for old works is often incomplete or garbled, and many citations have no
     title. 'title=not in citation' is not a warning by itself.
+  - CrossRef's own name mix-ups don't count as differing authors: the surname as one word of a longer one ('Bas' in
+    'Bas Lopez'), a garbled letter ('Le?n' for 'León'), or the first author's given and family names mixed up
+    ('Pasmans' recorded as a given name). 'checks' then says author=OK and why, e.g. '(first and last names mixed up in CrossRef)'.
   - No volume or pages in the citation (a book, or a style without them, e.g. Vancouver '... Journal. 1917 May'):
     a candidate can still be 'possible' (never 'matched') when nothing differs, the first author agrees (or nearly), at
     least 90% of CrossRef's title is in the citation, and, for a journal article, the journal is named in the citation.

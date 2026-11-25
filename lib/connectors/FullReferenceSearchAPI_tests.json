@@ -2800,6 +2800,60 @@
     "DOI": "10.3354/meps163245"
    },
    "why": "One of ShelledAnimalBodyMass's 7 real citations: searched as usual (the Femorale rule only skips text that starts with \"Femorale\" and the femorale.com shell-photo address)."
+  },
+  {
+   "id": "joined-references-list",
+   "source": "TreeCarbonEstimates (Nov 26, 2026)",
+   "full_reference": "Wright, I. J., D. D. Ackerly, F. Bongers, K. E. Harms, G. Ibarra-Manriquez, M. Martinez-Ramos, S. J. Mazer, H. C. Muller-Landau, H. Paz, N. C. A. Pitman, L. Poorter, M. R. Silman, C. F. Vriesendorp, C. O. Webb, M. Westoby, and S. J. Wright. 2007. Relationships among ecologically important dimensions of plant trait variation in seven Neotropical forests. Annals of Botany 99:1003-1015. | Zheng, W. 1983. Silva Sinica: Volume 1-4. China Forestry Publishing House, Beijing.",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "Several references joined in one"
+   },
+   "why": "TreeCarbonEstimates' reference 1900, a list of TRY datasets joined with \" | \": searched as a whole it was 'matched' to Wright et al. 2006 (10.1093/aob/mcl066), one of the works in the list. One DOI can't stand for the list."
+  },
+  {
+   "id": "joined-references-list-with-a-doi",
+   "source": "TreeCarbonEstimates (Nov 26, 2026)",
+   "full_reference": "Wright, I. J., D. D. Ackerly, F. Bongers, K. E. Harms, G. Ibarra-Manriquez, M. Martinez-Ramos, S. J. Mazer, H. C. Muller-Landau, H. Paz, N. C. A. Pitman, L. Poorter, M. R. Silman, C. F. Vriesendorp, C. O. Webb, M. Westoby, and S. J. Wright. 2007. Relationships among ecologically important dimensions of plant trait variation in seven Neotropical forests. Annals of Botany 99:1003-1015. | Williams, M., Y.E. Shimabokuro and E.B. Rastetter. 2012. LBA-ECO CD-09 Soil and Vegetation Characteristics, Tapajos National Forest, Brazil. Data set. Available on-line http://daac.ornl.gov] from Oak Ridge National Laboratory Distributed Active Archive Center, Oak Ridge, Tennessee, U.S.A. http://dx.doi.org/10.3334/ORNLDAAC/1104",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "Several references joined in one"
+   },
+   "why": "A joined list that has a DOI written in one of its parts: skipped before the DOI is checked, or it would get that one work's DOI."
+  },
+  {
+   "id": "joined-references-citation-plus-unpublished",
+   "source": "TreeCarbonEstimates (Nov 26, 2026)",
+   "full_reference": "Pillar, V. D. and E. E. Sosinski. 2003. An improved method for searching plant functional types by numerical analysis. Journal of Vegetation Science 14:323-332. | unpublished data",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "Several references joined in one"
+   },
+   "why": "One citation and \"unpublished data\" joined: the value comes from both, so no single DOI."
+  },
+  {
+   "id": "unpublished-data-alone",
+   "source": "TreeCarbonEstimates (Nov 26, 2026)",
+   "full_reference": "unpublished data",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "Unpublished data"
+   },
+   "why": "Not a published work, so no DOI (TreeCarbonEstimates 1 row, GloBI 2)."
+  },
+  {
+   "id": "bar-inside-one-citation-drenkhan",
+   "source": "GloBI (Nov 26, 2026)",
+   "full_reference": "Drenkhan, R. & Hanso, M.. 2009. Recent invasion of foliage fungi of pines (Pinus spp.) to the Northern Baltics. Forestry Studies | Metsanduslikud Uurimused. Vol Vol 51. pp 49-64",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.2478/v10132-011-0077-7"
+   },
+   "why": "A \"|\" inside one citation (a bilingual journal name, \"Forestry Studies | Metsanduslikud Uurimused\") is not a list: searched as usual."
   }
  ]
 }

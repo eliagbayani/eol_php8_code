@@ -101,6 +101,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     const AFD_PAGE = '/^\S+ \d{4}\. Australian Faunal Directory\./';
     // (Nov 26, 2026) a Femorale shell-photo page, e.g. ShelledAnimalBodyMass's "Femorale. http://www.femorale.com/shellphotos/detail.asp?species=Chama%20fragum%20Reeve%2C%201846
     //   Accessed 2014-10-14" (22,146 of its 22,153 references): a web page, not a citation with a DOI (25 of 25 searched: all 'not found')
+    // (Nov 26, 2026) "unpublished data" (or "unpublished", "pers. comm.") on its own: not a published work (TreeCarbonEstimates 1, GloBI 2)
+    const UNPUBLISHED = '/^\s*(?:unpublished(?:\s+data)?|pers(?:onal)?\.?\s*comm(?:unication)?\.?)\s*\.?\s*$/i';
     const FEMORALE_PAGE = '~^Femorale\b[.,:]?\s*(?:https?://)?(?:www\.)?femorale\.com/shellphotos/~i';
         // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
@@ -418,6 +420,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['change_codes'] = array_keys($changes);      // not a column: counted for the guide
         foreach(array('author', 'year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
+        // (Nov 26, 2026) a list of references joined with " | ": skipped before a DOI written in it is checked, as one work's DOI can't stand for the list
+        if(self::joined_references($full_reference) >= 2) return array_merge($row, array('status' => 'skipped', 'review_note' => self::not_searched_note($full_reference)));
         if($cands = self::doi_candidates($full_reference, $span)) { // the citation gives its own DOI: no search
             foreach($cands as $doi) { $r = $this->doi_given($row, $doi, $full_reference); if(!self::doi_unregistered($r)) return $r; }
             /* (Nov 22, 2026) neither CrossRef nor DataCite has it (mistyped, or cut short): never used as the DOI. The citation without it is searched
@@ -987,6 +991,8 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     static function not_searched_note($text)
     {   // why a full_reference (cleaned, with no DOI given) is not sent to CrossRef: its review_note; '' = it is searched. Used by find_DOI() and the estimate.
+        if(preg_match(self::UNPUBLISHED, $text))        return "Unpublished data: not a published work, so it has no DOI: not searched.";
+        if(($n = self::joined_references($text)) >= 2)  return "Several references joined in one, separated by \"|\" ($n of them): one DOI can't stand for all of them, so not searched.";
         if(mb_strlen($text) < self::MIN_LENGTH)         return 'Too short to search.';
         if(preg_match(self::BARE_LINK, $text))          return 'Only a link, not a citation: not searched.';
         if(preg_match(self::NO_SPACE, $text))           return 'An identifier or code with no spaces, not a citation: not searched.';
@@ -1019,6 +1025,23 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         // $year: the year read from the citation (find_DOI's, after its own fixes). Used by find_DOI() and the estimate.
         if(!$this->min_year || !preg_match('/^\d{4}$/', (string) $year) || (int) $year >= $this->min_year) return '';
         return "Published in $year, before {$this->min_year} (this run's \"min_year\"): not searched. CrossRef has almost no DOIs for works that old.";
+    }
+    static function joined_references($text)
+    {   /* (Nov 26, 2026) how many references are joined in one full_reference with " | " (0 or 1 = not a list). TreeCarbonEstimates (TRY data)
+           has 3,794 of 3,850 such lists, e.g. "Bragazza L (2009) Conservation priority ... | Dainese M, Bragazza L (2012) Plant traits ... | unpublished data":
+           searched as a whole, a list got one of its works' DOI ("matched" to Wright et al. 2006 for a list starting with it).
+           A part counts as a reference when it has a year and 4+ words, or starts with an author ("Prentice, I.C.,"), or is "unpublished data";
+           a list needs 2+ references, at least one of them a citation. Not a "|" inside one citation, e.g. GloBI's Drenkhan & Hanso 2009,
+           "... Forestry Studies | Metsanduslikud Uurimused. Vol 51. pp 49-64" (a bilingual journal name), or a web page title "MELOIDAE | uk beetles". */
+        if(!str_contains($text, ' | ')) return 0;
+        $cites = $fill = 0;
+        foreach(explode(' | ', $text) as $part) {
+            $part = trim($part); if($part === '') continue;
+            if(preg_match(self::UNPUBLISHED, $part)) { $fill++; continue; }
+            if((preg_match('/(?<!\d)(?:1[5-9]\d\d|20[0-2]\d)(?!\d)/', $part) && count(preg_split('/\s+/', $part)) >= 4)
+               || preg_match("/^[A-Z][\\w'\x{2019}\\-]+(?: [A-Z][\\w'\x{2019}\\-]+)?,? (?:[A-Z]\\.?[\\- ]?){1,3}[,.&]/u", $part)) $cites++;
+        }
+        return $cites >= 1 && $cites + $fill >= 2 ? $cites + $fill : 0;
     }
     static function doi_in_column($s)
     {   // a DOI from a 'doi' column: "10.1002/ecy.1680", "doi:10...", "https://doi.org/10..."; '' if it doesn't hold one (e.g. "10.101/6/j.pocean.2015.05.011")
@@ -1276,6 +1299,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     private function count_one_row(&$n, &$seen, $full_reference, $doi_column = '')
     {   $ref = self::clean_full_reference(trim($full_reference), $changes); // as find_DOI() searches it, in the same order
+        if(self::joined_references($ref) >= 2) { $n['skipped']++; return; } // a list of references joined with " | " (Nov 26, 2026), before a DOI in it
         if(($doi = self::doi_in_text($ref)) !== '' || ($doi = self::doi_in_column($doi_column)) !== '') $url = $this->crossref_works_url . "/" . substr(self::doi_url($doi), strlen("https://doi.org/")); // a DOI given: CrossRef's record of it is read, no search (as find_DOI -> doi_given)
         elseif(self::not_searched_note($ref) !== '') { $n['skipped']++; return; } // not searched (find_DOI's rules)
         else { $year = $this->parse_full_reference($ref)['year']; if(self::year_lost($changes) && !self::year_as_volume($ref, $year)) $year = '';

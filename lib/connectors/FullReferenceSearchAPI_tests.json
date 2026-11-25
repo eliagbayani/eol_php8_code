@@ -2779,6 +2779,27 @@
     "error_contains": "\"other_year_search\" must be true or false"
    },
    "why": "A quoted \"false\" would count as on: stops the run instead."
+  },
+  {
+   "id": "femorale-shell-photo-page",
+   "source": "ShelledAnimalBodyMass (Nov 26, 2026)",
+   "full_reference": "Femorale. http://www.femorale.com/shellphotos/detail.asp?species=Chama%20fragum%20Reeve%2C%201846 Accessed 2014-10-14",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "A Femorale shell-photo page"
+   },
+   "why": "22,146 of ShelledAnimalBodyMass's 22,153 references are Femorale shell-photo pages: web pages, not citations with DOIs. Skipped, not searched (they would cost about 15 hours of CrossRef calls, all 'not found')."
+  },
+  {
+   "id": "femorale-not-a-citation-of-the-site",
+   "source": "ShelledAnimalBodyMass (Nov 26, 2026)",
+   "full_reference": "Anthony Ricciardi*, Edwin Bourget. 1998. Weight-to-weight conversion factors for marine benthic macroinvertebrates. MARINE ECOLOGY PROGRESS SERIES, Vol. 163: 245-251. Accessed at http://www.int-res.com/articles/meps/163/m163p245.pdf",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.3354/meps163245"
+   },
+   "why": "One of ShelledAnimalBodyMass's 7 real citations: searched as usual (the Femorale rule only skips text that starts with \"Femorale\" and the femorale.com shell-photo address)."
   }
  ]
 }

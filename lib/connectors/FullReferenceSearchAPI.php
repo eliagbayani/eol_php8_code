@@ -17,7 +17,8 @@ namespace php_active_record;
                  (e.g. "Influenza A virus (...) segment 4 hemagglutinin (HA) gene, complete cds"): not citations (Nov 21, 2026);
                  or only authors and a year (e.g. "Negredo et al. 2011"): too little to confirm a DOI (Nov 21, 2026);
                  or an identifier with no spaces (e.g. "urn:catalog:RSKM:OWLPELLET:OP-1629.0012"), a Universal Chalcidoidea Database code
-                 ("XiaoJiZh2012 via Universal Chalcidoidea Database") or an Australian Faunal Directory page: not citations (Nov 21, 2026).
+                 ("XiaoJiZh2012 via Universal Chalcidoidea Database") or an Australian Faunal Directory page: not citations (Nov 21, 2026);
+                 or a Femorale shell-photo page ("Femorale. http://www.femorale.com/shellphotos/detail.asp?species=...", Nov 26, 2026).
                  All these rules are in not_searched_note().
                  Or (only when the run asks for it, "min_year": e.g. 1900) published before that year: CrossRef has almost no DOIs for
                  works that old (Brazilian Flora, Nov 25, 2026: 1 in 443 sampled citations before 1900). A row with no year is still searched,
@@ -98,6 +99,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     //   "141 Spec No", "454-455", "Van Der Maaten MJ, 1975, Bibl Haematol," (661 more rows; the 108 searched were all 'not found')
     const SHORT_CITATION = '/^[^,]{2,60}, (?:1[5-9]|20)\d\d, [^,]{2,80},(?: [0-9A-Za-z]{1,6}(?:-\d{1,6})?(?: ?\( ?Pt [0-9A-Za-z]{1,3} ?\)| Pt [0-9A-Za-z]{1,3}| Suppl(?: [0-9A-Za-z]{1,3})?| Spec No)?)?$/';
     const AFD_PAGE = '/^\S+ \d{4}\. Australian Faunal Directory\./';
+    // (Nov 26, 2026) a Femorale shell-photo page, e.g. ShelledAnimalBodyMass's "Femorale. http://www.femorale.com/shellphotos/detail.asp?species=Chama%20fragum%20Reeve%2C%201846
+    //   Accessed 2014-10-14" (22,146 of its 22,153 references): a web page, not a citation with a DOI (25 of 25 searched: all 'not found')
+    const FEMORALE_PAGE = '~^Femorale\b[.,:]?\s*(?:https?://)?(?:www\.)?femorale\.com/shellphotos/~i';
         // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
@@ -989,6 +993,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(preg_match(self::GENBANK_TITLE, $text) || preg_match(self::GENBANK_TITLE_FORMS, $text)) return 'A GenBank sequence title, not a citation: not searched.';
         if(preg_match(self::CHALCID_DB_CODE, $text))    return 'A Universal Chalcidoidea Database code, not a citation: not searched.';
         if(preg_match(self::AFD_PAGE, $text))           return 'An Australian Faunal Directory page, not a citation with a DOI: not searched.';
+        if(preg_match(self::FEMORALE_PAGE, $text))      return 'A Femorale shell-photo page (a web page), not a citation with a DOI: not searched.';
         if(preg_match(self::FISHBASE_WEB_PAGE, $text))  return 'An OBIS distribution map or an FAO-FIGIS species fact sheet (a web page), not a citation with a DOI: not searched.';
         if(preg_match(self::SHORT_CITATION, $text))     return 'Only a first author, year, journal and volume (no title or page), not enough to confirm a DOI: not searched.';
         if(preg_match(self::AUTHOR_YEAR_ONLY, $text))   return 'Only authors and a year, not enough to confirm a DOI: not searched.';

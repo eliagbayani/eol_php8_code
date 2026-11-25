@@ -131,6 +131,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
            __construct(), run_tests() and write_guide()
        It needs the author and title checks (they confirm a DataCite record), so it's off when they are off. A DataCite DOI is at most 'possible'. */
     const DATACITE_SEARCH = true;
+    const OTHER_YEAR_SEARCH = true; // OTHER YEAR (Nov 25, 2026): a 'not found' row is searched once more without the year limit; see other_year_route(). For one run: "other_year_search": false
     const HINT_SCORE = 80; // (Nov 19, 2026) a 'not found' row whose closest CrossRef candidate scores this or more gets a "worth a look" hint (candidate_hint)
     /* (Nov 22, 2026) AUTHORS IN THE SEARCH: the search asks CrossRef for 'author' too, so a candidate's authors come with the search answer, at no extra call.
        Before, each candidate that passed the other checks cost one more call (https://api.crossref.org/works/<DOI>) for its authors: with mostly matched
@@ -173,6 +174,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $this->pace = array(); // PACE: per service, the gap between call starts and whether CrossRef asked us to slow down
         $this->author_title_checks = array_key_exists('author_title_checks', (array) $param) ? (bool) $param['author_title_checks'] : self::AUTHOR_TITLE_CHECKS;
         $this->datacite_search = $this->author_title_checks && (array_key_exists('datacite_search', (array) $param) ? (bool) $param['datacite_search'] : self::DATACITE_SEARCH); // DATACITE
+        $this->other_year_search = array_key_exists('other_year_search', (array) $param) ? (bool) $param['other_year_search'] : self::OTHER_YEAR_SEARCH; // OTHER YEAR
         $this->min_year = self::min_year_param($param); // MIN YEAR: 0 = off (the default); false = not a valid year (options_error() says so)
         $this->min_year_skips = 0; // MIN YEAR: rows skipped by it, for the guide
         $this->work_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
@@ -320,8 +322,9 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             $keep = array($this->min_year, $this->datacite_search); $o = (array) ($t['options'] ?? array());
             if(isset($o['min_year'])) $this->min_year = (int) $o['min_year'];
             if(isset($o['datacite_search'])) $this->datacite_search = $this->author_title_checks && (bool) $o['datacite_search'];
+            $keep[] = $this->other_year_search; if(isset($o['other_year_search'])) $this->other_year_search = (bool) $o['other_year_search']; // OTHER YEAR
             $got = $this->find_DOI($t['full_reference'], $t['doi'] ?? '');
-            list($this->min_year, $this->datacite_search) = $keep;
+            list($this->min_year, $this->datacite_search, $this->other_year_search) = $keep;
             if($got['status'] == 'stop') { echo "\nCrossRef keeps asking us to slow down: the tests stopped. Try again later.\n"; $res['stopped'] = true; break; }
             foreach($e as $k => $want) {
                 if($k == 'requires') continue;
@@ -445,6 +448,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if($items === false) return array_merge($row, array('status' => 'error', 'review_note' => 'CrossRef could not be reached. Run again: this row will be searched again.'));
         if(!$items) {
             $row = array_merge($row, array('status' => 'not found', 'review_note' => $this->note_no_candidates($ref)));
+            if(($y = $this->other_year_route($row, $ref, $full_reference)) !== null) return $y === 'stop' ? array('status' => 'stop', 'change_codes' => array()) : $y; // OTHER YEAR
             return $this->datacite_route($row, $ref, $full_reference); // DATACITE: a second search, when no volume or pages were read
         }
 
@@ -548,6 +552,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['DOI_URL'] = self::doi_url($row['DOI']);
         $row['DOI_source'] = $row['DOI'] !== '' ? 'CrossRef' : '';
         $row['review_note'] = $this->review_note($ref, $row, $c);
+        if($row['status'] == 'not found' && ($y = $this->other_year_route($row, $ref, $full_reference)) !== null) return $y === 'stop' ? array('status' => 'stop', 'change_codes' => array()) : $y; // OTHER YEAR
         if($row['status'] == 'not found') return $this->candidate_hint($this->datacite_route($row, $ref, $full_reference)); // DATACITE: a second search, when no volume or pages were read
         return $row;
     }
@@ -562,6 +567,69 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(preg_match('/(?:^|\s)type=/', (string) ($row['checks'] ?? ''))) return $row; // rejected as not a work (a table of contents, a masthead, a preprint ...): never worth a look
         $row['review_note'] = rtrim($row['review_note']) . " Worth a look: the closest CrossRef candidate, " . $row['crossref_DOI'] . " (score " . $row['crossref_score'] . "), "
             . "is often the right one at this score (about 9 in 10 on the Data Managers' list), but this citation can't confirm it: open it to check.";
+        return $row;
+    }
+    private function other_year_route($row, $ref, $citation)
+    {   /* OTHER YEAR (Nov 25, 2026, from the Data Manager's review of AmphibiaWeb): a row still 'not found' is searched once more WITHOUT the year limit,
+           for citations whose year is wrong. E.g. "Dunn, E. R. (1954). The status of Siredon gracilis Baird. Copeia, 1954, 135-136." is in Copeia
+           no. 154, p. 135, of 1926 (10.2307/1437298, the Data Manager's DOI): the issue number was read as a year, so the normal search (1953-1955) can't see it.
+           Strict, so that a citation that really has no DOI doesn't get one: a candidate from another year (2+ off) is given, at most 'possible', only when
+             - the citation has a year, a first author and a title (CrossRef's title: 3+ words, 90% of them in the citation),
+             - CrossRef's FIRST author is the citation's first author (or crossref_name_mixup()),
+             - the journal agrees (journal_agrees()), and the cited page is CrossRef's first page or in its range (both must have a page),
+             - a volume in both agrees (unless the cited "volume" is the cited year, as in "Copeia, 1954"),
+             - it is not a book, a chapter or a preprint (another edition or version would pass all of this), nor a table of contents etc.,
+             - and no other candidate of that search passes too (two different DOIs: none).
+           One more CrossRef call per such row (cached). Returns the row (possible), null (nothing) or 'stop'. Off with "other_year_search": false. */
+        if(!$this->author_title_checks || !$this->other_year_search || !preg_match('/^\d{4}$/', $ref['year']) || $ref['author'] === '' || $ref['page'] === '') return null;
+        // a title must be possible, else the search can't pass and would only cost a call: 3+ whole words (4+ letters, not abbreviated with a period)
+        // besides the first author. Brazilian Flora's "Kuhlmann, J.G.. 1935. Notizbl. Königl. Bot. Gart. Berlin,12(115): 558,1935." has one ("Berlin");
+        // "Dunn, E. R. (1954). ''The status of Siredon gracilis Baird.'' Copeia, 1954, 135-136." has "status", "Siredon", "gracilis", "Copeia"
+        preg_match_all('/(?<!\p{L})\p{L}{4,}(?![\p{L}.])/u', $citation, $m);
+        $an = mb_strtolower($ref['author']);
+        if(count(array_filter($m[0], fn($w) => mb_strtolower($w) !== $an)) < 3) return null;
+        $items = $this->search_crossref($citation, '');
+        if($items === 'stop') return 'stop';
+        if(!$items) return null;
+        $pass = array(); $lookups = 0;
+        foreach($items as $item) {
+            $y = self::item_year($item);
+            if(!preg_match('/^\d{4}$/', $y) || abs((int) $y - (int) $ref['year']) <= 1) continue; // the normal search had those
+            $type = (string) @$item['type'];
+            if($type !== 'journal-article') continue; // not a book, chapter, preprint, issue ...
+            $title = trim(strip_tags((string) @$item['title'][0]));
+            if(preg_match(self::NOT_A_WORK_TITLE, $title)) continue;
+            $share = self::title_share($citation, $title);
+            if($share === null || $share < 0.9) continue;
+            $container = (string) @$item['container-title'][0]; // the journal; or at the end of the text before it, where a title is often left ("''The status of ...'' Copeia")
+            if($this->journal_agrees($ref['journal'], $container) !== true && !($ref['journal_zone'] !== '' && $this->journal_in_zone($ref['journal_zone'], $container))) continue;
+            if(!preg_match('/^\s*(\d+)(?:\s*[-\x{2013}]\s*(\d+))?\s*$/u', (string) @$item['page'], $p)) continue;
+            $cited = (int) $ref['page'];
+            if(!($cited == (int) $p[1] || (isset($p[2]) && $cited > (int) $p[1] && $cited <= (int) $p[2]))) continue;
+            $cv = ltrim(trim($ref['volume']), '0'); $iv = ltrim(trim((string) @$item['volume']), '0');
+            if($cv !== '' && $iv !== '' && $cv !== $iv && $cv !== $ref['year']) continue;
+            $first = null; $authors = $this->crossref_authors($item, $lookups, $first);
+            if($authors === 'stop') return 'stop';
+            if(!is_array($authors) || !$authors) continue;
+            $a = $this->author_title_check($ref['author'], array_slice($authors, 0, 1), $citation, $title, $first);
+            if($a['score'] < 3) continue;
+            $item['_authors'] = implode('; ', $authors); $item['_a'] = $a; $item['_first_page'] = (int) $p[1];
+            $pass[strtolower((string) $item['DOI'])] = $item;
+        }
+        if(count($pass) != 1) return null; // none, or two different DOIs: can't tell
+        $item = reset($pass); $y = self::item_year($item);
+        $clean = fn($s) => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags((string) $s), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        $checks = array_merge(array("year=differs (cited {$ref['year']}, CrossRef $y)", 'journal=OK', 'page=' . ((int) $ref['page'] == $item['_first_page'] ? 'first page ' : 'in ') . $ref['page']), $item['_a']['checks'], array('search=without the year'));
+        $row = array_merge($row, array('status' => 'possible', 'DOI' => (string) $item['DOI'], 'crossref_DOI' => (string) $item['DOI'], 'crossref_score' => round((float) @$item['score'], 1),
+            'crossref_type' => (string) @$item['type'], 'crossref_year' => $y, 'crossref_journal' => $clean(@$item['container-title'][0]), 'crossref_volume' => $clean(@$item['volume']),
+            'crossref_issue' => $clean(@$item['issue']), 'crossref_page' => $clean(@$item['page']), 'crossref_title' => $clean(@$item['title'][0]), 'crossref_authors' => $item['_authors'],
+            'checks' => implode(' ', $checks)));
+        $row['DOI_URL'] = self::doi_url($row['DOI']); $row['DOI_source'] = 'CrossRef';
+        $row['review_note'] = "The first author, the title, the journal and the page agree, but the year doesn't: the citation has {$ref['year']}, CrossRef has $y."
+            . " Found by a second search without the year. Either the citation's year is wrong (e.g. an issue number read as a year), or CrossRef dates the"
+            . " article by when it was put online (often years later for old articles). Check that it's the same article before accepting it."
+            . " Candidate: \"" . $row['crossref_journal'] . "\" " . ($row['crossref_volume'] !== '' ? $row['crossref_volume'] : '') . ($row['crossref_issue'] !== '' ? "(" . $row['crossref_issue'] . ")" : '')
+            . ": " . $row['crossref_page'] . " ($y), \"" . mb_substr($row['crossref_title'], 0, 120) . "\".";
         return $row;
     }
     private function datacite_route($row, $ref, $citation, $dataset = false)
@@ -931,7 +999,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
            Used by start() and by analyze_MoF.php, which passes "min_year" and "datacite_search" on to the search. */
         $p = (array) $param;
         if(self::min_year_param($p) === false) return "\"min_year\" must be a year, e.g. \"min_year\": 1900 (rows published before it are skipped). Got: [" . json_encode($p['min_year']) . "]";
-        foreach(array('datacite_search', 'author_title_checks') as $k) // a quoted "false" would count as on
+        foreach(array('datacite_search', 'author_title_checks', 'other_year_search') as $k) // a quoted "false" would count as on
             if(array_key_exists($k, $p) && !is_bool($p[$k])) return "\"$k\" must be true or false, without quotes, e.g. \"$k\": false. Got: [" . json_encode($p[$k]) . "]";
         return '';
     }

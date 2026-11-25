@@ -1347,10 +1347,12 @@
    "source": "Data Managers' DOI list (Nov 2026)",
    "full_reference": "Grimble, D. G., Beckwith, R. C., & Hammond, P. C. (1992). A survey of the Lepidoptera fauna from the Blue Mountains of eastern Oregon. Journal of Research on the Lepidoptera, 31(1-2), 83-102.",
    "expect": {
-    "status": "not found",
+    "status": "possible",
+    "DOI": "10.5962/p.266585",
+    "checks_contains": "search=without the year",
     "requires": "author_title_checks"
    },
-   "why": "A Forest Service report by the same authors (another work, 71% of the title) was given before; with the cited volume/page differing: not found."
+   "why": "A Forest Service report by the same authors (another work, 71% of the title) was given before; with the cited volume/page differing: not found. Since Nov 25, 2026 the second search without the year finds the Data Manager's DOI (CrossRef dates volume 31 to 1994, the citation 1992); the Forest Service report is still never given."
   },
   {
    "id": "dm-sheet-855",
@@ -2370,11 +2372,11 @@
    "source": "The Data Manager's review of AmphibiaWeb's 'possible' DOIs (Nov 25, 2026): https://doi.org/10.2307/1437298",
    "full_reference": "Dunn, E. R. (1954). ''The status of Siredon gracilis Baird.'' Copeia, 1954, 135-136.",
    "expect": {
-    "status": "not found",
-    "DOI": "",
+    "status": "possible",
+    "DOI": "10.2307/1437298",
     "requires": "author_title_checks"
    },
-   "why": "Para 3: was 'possible' 10.2307/1440665 (\"Trout\", Hazzard and Bergman), another work in the same volume of Copeia: authors and title both disagree."
+   "why": "Para 3: was 'possible' 10.2307/1440665 (\"Trout\", Hazzard and Bergman), another work in the same volume of Copeia: authors and title both disagree. Since the second search without the year (Nov 25, 2026), it gets the DOI the Data Manager gave: the article is in Copeia no. 154 (1926), not 1954."
   },
   {
    "id": "dm-aw-cuevas-names-mixed",
@@ -2678,6 +2680,105 @@
     "requires": "author_title_checks"
    },
    "why": "Was 'possible' \"Powdery Mildew (Oidiopsis taurica) on Onion in California\" by Laemmlen for an onion downy mildew epidemic in Texas by Miller & Amador: authors differ, title partly (33%)."
+  },
+  {
+   "id": "other-year-dunn-issue-read-as-year",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "full_reference": "Dunn, E. R. (1954). ''The status of Siredon gracilis Baird.'' Copeia, 1954, 135-136.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/1437298",
+    "checks_contains": "search=without the year",
+    "note_contains": "the citation has 1954, CrossRef has 1926",
+    "requires": "author_title_checks"
+   },
+   "why": "The Data Manager's DOI for AmphibiaWeb's Dunn row: Copeia no. 154 (1926) cited as \"Copeia, 1954\". The normal search (1953-1955) can't see it; the second search finds it with the first author, title, journal and page all agreeing."
+  },
+  {
+   "id": "other-year-dunn-switched-off",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "options": {
+    "other_year_search": false
+   },
+   "full_reference": "Dunn, E. R. (1954). ''The status of Siredon gracilis Baird.'' Copeia, 1954, 135-136.",
+   "expect": {
+    "status": "not found",
+    "DOI": "",
+    "requires": "author_title_checks"
+   },
+   "why": "With \"other_year_search\": false there is no second search: 'not found', as before."
+  },
+  {
+   "id": "other-year-dm-sheet-mount",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "full_reference": "Mount, R. H. 1983. The natural history of the red-tailed skink, Eumeces egregius Baird. American Midland Naturalist 70:356-385.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/2423064",
+    "checks_contains": "year=differs (cited 1983, CrossRef 1963)",
+    "requires": "author_title_checks"
+   },
+   "why": "The Data Manager's DOI: cited as 1983, published in 1963."
+  },
+  {
+   "id": "other-year-dm-sheet-luick",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "full_reference": "J. R. Luick;H. R. Parker;A. C. Andersen. 1966. Composition of beagle dog milk. pp. 731-732. American Journal of Physiology. vol. 199",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1152/ajplegacy.1960.199.4.731",
+    "checks_contains": "search=without the year",
+    "requires": "author_title_checks"
+   },
+   "why": "The Data Manager's DOI: cited as 1966, published in 1960."
+  },
+  {
+   "id": "other-year-aw-shoop",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "full_reference": "Shoop, C.R. (1994). ''Migratory orientation of Ambystoma maculatum: movements near breeding ponds and displacements of migrating individuals.'' The Biological Bulletin, 135, 230-238.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/1539630",
+    "checks_contains": "search=without the year",
+    "requires": "author_title_checks"
+   },
+   "why": "AmphibiaWeb cites it as 1994; it is in The Biological Bulletin 135 (1968)."
+  },
+  {
+   "id": "other-year-fishbase-hill-typo",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "full_reference": "Hill, J. and G.D. Grossman0 Home range estimates for three North American stream fishes. Copeia 1897(2):376-380. (Ref. 129208)",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.2307/1445773",
+    "checks_contains": "year=differs (cited 1897, CrossRef 1987)",
+    "requires": "author_title_checks"
+   },
+   "why": "A typo in the citation's year: \"Copeia 1897(2)\" for 1987."
+  },
+  {
+   "id": "other-year-aw-arnold-online-date",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "full_reference": "Arnold, S. J. (1976). ''Sexual behavior, sexual interference, and sexual defense in the salamanders Ambystoma maculatum, Ambystoma tigrinum, and Plethodon jordani.'' Zeitschrift für Tierpsychologie, 42, 247-300.",
+   "expect": {
+    "status": "possible",
+    "DOI": "10.1111/j.1439-0310.1976.tb00970.x",
+    "note_contains": "put online",
+    "requires": "author_title_checks"
+   },
+   "why": "CrossRef dates this 1976 article by when it was put online (2010); vol. 42 agrees."
+  },
+  {
+   "id": "options-bad-other-year-quoted",
+   "source": "Second search without the year limit (Nov 25, 2026)",
+   "check_options": {
+    "other_year_search": "false"
+   },
+   "full_reference": "",
+   "expect": {
+    "error_contains": "\"other_year_search\" must be true or false"
+   },
+   "why": "A quoted \"false\" would count as on: stops the run instead."
   }
  ]
 }

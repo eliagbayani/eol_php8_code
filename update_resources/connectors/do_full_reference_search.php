@@ -43,6 +43,10 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       They are in the report as 'skipped' (review_note: "Published in 1823, before 1900 ..."), so the report still has every row; the estimate
       and the guide count them. CrossRef has almost no DOIs for works that old (Brazilian Flora: 1 in 443 sampled citations before 1900), so
       this saves hours on old floras. A row with no year is still searched, and a citation that gives its own DOI is still checked.
+    - Second search without the year (Nov 25, 2026), on by default: a row still 'not found' that has a year, a first author, a page and a title is
+      searched once more without the year limit, for citations with a wrong year (e.g. "Dunn 1954 ... Copeia, 1954, 135-136" is Copeia no. 154 of 1926).
+      Given only as 'possible', and only when CrossRef's first author, 90% of the title, the journal and the page all agree (never a book or preprint);
+      checks say "search=without the year". To turn it off for a run: add "other_year_search": false. See other_year_route() in FullReferenceSearchAPI.php.
     - Tests: the known cases (problems fixed before, CrossRef's own sample citations, citation styles) must still give their expected results:
       php do_full_reference_search.php _ '{"task": "run_tests"}'
       The cases are in lib/connectors/FullReferenceSearchAPI_tests.json: add one whenever a problem is fixed. Also [Run Tests] on the web page.

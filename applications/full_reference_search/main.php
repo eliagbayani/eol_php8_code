@@ -40,7 +40,7 @@ function duration_text($s)
     if($s < 172800) return rtrim(rtrim(number_format($s / 3600, 1), '0'), '.') . " hours";
     return rtrim(rtrim(number_format($s / 86400, 1), '0'), '.') . " days";
 }
-const KEEP_REPORTS = 20;  // = FullReferenceSearchAPI::KEEP_REPORTS: the script deletes older reports when a search starts
+const KEEP_REPORTS = 50;  // = FullReferenceSearchAPI::KEEP_REPORTS: the script deletes older reports when a search starts
 if(!is_dir($work_dir)) @mkdir($work_dir, 0777, true);
 
 function h($s) { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }

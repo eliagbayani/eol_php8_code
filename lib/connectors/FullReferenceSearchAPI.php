@@ -113,7 +113,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
        (6 minutes after an earlier 429: CrossRef seems to count over several minutes). The real limit is about where this pause already is. */
     const PAUSE_SECONDS = 1;    // the pause after every CrossRef (and DataCite) call
     const THROTTLE_LIMIT = 5;   // after this many "429 too many requests" / "503 busy" answers in a row (with waits of 1, 2, 4, 8 minutes), the search stops
-    const KEEP_REPORTS = 20;  // only the newest 20 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
+    const KEEP_REPORTS = 50;  // (50 since Nov 26, 2026; was 20) only the newest 50 reports (each with its _guide.txt) are kept in Reference_maintenance/; older ones are deleted
     const REPORT_RE = '/^[A-Za-z0-9._-]+_DOIs_(\d{8}_\d{6})\.tsv$/'; // e.g. reference_DOIs_20261114_013451.tsv; the time it was made sorts them
     // CrossRef record types that are a whole issue/volume/journal or a part of an article, not an article: never the answer
     /* The author and title checks (added Nov 17, 2026), all in one place so they can be turned off, or removed, if the Data Managers say so:
@@ -265,7 +265,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         fwrite($out, implode("\t", self::OUTPUT_COLUMNS) . "\n");
         echo "\nInput: [$file]\nOutput: [$out_file]\nRows: from " . $start . ($limit ? ", at most $limit" : ', to the end') . "\n";
         if($this->min_year) echo "Year limit (\"min_year\": {$this->min_year}): rows published before {$this->min_year} are skipped, not searched; rows with no year are searched.\n";
-        $this->keep_latest_reports(); // here, not at the end, so stopped searches are counted too; the new report is one of the 20
+        $this->keep_latest_reports(); // here, not at the end, so stopped searches are counted too; the new report is one of the KEEP_REPORTS
         if(($this->param['estimate'] ?? true) !== false) { // the web page shows its own estimate before [Proceed], so it passes "estimate": false
             echo "Counting the rows searched before (in the cache), for the estimate...\n";
             if($n = $this->count_rows_to_search($file, $start, $limit)) echo self::estimate_text($n) . "\n";

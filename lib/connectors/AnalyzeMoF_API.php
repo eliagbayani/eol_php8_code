@@ -56,6 +56,9 @@ Rules:
 
 References (Nov 20, 2026): each reference's identifier is replaced by its DOI as a link (DOI_URL, e.g. https://doi.org/10.1093/jn/44.1.43),
 found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same code and the same CrossRef/DataCite cache as the tool).
+  - Only the references the MoF or the associations use are searched (Nov 26, 2026): those whose identifier is in a MoF or Association
+    referenceID (several joined by ';' or '|'). A reference used only by media, occurrences or taxa keeps its identifier
+    ('not searched (not used by the MoF or associations)').
   - Only 'matched' and 'possible' DOIs are used; 'not found', 'skipped' and 'error' references keep their identifier.
   - Every referenceID (MoF, Association, Occurrence, Taxon; several IDs joined by ';' too) is changed the same way, so no link breaks.
   - A ';' in a DOI (old SICI DOIs, e.g. 10.1656/1528-7092(2003)002[0159:ANSOEC]2.0.CO;2) is written as %3B, since ';' separates referenceIDs;
@@ -76,7 +79,7 @@ found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same cod
   - Every reference with its result: resources/neo4j_analyzed/[resource_id]_references_DOI_[date].tsv
     (old_identifier, status, DOI_URL, new_identifier, full_reference).
   - Also Full Reference Search's own report and guide, as the tool writes them, in CONTENT_RESOURCE_LOCAL_PATH/Reference_maintenance/:
-    [resource_id]_reference_DOIs_[YYYYmmdd_HHMMSS].tsv + _guide.txt (counted with the tool's reports: only the newest 20 are kept).
+    [resource_id]_reference_DOIs_[YYYYmmdd_HHMMSS].tsv + _guide.txt (counted with the tool's reports: only the newest 50 are kept).
   - Reference and Taxon are written here (not copied by DwCA_Utility), since both can have referenceIDs.
 
 Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with these sections (only those that occur):
@@ -92,7 +95,8 @@ Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with t
   References: identifier replaced by DOI_URL          - counts by Full Reference Search status, merged rows
 
 Passes:
-  Pass 0 ('collect_ref') - looks up the DOI of every reference (Full Reference Search): fills ref_map (old identifier => DOI_URL).
+  Pass 0 ('collect_mof_refs') - reads the identifiers of the references the MoF and the associations use (Nov 26, 2026).
+  Pass 0 ('collect_ref') - looks up the DOI of each of those references (Full Reference Search): fills ref_map (old identifier => DOI_URL).
   Pass 0 ('collect_occ') - reads the occurrenceIDs of the occurrence table (for rule 8).
   Pass 1 ('collect') - applies rules 1-4 and 8 to MoF and Association: fills del_mID, flag_oID and child_parent.
   Pass 2 ('write') - writes Reference and Taxon (with the new identifiers), then MoF, Association, Occurrence, applying rules 1-8. While writing MoF and Association it
@@ -160,6 +164,10 @@ class AnalyzeMoF_API
         // References: old identifier => DOI_URL, by Full Reference Search (see "References" at the top of this file)
         $this->ref_map = array();
         $this->ref_best = array(); // DOI_URL => the reference kept when several have it: array('key' => ranking, 'id' => identifier, 'info' => for the debug report)
+        // (Nov 26, 2026) only the references the MoF or the associations use get a DOI: their identifiers first (e.g. not those used only by media)
+        $this->mof_refs = array();
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'mof');
+        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'association');
         $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::lookup_reference_DOIs($meta);
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) { $this->occ_exists = array(); self::process_table($meta, 'collect_occ', 'occurrence'); }
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'mof');
@@ -223,6 +231,8 @@ class AnalyzeMoF_API
         $this->ref_texts = array();
         self::process_table($meta, 'collect_ref_text', 'reference');
         $estimate = $this->frs->count_references_to_search($this->ref_texts); unset($this->ref_texts);
+        $u = "References used by the MoF or associations: " . number_format(count($this->mof_refs)) . " (only these are searched; the others keep their identifier)";
+        echo "\n$u\n"; $this->debug['References: identifier replaced by DOI_URL'][$u] = '';
         echo "\nReferences: looking up their DOIs with Full Reference Search.\n" . FullReferenceSearchAPI::estimate_text($estimate) . "\n";
         $this->debug['References: identifier replaced by DOI_URL'][FullReferenceSearchAPI::estimate_text($estimate)] = '';
         self::process_table($meta, 'collect_ref', 'reference');
@@ -242,7 +252,8 @@ class AnalyzeMoF_API
         $id = (string) @$rec['identifier']; $full = (string) @$rec['full_reference'];
         if($id === '') return;
         $this->ref_done++;
-        if($this->frs_stopped) $status = 'not searched (CrossRef asked us to slow down)';
+        if(!isset($this->mof_refs[$id])) $status = 'not searched (not used by the MoF or associations)'; // (Nov 26, 2026) only those get a DOI; e.g. one used only by media keeps its identifier
+        elseif($this->frs_stopped) $status = 'not searched (CrossRef asked us to slow down)';
         else {
             $r = $this->frs->find_DOI($full);
             $this->frs->report_row($id, $full, $r); // the tool's report (a 'stop' isn't written)
@@ -272,12 +283,17 @@ class AnalyzeMoF_API
         $this->ref_best[$url]['dropped'][] = $info;
     }
     private function map_reference_ids($value)
-    {   // referenceID(s), e.g. "a1;b2": each old identifier replaced by its DOI_URL (ref_map); duplicates removed, order kept
+    {   // referenceID(s), e.g. "a1;b2" or "density|TRY|mass" (Nov 26, 2026: TreeCarbonEstimates joins them with "|"): each old identifier replaced by
+        // its DOI_URL (ref_map); duplicates removed, order kept, joined again with the separator the value used
         $value = (string) $value;
         if($value === '' || !$this->ref_map) return $value;
         $ids = array();
-        foreach(explode(';', $value) as $id) { $id = trim($id); if($id === '') continue; $ids[$this->ref_map[$id] ?? $id] = ''; }
-        return implode(';', array_keys($ids));
+        foreach(self::split_reference_ids($value) as $id) $ids[$this->ref_map[$id] ?? $id] = '';
+        return implode(str_contains($value, ';') ? ';' : (str_contains($value, '|') ? '|' : ';'), array_keys($ids));
+    }
+    private static function split_reference_ids($value)
+    {   // "a1;b2", "a1|b2" or "a1; b2" -> array('a1', 'b2'): the identifiers in a referenceID value
+        return array_values(array_filter(array_map('trim', preg_split('/[;|]/', (string) $value)), fn($x) => $x !== ''));
     }
     private function is_measurement_deleted($mID)
     {   // true if this measurement or any of its ancestors (via parentMeasurementID) is deleted
@@ -391,7 +407,8 @@ class AnalyzeMoF_API
                 continue;
             }
             //=========================================================================================================
-            if($what == 'collect_ref_text') { if((string) @$rec['identifier'] !== '') $this->ref_texts[] = (string) @$rec['full_reference']; continue; } // for the estimate
+            if($what == 'collect_mof_refs') { foreach(self::split_reference_ids((string) @$rec['referenceID']) as $id) $this->mof_refs[$id] = ''; continue; } // the references the MoF and the associations use
+            if($what == 'collect_ref_text') { if((string) @$rec['identifier'] !== '' && isset($this->mof_refs[(string) $rec['identifier']])) $this->ref_texts[] = (string) @$rec['full_reference']; continue; } // for the estimate: only those searched
             if($what == 'collect_ref') { self::lookup_reference_DOI($rec); continue; } // 0: references' DOIs
             //=========================================================================================================
             if($what == 'collect_occ') { // 0: occurrenceIDs present in the occurrence table (rule 8)

@@ -11,7 +11,7 @@ php do_full_reference_search.php _ '{"task": "search_DOIs_for_full_references", 
       identifier, full_reference, searched_text (what was sent to CrossRef: without quotes a spreadsheet put around it, a FishBase "(Ref. N)" at the end or a stray "0" after the authors),
       text_changes (what that pre-processing changed in the row, in plain words; empty = nothing; the guide counts each kind), status, DOI, DOI_URL (the DOI as a https://doi.org/ link), DOI_source (CrossRef, DataCite or citation), review_note, parsed_* (what was read from the citation), crossref_* (the candidate), checks
       plus <same name>_guide.txt: the results and how to review them, for the Data Managers.
-      Only the newest 20 reports (with their guides) are kept; older ones are deleted when a search starts.
+      Only the newest 50 reports (with their guides) are kept (20 until Nov 26, 2026); older ones are deleted when a search starts.
     - status: matched (journal, volume, year and page agree) / possible (all but the page agree: look at it) / not found / skipped / error (run again)
       DOI is filled only for matched and possible; review_note says what was found, in plain words.
     - Citation styles read: TraitBank's, FishBase's, "Author AB (Year) Title. Journal Vol: pages", APA, Harvard, Chicago, MLA (Vancouver: no volume or pages),

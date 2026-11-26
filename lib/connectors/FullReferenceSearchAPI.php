@@ -19,6 +19,7 @@ namespace php_active_record;
                  or an identifier with no spaces (e.g. "urn:catalog:RSKM:OWLPELLET:OP-1629.0012"), a Universal Chalcidoidea Database code
                  ("XiaoJiZh2012 via Universal Chalcidoidea Database") or an Australian Faunal Directory page: not citations (Nov 21, 2026);
                  or a Femorale shell-photo page ("Femorale. http://www.femorale.com/shellphotos/detail.asp?species=...", Nov 26, 2026).
+                 or a WoRMS photo credit ("Observation photo published by A. Anker", Nov 26, 2026).
                  All these rules are in not_searched_note().
                  Or (only when the run asks for it, "min_year": e.g. 1900) published before that year: CrossRef has almost no DOIs for
                  works that old (Brazilian Flora, Nov 25, 2026: 1 in 443 sampled citations before 1900). A row with no year is still searched,
@@ -104,6 +105,10 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     // (Nov 26, 2026) "unpublished data" (or "unpublished", "pers. comm.") on its own: not a published work (TreeCarbonEstimates 1, GloBI 2)
     const UNPUBLISHED = '/^\s*(?:unpublished(?:\s+data)?|pers(?:onal)?\.?\s*comm(?:unication)?\.?)\s*\.?\s*$/i';
     const FEMORALE_PAGE = '~^Femorale\b[.,:]?\s*(?:https?://)?(?:www\.)?femorale\.com/shellphotos/~i';
+    // (Nov 26, 2026) a WoRMS photo credit, e.g. "Observation photo published by A. Anker" or "... by Boxshall, G. A.; Barton, D. P.; ...": who published a photo,
+    //   not a citation (54 of WoRMS's references; none got a DOI in build 248: 2 skipped as author and year only, the others 'not found', incl. "Cairns (1997): Plate 2, Figure k"
+    //   and "© 2012 MBARI", where a year is given but no title).
+    const PHOTO_CREDIT = '/^Observation photo published by /i';
         // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
@@ -1000,6 +1005,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         if(preg_match(self::CHALCID_DB_CODE, $text))    return 'A Universal Chalcidoidea Database code, not a citation: not searched.';
         if(preg_match(self::AFD_PAGE, $text))           return 'An Australian Faunal Directory page, not a citation with a DOI: not searched.';
         if(preg_match(self::FEMORALE_PAGE, $text))      return 'A Femorale shell-photo page (a web page), not a citation with a DOI: not searched.';
+        if(preg_match(self::PHOTO_CREDIT, $text))       return 'A photo credit ("Observation photo published by ..."), not a citation: not searched.';
         if(preg_match(self::FISHBASE_WEB_PAGE, $text))  return 'An OBIS distribution map or an FAO-FIGIS species fact sheet (a web page), not a citation with a DOI: not searched.';
         if(preg_match(self::SHORT_CITATION, $text))     return 'Only a first author, year, journal and volume (no title or page), not enough to confirm a DOI: not searched.';
         if(preg_match(self::AUTHOR_YEAR_ONLY, $text))   return 'Only authors and a year, not enough to confirm a DOI: not searched.';

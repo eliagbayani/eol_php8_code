@@ -2802,6 +2802,39 @@
    "why": "One of ShelledAnimalBodyMass's 7 real citations: searched as usual (the Femorale rule only skips text that starts with \"Femorale\" and the femorale.com shell-photo address)."
   },
   {
+   "id": "photo-credit-skipped",
+   "source": "WoRMS (Nov 26, 2026)",
+   "full_reference": "Observation photo published by A. Anker",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "A photo credit"
+   },
+   "why": "54 of WoRMS's references are photo credits (\"Observation photo published by ...\"): who published a photo, not a citation. The 53 searched in build 248 were all 'not found'. Skipped, not searched."
+  },
+  {
+   "id": "photo-credit-long-skipped",
+   "source": "WoRMS (Nov 26, 2026)",
+   "full_reference": "Observation photo published by © Muséum national d’Histoire naturelle, Paris. Ownership: Williams J. D. & Boyko C. B.",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "A photo credit"
+   },
+   "why": "The longest WoRMS photo credit (an institution and owners, with dots and initials): still a photo credit, skipped."
+  },
+  {
+   "id": "photo-credit-with-year-skipped",
+   "source": "WoRMS (Nov 26, 2026)",
+   "full_reference": "Observation photo published by Cairns (1997): Plate 2, Figure k",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "A photo credit"
+   },
+   "why": "A photo credit pointing to a plate in Cairns (1997): no title, so no DOI can be confirmed (it was 'not found' in build 248). Skipped like the other photo credits."
+  },
+  {
    "id": "joined-references-list",
    "source": "TreeCarbonEstimates (Nov 26, 2026)",
    "full_reference": "Wright, I. J., D. D. Ackerly, F. Bongers, K. E. Harms, G. Ibarra-Manriquez, M. Martinez-Ramos, S. J. Mazer, H. C. Muller-Landau, H. Paz, N. C. A. Pitman, L. Poorter, M. R. Silman, C. F. Vriesendorp, C. O. Webb, M. Westoby, and S. J. Wright. 2007. Relationships among ecologically important dimensions of plant trait variation in seven Neotropical forests. Annals of Botany 99:1003-1015. | Zheng, W. 1983. Silva Sinica: Volume 1-4. China Forestry Publishing House, Beijing.",

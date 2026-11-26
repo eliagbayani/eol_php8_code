@@ -59,6 +59,9 @@ found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same cod
   - Only the references the MoF or the associations use are searched (Nov 26, 2026): those whose identifier is in a MoF or Association
     referenceID (several joined by ';' or '|'). A reference used only by media, occurrences or taxa keeps its identifier
     ('not searched (not used by the MoF or associations)').
+  - reference.tab is trimmed first (Nov 26, 2026): only the rows whose identifier is used as a referenceID or source in the MoF
+    (measurement_or_fact[_specific].tab), Association, Taxon or Occurrence (occurrence[_specific].tab) are kept; the others are removed
+    (not searched, not written). Checked against the input rows (a row deleted later by rules 1-8 still counts). Media is not read.
   - Only 'matched' and 'possible' DOIs are used; 'not found', 'skipped' and 'error' references keep their identifier.
   - Every referenceID (MoF, Association, Occurrence, Taxon; several IDs joined by ';' too) is changed the same way, so no link breaks.
   - A ';' in a DOI (old SICI DOIs, e.g. 10.1656/1528-7092(2003)002[0159:ANSOEC]2.0.CO;2) is written as %3B, since ';' separates referenceIDs;
@@ -95,6 +98,8 @@ Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with t
   References: identifier replaced by DOI_URL          - counts by Full Reference Search status, merged rows
 
 Passes:
+  Pass 0 ('collect_used_refs') - reads the identifiers used as referenceID or source in MoF, Association, Taxon and Occurrence (Nov 26, 2026):
+    the references not in it are removed from reference.tab.
   Pass 0 ('collect_mof_refs') - reads the identifiers of the references the MoF and the associations use (Nov 26, 2026).
   Pass 0 ('collect_ref') - looks up the DOI of each of those references (Full Reference Search): fills ref_map (old identifier => DOI_URL).
   Pass 0 ('collect_occ') - reads the occurrenceIDs of the occurrence table (for rule 8).
@@ -166,6 +171,11 @@ class AnalyzeMoF_API
         $this->ref_best = array(); // DOI_URL => the reference kept when several have it: array('key' => ranking, 'id' => identifier, 'info' => for the debug report)
         // (Nov 26, 2026) only the references the MoF or the associations use get a DOI: their identifiers first (e.g. not those used only by media)
         $this->mof_refs = array();
+        // (Nov 26, 2026) reference.tab is trimmed: only references used as referenceID or source in MoF, Association, Taxon or Occurrence are kept
+        $this->used_refs = array(); $this->ref_removed = 0; $this->ref_total = 0;
+        foreach(array('http://rs.tdwg.org/dwc/terms/measurementorfact' => 'mof', 'http://eol.org/schema/association' => 'association',
+                      'http://rs.tdwg.org/dwc/terms/taxon' => 'taxon', 'http://rs.tdwg.org/dwc/terms/occurrence' => 'occurrence') as $tbl => $class)
+            if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_used_refs', $class);
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'association');
         $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::lookup_reference_DOIs($meta);
@@ -240,6 +250,8 @@ class AnalyzeMoF_API
         $frs_report = $this->frs->report_close("reference.tab of " . $this->resource_id . " (analyze_MoF)");
         unset($this->frs, $this->ref_tsv);
         if($frs_report) $this->debug['References: identifier replaced by DOI_URL']["Full Reference Search report: " . basename($frs_report['file']) . " (+ _guide.txt) in Reference_maintenance/"] = '';
+        $t = "reference.tab trimmed: " . number_format($this->ref_removed) . " of " . number_format($this->ref_total) . " rows removed (identifier not used as referenceID or source in MoF, Association, Taxon or Occurrence); " . number_format($this->ref_total - $this->ref_removed) . " kept";
+        echo "\n$t\n"; $this->debug['References: identifier replaced by DOI_URL'][$t] = '';
         $replaced = count($this->ref_map);
         echo "\nReferences: [" . number_format($this->ref_done) . "] looked at, identifier replaced by DOI_URL: [" . number_format($replaced) . "] ";
         foreach($this->ref_counts as $status => $n) { echo "[$status: $n] "; $this->debug['References: identifier replaced by DOI_URL']["$status: $n"] = ''; }
@@ -250,7 +262,8 @@ class AnalyzeMoF_API
     private function lookup_reference_DOI($rec)
     {   // one reference: its DOI_URL in ref_map when Full Reference Search gives 'matched' or 'possible'
         $id = (string) @$rec['identifier']; $full = (string) @$rec['full_reference'];
-        if($id === '') return;
+        $this->ref_total++;
+        if($id === '' || !isset($this->used_refs[$id])) { $this->ref_removed++; return; } // (Nov 26, 2026) not used by MoF, Association, Taxon or Occurrence: removed
         $this->ref_done++;
         if(!isset($this->mof_refs[$id])) $status = 'not searched (not used by the MoF or associations)'; // (Nov 26, 2026) only those get a DOI; e.g. one used only by media keeps its identifier
         elseif($this->frs_stopped) $status = 'not searched (CrossRef asked us to slow down)';
@@ -407,6 +420,14 @@ class AnalyzeMoF_API
                 continue;
             }
             //=========================================================================================================
+            if($what == 'collect_used_refs') { // the references used as referenceID or source (Nov 26, 2026)
+                foreach(array('referenceID', 'source') as $f) {
+                    $v = trim((string) @$rec[$f]); if($v === '') continue;
+                    if($f == 'source') $this->used_refs[$v] = ''; // the whole value too, e.g. a URL with a '|' in it
+                    foreach(self::split_reference_ids($v) as $id) $this->used_refs[$id] = '';
+                }
+                continue;
+            }
             if($what == 'collect_mof_refs') { foreach(self::split_reference_ids((string) @$rec['referenceID']) as $id) $this->mof_refs[$id] = ''; continue; } // the references the MoF and the associations use
             if($what == 'collect_ref_text') { if((string) @$rec['identifier'] !== '' && isset($this->mof_refs[(string) $rec['identifier']])) $this->ref_texts[] = (string) @$rec['full_reference']; continue; } // for the estimate: only those searched
             if($what == 'collect_ref') { self::lookup_reference_DOI($rec); continue; } // 0: references' DOIs
@@ -447,6 +468,7 @@ class AnalyzeMoF_API
 
                 if($class == "reference") { // identifier -> its DOI_URL; of the references with the same DOI only the best is written (MERGE, rank_reference())
                     $old = (string) @$rec['identifier']; $new = $this->ref_map[$old] ?? $old;
+                    if($old === '' || !isset($this->used_refs[$old])) continue; // (Nov 26, 2026) not used: removed from reference.tab
                     if(isset($this->ref_map[$old]) && $this->ref_best[$new]['id'] !== $old) { $this->ref_merged++; continue; }
                     if(isset($this->ref_written[$new])) { $this->ref_merged++; continue; } // the same identifier twice in the source
                     $this->ref_written[$new] = '';

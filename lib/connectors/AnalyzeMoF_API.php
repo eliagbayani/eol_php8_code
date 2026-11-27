@@ -278,7 +278,7 @@ class AnalyzeMoF_API
     {   // one reference: its DOI_URL in ref_map when Full Reference Search gives 'matched' or 'possible'
         $id = (string) @$rec['identifier']; $full = (string) @$rec['full_reference'];
         $this->ref_total++;
-        if($id === '' || !isset($this->used_refs[$id])) { $this->ref_removed++; return; } // (Nov 26, 2026) not used by MoF, Association, Taxon or Occurrence: removed
+        if($id === '' || !isset($this->used_refs[$id])) { $this->ref_removed++; return; } // (Nov 26-27, 2026) not used (referenceID or source) by any row that is written: removed, before any CrossRef lookup
         $this->ref_done++;
         if(!isset($this->mof_refs[$id])) $status = 'not searched (not used by the MoF or associations)'; // (Nov 26, 2026) only those get a DOI; e.g. one used only by media keeps its identifier
         elseif($this->frs_stopped) $status = 'not searched (CrossRef asked us to slow down)';

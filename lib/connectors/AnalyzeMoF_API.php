@@ -61,7 +61,9 @@ found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same cod
     ('not searched (not used by the MoF or associations)').
   - reference.tab is trimmed first (Nov 26, 2026): only the rows whose identifier is used as a referenceID or source in the MoF
     (measurement_or_fact[_specific].tab), Association, Taxon or Occurrence (occurrence[_specific].tab) are kept; the others are removed
-    (not searched, not written). Checked against the input rows (a row deleted later by rules 1-8 still counts). Media is not read.
+    (not searched, not written). Nov 27, 2026: checked against the rows that are written: the kept MoF and association rows (rules 1-4, 8),
+    the occurrences they keep (rule 6), every taxon, and every row of the other extensions (e.g. media). So no reference a written row uses
+    is removed, and no orphan is left: the run log and debug report say "reference.tab: N rows written, orphans (used by no written row): 0".
   - Only 'matched' and 'possible' DOIs are used; 'not found', 'skipped' and 'error' references keep their identifier.
   - Every referenceID (MoF, Association, Occurrence, Taxon; several IDs joined by ';' too) is changed the same way, so no link breaks.
   - A ';' in a DOI (old SICI DOIs, e.g. 10.1656/1528-7092(2003)002[0159:ANSOEC]2.0.CO;2) is written as %3B, since ';' separates referenceIDs;
@@ -98,12 +100,13 @@ Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with t
   References: identifier replaced by DOI_URL          - counts by Full Reference Search status, merged rows
 
 Passes:
-  Pass 0 ('collect_used_refs') - reads the identifiers used as referenceID or source in MoF, Association, Taxon and Occurrence (Nov 26, 2026):
-    the references not in it are removed from reference.tab.
-  Pass 0 ('collect_mof_refs') - reads the identifiers of the references the MoF and the associations use (Nov 26, 2026).
-  Pass 0 ('collect_ref') - looks up the DOI of each of those references (Full Reference Search): fills ref_map (old identifier => DOI_URL).
   Pass 0 ('collect_occ') - reads the occurrenceIDs of the occurrence table (for rule 8).
   Pass 1 ('collect') - applies rules 1-4 and 8 to MoF and Association: fills del_mID, flag_oID and child_parent.
+  Then the references (Nov 27, 2026: after pass 1, so only the rows that will be written count):
+    'collect_used_refs' - the identifiers used as referenceID or source by the rows that will be written, in every table (mof_kept(),
+      assoc_kept()); the references not in it are removed from reference.tab.
+    'collect_mof_refs' - the identifiers of the references the kept MoF and association rows use: only these get a DOI lookup.
+    'collect_ref' - looks up the DOI of each of those references (Full Reference Search): fills ref_map (old identifier => DOI_URL).
   Pass 2 ('write') - writes Reference and Taxon (with the new identifiers), then MoF, Association, Occurrence, applying rules 1-8. While writing MoF and Association it
     records every occurrenceID that an included record uses (used_oID), so that Occurrence can apply rule 6.
   Run it in the Jenkins container (12g); the web container (1g) runs out of memory on large resources like WoRMS.
@@ -169,16 +172,6 @@ class AnalyzeMoF_API
         // References: old identifier => DOI_URL, by Full Reference Search (see "References" at the top of this file)
         $this->ref_map = array();
         $this->ref_best = array(); // DOI_URL => the reference kept when several have it: array('key' => ranking, 'id' => identifier, 'info' => for the debug report)
-        // (Nov 26, 2026) only the references the MoF or the associations use get a DOI: their identifiers first (e.g. not those used only by media)
-        $this->mof_refs = array();
-        // (Nov 26, 2026) reference.tab is trimmed: only references used as referenceID or source in MoF, Association, Taxon or Occurrence are kept
-        $this->used_refs = array(); $this->ref_removed = 0; $this->ref_total = 0;
-        foreach(array('http://rs.tdwg.org/dwc/terms/measurementorfact' => 'mof', 'http://eol.org/schema/association' => 'association',
-                      'http://rs.tdwg.org/dwc/terms/taxon' => 'taxon', 'http://rs.tdwg.org/dwc/terms/occurrence' => 'occurrence') as $tbl => $class)
-            if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_used_refs', $class);
-        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'mof');
-        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'association');
-        $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::lookup_reference_DOIs($meta);
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) { $this->occ_exists = array(); self::process_table($meta, 'collect_occ', 'occurrence'); }
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect', 'association');
@@ -193,20 +186,42 @@ class AnalyzeMoF_API
         unset($this->missing_occ['occurrenceIDs']); // free memory
         echo "\n";
 
+        // --------------------- References (after pass 1, so only the rows that will be written count; Nov 27, 2026)
+        // (Nov 26, 2026) only the references the kept MoF and association rows use get a DOI (e.g. not those used only by media)
+        $this->mof_refs = array();
+        // reference.tab is trimmed: a reference is kept only if a row that is written uses it (referenceID or source), in any table:
+        // the kept MoF and association rows, the occurrences they keep (rule 6), every taxon, and every row of the other extensions (e.g. media, copied as-is)
+        $this->used_refs = array(); $this->ref_removed = 0; $this->ref_total = 0; $this->kept_oID = array(); $this->other_ext_refs = array();
+        $done_tbls = array('http://eol.org/schema/reference/reference' => 'reference', 'http://rs.tdwg.org/dwc/terms/measurementorfact' => 'mof',
+                           'http://eol.org/schema/association' => 'association', 'http://rs.tdwg.org/dwc/terms/occurrence' => 'occurrence', 'http://rs.tdwg.org/dwc/terms/taxon' => 'taxon');
+        foreach($done_tbls as $tbl => $class) if($class != 'reference' && ($meta = @$tables[$tbl][0])) self::process_table($meta, 'collect_used_refs', $class); // MoF and association first: they decide the occurrences
+        foreach($tables as $tbl => $metas) if(!isset($done_tbls[$tbl]) && ($meta = @$metas[0])) self::process_table($meta, 'collect_used_refs', 'other');
+        unset($this->kept_oID);
+        $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'mof');
+        $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'association');
+        $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::lookup_reference_DOIs($meta);
+
         // --------------------- 2nd pass: write extensions, excluding every record linked to a deleted occurrence or deleted parent measurement
-        $this->ref_written = array(); $this->ref_merged = 0;
+        $this->ref_written = array(); $this->ref_merged = 0; $this->ref_uses_out = array(); // ref_uses_out: the reference IDs the written rows use (for the orphan check)
         $tbl = "http://eol.org/schema/reference/reference";         if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'reference');
         if($this->ref_merged) {
             echo "\nReferences merged (same DOI as another, the better one kept): [{$this->ref_merged}]\n";
             $this->debug['References: identifier replaced by DOI_URL']["merged (same DOI as another reference; the better one kept): {$this->ref_merged}"] = '';
             foreach($this->ref_best as $url => $b) if($b['dropped']) $this->debug['References merged (same DOI): the one kept, then the ones dropped']["$url: kept " . $b['info'] . "; dropped " . implode("; ", $b['dropped'])] = '';
         }
-        unset($this->ref_written, $this->ref_best);
+        $ref_written_ids = $this->ref_written; unset($this->ref_written, $this->ref_best);
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'taxon');
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
         unset($this->occ_exists); // free memory; only needed for rule 8 on MoF
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'occurrence');
+        if(isset($tables['http://eol.org/schema/reference/reference'])) { // (Nov 27, 2026) no orphan in the output reference.tab: every row is used by a written row
+            foreach($this->other_ext_refs as $id => $x) $this->ref_uses_out[$this->ref_map[$id] ?? $id] = ''; // other extensions are copied as-is, with their old IDs
+            $orphans = count(array_diff_key($ref_written_ids, $this->ref_uses_out));
+            $c = "reference.tab: " . number_format(count($ref_written_ids)) . " rows written, orphans (used by no written row): $orphans";
+            echo "\n$c" . ($orphans ? "  WARNING" : "") . "\n"; $this->debug['References: identifier replaced by DOI_URL'][$c] = '';
+        }
+        unset($ref_written_ids, $this->ref_uses_out, $this->other_ext_refs);
         echo "\nOrphaned occurrences deleted - lost all their records: [".$this->orphans['lost all its records']."]";
         echo "\nOrphaned occurrences deleted - already orphaned in the source: [".$this->orphans['already orphaned in the source']."]\n";
         if($n = $this->orphans['already orphaned in the source']) $this->debug['Orphaned occurrences in the source (deleted)']["count: $n"] = '';
@@ -250,7 +265,7 @@ class AnalyzeMoF_API
         $frs_report = $this->frs->report_close("reference.tab of " . $this->resource_id . " (analyze_MoF)");
         unset($this->frs, $this->ref_tsv);
         if($frs_report) $this->debug['References: identifier replaced by DOI_URL']["Full Reference Search report: " . basename($frs_report['file']) . " (+ _guide.txt) in Reference_maintenance/"] = '';
-        $t = "reference.tab trimmed: " . number_format($this->ref_removed) . " of " . number_format($this->ref_total) . " rows removed (identifier not used as referenceID or source in MoF, Association, Taxon or Occurrence); " . number_format($this->ref_total - $this->ref_removed) . " kept";
+        $t = "reference.tab trimmed: " . number_format($this->ref_removed) . " of " . number_format($this->ref_total) . " rows removed (identifier not used as referenceID or source by any row that is written); " . number_format($this->ref_total - $this->ref_removed) . " kept";
         echo "\n$t\n"; $this->debug['References: identifier replaced by DOI_URL'][$t] = '';
         $replaced = count($this->ref_map);
         echo "\nReferences: [" . number_format($this->ref_done) . "] looked at, identifier replaced by DOI_URL: [" . number_format($replaced) . "] ";
@@ -338,6 +353,24 @@ class AnalyzeMoF_API
         }
         return $ret;
     }
+    private function mof_kept($rec)
+    {   // (Nov 27, 2026) the write pass's tests for a MoF row, also used before it (collect_used_refs, collect_mof_refs)
+        $oID = @$rec['occurrenceID'];
+        if($oID && $this->occ_exists !== false && !isset($this->occ_exists[$oID])) return false; // rule 8
+        if(self::mof_problems($rec)) return false;                                                  // rules 1-3
+        if(self::is_measurement_deleted(@$rec['measurementID'])) return false;                      // its parent/ancestor was deleted
+        return true;
+    }
+    private function assoc_kept($rec)
+    {   return !self::is_undefined_aType(@$rec['associationType']); } // rule 4
+    private function add_used_refs($rec, &$set)
+    {   // the reference IDs a row uses: its referenceID and source (the whole source too, e.g. a URL with a '|' in it)
+        foreach(array('referenceID', 'source') as $f) {
+            $v = trim((string) @$rec[$f]); if($v === '') continue;
+            if($f == 'source') $set[$v] = '';
+            foreach(self::split_reference_ids($v) as $id) $set[$id] = '';
+        }
+    }
     private function is_undefined_aType($aType)
     {
         return substr($aType, 0, 4) == 'http' && !isset($this->eol_term_associations[$aType]);
@@ -420,15 +453,17 @@ class AnalyzeMoF_API
                 continue;
             }
             //=========================================================================================================
-            if($what == 'collect_used_refs') { // the references used as referenceID or source (Nov 26, 2026)
-                foreach(array('referenceID', 'source') as $f) {
-                    $v = trim((string) @$rec[$f]); if($v === '') continue;
-                    if($f == 'source') $this->used_refs[$v] = ''; // the whole value too, e.g. a URL with a '|' in it
-                    foreach(self::split_reference_ids($v) as $id) $this->used_refs[$id] = '';
-                }
+            if($what == 'collect_used_refs') { // the references used by the rows that will be written (Nov 26-27, 2026)
+                if($class == 'mof')         { if(!self::mof_kept($rec)) continue; if($oID = @$rec['occurrenceID']) $this->kept_oID[$oID] = ''; }
+                if($class == 'association') { if(!self::assoc_kept($rec)) continue; if($oID = @$rec['occurrenceID']) $this->kept_oID[$oID] = ''; if($tID = @$rec['targetOccurrenceID']) $this->kept_oID[$tID] = ''; }
+                if($class == 'occurrence' && !isset($this->kept_oID[(string) @$rec['occurrenceID']])) continue; // rule 6 deletes it
+                self::add_used_refs($rec, $this->used_refs);
+                if($class == 'other') self::add_used_refs($rec, $this->other_ext_refs);
                 continue;
             }
-            if($what == 'collect_mof_refs') { foreach(self::split_reference_ids((string) @$rec['referenceID']) as $id) $this->mof_refs[$id] = ''; continue; } // the references the MoF and the associations use
+            if($what == 'collect_mof_refs') {
+                if($class == 'mof' && !self::mof_kept($rec)) continue; if($class == 'association' && !self::assoc_kept($rec)) continue; // (Nov 27, 2026) kept rows only
+                foreach(self::split_reference_ids((string) @$rec['referenceID']) as $id) $this->mof_refs[$id] = ''; continue; } // the references the MoF and the associations use
             if($what == 'collect_ref_text') { if((string) @$rec['identifier'] !== '' && isset($this->mof_refs[(string) $rec['identifier']]) && FullReferenceSearchAPI::is_person_id((string) $rec['identifier']) === '') $this->ref_texts[] = (string) @$rec['full_reference']; continue; } // for the estimate: only those searched (a person's ID isn't, Nov 27, 2026)
             if($what == 'collect_ref') { self::lookup_reference_DOI($rec); continue; } // 0: references' DOIs
             //=========================================================================================================
@@ -442,17 +477,14 @@ class AnalyzeMoF_API
                 if($class == "mof") {
                     // Rule 8: skip rows pointing to an occurrence that is not in the occurrence table (re-checked here, so rows
                     // without measurementID are covered too).
-                    if($oID && $this->occ_exists !== false && !isset($this->occ_exists[$oID])) continue;
-                    // Skip the row that has an undefined term (re-checked here, so rows without measurementID are covered too).
-                    if(self::mof_problems($rec)) continue;
-                    // Skip rows whose parent/ancestor measurement was deleted.
-                    if(self::is_measurement_deleted(@$rec['measurementID'])) continue;
+                    // Skip the row that has an undefined term, and rows whose parent/ancestor measurement was deleted (rules 1-3); mof_kept().
+                    if(!self::mof_kept($rec)) continue;
                     // MoF is kept: its occurrence must be kept too.
                     if($oID) $this->used_oID[$oID] = '';
                 }
                 if($class == "association") {
                     // Skip only the association that has the undefined associationType.
-                    if(self::is_undefined_aType(@$rec['associationType'])) continue;
+                    if(!self::assoc_kept($rec)) continue;
                     // Association is kept: its occurrences must be kept too.
                     if($oID) $this->used_oID[$oID] = '';
                     if($tID = @$rec['targetOccurrenceID']) $this->used_oID[$tID] = '';
@@ -475,6 +507,7 @@ class AnalyzeMoF_API
                     $rec['identifier'] = $new;
                 }
                 if(isset($rec['referenceID'])) $rec['referenceID'] = self::map_reference_ids($rec['referenceID']); // MoF, Association, Occurrence, Taxon
+                if($class != "reference") self::add_used_refs($rec, $this->ref_uses_out); // (Nov 27, 2026) for the orphan check
 
                 // Rule 7: blank URI values not in EOL values in the qualifier fields; $rec is modified before $o is populated below.
                 foreach($this->blank_fields[$class] ?? array() as $field) {

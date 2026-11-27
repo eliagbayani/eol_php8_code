@@ -189,8 +189,8 @@ if($action == 'search') {
     elseif($start !== '' && (!ctype_digit($start) || (int) $start < 1)) $err = "start must be a whole number from 1, or blank to begin at the first row.";
     else {
         $header = array_map('trim', explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets(fopen($f['tmp_name'], 'r'))), "\r\n")));
-        if(!in_array('identifier', $header) || !in_array('full_reference', $header))
-            $err = "The file's header is [" . h(implode(", ", $header)) . "]. It must have the columns <b>identifier</b> and <b>full_reference</b> (others are ignored).";
+        if(!in_array('identifier', $header) || (!in_array('full_reference', $header) && !in_array('citation', $header))) // citation: as in the master sources.tsv (Nov 27, 2026)
+            $err = "The file's header is [" . h(implode(", ", $header)) . "]. It must have the columns <b>identifier</b> and <b>full_reference</b> (or <b>citation</b>, as in sources.tsv; others are ignored).";
     }
     if($err) $upload_msg = "<b>The file" . ($f && ($f['name'] ?? '') !== '' ? " [" . h($f['name']) . "]" : '') . " was not accepted, so nothing was searched.</b><br>$err";
     else {
@@ -443,7 +443,7 @@ function busy(f) { FORM_SENT = true; f.querySelectorAll('input[type=submit]').fo
         <form method="post" action="main.php" enctype="multipart/form-data" onsubmit="return busy(this);">
             <table class="params">
                 <tr><td>file:</td><td><input type="file" name="ref_file" accept=".tsv,.tab,.txt" required>
-                    <small>tab-separated, with the columns <b>identifier</b> and <b>full_reference</b> (at most <?php echo MAX_UPLOAD_MB ?> MB)</small>
+                    <small>tab-separated, with the columns <b>identifier</b> and <b>full_reference</b> or <b>citation</b> (at most <?php echo MAX_UPLOAD_MB ?> MB)</small>
                     <a class="button" href="main.php?sample=1" style="width:auto; margin-left:6em" title="sample_reference.tab: an example of the input file">Download a sample input file</a></td></tr>
                 <tr><td>limit:</td><td><input type="number" name="limit" min="0" step="1" style="width:100px" value="<?php echo $upload_msg ? h($_POST['limit'] ?? '') : '' ?>"> <small>search only this many rows; blank = all rows (e.g. 200 for a test)</small></td></tr>
                 <tr><td>start:</td><td><input type="number" name="start" min="1" step="1" style="width:100px" value="<?php echo $upload_msg ? h($_POST['start'] ?? '') : '' ?>"> <small>begin at this row (1 = the first row after the header); blank = 1</small></td></tr>

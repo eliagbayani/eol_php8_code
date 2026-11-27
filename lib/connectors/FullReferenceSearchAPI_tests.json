@@ -2887,6 +2887,53 @@
     "DOI": "10.2478/v10132-011-0077-7"
    },
    "why": "A \"|\" inside one citation (a bilingual journal name, \"Forestry Studies | Metsanduslikud Uurimused\") is not a list: searched as usual."
+  },
+  {
+   "id": "person-orcid-cairns-skipped",
+   "source": "master sources.tsv (Nov 27, 2026)",
+   "identifier": "https://orcid.org/0000-0001-7209-9271",
+   "full_reference": "Stephen Cairns, PhD. Personal communication",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "A person (a contributor's ORCID)"
+   },
+   "why": "Contributors are Sources too (Data Managers' plan, Nov 27, 2026): a person's ID with their name as the citation. A name is never sent to CrossRef, so a row whose identifier is an ORCID is skipped, whatever its text."
+  },
+  {
+   "id": "person-fishbase-collaborator-skipped",
+   "source": "FishBase contributor (Nov 27, 2026)",
+   "identifier": "https://www.fishbase.de/collaborators/CollaboratorSummary.php?id=7",
+   "full_reference": "Robbie N. Cada",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "FishBase collaborator page"
+   },
+   "why": "A FishBase collaborator page is a person's ID (a contributor), and the citation is the name in the Terms master: not searched."
+  },
+  {
+   "id": "person-worms-person-page-skipped",
+   "source": "WoRMS contributor (Nov 27, 2026)",
+   "identifier": "http://www.marinespecies.org/imis.php?module=person&persid=26517",
+   "full_reference": "Frank, J. Howard",
+   "expect": {
+    "status": "skipped",
+    "DOI": "",
+    "note_contains": "WoRMS person page"
+   },
+   "why": "A WoRMS IMIS person page (http or https, with or without www) is a person's ID (a contributor): not searched."
+  },
+  {
+   "id": "not-a-person-identifier-searched",
+   "source": "CrossRef's Simple Text Query sample, with an identifier (Nov 27, 2026)",
+   "identifier": "https://www.marinespecies.org/aphia.php?p=sourcedetails&id=12345",
+   "full_reference": "Boucher RC (2004) New concepts of the pathogenesis of cystic fibrosis lung disease. Eur Resp J 23: 146–158.",
+   "expect": {
+    "status": "matched",
+    "DOI": "10.1183/09031936.03.00057003"
+   },
+   "why": "Only person IDs are skipped: a WoRMS source page (not a person page) or any other identifier is searched as usual (same as crossref-sample-1)."
   }
  ]
 }

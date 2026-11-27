@@ -3,7 +3,7 @@ namespace php_active_record;
 /* References Maintenance: a web page for the References maintenance tasks (see update_resources/connectors/do_reference_mtce.php)
    http://localhost:81/eol_php8_code/applications/reference_maintenance/main.php
    The command line keeps working as before; this page runs the same tasks:
-   - Status: our master references.tsv vs Zenodo's latest version (References, concept 22776838), the unmappable list
+   - Status: our master sources.tsv (references.tsv before Nov 27, 2026) vs Zenodo's latest version (References, concept 22776838), the unmappable list
    - Reports (no password): compare_master_with_zenodo, sync_unmappable_identifiers_with_datasets (dry run),
      sync_zenodo_references (dry run), utility_report_duplicate_identifiers_from_master
    - Changes (the maintenance tools password, TERMS_MTCE_PASSWORD in config/environments/<env>.php, + a confirm box):
@@ -33,22 +33,23 @@ $api_class    = defined('REFERENCES_MTCE_TEST_CLASS') ? REFERENCES_MTCE_TEST_CLA
 $check_class  = defined('DATASETS_CHECK_TEST_CLASS') ? DATASETS_CHECK_TEST_CLASS : __NAMESPACE__ . '\ZenodoTraitBankAPI'; // tests only: a stand-in
 $has_password = defined('TERMS_MTCE_PASSWORD') && TERMS_MTCE_PASSWORD !== ''; // one "maintenance tools" password for the Terms and References pages
 $download_re  = array( // the only files [Download] serves, all in the resources folder
-    '/^references_22776838_compare_zenodo_record\d+_\d{8}_\d{6}\.tsv$/',
-    '/^references_duplicate_identifiers_\d{8}\.tsv$/',
+    '/^(sources|references)_22776838_compare_zenodo_record\d+_\d{8}_\d{6}\.tsv$/', // references_*: made before the Nov 27, 2026 rename
+    '/^(sources|references)_duplicate_identifiers_\d{8}\.tsv$/',
     '/^unmappable_identifiers_sync_\d{8}_\d{6}\.tsv$/',
-    '/^references_22776838_(replaced_citations|removed_duplicates|zenodo_sync)_[\d_-]+\.tsv$/',
+    '/^(sources|references)_22776838_(replaced_citations|removed_duplicates|zenodo_sync)_[\d_-]+\.tsv$/',
     '/^unmappable_identifiers\.tsv$/',
 );
 $dm_kinds = array( // Data Manager file kinds: task, accepted headers, options (param => label)
     'add'    => array('label' => 'Citations to add (the filled-in unmappable list, or references_add_template.tsv)',
                       'task' => 'update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers',
-                      'headers' => array(array('identifier', 'status', 'full_reference'), array('identifier', 'full_reference')),
+                      'headers' => array(array('identifier', 'status', 'citation'), array('identifier', 'citation'),                   // (Nov 27, 2026) citation; full_reference,
+                                         array('identifier', 'status', 'full_reference'), array('identifier', 'full_reference')), // its old name, is also accepted
                       'options' => array('skip_unmappable_update_YN' => 'new references, not on our unmappable list (leave the list as is)',
                                          'replace_existing_YN'       => 'replace citations that differ from the master',
                                          'no_upload_YN'              => "don't upload to Zenodo yet: another change follows")),
     'remove' => array('label' => 'Rows to delete (references_remove_template.tsv)',
                       'task' => 'fix_duplicate_issue_in_master_references',
-                      'headers' => array(array('identifier', 'full_reference', 'master_row')),
+                      'headers' => array(array('identifier', 'citation', 'master_row'), array('identifier', 'full_reference', 'master_row')),
                       'options' => array('no_upload_YN' => "don't upload to Zenodo yet: another change follows")),
 );
 
@@ -113,7 +114,7 @@ function change_form($action, $button, $confirm, $hidden = array(), $extra = '')
 function status()
 {   // our master vs Zenodo's latest version, and the unmappable list; reads files + one Zenodo look-up, changes nothing
     $s = array();
-    $files = glob(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . "_*/input_files/references.tsv");
+    $files = glob(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . "_*/input_files/sources.tsv");
     $s['master'] = $files ? $files[0] : null;
     $s['rows'] = $s['master'] ? max(0, count(file($s['master'], FILE_SKIP_EMPTY_LINES)) - 1) : null;
     $rec = CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . ".record_id";
@@ -126,7 +127,7 @@ function status()
         $api = new ReferenceMaintenanceAPI(array('task' => 'status'));
         if($latest = $api->get_zenodo_info_using_conceptID(REF_CONCEPT_ID, 0)) {
             $s['zenodo'] = array('id' => (string) $latest['id']);
-            foreach($latest['files'] as $f) if(basename($f['key']) == 'references.tsv' && $s['master'])
+            foreach($latest['files'] as $f) if($api->local_zenodo_file_name(REF_CONCEPT_ID, basename($f['key'])) == 'sources.tsv' && $s['master']) // also references.tsv, its old name
                 $s['identical'] = strtolower((string) $f['checksum']) === "md5:" . md5_file($s['master']);
         }
     } catch(\Throwable $e) {}
@@ -146,8 +147,8 @@ function dataset_folders()
     return $n;
 }
 function master_file()
-{   // our local master: TB_files/22776838_References/input_files/references.tsv, or null when this server has no copy yet
-    $files = glob(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . "_*/input_files/references.tsv");
+{   // our local master: TB_files/22776838_References/input_files/sources.tsv, or null when this server has no copy yet
+    $files = glob(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . "_*/input_files/sources.tsv");
     return $files ? $files[0] : null;
 }
 $n_datasets   = dataset_folders();
@@ -163,12 +164,12 @@ if(!$n_datasets && isset($dataset_acts[$action])) { // e.g. an old form posted a
     $action = '';
 }
 elseif(!$has_master && isset($master_acts[$action])) { // these need our local master
-    $out .= "<p class='bad'>[" . h($master_acts[$action]) . "] needs our local master (references.tsv), and this server doesn't have it yet. Click [Download References from Zenodo] first. Nothing was done.</p>";
+    $out .= "<p class='bad'>[" . h($master_acts[$action]) . "] needs our local master (sources.tsv), and this server doesn't have it yet. Click [Download References from Zenodo] first. Nothing was done.</p>";
     $action = '';
 }
 if($action == 'download_refs') {
     // = php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "only": "References"}'
-    // Only when there's no local master yet: it never replaces one. Zenodo's latest references.tsv becomes our master, and also the sync base
+    // Only when there's no local master yet: it never replaces one. Zenodo's latest sources.tsv (or references.tsv, its old name) becomes our master, and also the sync base
     // (the Zenodo version our master is in step with), so [Check Zenodo for changes] works from then on.
     if($has_master) $out .= "<p>Our master is already here. Nothing was downloaded. To see what's new on Zenodo, use [Check Zenodo for changes].</p>";
     else {
@@ -179,14 +180,14 @@ if($action == 'download_refs') {
         if($master = master_file()) {
             $rec = trim((string) @file_get_contents(CONTENT_RESOURCE_LOCAL_PATH . "TB_files/" . REF_CONCEPT_ID . ".record_id"));
             ob_start();
-            try { $z = new ZenodoTraitBankAPI(); if(!$z->find_zenodo_base($master, 'references.tsv')) $z->set_zenodo_base($master, 'references.tsv', $master, $rec ? "record$rec" : date("Ymd_His")); }
+            try { $z = new ZenodoTraitBankAPI(); if(!$z->find_zenodo_base($master, 'sources.tsv')) $z->set_zenodo_base($master, 'sources.tsv', $master, $rec ? "record$rec" : date("Ymd_His")); }
             catch(\Throwable $e) { echo "\nERROR: " . $e->getMessage() . "\n"; }
             $log .= "\n" . trim(ob_get_clean());
             $has_master = true;
             $out .= "<p class='good'><b>Downloaded:</b> our master is now Zenodo's latest References" . ($rec ? " (record " . h($rec) . ")" : '') . ", "
                   . number_format(max(0, count(file($master, FILE_SKIP_EMPTY_LINES)) - 1)) . " references. The reports below can now be used.</p>";
         }
-        else $out .= "<p class='bad'><b>The download didn't work:</b> there's still no local references.tsv. See the log.</p>";
+        else $out .= "<p class='bad'><b>The download didn't work:</b> there's still no local sources.tsv. See the log.</p>";
         $out .= log_box($log);
     }
     $action = '';
@@ -439,7 +440,7 @@ function copyCmd(btn) {
 
     <tr><td><b>Status</b>
         <table class="status">
-            <tr><td>Our master (references.tsv):</td><td><?php echo $st['master'] ? "<b>" . number_format($st['rows']) . "</b> references, version record " . h($st['local_record'] ?: 'unknown') : "<span class='bad'>not found</span>" ?></td></tr>
+            <tr><td>Our master (sources.tsv):</td><td><?php echo $st['master'] ? "<b>" . number_format($st['rows']) . "</b> references, version record " . h($st['local_record'] ?: 'unknown') : "<span class='bad'>not found</span>" ?></td></tr>
             <tr><td>Zenodo's latest version:</td><td><?php echo $st['zenodo'] ? "record " . h($st['zenodo']['id']) : "<span class='bad'>could not be reached</span>" ?></td></tr>
             <tr><td>Our master vs Zenodo:</td><td><?php echo $st['identical'] === null ? '?' : ($st['identical'] ? "<span class='good'><b>identical</b></span>" : "<span class='bad'><b>different</b></span> (see [Compare our master with Zenodo])") ?></td></tr>
             <tr><td>Unmappable list:</td><td><?php echo $st['unmappable'] === null ? "<span class='bad'>not found</span>" : "<b>" . number_format($st['unmappable']) . "</b> ID(s) waiting for the Data Manager"
@@ -453,7 +454,7 @@ function copyCmd(btn) {
             <button type="submit" name="action" value="datasets">Check all datasets against Zenodo</button>
             <button type="submit" name="action" value="processed">Check all processed datasets</button>
             <?php endif; ?>
-            <?php if($has_master): // these 4 need our local master (references.tsv) ?>
+            <?php if($has_master): // these 4 need our local master (sources.tsv) ?>
             <button type="submit" name="action" value="compare">Compare our master with Zenodo</button>
             <?php if($n_datasets): ?>
             <button type="submit" name="action" value="missing">Find missing references (preview)</button>
@@ -468,7 +469,7 @@ function copyCmd(btn) {
         <?php if($has_master): ?>
         <small><?php echo $n_datasets ? '"Find missing references" and "Check Zenodo for changes" show' : '"Check Zenodo for changes" shows' ?> a preview first; the button to apply it appears below the preview.</small>
         <?php else: ?>
-        <small class="bad">This server doesn't have our master (references.tsv) yet, so the reports that use it aren't shown: [Compare our master with Zenodo],
+        <small class="bad">This server doesn't have our master (sources.tsv) yet, so the reports that use it aren't shown: [Compare our master with Zenodo],
         <?php if($n_datasets) echo "[Find missing references], " ?>[Check Zenodo for changes] and [List duplicate references].
         [Download References from Zenodo] gets Zenodo's latest version as our master; they appear after that.</small>
         <?php endif; ?>
@@ -478,7 +479,7 @@ function copyCmd(btn) {
 
     <tr><td><b>Publish our master to Zenodo</b> (can't be undone)<br>
         <?php if($st['identical']) echo "<p>The Zenodo file is already identical to our master. There's nothing to publish.</p><input type='submit' value='Publish our master to Zenodo' disabled title='The Zenodo file is already identical to our master'>";
-              else echo change_form('publish', 'Publish our master to Zenodo', "Publish our master references.tsv on Zenodo as a new version?\n\nThis CANNOT be undone."); ?>
+              else echo change_form('publish', 'Publish our master to Zenodo', "Publish our master sources.tsv on Zenodo as a new version?\n\nThis CANNOT be undone."); ?>
     </td></tr>
 
     <tr><td><details class="section"><summary><b>Data Manager files</b></summary>

@@ -6,7 +6,7 @@ Downloads go to [CONTENT_RESOURCE_LOCAL_PATH]/Legacy_DwCA_files/ (the References
 Re-uses the Zenodo download code of ZenodoTraitBankAPI.
 Tasks:
 - download_file_from_zenodo: see process_legacy_dwca.php
-- convert_dwca_to_new_input_files: a legacy DwCA -> TraitBank input files Taxon.tsv, Traits.tsv and References.tsv, the same kind of files as the
+- convert_dwca_to_new_input_files: a legacy DwCA -> TraitBank input files Taxon.tsv, Traits.tsv and Sources.tsv, the same kind of files as the
   Zenodo TraitBank datasets' input_files (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/). Rules in process_legacy_dwca.php.
 ----------------------------------------------------
 */
@@ -109,6 +109,11 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
     const MOF_NOT_CARRIED = array('occurrenceID', 'measurementOfTaxon', 'parentMeasurementID'); // MoF columns not written to Traits.tsv
     const TRAITS_FIRST    = array('measurementID', 'taxonID', 'scientificName', 'taxonKey');      // Traits.tsv: first columns
     const TRAITS_LAST     = array('source', 'referenceID');                                       // Traits.tsv: last columns, as in the Zenodo TraitBank datasets
+    // (Nov 27, 2026) contributors are Sources (Data Managers' plan): a contributor ID that is a real, unique person ID (FullReferenceSearchAPI::is_person_id():
+    // an ORCID, a FishBase collaborator page or a WoRMS person page) goes into referenceID, and into the master sources.tsv with the person's name as
+    // its citation. Any other contributor ID is left out (not carried forward), e.g. a made-up EOL URI or a hash. There is no contributor column any more.
+    const MADE_UP_EOL_URI = '~^https?://(?:www\.)?eol\.org/schema/terms/~i'; // e.g. http://eol.org/schema/terms/Amphibiaweb_Zheng_Oong
+    const HASH_ID         = '~^[0-9a-f]{32}(?:_[A-Za-z0-9_]+)?$~i';           // e.g. 2db8f17d140d381babcb4976cb0a2e8e or ..._21_ENV (md5)
     function convert_dwca_to_new_input_files()
     {   // e.g. concept_id 13318109, supplied_name AmphibiaWeb -- or the same as "source": "13318109_AmphibiaWeb_TB_1_0.tar.gz":
         //   CONTENT_RESOURCE_LOCAL_PATH/13318109_AmphibiaWeb_TB_1_0.tar.gz -> TB_files_from_DwCA/13318109_AmphibiaWeb_TraitBank/input_files/Taxon.tsv and Traits.tsv
@@ -139,10 +144,13 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $this->conv_debug = array();
         $this->conv_columns = array();
         $this->conv_ref_used = array(); // referenceIDs used in Traits.tsv
+        $this->conv_contrib = array('kept' => array(), 'excluded' => array(), 'values' => 0); // contributor IDs: kept (id => rows) or excluded (kind => id => rows)
         echo "\nConverting [$dwca]\n      -> [{$this->conv_out_dir}input_files/]\n";
 
         // read the DwCA
         require_library('connectors/INBioAPI');
+        require_library('connectors/GenerateTB_Files_Functions');
+        require_library('connectors/FullReferenceSearchAPI'); // is_person_id(): which contributor IDs are kept (Nov 27, 2026)
         $func = new INBioAPI();
         $paths = $func->extract_archive_file($dwca, "meta.xml", array('timeout' => 172800, 'expire_seconds' => 0));
         if(!$paths) exit("\nERROR: Cannot extract [$dwca], or it has no meta.xml.\n");
@@ -166,7 +174,9 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $occ      = self::conv_read_occurrences($occ_meta);
         $children = self::conv_collect_child_metadata($mof_meta);
         self::conv_write_traits($mof_meta, $this->conv_out_dir . "input_files/Traits.tsv", $taxa, $occ, $children);
-        self::conv_write_references($ref_meta, $this->conv_out_dir . "input_files/References.tsv");
+        $names = self::conv_contributor_names(@$tables['http://eol.org/schema/agent/agent'][0]); // kept contributor ID => name
+        self::conv_write_references($ref_meta, $this->conv_out_dir . "input_files/Sources.tsv", $names);
+        self::conv_add_contributors_to_master($names, $name);
 
         recursive_rmdir($this->conv_temp_dir);
         foreach($this->conv_debug as $topic => $arr) { // counts as "name: count" lines in the report
@@ -175,14 +185,15 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         Functions::start_print_debug($this->conv_debug, $name . "_convert", $out_root);
         echo "\nReport: [$out_root/{$name}_convert_debug_" . date('Y-m-d') . ".txt]\nDone: [{$this->conv_out_dir}input_files/]\n";
         return array('Taxon' => $this->conv_out_dir . "input_files/Taxon.tsv", 'Traits' => $this->conv_out_dir . "input_files/Traits.tsv",
-                     'References' => $this->conv_out_dir . "input_files/References.tsv");
+                     'Sources' => $this->conv_out_dir . "input_files/Sources.tsv");
     }
     private function conv_input_row_counts($tables)
     {   // rows per file in the legacy DwCA (header and blank lines not counted), and what the conversion does with each file
         $use = array('http://rs.tdwg.org/dwc/terms/taxon'             => 'Taxon.tsv',
                      'http://rs.tdwg.org/dwc/terms/measurementorfact' => 'Traits.tsv',
                      'http://rs.tdwg.org/dwc/terms/occurrence'        => 'links MoF rows to their taxa; extra columns go to Traits.tsv',
-                     'http://eol.org/schema/reference/reference'      => 'References.tsv (only the references Traits.tsv uses)');
+                     'http://eol.org/schema/reference/reference'      => 'Sources.tsv (only the references Traits.tsv uses)',
+                     'http://eol.org/schema/agent/agent'              => 'only the names of contributors kept (term_homepage -> term_name), if the Terms master has none');
         $topic = "Rows in the legacy DwCA (input)";
         echo "\n$topic:\n";
         foreach($tables as $row_type => $metas) {
@@ -419,6 +430,9 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $mof_cols = array_values(array_diff(self::conv_table_columns($meta), self::MOF_NOT_CARRIED));
         $meta_cols = array_values(array_diff(array_merge($this->conv_child_columns, $this->conv_occ_columns), $mof_cols, self::TRAITS_FIRST, self::MOF_NOT_CARRIED));
         $all = array_values(array_unique(array_merge($mof_cols, $meta_cols)));
+        $has_contributor = in_array('contributor', $all); // (Nov 27, 2026) no contributor column: kept IDs go to referenceID (see MADE_UP_EOL_URI)
+        $all = array_values(array_diff($all, array('contributor')));
+        if($has_contributor && !in_array('referenceID', $all)) $all[] = 'referenceID';
         $head = array_merge(self::TRAITS_FIRST, array_values(array_diff($all, self::TRAITS_FIRST, self::TRAITS_LAST)), array_values(array_intersect(self::TRAITS_LAST, $all)));
 
         $f = Functions::file_open($file, "w");
@@ -448,6 +462,10 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 if($new !== $rec['referenceID']) { $ref_changed++; $rec['referenceID'] = $new; }
                 foreach(explode('|', $rec['referenceID']) as $id) if($id !== '') $this->conv_ref_used[$id] = '';
             }
+            if($has_contributor && (string) @$rec['contributor'] !== '') { // after the referenceIDs: a contributor ID kept is added to them
+                $kept = self::conv_sort_contributors($rec['contributor']);
+                if($kept) $rec['referenceID'] = self::conv_merge_values((string) @$rec['referenceID'], $kept);
+            }
             $out = array();
             foreach($head as $c) $out[] = (string) @$rec[$c];
             fwrite($f, implode("\t", $out) . "\n");
@@ -473,14 +491,101 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                        "referenceID: ';' changed to '|' in " . number_format($ref_changed) . " rows",
                        "Traits.tsv columns: " . implode(", ", $head));
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
+        if($has_contributor) self::conv_report_contributors();
         echo "\n";
     }
-    private function conv_write_references($meta, $file)
-    {   // reference table -> References.tsv (identifier, full_reference, as the shared TB_files/22776838_References/input_files/references.tsv):
-        // only the references Traits.tsv uses, in the order of the reference table; compared with the shared references.tsv
-        $topic = "References.tsv";
+    private function conv_sort_contributors($value)
+    {   // (Nov 27, 2026) one row's contributor value ("id1|id2", or ";"): returns the IDs kept (real person IDs); the others are counted as left out
+        $kept = array();
+        foreach(preg_split('/[;|]/', (string) $value) as $id) {
+            $id = trim($id);
+            if($id === '') continue;
+            $this->conv_contrib['values']++;
+            if(FullReferenceSearchAPI::is_person_id($id) !== '') { $kept[] = $id; @$this->conv_contrib['kept'][$id]++; continue; }
+            if(preg_match(self::MADE_UP_EOL_URI, $id)) $kind = 'a made-up EOL URI';
+            elseif(preg_match(self::HASH_ID, $id))     $kind = 'a hash';
+            else                                        $kind = 'not an ORCID, FishBase collaborator page or WoRMS person page';
+            @$this->conv_contrib['excluded'][$kind][$id]++;
+        }
+        return $kept;
+    }
+    private function conv_report_contributors()
+    {   // counts of the contributor IDs kept (moved to referenceID) and left out, with examples
+        $c = $this->conv_contrib; $topic = "Contributors (no contributor column any more; Data Managers' plan, Nov 27, 2026)";
+        $n_out = array_sum(array_map('count', $c['excluded']));
+        $lines = array("Contributor values read: " . number_format($c['values']) . " (the MoF's contributor column and its child rows of type contributor)",
+                       "Kept, moved to referenceID (an ORCID, a FishBase collaborator page or a WoRMS person page): " . number_format(count($c['kept'])) . " distinct IDs, "
+                           . number_format(array_sum($c['kept'])) . " values",
+                       "Left out, not carried forward: " . number_format($n_out) . " distinct IDs, " . number_format(array_sum(array_map('array_sum', $c['excluded']))) . " values");
+        foreach($c['excluded'] as $kind => $ids) {
+            $ex = array_slice(array_keys($ids), 0, 3);
+            $lines[] = "  left out, $kind: " . number_format(count($ids)) . " distinct IDs, e.g. " . implode(", ", $ex);
+        }
+        foreach($lines as $l) { echo "\n$l"; $this->conv_debug[$topic][$l] = ''; }
+        foreach($c['excluded'] as $kind => $ids) foreach($ids as $id => $n) $this->conv_debug["Contributors left out: $kind"]["$id ($n values)"] = '';
+    }
+    private function conv_contributor_names($agent_meta)
+    {   // (Nov 27, 2026) the name of each contributor ID kept: from the Terms master (terms.tsv: uri -> name), else the DwCA's agent table
+        // (term_homepage -> term_name). Returns array(id => name); an ID with no name isn't in it.
+        $want = $this->conv_contrib['kept'];
+        if(!$want) return array();
+        $names = array();
+        if($terms = $this->get_generic_file_path(22776577, 'terms')) { // 22776577 = Terms
+            $h = fopen($terms, 'r');
+            $head = array_map('trim', explode("\t", rtrim((string) fgets($h), "\r\n")));
+            $c_uri = array_search('uri', $head); $c_name = array_search('name', $head);
+            if($c_uri !== false && $c_name !== false) {
+                while(($line = fgets($h)) !== false) {
+                    $f = explode("\t", rtrim($line, "\r\n"));
+                    $uri = trim((string) @$f[$c_uri]); $nm = trim((string) @$f[$c_name]);
+                    if($uri !== '' && $nm !== '' && isset($want[$uri]) && !isset($names[$uri])) $names[$uri] = $nm;
+                }
+            }
+            fclose($h);
+            echo "\nContributor names from the Terms master [" . basename($terms) . "]: " . number_format(count($names)) . " of " . number_format(count($want));
+        }
+        else echo "\nWARNING: the Terms master (terms.tsv) wasn't found: contributor names come only from the DwCA's agent table, if it has one.";
+        if($agent_meta && count($names) < count($want)) {
+            $cols = array_values(self::conv_table_columns($agent_meta)); $from_agent = 0;
+            if(in_array('term_homepage', $cols) && in_array('term_name', $cols)) {
+                foreach(self::conv_table_rows($agent_meta) as list($line, $rec)) {
+                    $id = $rec['term_homepage']; $nm = trim(preg_replace('/\s+/', ' ', $rec['term_name']));
+                    if($id !== '' && $nm !== '' && isset($want[$id]) && !isset($names[$id])) { $names[$id] = $nm; $from_agent++; }
+                }
+            }
+            echo "\nContributor names from the DwCA's agent table: " . number_format($from_agent);
+        }
+        return $names;
+    }
+    private function conv_add_contributors_to_master($names, $name)
+    {   // (Nov 27, 2026) the kept contributors with a name -> the master sources.tsv (identifier = their ID, citation = their name), if not there yet.
+        // Never uploaded to Zenodo here. A kept ID with no name stays in referenceID; References Maintenance's unmappable list will list it.
+        $topic = "Contributors -> master sources.tsv";
+        if(!$this->conv_contrib['kept']) return;
+        $no_name = array_diff_key($this->conv_contrib['kept'], $names);
+        foreach(array_keys($no_name) as $id) $this->conv_debug["Contributors kept, but with no name (not added to the master; in referenceID)"][$id] = '';
+        if(!$names) { $l = "No contributor with a name: nothing added to the master. No name: " . number_format(count($no_name)); echo "\n$l\n"; $this->conv_debug[$topic][$l] = ''; return; }
+        require_library('connectors/GenerateTB_Files_Functions');
+        require_library('connectors/ReferenceMaintenanceAPI');
+        ob_start(); $mtce = new ReferenceMaintenanceAPI(array('task' => 'add_contributors_from_legacy_dwca')); ob_end_clean(); // its constructor prints its param
+        $ret = $mtce->add_rows_to_sources_master($names, "contributors from $name");
+        if($ret === false) { $l = "ERROR: the contributors could not be added to the master (see above). Nothing was added."; echo "\n$l\n"; $this->conv_debug[$topic][$l] = ''; return; }
+        $differs = array_filter($ret['already'], fn($cit, $id) => $cit !== $names[$id], ARRAY_FILTER_USE_BOTH);
+        $lines = array("Added to the master: " . number_format(count($ret['added'])),
+                       "Already in the master (not changed): " . number_format(count($ret['already'])) . " (with a different citation: " . number_format(count($differs)) . ")",
+                       "Kept, but with no name (not added; in referenceID, so References Maintenance will list it as unmappable): " . number_format(count($no_name)));
+        foreach($lines as $l) { echo "\n$l"; $this->conv_debug[$topic][$l] = ''; }
+        foreach($ret['added'] as $id => $cit) $this->conv_debug["Contributors added to the master sources.tsv"]["$id\t$cit"] = '';
+        foreach($differs as $id => $cit) $this->conv_debug["Contributors already in the master with a different citation (master kept)"]["$id -- master: [$cit] ours: [{$names[$id]}]"] = '';
+        echo "\n";
+    }
+    private function conv_write_references($meta, $file, $names = array())
+    {   // reference table -> Sources.tsv (identifier, citation, as the master TB_files/22776838_References/input_files/sources.tsv):
+        // only the references Traits.tsv uses, in the order of the reference table; compared with the master sources.tsv.
+        // (Nov 27, 2026) then the contributors kept, with their name as citation ($names: id => name). Was References.tsv (identifier, full_reference).
+        $topic = "Sources.tsv";
         $f = Functions::file_open($file, "w");
-        fwrite($f, "identifier\tfull_reference\n");
+        fwrite($f, "identifier\tcitation\n");
         $written = array(); $blank = 0;
         if($meta) {
             $cols = array_values(self::conv_table_columns($meta));
@@ -489,17 +594,19 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 $id = $rec['identifier'];
                 if(!isset($this->conv_ref_used[$id]) || isset($written[$id])) continue; // not used in Traits.tsv, or a duplicate identifier (first kept)
                 $full = trim(preg_replace('/\s+/', ' ', $rec['full_reference'])); // no tabs or line breaks inside a field
-                if($full === '') { $blank++; $this->conv_debug["References.tsv: blank full_reference (written anyway)"][$id] = ''; }
+                if($full === '') { $blank++; $this->conv_debug["Sources.tsv: blank citation (written anyway)"][$id] = ''; }
                 fwrite($f, "$id\t$full\n");
                 $written[$id] = $full;
             }
         }
+        $people = 0;
+        foreach($names as $id => $nm) { if(isset($written[$id])) continue; fwrite($f, "$id\t$nm\n"); $people++; } // contributors kept (Nov 27, 2026)
         fclose($f);
         $missing = array_diff_key($this->conv_ref_used, $written);
-        foreach(array_keys($missing) as $id) $this->conv_debug["References.tsv: referenceID used in Traits.tsv but not in the reference table"][$id] = '';
+        foreach(array_keys($missing) as $id) $this->conv_debug["Sources.tsv: referenceID used in Traits.tsv but not in the reference table"][$id] = '';
 
-        // compared with the shared references (TB_files/22776838_References/input_files/references.tsv)
-        $shared_file = @glob(rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/22776838_*/input_files/references.tsv")[0];
+        // compared with the master sources (TB_files/22776838_References/input_files/sources.tsv)
+        $shared_file = @glob(rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/22776838_*/input_files/sources.tsv")[0];
         $in_shared = 0; $differs = 0;
         if($shared_file && ($h = fopen($shared_file, 'r'))) {
             while(($row = fgets($h)) !== false) {
@@ -508,16 +615,17 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 if(!isset($written[$id])) continue;
                 $in_shared++;
                 $theirs = trim(preg_replace('/\s+/', ' ', (string) @$tmp[1]));
-                if($theirs !== $written[$id]) { $differs++; $this->conv_debug["References.tsv: already in the shared references.tsv, with a different full_reference"]["$id -- ours: [{$written[$id]}] shared: [$theirs]"] = ''; }
+                if($theirs !== $written[$id]) { $differs++; $this->conv_debug["Sources.tsv: already in the master sources.tsv, with a different citation"]["$id -- ours: [{$written[$id]}] shared: [$theirs]"] = ''; }
             }
             fclose($h);
         }
-        $lines = array("References.tsv rows: " . number_format(count($written)) . " (of " . number_format(count($this->conv_ref_used)) . " distinct referenceIDs in Traits.tsv); not in the reference table: " . number_format(count($missing)) . "; blank full_reference: " . number_format($blank),
-                       $shared_file ? "Already in the shared references.tsv: " . number_format($in_shared) . " (same full_reference: " . number_format($in_shared - $differs) . ", different: " . number_format($differs) . "); new: " . number_format(count($written) - $in_shared)
-                                    : "Shared references.tsv (TB_files/22776838_*/input_files/) not found: not compared");
+        $lines = array("Sources.tsv rows: " . number_format(count($written) + $people) . ": references " . number_format(count($written)) . " (of " . number_format(count($this->conv_ref_used)) . " distinct referenceIDs in Traits.tsv from the reference table); not in the reference table: " . number_format(count($missing)) . "; blank citation: " . number_format($blank)
+                           . "; contributors kept, with their name: " . number_format($people),
+                       $shared_file ? "References already in the master sources.tsv: " . number_format($in_shared) . " (same citation: " . number_format($in_shared - $differs) . ", different: " . number_format($differs) . "); new: " . number_format(count($written) - $in_shared)
+                                    : "The master sources.tsv (TB_files/22776838_*/input_files/) not found: not compared");
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
         echo "\n";
-        if(!$meta && $this->conv_ref_used) echo "\nWARNING: the DwCA has no reference table: References.tsv has only its header.\n";
+        if(!$meta && $this->conv_ref_used) echo "\nWARNING: the DwCA has no reference table: Sources.tsv has no references.\n";
     }
     const ARCHIVE_TYPES = array('.tar.gz', '.tgz', '.zip'); // supported Zenodo file types; ".tar.gz" and ".zip" as "file_type"
     private function archive_type($file)

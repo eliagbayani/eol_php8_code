@@ -68,7 +68,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
 
         if($task == 'update_References_from_UndefinedRefIDs_files') {
-            // /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and full_reference.
+            // /* Step 3: update the master References file. Add the newly created referenceID and citation to the master: identifier and citation.
             if(!$basename) exit("\nERROR: No undefined_referenceIDs_YYYYMMDD.tsv found. Run prepare_undefined_referenceIDs_list first.\n");
             echo "\nSteps 3 & 4 use: [{$basename}_processed.tsv]\n";
             $processed_tsv = $basename."_processed.tsv";
@@ -127,21 +127,21 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
 
         if($task == 'compare_master_with_zenodo') {
-            // /* Report only, changes nothing: is our local master references.tsv the same as the one in Zenodo's latest version?
+            // /* Report only, changes nothing: is our local master sources.tsv the same as the one in Zenodo's latest version?
             $ret = $result = self::compare_master_with_zenodo();
             if($ret) echo "\nCompare result: " . json_encode($ret) . "\n";
             // */
         }
 
         if($task == 'merge_zenodo_references') {
-            // /* Merge the changes in Zenodo's copy of references.tsv (saved beside the folder after a new download) into our local master
-            $ret = $result = $this->merge_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv');
+            // /* Merge the changes in Zenodo's copy of sources.tsv (saved beside the folder after a new download) into our local master
+            $ret = $result = $this->merge_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'sources.tsv');
             echo "\nMerge result: " . json_encode($ret) . "\n";
             // */
         }
         if($task == 'sync_zenodo_references') {
             // /* Sync merge: apply Zenodo's additions, changes AND deletions (since the base) to our local master; our own additions are kept
-            $ret = $result = $this->sync_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'references.tsv', null, !empty($this->param['dry_run_YN']));
+            $ret = $result = $this->sync_zenodo_copy_into_local($this->main_datasets['References_conceptID'], 'sources.tsv', null, !empty($this->param['dry_run_YN']));
             echo "\nSync result: " . json_encode($ret) . "\n";
             // */
         }
@@ -151,7 +151,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // */
         }
         if($task == 'update_master_references_with_datamanager_supplied_file_of_unmappable_identifiers') {
-            // /* Data manager's filled-in unmappable list -> master references.tsv (+ GitHub copy, Zenodo upload) -> remove them from unmappable_identifiers.tsv (+ GitHub copy)
+            // /* Data manager's filled-in unmappable list -> master sources.tsv (+ GitHub copy, Zenodo upload) -> remove them from unmappable_identifiers.tsv (+ GitHub copy)
             if(empty($this->param['file'])) echo "\nERROR: \"file\" is required: the path of the data manager's TSV\n";
             else {
                 $ret = $result = self::update_master_with_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']), null, !empty($this->param['skip_unmappable_update_YN']), !empty($this->param['replace_existing_YN']));
@@ -160,7 +160,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             // */
         }
         if($task == 'fix_duplicate_issue_in_master_references') {
-            // /* Delete from the master the rows the Data Manager listed (identifier, full_reference, master_row) -> GitHub copy -> Zenodo upload
+            // /* Delete from the master the rows the Data Manager listed (identifier, citation, master_row) -> GitHub copy -> Zenodo upload
             if(empty($this->param['file'])) echo "\nERROR: \"file\" is required: the path of the data manager's TSV\n";
             else {
                 $ret = $result = self::remove_master_rows_from_datamanager_file($this->param['file'], !empty($this->param['dry_run_YN']));
@@ -171,7 +171,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return $result;
     }
     private function upload_references_master()
-    {   // uploads our master references.tsv to Zenodo with upload_file_toZenodo(): draft only, unless $this->param['publish']. Returns its result, or false.
+    {   // uploads our master sources.tsv to Zenodo with upload_file_toZenodo(): draft only, unless $this->param['publish']. Returns its result, or false.
         // $this->param['no_upload_YN']: no upload, e.g. when another change follows and one upload should carry both
         if(!empty($this->param['no_upload_YN'])) {
             echo "\nNo upload to Zenodo (no_upload_YN). Upload the master later, e.g. by the next task without no_upload_YN, or:\n"
@@ -181,7 +181,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         echo "\nUploading the master to Zenodo" . (empty($this->param['publish']) ? " (draft only)" : " (PUBLISH)") . "...\n";
         $this->param['concept_id'] = (string) $this->main_datasets['References_conceptID'];
         $dm_param = $this->param['file'] ?? null;
-        unset($this->param['file']); // 'file' here is the data manager's TSV; for upload_file_toZenodo() it would be the file to upload -> use its default, references.tsv
+        unset($this->param['file']); // 'file' here is the data manager's TSV; for upload_file_toZenodo() it would be the file to upload -> use its default, sources.tsv
         $uploaded = $this->upload_file_toZenodo();
         if($dm_param !== null) $this->param['file'] = $dm_param;
         if(!$uploaded) echo "\nNOTE: the master was updated, but NOT uploaded to Zenodo. Upload it later:\n"
@@ -189,9 +189,9 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return $uploaded;
     }
     private function remove_master_rows_from_datamanager_file($dm_file, $dry_run = false)
-    {   /* $dm_file: the data manager's list of master rows to delete (identifier, full_reference, master_row), e.g. picked from our duplicates report
-        Step 1: a master row is deleted if its identifier and full_reference are exactly those in $dm_file, at row master_row (header = row 1).
-                If master_row is blank, the identifier + full_reference match is enough: every master row with that exact pair is deleted.
+    {   /* $dm_file: the data manager's list of master rows to delete (identifier, citation, master_row), e.g. picked from our duplicates report
+        Step 1: a master row is deleted if its identifier and citation are exactly those in $dm_file, at row master_row (header = row 1).
+                If master_row is blank, the identifier + citation match is enough: every master row with that exact pair is deleted.
         Step 2: the master is copied to the GitHub folder
         Step 3: the master is uploaded to Zenodo: draft only, unless $this->param['publish']
         $dry_run: report step 1 only, change nothing.
@@ -199,14 +199,14 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(!is_file($dm_file)) { echo "\nERROR: No file [$dm_file]\n"; return false; }
         $lines = explode("\n", file_get_contents($dm_file));
         $header = array_map('trim', explode("\t", (string) $lines[0]));
-        if($header !== array('identifier', 'full_reference', 'master_row')) { echo "\nERROR: [$dm_file] header must be: identifier, full_reference, master_row\n"; return false; }
+        if($header !== array('identifier', 'citation', 'master_row') && $header !== array('identifier', 'full_reference', 'master_row')) { echo "\nERROR: [$dm_file] header must be: identifier, citation, master_row (or the old name full_reference for citation)\n"; return false; }
         echo "\nData manager's file: [$dm_file]\n";
-        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) { echo "\nERROR: No sources.tsv\n"; return false; } //3rd param is: $processedYN
         echo "\nReferences Master: [$references_tsv]\n";
 
         // Step 1
         $master = explode("\n", file_get_contents($references_tsv)); // each line keeps its own \r (header LF, rows CRLF), so what's kept is written back as is
-        $rows_of = array(); // "identifier\tfull_reference" => master rows (header = 1)
+        $rows_of = array(); // "identifier\tcitation" => master rows (header = 1)
         foreach($master as $i => $line) if($i > 0 && rtrim($line, "\r") !== '') $rows_of[rtrim($line, "\r")][] = $i + 1;
         $delete = array(); $skipped = array(); $notes = array();
         foreach($lines as $n => $line) {
@@ -216,7 +216,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             $pair = $c[0] . "\t" . ($c[1] ?? '');
             $row = trim($c[2] ?? '');
             $what = "line " . ($n + 1) . " [{$c[0]}]";
-            if($row === '') { // no master_row: the exact identifier + full_reference is enough
+            if($row === '') { // no master_row: the exact identifier + citation is enough
                 if(empty($rows_of[$pair])) { $skipped[] = "$what: not in the master"; continue; }
                 foreach($rows_of[$pair] as $r) if(!isset($delete[$r])) $delete[$r] = "$what (no master_row)";
                 $notes[] = "$what had no master_row: matched at row " . implode(', ', $rows_of[$pair]) . (count($rows_of[$pair]) > 1 ? " (all its copies)" : '');
@@ -249,13 +249,13 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if(!copy($references_tsv, $backup)) { echo "\nERROR: Cannot backup [$references_tsv]\n"; return false; }
         echo "\nBackup: [$backup]\n";
         $orig = self::count_data_rows($references_tsv);
-        $log = array("master_row\tidentifier\tfull_reference");
+        $log = array("master_row\tidentifier\tcitation");
         ksort($delete);
         foreach(array_keys($delete) as $r) { $log[] = "$r\t" . rtrim($master[$r - 1], "\r"); unset($master[$r - 1]); }
         $tmp = $references_tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
         if(file_put_contents($tmp, implode("\n", $master)) === false || !rename($tmp, $references_tsv)) { echo "\nERROR: Cannot update [$references_tsv]\n"; return false; }
         echo "Updated: [$references_tsv]\n";
-        $log_file = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_removed_duplicates_" . date("Ymd_His") . ".tsv";
+        $log_file = CONTENT_RESOURCE_LOCAL_PATH . "sources_" . $this->main_datasets['References_conceptID'] . "_removed_duplicates_" . date("Ymd_His") . ".tsv";
         if(file_put_contents($log_file, implode("\n", $log) . "\n") !== false) echo "Deleted rows saved in: [$log_file]\n";
         self::print_row_stats($orig, count($delete), self::count_data_rows($references_tsv), 'deleted');
 
@@ -266,35 +266,36 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return $ret;
     }
     private function update_master_with_datamanager_file($dm_file, $dry_run = false, $tsv = null, $skip_unmappable = false, $replace_existing = false)
-    {   /* $dm_file: the data manager's copy of unmappable_identifiers.tsv (identifier, status, full_reference), with full_reference filled in;
-                  or a 2-column file of references to add (identifier, full_reference), e.g. references_add_template.tsv
-        Step 1: rows with a full_reference --> master references.tsv, if the identifier isn't there yet (else ignored)
-        Step 2: the master is copied to the GitHub folder (done by append_to_references_master())
+    {   /* $dm_file: the data manager's copy of unmappable_identifiers.tsv (identifier, status, citation), with citation filled in;
+                  or a 2-column file of references to add (identifier, citation), e.g. references_add_template.tsv
+        Step 1: rows with a citation --> master sources.tsv, if the identifier isn't there yet (else ignored)
+        Step 2: the master is copied to the GitHub folder (done by append_to_sources_master())
         Step 3: the master is uploaded to Zenodo: draft only, unless $this->param['publish']
         Step 4: the identifiers added in step 1 are removed from our unmappable_identifiers.tsv ($tsv; a trailing '/' is ignored when matching)
         Step 5: unmappable_identifiers.tsv is copied to the GitHub folder
         $dry_run: report steps 1 and 4 only, change nothing.
         $skip_unmappable: stop after step 3; our unmappable_identifiers.tsv is left as is (steps 4 & 5 not done).
-        $replace_existing: in step 1, an identifier already in the master with a different full_reference gets the new one, in place (same row);
-                           only if the identifier is on exactly one master row. The replaced rows are saved, with the old and the new full_reference.
+        $replace_existing: in step 1, an identifier already in the master with a different citation gets the new one, in place (same row);
+                           only if the identifier is on exactly one master row. The replaced rows are saved, with the old and the new citation.
         Returns array('added', 'replaced', 'ignored', 'uploaded', 'deleted'), or false. */
         if(!$tsv) $tsv = CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
         if(!is_file($dm_file)) { echo "\nERROR: No file [$dm_file]\n"; return false; }
         $lines = file($dm_file, FILE_IGNORE_NEW_LINES);
         $header = array_map('trim', explode("\t", (string) @$lines[0]));
-        if(!in_array($header, array(array('identifier', 'status', 'full_reference'), array('identifier', 'full_reference')), true)) { echo "\nERROR: [$dm_file] header must be: identifier, status, full_reference -- or: identifier, full_reference\n"; return false; }
-        $ref_col = array_search('full_reference', $header); // 2 in the unmappable list layout, 1 in the 2-column layout (e.g. references_add_template.tsv)
+        $header = array_map(fn($h) => $h === 'full_reference' ? 'citation' : $h, $header); // (Nov 27, 2026) full_reference is the old name of citation: both accepted
+        if(!in_array($header, array(array('identifier', 'status', 'citation'), array('identifier', 'citation')), true)) { echo "\nERROR: [$dm_file] header must be: identifier, status, citation -- or: identifier, citation (full_reference, the old name of citation, is also accepted)\n"; return false; }
+        $ref_col = array_search('citation', $header); // 2 in the unmappable list layout, 1 in the 2-column layout (e.g. references_add_template.tsv)
         echo "\nData manager's file: [$dm_file]\n";
 
         // Step 1
-        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) { echo "\nERROR: No sources.tsv\n"; return false; } //3rd param is: $processedYN
         echo "\nReferences Master: [$references_tsv]\n";
         $master = explode("\n", file_get_contents($references_tsv)); // each line keeps its own \r, so a replaced row keeps its line ending
         $existing = array(); // identifier => master line indexes (0 = header)
         foreach($master as $i => $line) if($i > 0 && rtrim($line, "\r") !== '') $existing[trim(explode("\t", $line)[0])][] = $i;
         $orig = self::count_data_rows($references_tsv);
         $rows = array(); $added = array(); $seen = array(); $ignored = array(); $repeated = array(); $blank = 0;
-        $replace = array(); $same = array(); $several = array(); // $replace: master line index => array(identifier, old full_reference, new full_reference)
+        $replace = array(); $same = array(); $several = array(); // $replace: master line index => array(identifier, old citation, new citation)
         foreach($lines as $line_no => $line) {
             if($line_no == 0 || trim($line) == '') continue; // header
             $c = array_map('trim', explode("\t", $line) + array('', '', ''));
@@ -323,7 +324,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
         else echo "Ignored, already in master: " . count($ignored) . ($ignored ? "\n    " . implode("\n    ", $ignored) : '') . "\n";
         if($repeated) echo "Ignored, listed again in the file: " . count($repeated) . "\n    " . implode("\n    ", $repeated) . "\n";
-        if($blank)    echo "Skipped, blank full_reference: $blank\n";
+        if($blank)    echo "Skipped, blank citation: $blank\n";
 
         // Step 4, worked out first: rows of our unmappable list whose identifier was added (a trailing '/' is ignored)
         if($skip_unmappable) { echo "\nSteps 4 & 5 skipped (skip_unmappable_update_YN): [$tsv] is left as is.\n"; $tsv = null; }
@@ -359,17 +360,17 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 
         // Steps 1 & 2
         if($rows) { // appended first: its backup is then the master as it was
-            if(!self::append_to_references_master($references_tsv, $rows)) return false; // also copies the master to the GitHub folder
+            if(!self::append_to_sources_master($references_tsv, $rows)) return false; // also copies the master to the GitHub folder
             self::print_row_stats($orig, count($rows), self::count_data_rows($references_tsv));
         }
         if($replace) {
-            if(!$rows) { // no backup made by append_to_references_master()
+            if(!$rows) { // no backup made by append_to_sources_master()
                 $backup = self::master_backup_path();
                 if(!copy($references_tsv, $backup)) { echo "\nERROR: Cannot backup [$references_tsv]\n"; return false; }
                 echo "\nBackup: [$backup]\n";
             }
             $master = explode("\n", file_get_contents($references_tsv)); // as appended; the replaced rows are above the appended ones, so their indexes still hold
-            $log = array("master_row\tidentifier\told_full_reference\tnew_full_reference");
+            $log = array("master_row\tidentifier\told_citation\tnew_citation");
             foreach($replace as $i => [$identifier, $old, $new]) {
                 $first = explode("\t", $master[$i])[0]; // the identifier as written in the master
                 $master[$i] = "$first\t$new" . (str_ends_with($master[$i], "\r") ? "\r" : '');
@@ -378,7 +379,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             $tmp = $references_tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
             if(file_put_contents($tmp, implode("\n", $master)) === false || !rename($tmp, $references_tsv)) { echo "\nERROR: Cannot update [$references_tsv]\n"; return false; }
             echo "\nReplaced the citation of " . count($replace) . " reference(s): [$references_tsv]\n";
-            $log_file = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_replaced_citations_" . date("Ymd_His") . ".tsv";
+            $log_file = CONTENT_RESOURCE_LOCAL_PATH . "sources_" . $this->main_datasets['References_conceptID'] . "_replaced_citations_" . date("Ymd_His") . ".tsv";
             if(file_put_contents($log_file, implode("\n", $log) . "\n") !== false) echo "Old and new citations saved in: [$log_file]\n";
             $this->copy_to_github_folder($references_tsv);
         }
@@ -571,11 +572,11 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return $target_tsv;
     }
     private function update_References_file($processed_tsv)
-    {   // append the 'OK' rows of the processed TSV (referenceID, citation, status) to the master references.tsv (identifier, full_reference)
+    {   // append the 'OK' rows of the processed TSV (referenceID, citation, status) to the master sources.tsv (identifier, citation)
         // skips identifiers already in the master; backs up the master first. Returns no. of rows added, or false.
         if(strpos($processed_tsv, '/') === false) $processed_tsv = CONTENT_RESOURCE_LOCAL_PATH . $processed_tsv;
         if(!is_file($processed_tsv)) { echo "\nERROR: No processed TSV [$processed_tsv]\n"; return false; }
-        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) { echo "\nERROR: No sources.tsv\n"; return false; } //3rd param is: $processedYN
         echo "\nReferences Master: [$references_tsv]\n";
         $orig = self::count_data_rows($references_tsv);
 
@@ -591,12 +592,50 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             $rows[] = "$refID\t$citation";
         }
         if(!$rows) { echo "\nNo new references to add.\n"; self::print_row_stats($orig, 0, $orig); return 0; }
-        if(!self::append_to_references_master($references_tsv, $rows)) return false;
+        if(!self::append_to_sources_master($references_tsv, $rows)) return false;
         self::print_row_stats($orig, count($rows), self::count_data_rows($references_tsv));
         return count($rows);
     }
-    private function append_to_references_master($references_tsv, $rows)
-    {   // append rows ("identifier\tfull_reference") to the master references.tsv; backs up the master first. Returns true, or false.
+    function add_rows_to_sources_master($rows, $why = '')
+    {   /* (Nov 27, 2026) for other tools, e.g. process_legacy_dwca (contributors with an ORCID, FishBase or WoRMS person page):
+           $rows: array(identifier => citation). Identifiers already in the master are never added again (the master is not changed for them).
+           Takes the References Maintenance lock, backs up the master, appends, copies it to the GitHub folder. Never uploads to Zenodo.
+           Returns array('added' => array(identifier => citation), 'already' => array(identifier => citation in the master)), or false. */
+        $lock_dir = CONTENT_RESOURCE_LOCAL_PATH . "Reference_maintenance/";
+        if(!is_dir($lock_dir)) @mkdir($lock_dir, 0777, true);
+        $lock = @fopen($lock_dir . ".reference_mtce.lock", 'c');
+        if($lock) { @chmod($lock_dir . ".reference_mtce.lock", 0666); echo "\nWaiting for any other References Maintenance run to finish...\n"; flock($lock, LOCK_EX); }
+        $ret = false;
+        if(!($sources_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) echo "\nERROR: No sources.tsv: nothing was added to the master\n";
+        else {
+            $existing = array(); // identifier => citation
+            foreach(file($sources_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
+                if($line_no == 0) continue; // header
+                [$identifier, $citation] = array_map('trim', explode("\t", $line) + array('', ''));
+                if($identifier != '' && !isset($existing[$identifier])) $existing[$identifier] = $citation;
+            }
+            $ret = array('added' => array(), 'already' => array()); $lines = array();
+            foreach($rows as $identifier => $citation) {
+                $identifier = trim((string) $identifier); $citation = trim(preg_replace('/\s+/', ' ', (string) $citation));
+                if($identifier === '' || $citation === '') continue;
+                if(isset($existing[$identifier])) { $ret['already'][$identifier] = $existing[$identifier]; continue; }
+                $existing[$identifier] = $citation;
+                $ret['added'][$identifier] = $citation;
+                $lines[] = "$identifier\t$citation";
+            }
+            if($lines) {
+                $orig = self::count_data_rows($sources_tsv);
+                echo "\nAdding " . count($lines) . " row(s) to the master" . ($why ? " ($why)" : '') . ": [$sources_tsv]\n";
+                if(!self::append_to_sources_master($sources_tsv, $lines)) $ret = false;
+                else self::print_row_stats($orig, count($lines), self::count_data_rows($sources_tsv));
+            }
+            else echo "\nNothing new to add to the master" . ($why ? " ($why)" : '') . ": " . count($ret['already']) . " already there.\n";
+        }
+        if($lock) { flock($lock, LOCK_UN); fclose($lock); }
+        return $ret;
+    }
+    private function append_to_sources_master($references_tsv, $rows)
+    {   // append rows ("identifier\tcitation") to the master sources.tsv; backs up the master first. Returns true, or false.
         $backup = self::master_backup_path();
         if(!copy($references_tsv, $backup)) { echo "\nERROR: Cannot backup [$references_tsv]\n"; return false; }
         echo "\nBackup: [$backup]\n";
@@ -611,8 +650,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return true;
     }
     private function update_unmappable_identifiers($processed_tsv)
-    {   // non-'OK' rows of the processed TSV (referenceID, citation, status) --> unmappable_identifiers.tsv (identifier, status, full_reference)
-        // full_reference is left blank, to be filled in by hand
+    {   // non-'OK' rows of the processed TSV (referenceID, citation, status) --> unmappable_identifiers.tsv (identifier, status, citation)
+        // citation is left blank, to be filled in by hand
         // creates the file if it doesn't exist yet, else appends; skips identifiers already in the file. Returns no. of rows added, or false.
         if(strpos($processed_tsv, '/') === false) $processed_tsv = CONTENT_RESOURCE_LOCAL_PATH . $processed_tsv;
         if(!is_file($processed_tsv)) { echo "\nERROR: No processed TSV [$processed_tsv]\n"; return false; }
@@ -628,12 +667,12 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             [$refID, $citation, $status] = array_map('trim', explode("\t", $line) + array('', '', ''));
             if($status == 'OK' || $refID == '' || isset($existing[$refID])) continue;
             $existing[$refID] = '';
-            $rows[] = "$refID\t$status\t"; // blank full_reference
+            $rows[] = "$refID\t$status\t"; // blank citation
         }
         if(file_exists($tsv)) $fhandle = fopen($tsv, "a");
         else {
             $fhandle = fopen($tsv, "w");
-            fwrite($fhandle, "identifier\tstatus\tfull_reference\n");
+            fwrite($fhandle, "identifier\tstatus\tcitation\n");
         }
         foreach($rows as $row) fwrite($fhandle, $row . "\n");
         fclose($fhandle);
@@ -643,14 +682,14 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return count($rows);
     }
     private function refresh_unmappable_identifiers_usingMaster()
-    {   // remove from unmappable_identifiers.tsv the identifiers that now have a non-blank full_reference in the master references.tsv
+    {   // remove from unmappable_identifiers.tsv the identifiers that now have a non-blank citation in the master sources.tsv
         // Returns no. of rows removed, or false.
         $tsv = CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
         if(!is_file($tsv)) { echo "\nNo [$tsv] yet.\n"; return 0; }
-        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) { echo "\nERROR: No sources.tsv\n"; return false; } //3rd param is: $processedYN
         echo "\nReferences Master: [$references_tsv]\n";
 
-        $mapped = array(); // identifiers in the master with a full_reference
+        $mapped = array(); // identifiers in the master with a citation
         foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
             if($line_no == 0) continue; // header
             [$identifier, $full_reference] = array_map('trim', explode("\t", $line) + array('', '')); // trim also drops the CRLF's \r
@@ -722,9 +761,9 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     private function sync_unmappable_identifiers_with_datasets($tsv = null, $dry_run = false, $crossref = false)
     {   /* One step: makes unmappable_identifiers.tsv = the IDs cited in the TraitBank datasets (/referenceID or /source) that our master doesn't have.
            Reads the datasets directly (get_cited_ids_from_datasets()), not the converter's UndefinedRefIDs debug files, so no conversion is needed first.
-        - added:   cited IDs that aren't in the master (with a full_reference) and aren't on the list yet; status "Not in master", blank full_reference
+        - added:   cited IDs that aren't in the master (with a citation) and aren't on the list yet; status "Not in master", blank citation
                    ('#N/A', a spreadsheet's "no value", is never added)
-        - removed: IDs now in the master (with a full_reference), and IDs no dataset cites any more
+        - removed: IDs now in the master (with a citation), and IDs no dataset cites any more
         - $crossref: the IDs to add are first looked up in CrossRef; those found go to the master (backup first) instead, the rest get CrossRef's status
         - $dry_run: report only, change nothing
         Stops and changes nothing if a dataset's local copy is missing or older than Zenodo's latest version.
@@ -732,9 +771,9 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         Returns array('added', 'to_master', 'removed_in_master', 'removed_not_cited'), or false. */
         $tsv = $tsv ?? CONTENT_RESOURCE_LOCAL_PATH . "unmappable_identifiers.tsv";
         if(($cited = self::get_cited_ids_from_datasets()) === false) return false;
-        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; }
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) { echo "\nERROR: No sources.tsv\n"; return false; }
         echo "\nReferences Master: [$references_tsv]\nUnmappable list:   [$tsv]" . ($dry_run ? " (dry run, nothing is changed)" : '') . "\n";
-        $mapped = array(); // identifiers in the master with a full_reference -- what the converter counts as defined
+        $mapped = array(); // identifiers in the master with a citation -- what the converter counts as defined
         foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
             if($line_no == 0) continue; // header
             [$identifier, $full_reference] = array_map('trim', explode("\t", $line) + array('', ''));
@@ -742,7 +781,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         }
 
         // the list now: keep, or remove (in the master / not cited any more)
-        $header = "identifier\tstatus\tfull_reference"; $keep = array(); $existing = array(); $removed = array(); // $removed: array(line, reason)
+        $header = "identifier\tstatus\tcitation"; $keep = array(); $existing = array(); $removed = array(); // $removed: array(line, reason)
         if(is_file($tsv)) {
             foreach(file($tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
                 if($line_no == 0) { $header = $line; continue; }
@@ -768,7 +807,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
                 $status_of[$id] = $this->crossref_status ?: 'Not in master';
             }
             else $status_of[$id] = 'Not in master';
-            $new_rows[] = "$id\t{$status_of[$id]}\t"; // blank full_reference, for the Data Manager
+            $new_rows[] = "$id\t{$status_of[$id]}\t"; // blank citation, for the Data Manager
         }
 
         // report
@@ -788,7 +827,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
 
         // write: master first (if CrossRef found any), then the list
         if($master_rows) {
-            if(!self::append_to_references_master($references_tsv, $master_rows)) return false; // backup + GitHub copy
+            if(!self::append_to_sources_master($references_tsv, $master_rows)) return false; // backup + GitHub copy
             echo "Added to the master (found in CrossRef): " . count($master_rows) . ". Upload it to Zenodo when ready (upload_file_toZenodo).\n";
         }
         $date = date("Ymd_His"); $dir = dirname($tsv) . "/";
@@ -820,7 +859,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
     private function get_cited_ids_from_datasets()
     {   /* All IDs cited in the TraitBank datasets: array(identifier => array(concept_id => '')), or false (and nothing should be changed).
         datasets: the Zenodo 'traitbank' community, except $this->main_datasets (Terms, References, DH)
-        cited IDs: the referenceID and source columns of each dataset's local traits file (get_generic_file_path(), no download),
+        cited IDs: the referenceID, source and (Nov 27, 2026) contributor columns of each dataset's local traits file (get_generic_file_path(), no download),
                    and of its taxon file, if it has one with these columns (e.g. Kubitzki: source in taxon.tsv)
         returns false if a local copy is missing or older than Zenodo's latest version (prints the re-download commands),
         or if no ID is found at all. Used by refresh_unmappable_identifiers_usingDatasets() and sync_unmappable_identifiers_with_datasets(). */
@@ -861,25 +900,26 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         // 3. all IDs cited in the datasets: the referenceID column (a cell may hold several, e.g. "id1|id2") and the source column
         //    (one value per cell; ConvertNewModel_2DwCA reports a source missing from the master as an undefined referenceID too).
         //    Files: traits, and taxon where it has one of these columns (e.g. Kubitzki 22777078 has a source column in taxon.tsv)
-        $cited = array(); $cited_ref = array(); $cited_src = array();
+        $cited = array(); $cited_ref = array(); $cited_src = array(); $cited_con = array();
         foreach($traits_files as $concept_id => $file) {
             $files = array($file);
             foreach(array('taxon.tsv', 'taxon.txt') as $name) if(is_file(dirname($file) . "/$name")) { $files[] = dirname($file) . "/$name"; break; }
             foreach($files as $f) {
                 $fh = fopen($f, "r");
                 $fields = explode("\t", rtrim((string) fgets($fh), "\r\n"));
-                $ref_col = false; $src_col = false;
+                $ref_col = false; $src_col = false; $con_col = false;
                 foreach($fields as $i => $field) {
                     $name = pathinfo(trim($field), PATHINFO_FILENAME); // e.g. http://rs.tdwg.org/dwc/terms/referenceID, http://purl.org/dc/terms/source
                     if($name == 'referenceID' && $ref_col === false) $ref_col = $i;
                     if($name == 'source'      && $src_col === false) $src_col = $i;
+                    if($name == 'contributor' && $con_col === false) $con_col = $i; // (Nov 27, 2026) contributors are Sources too (Data Managers' plan)
                 }
-                if($ref_col === false && $src_col === false) {
+                if($ref_col === false && $src_col === false && $con_col === false) {
                     fclose($fh);
-                    if($f === $file) echo "$concept_id: no referenceID or source column in [" . basename($f) . "]\n";
+                    if($f === $file) echo "$concept_id: no referenceID, source or contributor column in [" . basename($f) . "]\n";
                     continue;
                 }
-                $rows = 0; $ref_ids = array(); $src_ids = array();
+                $rows = 0; $ref_ids = array(); $src_ids = array(); $con_ids = array();
                 while(($line = fgets($fh)) !== false) {
                     $rows++;
                     $values = explode("\t", rtrim($line, "\r\n"));
@@ -895,25 +935,29 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
                         $id = trim($values[$src_col] ?? ''); // same: no quotes trimmed
                         if($id !== '') $src_ids[$id] = '';
                     }
+                    if($con_col !== false) { // a cell may hold several, e.g. "id1|id2"
+                        foreach(explode("|", $values[$con_col] ?? '') as $id) { $id = trim($id); if($id !== '') $con_ids[$id] = ''; }
+                    }
                 }
                 fclose($fh);
-                foreach($ref_ids + $src_ids as $id => $x) $cited[$id][$concept_id] = '';
-                $cited_ref += $ref_ids; $cited_src += $src_ids;
+                foreach($ref_ids + $src_ids + $con_ids as $id => $x) $cited[$id][$concept_id] = '';
+                $cited_ref += $ref_ids; $cited_src += $src_ids; $cited_con += $con_ids;
                 echo "$concept_id " . basename($f) . ": " . number_format($rows) . " rows, "
                    . ($ref_col !== false ? number_format(count($ref_ids)) . " distinct referenceIDs" : "no referenceID column") . ", "
-                   . ($src_col !== false ? number_format(count($src_ids)) . " distinct sources" : "no source column") . "\n";
+                   . ($src_col !== false ? number_format(count($src_ids)) . " distinct sources" : "no source column")
+                   . ($con_col !== false ? ", " . number_format(count($con_ids)) . " distinct contributors" : '') . "\n";
             }
         }
         echo "Distinct IDs cited in all datasets: " . number_format(count($cited))
-           . " (referenceID: " . number_format(count($cited_ref)) . ", source: " . number_format(count($cited_src)) . ")\n";
-        if(!$cited) { echo "\nERROR: no referenceID or source found in any dataset. Nothing was changed.\n"; return false; } // never empty the whole list by mistake
+           . " (referenceID: " . number_format(count($cited_ref)) . ", source: " . number_format(count($cited_src)) . ", contributor: " . number_format(count($cited_con)) . ")\n";
+        if(!$cited) { echo "\nERROR: no referenceID, source or contributor found in any dataset. Nothing was changed.\n"; return false; } // never empty the whole list by mistake
         return $cited;
     }
     private function compare_unmappable_identifiers_using_self($source1, $source2)
-    {   // $source1, $source2: two copies of unmappable_identifiers.tsv (identifier, status, full_reference), e.g. local and from GitHub
+    {   // $source1, $source2: two copies of unmappable_identifiers.tsv (identifier, status, citation), e.g. local and from GitHub
         // Step 1: the two files must be byte-identical, else stop
-        // Step 2: rows of $source1 with identifier + full_reference --> master references.tsv, if the identifier isn't there yet
-        // Step 3: delete from $source1 the rows whose identifier now has a full_reference in the master (copied now, or already there)
+        // Step 2: rows of $source1 with identifier + citation --> master sources.tsv, if the identifier isn't there yet
+        // Step 3: delete from $source1 the rows whose identifier now has a citation in the master (copied now, or already there)
         // Returns array('added' => n, 'deleted' => n), or false.
         if(strpos($source1, '/') === false) $source1 = CONTENT_RESOURCE_LOCAL_PATH . $source1;
         if(strpos($source2, '/') === false) $source2 = CONTENT_RESOURCE_LOCAL_PATH . $source2;
@@ -930,9 +974,9 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         else echo "\nFiles are identical. Proceeding...\n";
 
         // Step 2
-        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) { echo "\nERROR: No sources.tsv\n"; return false; } //3rd param is: $processedYN
         echo "\nReferences Master: [$references_tsv]\n";
-        $master = array(); // identifier => full_reference
+        $master = array(); // identifier => citation
         foreach(file($references_tsv, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
             if($line_no == 0) continue; // header
             [$identifier, $full_reference] = array_map('trim', explode("\t", $line) + array('', '')); // trim also drops the CRLF's \r
@@ -953,12 +997,12 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             $rows[] = "$identifier\t$full_reference";
         }
         if($rows) {
-            if(!self::append_to_references_master($references_tsv, $rows)) return false;
+            if(!self::append_to_sources_master($references_tsv, $rows)) return false;
             $final = self::count_data_rows($references_tsv);
         }
         else { echo "\nNo new references to add to the master.\n"; $final = $orig; }
         self::print_row_stats($orig, count($rows), $final);
-        if($differs) echo "NOTE: already in the master with a different full_reference (master kept as is):\n" . implode("\n", array_unique($differs)) . "\n";
+        if($differs) echo "NOTE: already in the master with a different citation (master kept as is):\n" . implode("\n", array_unique($differs)) . "\n";
 
         // Step 3
         $orig1 = self::count_data_rows($source1);
@@ -1033,10 +1077,10 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return $why;
     }
     private function save_duplicate_identifiers_2tsv()
-    {   // rows of the master references.tsv whose identifier appears more than once --> references_duplicate_identifiers_YYYYMMDD.tsv
-        // columns: identifier, full_reference, master_row (line no. in the master, header = 1); sorted by identifier, then master_row
+    {   // rows of the master sources.tsv whose identifier appears more than once --> sources_duplicate_identifiers_YYYYMMDD.tsv
+        // columns: identifier, citation, master_row (line no. in the master, header = 1); sorted by identifier, then master_row
         // a snapshot report: overwrites the same day's file. Returns the TSV path, or false.
-        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'references', false))) { echo "\nERROR: No references.tsv\n"; return false; } //3rd param is: $processedYN
+        if(!($references_tsv = $this->get_generic_file_path($this->main_datasets['References_conceptID'], 'sources', false))) { echo "\nERROR: No sources.tsv\n"; return false; } //3rd param is: $processedYN
         echo "\nReferences Master: [$references_tsv]\n";
 
         $recs = array(); $count = array();
@@ -1052,8 +1096,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         $dups = array_values(array_filter($recs, fn($r) => $count[$r[0]] > 1));
         usort($dups, fn($a, $b) => strcmp($a[0], $b[0]) ?: $a[2] <=> $b[2]);
 
-        $tsv = CONTENT_RESOURCE_LOCAL_PATH . "references_duplicate_identifiers_" . date("Ymd") . ".tsv";
-        $rows = array("identifier\tfull_reference\tmaster_row");
+        $tsv = CONTENT_RESOURCE_LOCAL_PATH . "sources_duplicate_identifiers_" . date("Ymd") . ".tsv";
+        $rows = array("identifier\tcitation\tmaster_row");
         foreach($dups as $r) $rows[] = implode("\t", $r);
         $tmp = $tsv . ".tmp"; // write to a temp file first, so a failed write can't leave a half-written TSV
         if(file_put_contents($tmp, implode("\n", $rows) . "\n") === false || !rename($tmp, $tsv)) { echo "\nERROR: Cannot write [$tsv]\n"; return false; }
@@ -1062,19 +1106,20 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return $tsv;
     }
     private function compare_master_with_zenodo()
-    {   /* Report only, changes nothing in our files: compares our local master references.tsv with the one in Zenodo's latest version.
+    {   /* Report only, changes nothing in our files: compares our local master sources.tsv with the one in Zenodo's latest version.
         1. versions: Zenodo's latest record (fresh, not cached) vs ours in TB_files/22776838.record_id
         2. files: md5 of our master vs Zenodo's checksum -> identical, or not
         3. if not identical: Zenodo's file is downloaded to a temp file (deleted afterwards) and compared row by row,
-           as (identifier, full_reference) pairs; a header row and blank lines are ignored, and so are line endings (CRLF/LF)
+           as (identifier, citation) pairs; a header row and blank lines are ignored, and so are line endings (CRLF/LF)
            -> rows only in our master, rows only on Zenodo, identifiers whose citation differs; all saved in a TSV
         Returns array('zenodo_record', 'local_record', 'same_version', 'identical', 'only_local', 'only_zenodo', 'different_citation', 'report'), or false. */
         $concept_id = $this->main_datasets['References_conceptID'];
-        if(!($local_file = $this->get_generic_file_path($concept_id, 'references', false))) { echo "\nERROR: No local references.tsv\n"; return false; }
+        if(!($local_file = $this->get_generic_file_path($concept_id, 'sources', false))) { echo "\nERROR: No local sources.tsv\n"; return false; }
         if(!($latest = $this->get_zenodo_info_using_conceptID($concept_id, 0))) { echo "\nERROR: Cannot get the latest version of [$concept_id] from Zenodo\n"; return false; }
         $zfile = null;
-        foreach($latest['files'] as $f) if(basename($f['key']) == 'references.tsv') { $zfile = $f; break; }
-        if(!$zfile) { echo "\nERROR: Zenodo's latest version (record {$latest['id']}) has no references.tsv\n"; return false; }
+        foreach($latest['files'] as $f) if($this->local_zenodo_file_name($concept_id, basename($f['key'])) == 'sources.tsv') { $zfile = $f; break; } // also references.tsv, its old name
+        if(!$zfile) { echo "\nERROR: Zenodo's latest version (record {$latest['id']}) has no sources.tsv (nor references.tsv, its old name)\n"; return false; }
+        if(basename($zfile['key']) != 'sources.tsv') echo "\nNOTE: Zenodo's latest version still has the old name [" . basename($zfile['key']) . "]: compared with our sources.tsv\n";
 
         // 1. versions
         $record_file  = CONTENT_RESOURCE_LOCAL_PATH . "TB_files/$concept_id.record_id";
@@ -1099,8 +1144,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         // 3. row by row, using a temp copy of Zenodo's file
         echo "\nNOT identical. Downloading Zenodo's file to compare row by row...\n";
         $tmp = tempnam(sys_get_temp_dir(), 'references_zenodo_');
-        if(!$this->download_url_to_file($zfile['url'], $tmp)) { @unlink($tmp); echo "ERROR: Cannot download Zenodo's references.tsv\n"; return false; }
-        $read = function($file) { // array(identifier => array(full_reference => ''))
+        if(!$this->download_url_to_file($zfile['url'], $tmp)) { @unlink($tmp); echo "ERROR: Cannot download Zenodo's " . basename($zfile['key']) . "\n"; return false; }
+        $read = function($file) { // array(identifier => array(citation => ''))
             $rows = array();
             foreach(file($file, FILE_IGNORE_NEW_LINES) as $line_no => $line) {
                 $line = rtrim($line, "\r");
@@ -1133,8 +1178,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         echo "Identifiers on both, with a different citation: " . number_format(count($diff_ids)) . "\n";
         if(!$report) { echo "Same rows: the files differ only in their header, row order or line endings.\n"; return $ret; }
         foreach(array_slice($report, 0, 10) as $line) echo "    " . mb_substr($line, 0, 150) . "\n";
-        $ret['report'] = CONTENT_RESOURCE_LOCAL_PATH . "references_{$concept_id}_compare_zenodo_record{$latest['id']}_" . date("Ymd_His") . ".tsv";
-        file_put_contents($ret['report'], "where\tidentifier\tfull_reference\n" . implode("\n", $report) . "\n");
+        $ret['report'] = CONTENT_RESOURCE_LOCAL_PATH . "sources_{$concept_id}_compare_zenodo_record{$latest['id']}_" . date("Ymd_His") . ".tsv";
+        file_put_contents($ret['report'], "where\tidentifier\tcitation\n" . implode("\n", $report) . "\n");
         echo "All differences saved in: [{$ret['report']}]\n";
         if(!$same_version) echo "Zenodo has a newer version than ours: download it and sync before uploading (see sync_zenodo_references).\n";
         else echo "Zenodo hasn't changed since our download, so these are our own changes (rows added, changed or deleted): "
@@ -1142,8 +1187,8 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         return $ret;
     }
     private function master_backup_path()
-    {   // references_22776838_backup_<Ymd_His>.tsv; never an existing one (two backups in the same second get _2, _3, ...)
-        $base = CONTENT_RESOURCE_LOCAL_PATH . "references_" . $this->main_datasets['References_conceptID'] . "_backup_" . date("Ymd_His");
+    {   // sources_22776838_backup_<Ymd_His>.tsv; never an existing one (two backups in the same second get _2, _3, ...)
+        $base = CONTENT_RESOURCE_LOCAL_PATH . "sources_" . $this->main_datasets['References_conceptID'] . "_backup_" . date("Ymd_His");
         $path = "$base.tsv";
         for($n = 2; file_exists($path); $n++) $path = "{$base}_$n.tsv";
         return $path;
@@ -1165,14 +1210,14 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
         if($expected != $final) echo "WARNING: orig " . ($minus ? '-' : '+') . " $label != final\n";
     }
     private function set_zenodo_base_references()
-    {   // the newest Zenodo copy of references.tsv (merged or not) becomes the sync base -- only if it has no rows our master doesn't have,
+    {   // the newest Zenodo copy of sources.tsv (merged or not) becomes the sync base -- only if it has no rows our master doesn't have,
         // i.e. our master is in step with it (plus our own additions). Returns the base path, or false.
         $concept_id = $this->main_datasets['References_conceptID'];
-        $this->unmerged_checked["$concept_id/references.tsv"] = true;
-        if(!($local_file = $this->get_generic_file_path($concept_id, 'references', false))) { echo "\nERROR: No local references.tsv\n"; return false; }
-        $copies = glob(dirname(dirname($local_file)) . "/references_from_zenodo_*.tsv") ?: array();
+        $this->unmerged_checked["$concept_id/sources.tsv"] = true;
+        if(!($local_file = $this->get_generic_file_path($concept_id, 'sources', false))) { echo "\nERROR: No local sources.tsv\n"; return false; }
+        $copies = glob(dirname(dirname($local_file)) . "/sources_from_zenodo_*.tsv") ?: array();
         usort($copies, fn($a, $b) => filemtime($b) <=> filemtime($a));
-        if(!$copies) { echo "\nERROR: No Zenodo copy of references.tsv yet. Download it first:\nphp generate_csv_new_model.php _ '{\"task\": \"refresh_all_TraitBank_datasets\", \"only\": \"References\"}'\n"; return false; }
+        if(!$copies) { echo "\nERROR: No Zenodo copy of sources.tsv yet. Download it first:\nphp generate_csv_new_model.php _ '{\"task\": \"refresh_all_TraitBank_datasets\", \"only\": \"References\"}'\n"; return false; }
         $diff = $this->compare_with_zenodo_copy($local_file, $copies[0]);
         if($diff['new_ids'] || $diff['conflicts']) {
             echo "\nSTOP: Zenodo's copy [" . basename($copies[0]) . "] has rows our master doesn't have (" . $diff['new_ids'] . " new identifiers, " . count($diff['conflicts']) . " different values).\n"
@@ -1180,7 +1225,7 @@ class ReferenceMaintenanceAPI extends GenerateTB_Files_Functions
             return false;
         }
         $label = preg_match('/_from_zenodo_(record\d+)/', basename($copies[0]), $m) ? $m[1] : date("Ymd_His");
-        if(!($base = $this->set_zenodo_base($local_file, 'references.tsv', $copies[0], $label))) return false;
+        if(!($base = $this->set_zenodo_base($local_file, 'sources.tsv', $copies[0], $label))) return false;
         $merged = preg_replace('/\.tsv$/', '_merged.tsv', $copies[0]);
         if(!str_ends_with($copies[0], '_merged.tsv') && rename($copies[0], $merged)) echo "Zenodo's copy marked as merged: [" . basename($merged) . "]\n";
         return $base;

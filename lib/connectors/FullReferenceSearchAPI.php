@@ -20,6 +20,9 @@ namespace php_active_record;
                  ("XiaoJiZh2012 via Universal Chalcidoidea Database") or an Australian Faunal Directory page: not citations (Nov 21, 2026);
                  or a Femorale shell-photo page ("Femorale. http://www.femorale.com/shellphotos/detail.asp?species=...", Nov 26, 2026).
                  or a WoRMS photo credit ("Observation photo published by A. Anker", Nov 26, 2026).
+                 or a person, known by the row's identifier (Nov 27, 2026): an ORCID, a FishBase collaborator page or a WoRMS person page,
+                 e.g. "https://orcid.org/0000-0001-7209-9271" "Stephen Cairns, PhD. Personal communication". Contributors are Sources too
+                 (in sources.tsv and referenceID), with their name as the citation: a name is never sent to CrossRef. See is_person_id().
                  All these rules are in not_searched_note().
                  Or (only when the run asks for it, "min_year": e.g. 1900) published before that year: CrossRef has almost no DOIs for
                  works that old (Brazilian Flora, Nov 25, 2026: 1 in 443 sampled citations before 1900). A row with no year is still searched,
@@ -109,6 +112,12 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     //   not a citation (54 of WoRMS's references; none got a DOI in build 248: 2 skipped as author and year only, the others 'not found', incl. "Cairns (1997): Plate 2, Figure k"
     //   and "© 2012 MBARI", where a year is given but no title).
     const PHOTO_CREDIT = '/^Observation photo published by /i';
+    // (Nov 27, 2026) a person's ID (a contributor, now a Source like a reference): its citation is the person's name, never searched.
+    // The Data Managers' plan: only these real, unique IDs are kept for contributors; made-up EOL URIs and hashes are not (see is_person_id()).
+    const PERSON_ID_PATTERNS = array(
+        'ORCID'                       => '~^https?://(?:www\.)?orcid\.org/\d{4}-\d{4}-\d{4}-\d{3}[\dX]/?$~i',                       // https://orcid.org/0000-0001-7209-9271
+        'FishBase collaborator page'  => '~^https?://(?:www\.)?fishbase\.[a-z.]+/collaborators/CollaboratorSummary\.php\?id=\d+$~i',  // http://www.fishbase.us/collaborators/CollaboratorSummary.php?id=7
+        'WoRMS person page'           => '~^https?://(?:www\.)?marinespecies\.org/imis\.php\?module=person&persid=\d+$~i');         // https://www.marinespecies.org/imis.php?module=person&persid=26517
         // (Nov 21, 2026) e.g. "ABRS 2009. Australian Faunal Directory. Didymocylindrus simplex. ... Accessed at on 11 Mar 2026.": a database page, no DOI (4,396 texts)
     const SECONDS_PER_NEW = 3; // about 3 seconds per new reference (CrossRef's answer + PAUSE_SECONDS), for estimates; same as the web page's
     const PROGRESS_EVERY = 50; // a progress line ("N rows done ...") every this many rows; the web page reads it
@@ -252,7 +261,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     }
     private function search_DOIs_for_full_references()
     {   /* $this->param:
-            'file'  => required, TSV whose header has 'identifier' and 'full_reference', e.g. reference.tab
+            'file'  => required, TSV whose header has 'identifier' and 'full_reference' (e.g. reference.tab) or 'citation' (e.g. the master sources.tsv, Nov 27, 2026)
             'limit' => optional, search only this many rows (e.g. 200 for a test)
             'start' => optional, begin at this data row (1 = the first row after the header)
             'min_year' => optional, e.g. 1900: rows published before it are 'skipped', not searched (see min_year_note())
@@ -264,12 +273,13 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $start = max(1, (int) ($this->param['start'] ?? 1));
         if(!($in = fopen($file, 'r'))) { echo "\nERROR: Cannot read [$file]\n"; return false; }
         $header = explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets($in)), "\r\n"));
-        $col_id = array_search('identifier', $header); $col_ref = array_search('full_reference', $header); $col_doi = array_search('doi', $header); // 'doi': optional
-        if($col_id === false || $col_ref === false) { fclose($in); echo "\nERROR: The header must have 'identifier' and 'full_reference'. Got: [" . implode(', ', $header) . "]\n"; return false; }
+        $col_id = array_search('identifier', $header); $col_ref = self::citation_column($header); $col_doi = array_search('doi', $header); // 'doi': optional
+        if($col_id === false || $col_ref === false) { fclose($in); echo "\nERROR: The header must have 'identifier' and 'full_reference' (or 'citation', as in sources.tsv). Got: [" . implode(', ', $header) . "]\n"; return false; }
+        $this->ref_column = $header[$col_ref]; // the report's 2nd column has the input's name: full_reference or citation
 
         $out_file = $this->work_dir . pathinfo($file, PATHINFO_FILENAME) . "_DOIs_" . date("Ymd_His") . ".tsv";
         $out = fopen($out_file, 'w');
-        fwrite($out, implode("\t", self::OUTPUT_COLUMNS) . "\n");
+        fwrite($out, implode("\t", self::output_columns($this->ref_column)) . "\n");
         echo "\nInput: [$file]\nOutput: [$out_file]\nRows: from " . $start . ($limit ? ", at most $limit" : ', to the end') . "\n";
         if($this->min_year) echo "Year limit (\"min_year\": {$this->min_year}): rows published before {$this->min_year} are skipped, not searched; rows with no year are searched.\n";
         $this->keep_latest_reports(); // here, not at the end, so stopped searches are counted too; the new report is one of the KEEP_REPORTS
@@ -289,7 +299,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($limit && $done >= $limit) break;
             $f = explode("\t", $line);
             $identifier = (string) ($f[$col_id] ?? ''); $full_reference = (string) ($f[$col_ref] ?? ''); // as in the input file; find_DOI() cleans it
-            $r = $this->find_DOI($full_reference, $col_doi !== false ? (string) ($f[$col_doi] ?? '') : '');
+            $r = $this->find_DOI($full_reference, $col_doi !== false ? (string) ($f[$col_doi] ?? '') : '', $identifier);
             if($r['status'] == 'stop') { $stopped_at = $row_no; break; }
             $counts[$r['status']]++; $done++;
             foreach($r['change_codes'] as $code) $changed[$code]++;
@@ -334,7 +344,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if(isset($o['min_year'])) $this->min_year = (int) $o['min_year'];
             if(isset($o['datacite_search'])) $this->datacite_search = $this->author_title_checks && (bool) $o['datacite_search'];
             $keep[] = $this->other_year_search; if(isset($o['other_year_search'])) $this->other_year_search = (bool) $o['other_year_search']; // OTHER YEAR
-            $got = $this->find_DOI($t['full_reference'], $t['doi'] ?? '');
+            $got = $this->find_DOI($t['full_reference'], $t['doi'] ?? '', $t['identifier'] ?? ''); // 'identifier': optional (Nov 27, 2026)
             list($this->min_year, $this->datacite_search, $this->other_year_search) = $keep;
             if($got['status'] == 'stop') { echo "\nCrossRef keeps asking us to slow down: the tests stopped. Try again later.\n"; $res['stopped'] = true; break; }
             foreach($e as $k => $want) {
@@ -355,6 +365,16 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         file_put_contents($this->work_dir . "full_reference_search_tests_last.json", json_encode($res));
         echo "\nTests: {$res['passed']} passed, {$res['failed']} failed, {$res['skipped']} skipped (" . count($d['cases']) . " cases).\n";
         return $res;
+    }
+    static function citation_column($header)
+    {   // (Nov 27, 2026) the column with the citation text: 'full_reference' (DwCA reference.tab), or 'citation' (the master sources.tsv); false if neither
+        $col = array_search('full_reference', $header);
+        return $col !== false ? $col : array_search('citation', $header);
+    }
+    private static function output_columns($ref_column = 'full_reference')
+    {   // OUTPUT_COLUMNS, with the 2nd column named as in the input (full_reference or citation)
+        $cols = self::OUTPUT_COLUMNS; $cols[1] = $ref_column ?: 'full_reference';
+        return $cols;
     }
     private static function report_line($identifier, $full_reference, $r)
     {   // one report row (OUTPUT_COLUMNS) for a find_DOI() result
@@ -413,9 +433,21 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
     private static function counts_str($counts)
     {   return implode(', ', array_map(fn($k, $v) => "$k $v", array_keys($counts), $counts));
     }
-    function find_DOI($full_reference, $doi_column = '')
+    static function is_person_id($identifier)
+    {   // (Nov 27, 2026) the kind of person ID (PERSON_ID_PATTERNS), e.g. 'ORCID'; '' if $identifier isn't one
+        $identifier = trim((string) $identifier);
+        if($identifier === '') return '';
+        foreach(self::PERSON_ID_PATTERNS as $kind => $re) if(preg_match($re, $identifier)) return $kind;
+        return '';
+    }
+    static function person_note($identifier)
+    {   // the review_note of a person's row; '' if $identifier isn't a person's ID
+        return ($kind = self::is_person_id($identifier)) !== '' ? "A person (a contributor's $kind), not a citation: its citation is the person's name, so not searched." : '';
+    }
+    function find_DOI($full_reference, $doi_column = '', $identifier = '')
     {   // Searches CrossRef for one full_reference and checks its candidates. Returns the OUTPUT_COLUMNS from 'searched_text' on.
         // $doi_column: the row's 'doi' column, if the input file has one (e.g. "10.1002/ecy.1680"); used when the citation has no DOI of its own.
+        // $identifier: the row's identifier, if known (Nov 27, 2026): a person's ID (is_person_id()) is never searched, nor is its name.
         $full_reference = self::clean_full_reference($full_reference, $changes); // what is searched and read; the report keeps the original full_reference too
         $ref = $this->parse_full_reference($full_reference);
         if(self::year_lost($changes) && !self::year_as_volume($full_reference, $ref['year'])) $ref['year'] = ''; // (Nov 23, 2026) FishBase lost the year: a year elsewhere in the text isn't it (see TEXT_CHANGES 'zero'); a volume numbered by its year stays, e.g. "Copeia 1993(3):665"
@@ -425,6 +457,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
         $row['change_codes'] = array_keys($changes);      // not a column: counted for the guide
         foreach(array('author', 'year', 'journal', 'volume', 'issue') as $k) $row["parsed_$k"] = $ref[$k];
         $row['parsed_page'] = $ref['page'] . ($ref['page_end'] !== '' ? '-' . $ref['page_end'] : '');
+        if(($note = self::person_note($identifier)) !== '') return array_merge($row, array('status' => 'skipped', 'review_note' => $note)); // (Nov 27, 2026) a person: first of all
         // (Nov 26, 2026) a list of references joined with " | ": skipped before a DOI written in it is checked, as one work's DOI can't stand for the list
         if(self::joined_references($full_reference) >= 2) return array_merge($row, array('status' => 'skipped', 'review_note' => self::not_searched_note($full_reference)));
         if($cands = self::doi_candidates($full_reference, $span)) { // the citation gives its own DOI: no search
@@ -1282,7 +1315,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
            Makes no call. Returns array('rows' => n, 'new' => n, 'cached' => n, 'skipped' => n), or false. */
         if(!($in = @fopen($file, 'r'))) return false;
         $header = explode("\t", rtrim(preg_replace('/^\xEF\xBB\xBF/', '', (string) fgets($in)), "\r\n"));
-        $col_ref = array_search('full_reference', $header); $col_doi = array_search('doi', $header);
+        $col_ref = self::citation_column($header); $col_doi = array_search('doi', $header); $col_id = array_search('identifier', $header);
         if($col_ref === false) { fclose($in); return false; }
         $n = array('rows' => 0, 'new' => 0, 'cached' => 0, 'skipped' => 0); $row_no = 0; $start = max(1, (int) $start); $seen = array();
         while(($line = fgets($in)) !== false) {
@@ -1292,6 +1325,7 @@ class FullReferenceSearchAPI extends GenerateTB_Files_Functions
             if($limit && $n['rows'] >= $limit) break;
             $n['rows']++;
             $f = explode("\t", rtrim($line, "\r\n"));
+            if($col_id !== false && self::is_person_id((string) ($f[$col_id] ?? '')) !== '') { $n['skipped']++; continue; } // a person (Nov 27, 2026)
             $this->count_one_row($n, $seen, (string) ($f[$col_ref] ?? ''), $col_doi !== false ? (string) ($f[$col_doi] ?? '') : '');
         }
         fclose($in);

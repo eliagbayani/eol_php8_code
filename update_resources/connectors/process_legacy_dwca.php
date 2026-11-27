@@ -25,7 +25,7 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "sour
     - Converts a legacy DwCA into TraitBank input files, the same kind as the Zenodo TraitBank datasets' input_files
       (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/):
       input:  CONTENT_RESOURCE_LOCAL_PATH/[concept_id]_[supplied_name]_TB_1_0.tar.gz            e.g. 13318109_AmphibiaWeb_TB_1_0.tar.gz
-      output: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_TraitBank/input_files/Taxon.tsv, Traits.tsv and References.tsv
+      output: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_TraitBank/input_files/Taxon.tsv, Traits.tsv and Sources.tsv
       report: CONTENT_RESOURCE_LOCAL_PATH/TB_files_from_DwCA/[concept_id]_[supplied_name]_convert_debug_[date].txt
       The output folder is made fresh each run; nothing is left behind if the run terminates.
     - The report starts with the rows in each file of the legacy DwCA (MoF: traits and child rows) and what is done with each file.
@@ -46,16 +46,27 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "sour
       - taxonID, scientificName and taxonKey added, via occurrenceID -> the occurrence's taxonID -> Taxon. A MoF row whose occurrence or
         taxon isn't found is left out (reported).
       - child rows (with a parentMeasurementID) become columns of their parent trait: column = the measurementType's short name, value =
-        measurementValue, e.g. measurementType http://purl.org/dc/terms/contributor -> column "contributor". A grandchild goes to the trait
-        at the top of its chain. If the column already exists (e.g. MoF's own contributor column), the values are joined with "|", unique.
+        measurementValue, e.g. measurementType http://purl.org/dc/terms/lifeStage -> column "lifeStage". A grandchild goes to the trait
+        at the top of its chain. If the column already exists (e.g. MoF's own lifeStage column), the values are joined with "|", unique.
         Child records listed in $GLOBALS['excluded_metadata_as_columns'] (top of LegacyDwCAMaintenanceAPI.php) aren't made into columns.
       - occurrence columns other than occurrenceID and taxonID (e.g. sex, lifeStage) are added to each trait of that occurrence, the same way.
         An occurrence table with only occurrenceID and taxonID adds nothing (still used to find each trait's taxon).
       - referenceID: multiple IDs joined with ";" are joined with "|" instead, unique. The ";" of old-style DOIs stays (e.g. ...2.0.CO;2).
+      - Contributors (Nov 27, 2026, the Data Managers' plan: contributors are Sources, like references): there is no contributor column any more.
+        Each contributor ID (the MoF's contributor column and its child rows of type http://purl.org/dc/terms/contributor) is:
+        - kept, if it is a real, unique person ID: an ORCID (https://orcid.org/0000-0001-7209-9271), a FishBase collaborator page
+          (http://www.fishbase.us/collaborators/CollaboratorSummary.php?id=7) or a WoRMS person page
+          (https://www.marinespecies.org/imis.php?module=person&persid=26517) -> added to referenceID ("|"-separated, unique);
+          its name (the Terms master's name for that URI, else the DwCA agent table's term_name for that term_homepage) is its citation:
+          written to Sources.tsv, and added to the master sources.tsv if the ID isn't there yet (backup first; copied to the GitHub folder;
+          never uploaded to Zenodo here). An ID already in the master is never changed. A kept ID with no name stays in referenceID only,
+          so References Maintenance lists it as unmappable. Contributors are never merged: each ID gets its own row.
+        - left out, not carried forward: anything else, e.g. a made-up EOL URI (http://eol.org/schema/terms/Amphibiaweb_Zheng_Oong) or a hash.
+        Reported: values read, IDs kept and left out (by kind, with examples), added to the master, already there, with no name.
       - Columns: measurementID, taxonID, scientificName, taxonKey, the other MoF columns, the new columns, then source and referenceID.
-    - References.tsv = the reference table (reference.tab): identifier, full_reference, as the shared references
-      (TB_files/22776838_References/input_files/references.tsv), only the references used in Traits.tsv' referenceID.
-      Reported: referenceIDs not in the reference table, and how many are already in the shared references.tsv (same or different full_reference).
+    - Sources.tsv (was References.tsv) = the reference table (reference.tab): identifier, citation, as the master sources
+      (TB_files/22776838_References/input_files/sources.tsv), only the references used in Traits.tsv' referenceID; then the contributors kept.
+      Reported: referenceIDs not in the reference table, and how many are already in the master sources.tsv (same or different citation).
     - New columns: columns of Taxon.tsv / Traits.tsv not in $GLOBALS['taxon_columns'] / ['trait_columns'] (top of LegacyDwCAMaintenanceAPI.php,
       the columns of the 21 Zenodo TraitBank datasets) are kept, and listed on screen and in the report.
     - Columns in a file's header row that aren't in meta.xml are read too (reported). The association table isn't used.

@@ -9,7 +9,7 @@ php generate_csv_new_model.php _ '{"task": "generate_Zenodo_TraitBank_datasets_i
 php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets"}'
     - Refreshes our local copies of all TraitBank community datasets on Zenodo (except Terms, References, DH). A dataset is downloaded
       only if our copy is older than Zenodo's latest version, or missing. Prints a summary: up to date / refreshed / failed.
-    Options: "include_Terms_YN": 1, "include_References_YN": 1 (our master references.tsv is kept), "dry_run_YN": 1 (report only, no downloads)
+    Options: "include_Terms_YN": 1, "include_References_YN": 1 (our master sources.tsv is kept), "dry_run_YN": 1 (report only, no downloads)
 php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "include_Terms_YN": 1, "include_References_YN": 1}'
 php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "dry_run_YN": 1}'
 php generate_csv_new_model.php _ '{"task": "refresh_all_TraitBank_datasets", "only": "Terms"}'

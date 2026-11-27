@@ -15,13 +15,17 @@ class ZenodoTraitBankAPI
         'record_url', 'concept_url', 'archive_url',
         'views', 'unique_views', 'downloads', 'unique_downloads', 'description');
 
-    // Files in input_files/ that we update locally (e.g. ReferenceMaintenanceAPI adds references to references.tsv).
+    // Files in input_files/ that we update locally (e.g. ReferenceMaintenanceAPI adds references to sources.tsv).
     // A fresh Zenodo extraction/download keeps our local copy and saves Zenodo's copy beside the folder instead.
     // To take Zenodo's copy on purpose, run with param "overwrite_protected_files_YN": 1
-    const PROTECTED_INPUT_FILES = array('22776838' => array('references.tsv')); // 22776838 = References
+    // (Nov 27, 2026) the master References file was renamed references.tsv -> sources.tsv, its column full_reference -> citation (Data Managers' plan).
+    const PROTECTED_INPUT_FILES = array('22776838' => array('sources.tsv')); // 22776838 = References (Sources)
+    // Zenodo files with an old name: renamed right after a download, so our tools only see the new name.
+    // e.g. References versions published before Nov 27, 2026 have references.tsv (no header row), now sources.tsv.
+    const RENAMED_ZENODO_FILES = array('22776838' => array('references.tsv' => 'sources.tsv'));
 
     // Local working copy of the GitHub repo EOL/unmappable_reference_identifiers. Each time our unmappable_identifiers.tsv or our
-    // master references.tsv changes, it is copied here by copy_to_github_folder().
+    // master sources.tsv changes, it is copied here by copy_to_github_folder().
     const GITHUB_COPY_FOLDER = '/Volumes/Crucial_2TB/Desktop_Main/GitHub/unmappable_reference_identifiers/';
 
     public $last_upload_status = ''; // set by upload_new_version_to_zenodo(): draft, published, dry_run, unchanged or error
@@ -203,7 +207,7 @@ class ZenodoTraitBankAPI
         $local_record_id = is_file($record_file) ? trim(file_get_contents($record_file)) : '';
         $complete = true;
         foreach ($arr['files'] as $f) {
-            $file = $dest_dir . basename($f['key']);
+            $file = $dest_dir . $this->local_zenodo_file_name($concept_id, basename($f['key'])); // e.g. Zenodo's references.tsv is our sources.tsv
             if (!is_file($file) || filesize($file) == 0) { $complete = false; break; }
         }
         if ($local_record_id !== $record_id) {
@@ -217,8 +221,23 @@ class ZenodoTraitBankAPI
         else echo "Same version as Zenodo's latest (record $record_id), but some files are missing or empty: downloading again\n";
         $saved = $this->set_aside_protected_files($concept_id, $dest_dir);
         $ret = $this->download_zenodo_files_fresh($arr, $folder_name, $dest_dir, $record_file, $record_id);
+        $this->rename_old_zenodo_files($concept_id, $dest_dir);
         $this->restore_protected_files($saved, $dest_dir, $concept_id); // also after a failed download
         return $ret;
+    }
+    function local_zenodo_file_name($concept_id, $filename)
+    {   // our name for a Zenodo file, e.g. (22776838, 'references.tsv') -> 'sources.tsv'; other files keep their name
+        return self::RENAMED_ZENODO_FILES[(string) $concept_id][$filename] ?? $filename;
+    }
+    private function rename_old_zenodo_files($concept_id, $dest_dir)
+    {   // right after a download/extraction: a Zenodo file with an old name gets our name (RENAMED_ZENODO_FILES),
+        // e.g. 22776838: references.tsv -> sources.tsv, before our protected copy is put back
+        foreach (self::RENAMED_ZENODO_FILES[(string) $concept_id] ?? array() as $old => $new) {
+            if (!is_file($dest_dir . $old)) continue;
+            if (is_file($dest_dir . $new)) { echo "NOTE: Zenodo's version has both [$old] and [$new]: [$new] is used, [$old] is ignored\n"; continue; }
+            if (rename($dest_dir . $old, $dest_dir . $new)) echo "Zenodo's [$old] is the old name of [$new]: saved as [$new]\n";
+            else echo "ERROR: Cannot rename Zenodo's [$old] to [$new]\n";
+        }
     }
     private function download_zenodo_files_fresh($arr, $folder_name, $dest_dir, $record_file, $record_id)
     {   // part of download_zenodo_files_individually()
@@ -247,8 +266,10 @@ class ZenodoTraitBankAPI
     }
     function add_missing_header_rows($concept_id, $input_dir)
     {   // some Zenodo datasets have files without a header row; add it right after a fresh download
-        // e.g. 22776838 (References): references.tsv starts with data, needs "identifier<TAB>full_reference" as 1st row
-        $required = array('22776838' => array('references.tsv' => "identifier\tfull_reference"));
+        // e.g. 22776838 (References): sources.tsv (references.tsv before Nov 27, 2026) starts with data, needs "identifier<TAB>citation" as 1st row
+        // An old header row (e.g. "identifier<TAB>full_reference") is replaced, not kept below the new one.
+        $required = array('22776838' => array('sources.tsv' => "identifier\tcitation"));
+        $old_headers = array('22776838' => array('sources.tsv' => array("identifier\tfull_reference")));
         foreach ($required[(string) $concept_id] ?? array() as $filename => $header) {
             $file = rtrim($input_dir, '/') . "/$filename";
             if (!is_file($file)) continue;
@@ -256,10 +277,12 @@ class ZenodoTraitBankAPI
             $first_line = rtrim((string) fgets($fp), "\r\n");
             fclose($fp);
             if ($first_line === $header) continue;
-            // write header + original contents to a .part file, then replace the original
+            $replace = in_array($first_line, $old_headers[(string) $concept_id][$filename] ?? array(), true);
+            // write header + original contents (without an old header row) to a .part file, then replace the original
             $part = $file . ".part";
             if (!($out = fopen($part, "w")) || !($in = fopen($file, "r"))) { echo "Cannot add header row to [$file]\n"; continue; }
             fwrite($out, $header . "\n");
+            if ($replace) { fgets($in); echo "Old header row [" . str_replace("\t", ", ", $first_line) . "] replaced\n"; }
             stream_copy_to_stream($in, $out);
             fclose($in);
             fclose($out);
@@ -287,7 +310,7 @@ class ZenodoTraitBankAPI
     }
     private function restore_protected_files($saved, $dest_dir, $concept_id)
     {   // after extraction/download: move Zenodo's new copy (if any) beside the folder, then put our local file back
-        // e.g. TB_files/22776838_References/references_from_zenodo_record23100000.tsv -- outside input_files/, so get_generic_file_path() never uses it
+        // e.g. TB_files/22776838_References/sources_from_zenodo_record23100000.tsv -- outside input_files/, so get_generic_file_path() never uses it
         if (!empty($this->param['overwrite_protected_files_YN'])) { // our local file was replaced by Zenodo's copy on purpose
             foreach (self::PROTECTED_INPUT_FILES[(string) $concept_id] ?? array() as $filename) $this->copy_to_github_folder($dest_dir . $filename);
         }
@@ -309,8 +332,8 @@ class ZenodoTraitBankAPI
     }
     /* ---------- Sync merge (3-way): applies Zenodo's additions, changes AND deletions to our local protected file ----------
        base   = the Zenodo version we last synced with, kept beside the dataset folder, e.g.
-                TB_files/22776838_References/references_zenodo_base_record23682595.tsv
-       Zenodo = Zenodo's new copy (references_from_zenodo_record<N>.tsv); local = our master in input_files/
+                TB_files/22776838_References/sources_zenodo_base_record23682595.tsv
+       Zenodo = Zenodo's new copy (sources_from_zenodo_record<N>.tsv); local = our master in input_files/
        Rows are compared as (identifier, rest of the row) pairs:
          in base, not on Zenodo  -> deleted on Zenodo  -> removed from local too
          on Zenodo, not in base  -> added on Zenodo    -> added to local (if not there yet)
@@ -369,7 +392,7 @@ class ZenodoTraitBankAPI
         }
         return array('added' => $added, 'removed' => $removed, 'conflicts' => $conflicts, 'local' => $L, 'zenodo' => $Z);
     }
-    function sync_zenodo_copy_into_local($concept_id, $filename = 'references.tsv', $zenodo_copy = null, $dry_run = false)
+    function sync_zenodo_copy_into_local($concept_id, $filename = 'sources.tsv', $zenodo_copy = null, $dry_run = false)
     {   /* Sync merge: applies Zenodo's additions, changes and deletions since the base to our local file; keeps our own additions.
         $zenodo_copy: default the newest unmerged copy beside the dataset folder. $dry_run: only report, change nothing.
         Our local file is backed up first and rewritten safely (tmp file, then rename). A log of every added/removed row is saved.
@@ -446,13 +469,13 @@ class ZenodoTraitBankAPI
     function copy_to_github_folder($file)
     {   // copies $file to GITHUB_COPY_FOLDER (same file name), but only if it is one of the 2 files kept there:
         //   CONTENT_RESOURCE_LOCAL_PATH/unmappable_identifiers.tsv
-        //   our master references: CONTENT_RESOURCE_LOCAL_PATH/TB_files/22776838_*/input_files/references.tsv
+        //   our master sources: CONTENT_RESOURCE_LOCAL_PATH/TB_files/22776838_*/input_files/sources.tsv
         // other files (e.g. test copies) are ignored. Returns the path of the copy, or false.
         $real = realpath($file);
         $base = realpath(CONTENT_RESOURCE_LOCAL_PATH);
         if (!$real || !$base) return false;
         $tracked = ($real === "$base/unmappable_identifiers.tsv")
-                || preg_match('#^' . preg_quote("$base/TB_files/", '#') . '22776838_[^/]+/input_files/references\.tsv$#', $real);
+                || preg_match('#^' . preg_quote("$base/TB_files/", '#') . '22776838_[^/]+/input_files/sources\.tsv$#', $real);
         if (!$tracked) return false;
         $dest = static::GITHUB_COPY_FOLDER . basename($real);
         if (!is_dir(static::GITHUB_COPY_FOLDER)) { echo "NOTE: GitHub folder not found, [" . basename($real) . "] not copied: [" . static::GITHUB_COPY_FOLDER . "]\n"; return false; }
@@ -463,7 +486,7 @@ class ZenodoTraitBankAPI
         return $dest;
     }
     protected function compare_with_zenodo_copy($local_file, $zenodo_copy)
-    {   // for protected files whose 1st column is the identifier (e.g. references.tsv: identifier, full_reference)
+    {   // for protected files whose 1st column is the identifier (e.g. sources.tsv: identifier, citation)
         // compares (identifier, rest of the row) pairs; a header row (1st field 'identifier') and blank lines are skipped
         // returns array('new_rows' => rows of identifiers we don't have, 'new_ids' => count,
         //               'conflicts' => array(identifier => array('local' => values, 'zenodo' => values we don't have for it)))
@@ -500,7 +523,7 @@ class ZenodoTraitBankAPI
                . "  - rows to add: " . number_format(count($d['added'])) . "\n  - rows to remove (deleted or changed on Zenodo): " . number_format(count($d['removed'])) . "\n"
                . ($d['conflicts'] ? "  - identifiers changed both by us and on Zenodo: " . count($d['conflicts']) . "\n" : '')
                . "  To preview, then apply them to our local file, run:\n";
-            if ($filename == 'references.tsv') echo "    php do_reference_mtce.php _ '{\"task\": \"sync_zenodo_references\", \"dry_run_YN\": 1}'\n    php do_reference_mtce.php _ '{\"task\": \"sync_zenodo_references\"}'\n  or call:\n";
+            if ($filename == 'sources.tsv') echo "    php do_reference_mtce.php _ '{\"task\": \"sync_zenodo_references\", \"dry_run_YN\": 1}'\n    php do_reference_mtce.php _ '{\"task\": \"sync_zenodo_references\"}'\n  or call:\n";
             echo "    \$this->sync_zenodo_copy_into_local($concept_id, '$filename');\n\n";
             return true;
         }
@@ -513,7 +536,7 @@ class ZenodoTraitBankAPI
            . "  - new identifiers: " . number_format($diff['new_ids']) . " (" . number_format(count($diff['new_rows'])) . " rows)\n"
            . "  - identifiers with a different value on Zenodo: " . number_format(count($diff['conflicts'])) . "\n"
            . "  To merge them into our local file, run:\n";
-        if ($filename == 'references.tsv') echo "    php do_reference_mtce.php _ '{\"task\": \"merge_zenodo_references\"}'\n  or call:\n";
+        if ($filename == 'sources.tsv') echo "    php do_reference_mtce.php _ '{\"task\": \"merge_zenodo_references\"}'\n  or call:\n";
         echo "    \$this->merge_zenodo_copy_into_local($concept_id, '$filename');\n\n";
         return true;
     }
@@ -527,15 +550,15 @@ class ZenodoTraitBankAPI
     }
     protected function find_unmerged_zenodo_copies($local_file, $filename)
     {   // Zenodo copies saved by restore_protected_files() beside the dataset folder, newest first; merged ones end in _merged
-        // e.g. TB_files/22776838_References/references_from_zenodo_record23100000.tsv
+        // e.g. TB_files/22776838_References/sources_from_zenodo_record23100000.tsv
         $folder = dirname(dirname($local_file));
         $stem = pathinfo($filename, PATHINFO_FILENAME); $ext = pathinfo($filename, PATHINFO_EXTENSION);
         $copies = array_filter(glob("$folder/{$stem}_from_zenodo_*.$ext") ?: array(), fn($f) => !str_ends_with($f, "_merged.$ext"));
         usort($copies, fn($a, $b) => filemtime($b) <=> filemtime($a));
         return array_values($copies);
     }
-    function merge_zenodo_copy_into_local($concept_id, $filename = 'references.tsv', $zenodo_copy = null)
-    {   /* Merges Zenodo's copy of a protected file into our local file, e.g. (22776838, 'references.tsv'):
+    function merge_zenodo_copy_into_local($concept_id, $filename = 'sources.tsv', $zenodo_copy = null)
+    {   /* Merges Zenodo's copy of a protected file into our local file, e.g. (22776838, 'sources.tsv'):
             - identifiers only on Zenodo: their rows are added to our local file
             - identifiers in both, but Zenodo has a different value: NOT changed; listed in a conflicts TSV for review
             - identifiers only in our local file (our additions): kept
@@ -564,7 +587,7 @@ class ZenodoTraitBankAPI
             if (!copy($local_file, $backup)) { echo "ERROR: Cannot backup [$local_file]\n"; return false; }
             echo "Backup: [$backup]\n";
             $contents = file_get_contents($local_file);
-            $eol = (strpos($contents, "\r\n") !== false) ? "\r\n" : "\n"; // same line endings as our file (references.tsv uses CRLF)
+            $eol = (strpos($contents, "\r\n") !== false) ? "\r\n" : "\n"; // same line endings as our file (sources.tsv uses CRLF)
             $fhandle = fopen($local_file, "a");
             if ($contents !== '' && substr($contents, -1) !== "\n") fwrite($fhandle, $eol); // last row has no line ending
             foreach ($diff['new_rows'] as $row) fwrite($fhandle, $row . $eol);
@@ -590,7 +613,7 @@ class ZenodoTraitBankAPI
     }
     function upload_new_version_to_zenodo($concept_id, $local_file, $options = array())
     {   /* Uploads $local_file to a Zenodo dataset as a new version, e.g.
-            upload_new_version_to_zenodo(22776838, '.../22776838_References/input_files/references.tsv')
+            upload_new_version_to_zenodo(22776838, '.../22776838_References/input_files/sources.tsv')
         Steps: new-version draft of the latest version -> replace the file of the same name (other files are kept, as Zenodo
                copies them into the draft) -> publication_date = today [+ version label] -> publish only if asked.
         $options:
@@ -622,6 +645,13 @@ class ZenodoTraitBankAPI
         if (!($latest = $this->get_zenodo_info_using_conceptID($concept_id, 0))) { echo "ERROR: Cannot get the latest version of [$concept_id]\n"; return false; }
         $record_id = $latest['id'];
         echo "Dataset [$concept_id] \"{$latest['title']}\", latest version: record $record_id" . ($latest['version'] ? ", version {$latest['version']}" : '') . "\n";
+        // (Nov 27, 2026) a renamed file replaces its old name, e.g. uploading sources.tsv removes references.tsv from the new version (RENAMED_ZENODO_FILES)
+        $keys_now = array_column($latest['files'] ?? array(), 'key');
+        foreach (self::RENAMED_ZENODO_FILES[(string) $concept_id] ?? array() as $old => $new) {
+            if ($new !== $filename || !in_array($old, $keys_now) || in_array($old, (array) ($options['remove_files'] ?? array()))) continue;
+            $options['remove_files'] = array_merge((array) ($options['remove_files'] ?? array()), array($old));
+            echo "[$old] is the old name of [$filename]: it will be removed from the new version\n";
+        }
         // nothing to upload if the latest version already has this exact file (same md5): a published version can't be deleted
         $md5 = md5_file($local_file);
         foreach ($latest['files'] as $f) {
@@ -874,6 +904,7 @@ class ZenodoTraitBankAPI
 
         $saved = $this->set_aside_protected_files($concept_id, $dest_dir);
         $ret = $this->extract_zenodo_zip_fresh($zip_file, $folder_name, $dest_dir);
+        $this->rename_old_zenodo_files($concept_id, $dest_dir);
         $this->restore_protected_files($saved, $dest_dir, $concept_id); // also after a failed extraction
         return $ret;
     }
@@ -1020,7 +1051,7 @@ class ZenodoTraitBankAPI
         A dataset is downloaded only if our copy is older than Zenodo's latest version, or missing; otherwise it is skipped.
         Default: community datasets only. $this->param options:
             'include_Terms_YN'      => 1: also Terms (22776577)
-            'include_References_YN' => 1: also References (22776838). Our master references.tsv is kept; Zenodo's copy is saved beside it
+            'include_References_YN' => 1: also References (22776838). Our master sources.tsv is kept; Zenodo's copy is saved beside it
                                           and a merge is suggested if it has changes we don't (see merge_zenodo_references)
             'dry_run_YN'            => 1: only report which datasets are up to date / outdated / missing; download nothing
             'only'                  => refresh only these, e.g. "Terms", "References", "23066982", or several: "Terms,References"

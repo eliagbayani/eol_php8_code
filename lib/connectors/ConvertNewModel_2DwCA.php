@@ -137,11 +137,11 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
             }
             elseif($what == 'build_mof_and_occurrences_array') { self::build_mof_and_occurrences_array($rec); @$this->debug['counts']['count rec']++; }
             elseif($what == 'initialize_references_info') {
-                /*Array(
+                /*Array( -- the master sources.tsv (references.tsv, column full_reference, before Nov 27, 2026)
                     [identifier] => https://doi.org/10.1093/jn/44.1.43
-                    [full_reference] => A. A. Heidebrecht;R. MacVicar;O. B. Ross;C. K. Whitehair. 1951. Composition of swine milk. I. Major constituents and carotene, vitamin A and vitamin C. pp. 43-50. Journal of Nutrition. vol. 44
+                    [citation] => A. A. Heidebrecht;R. MacVicar;O. B. Ross;C. K. Whitehair. 1951. Composition of swine milk. I. Major constituents and carotene, vitamin A and vitamin C. pp. 43-50. Journal of Nutrition. vol. 44
                 )*/
-                $this->references_info[$rec['identifier']] = $rec['full_reference'];
+                $this->references_info[$rec['identifier']] = $rec['citation'] ?? $rec['full_reference']; // full_reference: the old name of citation
             }
             elseif($what == 'generate_MVA') self::generate_MVA($rec);
             elseif($what == 'build_taxon_info') self::build_taxon_info($rec); //this is an external call; from: GenerateTB_Files_Functions.php
@@ -184,10 +184,16 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
         }
         // */
 
-        // /* check /source if in master references.tsv -- per Jen: https://github.com/EOL/ContentImport/issues/52#issuecomment-6662636355
+        // /* check /source if in master sources.tsv -- per Jen: https://github.com/EOL/ContentImport/issues/52#issuecomment-6662636355
         if($source = @$rec['source']) {
             if($full_ref = @$this->references_info[$source]) {}
             else $this->debug['referenceIDs']['undefined referenceID'][$source] = '';
+        }
+        // (Nov 27, 2026) a contributor is a Source too (Data Managers' plan): each contributor ID ("id1|id2") must be in the master sources.tsv
+        if($contributor = @$rec['contributor']) {
+            foreach(array_map('trim', explode("|", $contributor)) as $id) {
+                if($id !== '' && !isset($this->references_info[$id])) $this->debug['referenceIDs']['undefined referenceID'][$id] = '';
+            }
         }
         // */
 
@@ -280,7 +286,7 @@ class ConvertNewModel_2DwCA extends ZenodoTraitBankAPI
     private function initialize_references_info()
     {
         $concept_id = $this->main_datasets['References_conceptID'];
-        if (!($local = $this->get_generic_file_path($concept_id, 'references'))) exit("\nERROR: No references.tsv\n");
+        if (!($local = $this->get_generic_file_path($concept_id, 'sources'))) exit("\nERROR: No sources.tsv (the master References file)\n");
         else self::process_table($local, 'initialize_references_info');
     }
     function generate_measurements_values_associations() //external function

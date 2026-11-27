@@ -268,7 +268,7 @@ class AnalyzeMoF_API
         if(!isset($this->mof_refs[$id])) $status = 'not searched (not used by the MoF or associations)'; // (Nov 26, 2026) only those get a DOI; e.g. one used only by media keeps its identifier
         elseif($this->frs_stopped) $status = 'not searched (CrossRef asked us to slow down)';
         else {
-            $r = $this->frs->find_DOI($full);
+            $r = $this->frs->find_DOI($full, '', $id); // (Nov 27, 2026) with its identifier: a person's ID (ORCID, FishBase or WoRMS person page) is never searched
             $this->frs->report_row($id, $full, $r); // the tool's report (a 'stop' isn't written)
             $status = $r['status'];
             if($status == 'stop') { $this->frs_stopped = true; $status = 'not searched (CrossRef asked us to slow down)'; }
@@ -429,7 +429,7 @@ class AnalyzeMoF_API
                 continue;
             }
             if($what == 'collect_mof_refs') { foreach(self::split_reference_ids((string) @$rec['referenceID']) as $id) $this->mof_refs[$id] = ''; continue; } // the references the MoF and the associations use
-            if($what == 'collect_ref_text') { if((string) @$rec['identifier'] !== '' && isset($this->mof_refs[(string) $rec['identifier']])) $this->ref_texts[] = (string) @$rec['full_reference']; continue; } // for the estimate: only those searched
+            if($what == 'collect_ref_text') { if((string) @$rec['identifier'] !== '' && isset($this->mof_refs[(string) $rec['identifier']]) && FullReferenceSearchAPI::is_person_id((string) $rec['identifier']) === '') $this->ref_texts[] = (string) @$rec['full_reference']; continue; } // for the estimate: only those searched (a person's ID isn't, Nov 27, 2026)
             if($what == 'collect_ref') { self::lookup_reference_DOI($rec); continue; } // 0: references' DOIs
             //=========================================================================================================
             if($what == 'collect_occ') { // 0: occurrenceIDs present in the occurrence table (rule 8)

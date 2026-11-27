@@ -86,6 +86,10 @@ found by Full Reference Search (FullReferenceSearchAPI::find_DOI(), the same cod
   - Also Full Reference Search's own report and guide, as the tool writes them, in CONTENT_RESOURCE_LOCAL_PATH/Reference_maintenance/:
     [resource_id]_reference_DOIs_[YYYYmmdd_HHMMSS].tsv + _guide.txt (counted with the tool's reports: only the newest 50 are kept).
   - Reference and Taxon are written here (not copied by DwCA_Utility), since both can have referenceIDs.
+  - Last step (Nov 27, 2026), with "supplied_name" (e.g. "AmphibiaW") in analyze_MoF.php's JSON: every kept reference without a DOI gets it as a
+    prefix, e.g. e08f2f16ad18c5858f490e8ec7778dc3 -> AmphibiaW_e08f2f16ad18c5858f490e8ec7778dc3 (new_ref_id()), and so does every referenceID
+    (and a source that is a reference identifier) using it. Without "supplied_name", the identifiers are kept as they are.
+  - Tables analyze_MoF.php leaves out of the output (media, agent, vernacular) don't count as using a reference (Nov 27, 2026).
 
 Report: resources/neo4j_analyzed/[resource_id]_analyzed_debug_[date].txt, with these sections (only those that occur):
   Undefined mValue                                    - value URIs not in the terms list (rules 1-3)
@@ -115,9 +119,14 @@ use \AllowDynamicProperties; //for PHP 8.2
 #[AllowDynamicProperties] //for PHP 8.2
 class AnalyzeMoF_API
 {
-    function __construct($archive_builder, $resource_id, $archive_path, $frs_options = array())
+    function __construct($archive_builder, $resource_id, $archive_path, $frs_options = array(), $options = array())
     {
         $this->resource_id = $resource_id;
+        // (Nov 27, 2026) from analyze_MoF.php: "supplied_name" (e.g. "AmphibiaW": prefix for the identifiers of the references without a DOI)
+        // and the rowtypes analyze_MoF.php leaves out of the output (media, agent, vernacular): their rows don't count as using a reference
+        $this->supplied_name = trim((string) @$options['supplied_name']);
+        $this->discarded_rowtypes = (array) @$options['discarded_rowtypes'];
+        $this->ref_prefixed = 0;
         $this->frs_options = (array) $frs_options; // Full Reference Search options: "min_year", "datacite_search" (Nov 25, 2026)
         $this->archive_builder = $archive_builder;
         $this->archive_path = $archive_path;
@@ -195,7 +204,7 @@ class AnalyzeMoF_API
         $done_tbls = array('http://eol.org/schema/reference/reference' => 'reference', 'http://rs.tdwg.org/dwc/terms/measurementorfact' => 'mof',
                            'http://eol.org/schema/association' => 'association', 'http://rs.tdwg.org/dwc/terms/occurrence' => 'occurrence', 'http://rs.tdwg.org/dwc/terms/taxon' => 'taxon');
         foreach($done_tbls as $tbl => $class) if($class != 'reference' && ($meta = @$tables[$tbl][0])) self::process_table($meta, 'collect_used_refs', $class); // MoF and association first: they decide the occurrences
-        foreach($tables as $tbl => $metas) if(!isset($done_tbls[$tbl]) && ($meta = @$metas[0])) self::process_table($meta, 'collect_used_refs', 'other');
+        foreach($tables as $tbl => $metas) if(!isset($done_tbls[$tbl]) && !in_array($tbl, $this->discarded_rowtypes) && ($meta = @$metas[0])) self::process_table($meta, 'collect_used_refs', 'other'); // (Nov 27) not the tables left out of the output, e.g. media
         unset($this->kept_oID);
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'mof');
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'collect_mof_refs', 'association');
@@ -209,6 +218,10 @@ class AnalyzeMoF_API
             $this->debug['References: identifier replaced by DOI_URL']["merged (same DOI as another reference; the better one kept): {$this->ref_merged}"] = '';
             foreach($this->ref_best as $url => $b) if($b['dropped']) $this->debug['References merged (same DOI): the one kept, then the ones dropped']["$url: kept " . $b['info'] . "; dropped " . implode("; ", $b['dropped'])] = '';
         }
+        if($this->supplied_name !== '') {
+            $x = "identifiers without a DOI prefixed with \"{$this->supplied_name}_\": " . number_format($this->ref_prefixed);
+            echo "\n$x\n"; $this->debug['References: identifier replaced by DOI_URL'][$x] = '';
+        }
         $ref_written_ids = $this->ref_written; unset($this->ref_written, $this->ref_best);
         $tbl = "http://rs.tdwg.org/dwc/terms/taxon";                if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'taxon');
         $tbl = "http://rs.tdwg.org/dwc/terms/measurementorfact";    if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'mof');
@@ -216,7 +229,7 @@ class AnalyzeMoF_API
         $tbl = "http://eol.org/schema/association";                 if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'association');
         $tbl = "http://rs.tdwg.org/dwc/terms/occurrence";           if($meta = @$tables[$tbl][0]) self::process_table($meta, 'write', 'occurrence');
         if(isset($tables['http://eol.org/schema/reference/reference'])) { // (Nov 27, 2026) no orphan in the output reference.tab: every row is used by a written row
-            foreach($this->other_ext_refs as $id => $x) $this->ref_uses_out[$this->ref_map[$id] ?? $id] = ''; // other extensions are copied as-is, with their old IDs
+            foreach($this->other_ext_refs as $id => $x) $this->ref_uses_out[self::new_ref_id($id)] = ''; // other extensions are copied as-is, with their old IDs
             $orphans = count(array_diff_key($ref_written_ids, $this->ref_uses_out));
             $c = "reference.tab: " . number_format(count($ref_written_ids)) . " rows written, orphans (used by no written row): $orphans";
             echo "\n$c" . ($orphans ? "  WARNING" : "") . "\n"; $this->debug['References: identifier replaced by DOI_URL'][$c] = '';
@@ -295,7 +308,7 @@ class AnalyzeMoF_API
         }
         @$this->ref_counts[$status]++;
         $clean = fn($s) => str_replace(array("\t", "\r", "\n"), ' ', (string) $s);
-        fwrite($this->ref_tsv, implode("\t", array_map($clean, array($id, $status, $this->ref_map[$id] ?? '', $this->ref_map[$id] ?? $id, $full))) . "\n");
+        fwrite($this->ref_tsv, implode("\t", array_map($clean, array($id, $status, $this->ref_map[$id] ?? '', self::new_ref_id($id), $full))) . "\n");
         if($this->ref_done % 100 == 0) { fflush($this->ref_tsv); echo "\n  references: " . number_format($this->ref_done) . " done, " . number_format(count($this->ref_map)) . " with a DOI"; }
     }
     private function rank_reference($url, $id, $full, $r)
@@ -314,10 +327,28 @@ class AnalyzeMoF_API
     {   // referenceID(s), e.g. "a1;b2" or "density|TRY|mass" (Nov 26, 2026: TreeCarbonEstimates joins them with "|"): each old identifier replaced by
         // its DOI_URL (ref_map); duplicates removed, order kept, joined again with the separator the value used
         $value = (string) $value;
-        if($value === '' || !$this->ref_map) return $value;
+        if($value === '' || (!$this->ref_map && $this->supplied_name === '')) return $value;
         $ids = array();
-        foreach(self::split_reference_ids($value) as $id) $ids[$this->ref_map[$id] ?? $id] = '';
+        foreach(self::split_reference_ids($value) as $id) $ids[self::new_ref_id($id)] = '';
         return implode(str_contains($value, ';') ? ';' : (str_contains($value, '|') ? '|' : ';'), array_keys($ids));
+    }
+    private function new_ref_id($id)
+    {   // (Nov 27, 2026) a reference's identifier in the output: its DOI_URL; else, with "supplied_name", the prefixed identifier
+        // (only a kept reference, and not one already prefixed); else the identifier as it is
+        if(isset($this->ref_map[$id])) return $this->ref_map[$id];
+        $p = $this->supplied_name . '_';
+        if($this->supplied_name !== '' && isset($this->used_refs[$id]) && strpos($id, $p) !== 0) return $p . $id;
+        return $id;
+    }
+    private function map_source($value)
+    {   // (Nov 27, 2026) a source that is a reference identifier (whole, or ';'/'|' parts) gets that reference's new identifier; any other source is kept
+        $value = (string) $value;
+        if($value === '') return $value;
+        if(isset($this->used_refs[$value])) return self::new_ref_id($value);
+        if(!preg_match('/[;|]/', $value)) return $value;
+        $parts = self::split_reference_ids($value); $hit = false;
+        foreach($parts as $k => $id) if(isset($this->used_refs[$id])) { $parts[$k] = self::new_ref_id($id); $hit = true; }
+        return $hit ? implode(str_contains($value, ';') ? ';' : '|', $parts) : $value;
     }
     private static function split_reference_ids($value)
     {   // "a1;b2", "a1|b2" or "a1; b2" -> array('a1', 'b2'): the identifiers in a referenceID value
@@ -499,14 +530,17 @@ class AnalyzeMoF_API
                 }
 
                 if($class == "reference") { // identifier -> its DOI_URL; of the references with the same DOI only the best is written (MERGE, rank_reference())
-                    $old = (string) @$rec['identifier']; $new = $this->ref_map[$old] ?? $old;
+                    $old = (string) @$rec['identifier'];
                     if($old === '' || !isset($this->used_refs[$old])) continue; // (Nov 26, 2026) not used: removed from reference.tab
+                    $new = self::new_ref_id($old); // its DOI_URL, or (Nov 27, 2026) with "supplied_name" the prefixed identifier
                     if(isset($this->ref_map[$old]) && $this->ref_best[$new]['id'] !== $old) { $this->ref_merged++; continue; }
                     if(isset($this->ref_written[$new])) { $this->ref_merged++; continue; } // the same identifier twice in the source
                     $this->ref_written[$new] = '';
                     $rec['identifier'] = $new;
+                    if($new !== $old && !isset($this->ref_map[$old])) $this->ref_prefixed++;
                 }
                 if(isset($rec['referenceID'])) $rec['referenceID'] = self::map_reference_ids($rec['referenceID']); // MoF, Association, Occurrence, Taxon
+                if($class != "reference" && isset($rec['source'])) $rec['source'] = self::map_source($rec['source']); // (Nov 27, 2026) a source that is a reference identifier
                 if($class != "reference") self::add_used_refs($rec, $this->ref_uses_out); // (Nov 27, 2026) for the orphan check
 
                 // Rule 7: blank URI values not in EOL values in the qualifier fields; $rec is modified before $o is populated below.

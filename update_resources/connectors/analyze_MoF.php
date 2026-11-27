@@ -10,6 +10,10 @@ php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "13318109_Amp
       "datacite_search": false -> CrossRef only
     e.g. Brazilian Flora, with the same options as its Full Reference Search run (so every lookup comes from the cache):
 php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "<Brazilian Flora id>", "min_year": 1900, "datacite_search": false}'
+    "supplied_name" (Nov 27, 2026): a short name for the resource (letters, digits, '_' or '-'). Last step: every reference without a DOI gets it
+    as a prefix, in reference.tab and in every referenceID that uses it, e.g. e08f2f16ad18c5858f490e8ec7778dc3 -> AmphibiaW_e08f2f16ad18c5858f490e8ec7778dc3.
+    Without it, those identifiers are kept as they are.
+php update_resources/connectors/analyze_MoF.php _ '{"resource_id": "13318109_AmphibiaWeb-with-hC_neo4j_1_eolID", "supplied_name": "AmphibiaW"}'
 */
 include_once(dirname(__FILE__) . "/../../config/environment.php");
 // /* during development
@@ -35,6 +39,12 @@ require_library('connectors/ZenodoTraitBankAPI'); // GenerateTB_Files_Functions 
 require_library('connectors/GenerateTB_Files_Functions');
 require_library('connectors/FullReferenceSearchAPI');
 if(($err = FullReferenceSearchAPI::options_error($frs_options)) !== '') { echo "\nERROR: $err. Nothing was done.\n"; exit(1); }
+// "supplied_name" (Nov 27, 2026): prefix for the identifiers of the references without a DOI; checked here, before any work
+$supplied_name = null;
+if(array_key_exists('supplied_name', $param)) {
+    $supplied_name = is_string($param['supplied_name']) ? trim($param['supplied_name']) : '';
+    if(!preg_match('/^[A-Za-z0-9_-]+$/', $supplied_name)) { echo "\nERROR: \"supplied_name\" must be letters, digits, '_' or '-' (e.g. \"AmphibiaW\"). Got: [" . json_encode($param['supplied_name']) . "]. Nothing was done.\n"; exit(1); }
+}
 $resource_id = $param['resource_id'];
 
 $tmp_id = $param['resource_id']; //e.g. "fishbase_final"
@@ -55,15 +65,19 @@ if(!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
 ftruncate($lock, 0); fwrite($lock, "started ".date('Y-m-d H:i:s T')." by pid ".getmypid()." on ".gethostname()); fflush($lock);
 // */
 
-process_resource_url($dwca_file, $resource_id, $timestart, $frs_options);
+process_resource_url($dwca_file, $resource_id, $timestart, $frs_options, $supplied_name);
 
 flock($lock, LOCK_UN); fclose($lock); @unlink($lock_file);
 
-function process_resource_url($dwca_file, $resource_id, $timestart, $frs_options = array())
+function process_resource_url($dwca_file, $resource_id, $timestart, $frs_options = array(), $supplied_name = null)
 {
     require_library('connectors/DwCA_Utility');
     $params['resource'] = "analyze_MoF";
     $params['frs_options'] = $frs_options; // for AnalyzeMoF_API's Full Reference Search
+    // (Nov 27, 2026) for AnalyzeMoF_API: the prefix for references without a DOI, and the rowtypes left out of the output
+    // (media, agent, vernacular), whose rows then don't count as using a reference
+    $params['analyze_options'] = array('supplied_name' => (string) $supplied_name,
+        'discarded_rowtypes' => array('http://eol.org/schema/media/document', 'http://eol.org/schema/agent/agent', 'http://rs.gbif.org/terms/1.0/vernacularname'));
     $func = new DwCA_Utility($resource_id, $dwca_file, $params);
     $preferred_rowtypes = array();
     $excluded_rowtypes = array();

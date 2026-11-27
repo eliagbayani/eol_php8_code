@@ -647,7 +647,7 @@ class DwCA_Utility
         // -------------------- */
         if(@$this->params['resource'] == "analyze_MoF") {
             require_library('connectors/AnalyzeMoF_API');
-            $func = new AnalyzeMoF_API($this->archive_builder, $this->resource_id, $this->archive_path, (array) @$this->params['frs_options']); // options for its Full Reference Search (Nov 25, 2026)
+            $func = new AnalyzeMoF_API($this->archive_builder, $this->resource_id, $this->archive_path, (array) @$this->params['frs_options'], (array) @$this->params['analyze_options']); // options for its Full Reference Search (Nov 25, 2026); supplied_name, discarded_rowtypes (Nov 27, 2026)
             $func->start($info);
         }
 

@@ -20,8 +20,13 @@ php process_legacy_dwca.php _ '{"task": "download_file_from_zenodo", "concept_id
 
 php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "concept_id": "13318109", "supplied_name": "AmphibiaWeb"}'
 php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "source": "13318109_AmphibiaWeb_TB_1_0.tar.gz"}'
-    - The two are the same: "source" is the input file's name in CONTENT_RESOURCE_LOCAL_PATH ([concept_id]_[supplied_name]_TB_1_0.tar.gz, no folder);
-      the output folder and the report are named from it. If "source" and "concept_id"/"supplied_name" are both given, they must name the same file.
+php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "source": "FishBase_TraitBank_1_0.tar.gz"}'
+    - The first two are the same: "source" is the input file's name in CONTENT_RESOURCE_LOCAL_PATH (no folder); the output folder and the report
+      are named from it. If "source" and "concept_id"/"supplied_name" are both given, they must name the same file.
+    - (Nov 28, 2026) "source" alone is enough, and can be any legacy DwCA [name].tar.gz (letters, digits, _ and -): "concept_id" and
+      "supplied_name" are only used to name the input ([concept_id]_[supplied_name]_TB_1_0.tar.gz), the output folder and the report.
+      The name used is the file name without .tar.gz and a trailing _TB_1_0 or _TraitBank_1_0, e.g. FishBase_TraitBank_1_0.tar.gz ->
+      TB_files_from_DwCA/FishBase_TraitBank/input_files/ and TB_files_from_DwCA/FishBase_convert_debug_[date].txt.
     - Converts a legacy DwCA into TraitBank input files, the same kind as the Zenodo TraitBank datasets' input_files
       (e.g. TB_files/22943466_Sexual_Syst_and_Char_TraitBank/input_files/):
       input:  CONTENT_RESOURCE_LOCAL_PATH/[concept_id]_[supplied_name]_TB_1_0.tar.gz            e.g. 13318109_AmphibiaWeb_TB_1_0.tar.gz
@@ -58,15 +63,16 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "sour
           (http://www.fishbase.us/collaborators/CollaboratorSummary.php?id=7) or a WoRMS person page
           (https://www.marinespecies.org/imis.php?module=person&persid=26517) -> added to referenceID ("|"-separated, unique);
           its name (the Terms master's name for that URI, else the DwCA agent table's term_name for that term_homepage) is its citation:
-          written to Sources.tsv, and added to the master sources.tsv if the ID isn't there yet (backup first; copied to the GitHub folder;
-          never uploaded to Zenodo here). An ID already in the master is never changed. A kept ID with no name stays in referenceID only,
+          written to Sources.tsv. (Nov 28, 2026) The master sources.tsv is NOT changed by this task: it is only compared, and the report
+          lists the contributors new to it (to be added later, like any other new source). A kept ID with no name stays in referenceID only,
           so References Maintenance lists it as unmappable. Contributors are never merged: each ID gets its own row.
         - left out, not carried forward: anything else, e.g. a made-up EOL URI (http://eol.org/schema/terms/Amphibiaweb_Zheng_Oong) or a hash.
-        Reported: values read, IDs kept and left out (by kind, with examples), added to the master, already there, with no name.
+        Reported: values read, IDs kept and left out (by kind, with examples), already in the master, new to it, with no name.
       - Columns: measurementID, taxonID, scientificName, taxonKey, the other MoF columns, the new columns, then source and referenceID.
     - Sources.tsv (was References.tsv) = the reference table (reference.tab): identifier, citation, as the master sources
       (TB_files/22776838_References/input_files/sources.tsv), only the references used in Traits.tsv' referenceID; then the contributors kept.
       Reported: referenceIDs not in the reference table, and how many are already in the master sources.tsv (same or different citation).
+      Also by kind (Nov 28, 2026): references with a DOI as identifier and the others, each split into already in the master and new.
     - New columns: columns of Taxon.tsv / Traits.tsv not in $GLOBALS['taxon_columns'] / ['trait_columns'] (top of LegacyDwCAMaintenanceAPI.php,
       the columns of the 21 Zenodo TraitBank datasets) are kept, and listed on screen and in the report.
     - Columns in a file's header row that aren't in meta.xml are read too (reported). The association table isn't used.

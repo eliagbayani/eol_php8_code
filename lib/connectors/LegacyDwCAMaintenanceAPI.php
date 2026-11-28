@@ -110,24 +110,29 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
     const TRAITS_FIRST    = array('measurementID', 'taxonID', 'scientificName', 'taxonKey');      // Traits.tsv: first columns
     const TRAITS_LAST     = array('source', 'referenceID');                                       // Traits.tsv: last columns, as in the Zenodo TraitBank datasets
     // (Nov 27, 2026) contributors are Sources (Data Managers' plan): a contributor ID that is a real, unique person ID (FullReferenceSearchAPI::is_person_id():
-    // an ORCID, a FishBase collaborator page or a WoRMS person page) goes into referenceID, and into the master sources.tsv with the person's name as
-    // its citation. Any other contributor ID is left out (not carried forward), e.g. a made-up EOL URI or a hash. There is no contributor column any more.
+    // an ORCID, a FishBase collaborator page or a WoRMS person page) goes into referenceID, and into Sources.tsv with the person's name as
+    // its citation (Nov 28, 2026: the master sources.tsv is not changed here, only compared). Any other contributor ID is left out (not carried forward), e.g. a made-up EOL URI or a hash. There is no contributor column any more.
     const MADE_UP_EOL_URI = '~^https?://(?:www\.)?eol\.org/schema/terms/~i'; // e.g. http://eol.org/schema/terms/Amphibiaweb_Zheng_Oong
     const HASH_ID         = '~^[0-9a-f]{32}(?:_[A-Za-z0-9_]+)?$~i';           // e.g. 2db8f17d140d381babcb4976cb0a2e8e or ..._21_ENV (md5)
     function convert_dwca_to_new_input_files()
     {   // e.g. concept_id 13318109, supplied_name AmphibiaWeb -- or the same as "source": "13318109_AmphibiaWeb_TB_1_0.tar.gz":
         //   CONTENT_RESOURCE_LOCAL_PATH/13318109_AmphibiaWeb_TB_1_0.tar.gz -> TB_files_from_DwCA/13318109_AmphibiaWeb_TraitBank/input_files/Taxon.tsv and Traits.tsv
-        $both_ways = "Give either \"concept_id\" + \"supplied_name\", e.g. \"concept_id\": \"13318109\", \"supplied_name\": \"AmphibiaWeb\", or \"source\", e.g. \"source\": \"13318109_AmphibiaWeb_TB_1_0.tar.gz\".";
+        // (Nov 28, 2026) "source" alone is enough: any legacy DwCA in CONTENT_RESOURCE_LOCAL_PATH, e.g. "FishBase_TraitBank_1_0.tar.gz"
+        //   -> TB_files_from_DwCA/FishBase_TraitBank/. concept_id and supplied_name are only used to name the input, the output folder and the report.
+        $both_ways = "Give either \"source\" (the DwCA's file name), e.g. \"source\": \"FishBase_TraitBank_1_0.tar.gz\", or \"concept_id\" + \"supplied_name\", e.g. \"concept_id\": \"13318109\", \"supplied_name\": \"AmphibiaWeb\" (for 13318109_AmphibiaWeb_TB_1_0.tar.gz).";
         $concept_id    = trim((string) @$this->param['concept_id']);
         $supplied_name = trim((string) @$this->param['supplied_name']);
         $source        = trim((string) @$this->param['source']);
-        if($source !== '') { // the input file's name in CONTENT_RESOURCE_LOCAL_PATH: [concept_id]_[supplied_name]_TB_1_0.tar.gz
+        if($source !== '') { // the input file's name in CONTENT_RESOURCE_LOCAL_PATH, e.g. 13318109_AmphibiaWeb_TB_1_0.tar.gz or FishBase_TraitBank_1_0.tar.gz
             if(strpos($source, '/') !== false || strpos($source, '\\') !== false) exit("\nERROR: \"source\" [$source] must be a file name only (no folder): the file in CONTENT_RESOURCE_LOCAL_PATH, e.g. \"source\": \"13318109_AmphibiaWeb_TB_1_0.tar.gz\".\n");
-            if(!preg_match('/^(\d+_[A-Za-z0-9_-]+)_TB_1_0\.tar\.gz$/', $source, $m)) exit("\nERROR: Invalid \"source\" [$source]: it must be [concept_id]_[supplied_name]_TB_1_0.tar.gz (supplied_name: letters, digits, _ and - only), e.g. \"source\": \"13318109_AmphibiaWeb_TB_1_0.tar.gz\".\n");
+            // (Nov 28, 2026) any [name].tar.gz; the name for the output folder and the report is the file name without .tar.gz and without
+            // a trailing _TB_1_0 or _TraitBank_1_0: 13318109_AmphibiaWeb_TB_1_0.tar.gz -> 13318109_AmphibiaWeb; FishBase_TraitBank_1_0.tar.gz -> FishBase
+            if(!preg_match('/^([A-Za-z0-9_-]+?)(?:_TB_1_0|_TraitBank_1_0)?\.tar\.gz$/', $source, $m)) exit("\nERROR: Invalid \"source\" [$source]: it must be a .tar.gz file whose name has only letters, digits, _ and -, e.g. \"source\": \"FishBase_TraitBank_1_0.tar.gz\" or \"13318109_AmphibiaWeb_TB_1_0.tar.gz\".\n");
             $name = $m[1];
+            $dwca_file = $source;
             if($concept_id !== '' || $supplied_name !== '') { // also given: must name the same file
                 $other = $concept_id . "_" . $supplied_name;
-                if($other !== $name) exit("\nERROR: \"source\" [$source] and \"concept_id\" + \"supplied_name\" [{$other}_TB_1_0.tar.gz] name different files. Give only one of them.\n");
+                if($other . "_TB_1_0.tar.gz" !== $source) exit("\nERROR: \"source\" [$source] and \"concept_id\" + \"supplied_name\" [{$other}_TB_1_0.tar.gz] name different files. Give only one of them.\n");
             }
         }
         else {
@@ -135,8 +140,9 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             if(!preg_match('/^\d+$/', $concept_id)) exit("\nERROR: Missing or invalid \"concept_id\" [$concept_id]. $both_ways\n");
             if(!preg_match('/^[A-Za-z0-9_-]+$/', $supplied_name)) exit("\nERROR: Missing or invalid \"supplied_name\" [$supplied_name]: letters, digits, _ and - only. $both_ways\n");
             $name = $concept_id . "_" . $supplied_name;
+            $dwca_file = $name . "_TB_1_0.tar.gz";
         }
-        $dwca = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/" . $name . "_TB_1_0.tar.gz";
+        $dwca = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/" . $dwca_file;
         if(!is_file($dwca)) exit("\nERROR: Legacy DwCA not found: [$dwca]\n");
         $out_root = rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files_from_DwCA";
         $this->conv_out_dir = "$out_root/{$name}_TraitBank/";
@@ -176,7 +182,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         self::conv_write_traits($mof_meta, $this->conv_out_dir . "input_files/Traits.tsv", $taxa, $occ, $children);
         $names = self::conv_contributor_names(@$tables['http://eol.org/schema/agent/agent'][0]); // kept contributor ID => name
         self::conv_write_references($ref_meta, $this->conv_out_dir . "input_files/Sources.tsv", $names);
-        self::conv_add_contributors_to_master($names, $name);
+        self::conv_compare_contributors_with_master($names, $name);
 
         recursive_rmdir($this->conv_temp_dir);
         foreach($this->conv_debug as $topic => $arr) { // counts as "name: count" lines in the report
@@ -557,26 +563,34 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         }
         return $names;
     }
-    private function conv_add_contributors_to_master($names, $name)
-    {   // (Nov 27, 2026) the kept contributors with a name -> the master sources.tsv (identifier = their ID, citation = their name), if not there yet.
-        // Never uploaded to Zenodo here. A kept ID with no name stays in referenceID; References Maintenance's unmappable list will list it.
-        $topic = "Contributors -> master sources.tsv";
+    private function conv_compare_contributors_with_master($names, $name)
+    {   // (Nov 27, 2026) the kept contributors with a name are written to Sources.tsv (identifier = their ID, citation = their name).
+        // (Nov 28, 2026) the master sources.tsv is NOT changed here any more: it is only compared (read-only), and the report says which
+        // contributors are new to it. They are added to the master later, like any other new source (e.g. References Maintenance's "Citations to add").
+        // A kept ID with no name stays in referenceID only; References Maintenance's unmappable list will list it.
+        $topic = "Contributors vs the master sources.tsv (master not changed)";
         if(!$this->conv_contrib['kept']) return;
         $no_name = array_diff_key($this->conv_contrib['kept'], $names);
-        foreach(array_keys($no_name) as $id) $this->conv_debug["Contributors kept, but with no name (not added to the master; in referenceID)"][$id] = '';
-        if(!$names) { $l = "No contributor with a name: nothing added to the master. No name: " . number_format(count($no_name)); echo "\n$l\n"; $this->conv_debug[$topic][$l] = ''; return; }
-        require_library('connectors/GenerateTB_Files_Functions');
-        require_library('connectors/ReferenceMaintenanceAPI');
-        ob_start(); $mtce = new ReferenceMaintenanceAPI(array('task' => 'add_contributors_from_legacy_dwca')); ob_end_clean(); // its constructor prints its param
-        $ret = $mtce->add_rows_to_sources_master($names, "contributors from $name");
-        if($ret === false) { $l = "ERROR: the contributors could not be added to the master (see above). Nothing was added."; echo "\n$l\n"; $this->conv_debug[$topic][$l] = ''; return; }
-        $differs = array_filter($ret['already'], fn($cit, $id) => $cit !== $names[$id], ARRAY_FILTER_USE_BOTH);
-        $lines = array("Added to the master: " . number_format(count($ret['added'])),
-                       "Already in the master (not changed): " . number_format(count($ret['already'])) . " (with a different citation: " . number_format(count($differs)) . ")",
-                       "Kept, but with no name (not added; in referenceID, so References Maintenance will list it as unmappable): " . number_format(count($no_name)));
+        foreach(array_keys($no_name) as $id) $this->conv_debug["Contributors kept, but with no name (not in Sources.tsv; in referenceID)"][$id] = '';
+        $master = array(); // identifier => citation, only for our contributors
+        $shared_file = @glob(rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/22776838_*/input_files/sources.tsv")[0];
+        if($shared_file && ($h = fopen($shared_file, 'r'))) {
+            while(($row = fgets($h)) !== false) {
+                $tmp = explode("\t", rtrim($row, "\r\n"));
+                $id = trim((string) @$tmp[0]);
+                if(isset($names[$id]) && !isset($master[$id])) $master[$id] = trim(preg_replace('/\s+/', ' ', (string) @$tmp[1]));
+            }
+            fclose($h);
+        }
+        $new = array_diff_key($names, $master);
+        $differs = array_filter($master, fn($cit, $id) => $cit !== $names[$id], ARRAY_FILTER_USE_BOTH);
+        $lines = array("Contributors in Sources.tsv (with a name): " . number_format(count($names)),
+                       $shared_file ? "Already in the master sources.tsv: " . number_format(count($master)) . " (with a different citation: " . number_format(count($differs)) . "); new to the master: " . number_format(count($new)) . " (not added: the master is not changed by this task)"
+                                    : "The master sources.tsv (TB_files/22776838_*/input_files/) not found: not compared",
+                       "Kept, but with no name (not in Sources.tsv; in referenceID, so References Maintenance will list it as unmappable): " . number_format(count($no_name)));
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug[$topic][$l] = ''; }
-        foreach($ret['added'] as $id => $cit) $this->conv_debug["Contributors added to the master sources.tsv"]["$id\t$cit"] = '';
-        foreach($differs as $id => $cit) $this->conv_debug["Contributors already in the master with a different citation (master kept)"]["$id -- master: [$cit] ours: [{$names[$id]}]"] = '';
+        foreach($new as $id => $cit) $this->conv_debug["Contributors new to the master sources.tsv (in Sources.tsv; not added to the master)"]["$id\t$cit"] = '';
+        foreach($differs as $id => $cit) $this->conv_debug["Contributors already in the master with a different citation"]["$id -- master: [$cit] ours: [{$names[$id]}]"] = '';
         echo "\n";
     }
     private function conv_write_references($meta, $file, $names = array())
@@ -607,13 +621,13 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
 
         // compared with the master sources (TB_files/22776838_References/input_files/sources.tsv)
         $shared_file = @glob(rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/22776838_*/input_files/sources.tsv")[0];
-        $in_shared = 0; $differs = 0;
+        $in_shared = 0; $differs = 0; $in_master = array(); // (Nov 28, 2026) identifier => '' for the references already in the master
         if($shared_file && ($h = fopen($shared_file, 'r'))) {
             while(($row = fgets($h)) !== false) {
                 $tmp = explode("\t", rtrim($row, "\r\n"));
                 $id = trim((string) @$tmp[0]);
-                if(!isset($written[$id])) continue;
-                $in_shared++;
+                if(!isset($written[$id]) || isset($in_master[$id])) continue;
+                $in_shared++; $in_master[$id] = '';
                 $theirs = trim(preg_replace('/\s+/', ' ', (string) @$tmp[1]));
                 if($theirs !== $written[$id]) { $differs++; $this->conv_debug["Sources.tsv: already in the master sources.tsv, with a different citation"]["$id -- ours: [{$written[$id]}] shared: [$theirs]"] = ''; }
             }
@@ -623,6 +637,14 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                            . "; contributors kept, with their name: " . number_format($people),
                        $shared_file ? "References already in the master sources.tsv: " . number_format($in_shared) . " (same citation: " . number_format($in_shared - $differs) . ", different: " . number_format($differs) . "); new: " . number_format(count($written) - $in_shared)
                                     : "The master sources.tsv (TB_files/22776838_*/input_files/) not found: not compared");
+        // (Nov 28, 2026) the references by kind: a DOI as identifier, or not; each in the master already, or new
+        $kind = array('DOI' => array('all' => 0, 'in' => 0), 'other' => array('all' => 0, 'in' => 0));
+        foreach(array_keys($written) as $id) {
+            $k = preg_match('~^https?://(?:dx\.)?doi\.org/~i', $id) ? 'DOI' : 'other';
+            $kind[$k]['all']++; if(isset($in_master[$id])) $kind[$k]['in']++;
+        }
+        $fmt = fn($k) => number_format($kind[$k]['all']) . " (in the master " . number_format($kind[$k]['in']) . ", new " . number_format($kind[$k]['all'] - $kind[$k]['in']) . ")";
+        $lines[] = "References by kind: DOI as identifier " . $fmt('DOI') . "; other identifier " . $fmt('other') . ($shared_file ? "" : " (master not found: all counted as new)");
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
         echo "\n";
         if(!$meta && $this->conv_ref_used) echo "\nWARNING: the DwCA has no reference table: Sources.tsv has no references.\n";

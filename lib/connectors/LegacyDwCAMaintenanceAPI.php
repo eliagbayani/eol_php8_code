@@ -149,7 +149,9 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $this->conv_temp_dir = '';
         $this->conv_debug = array();
         $this->conv_columns = array();
-        $this->conv_ref_used = array(); // referenceIDs used in Traits.tsv
+        $this->conv_ref_used = array(); // referenceIDs used in Traits.tsv and (Nov 28, 2026) Taxon.tsv
+        $this->conv_src_used = array(); // (Nov 28, 2026) values (whole, and their "|"/";" parts) of the source columns of Traits.tsv and Taxon.tsv
+        $this->conv_summary  = array(); // (Nov 28, 2026) Sources.tsv rows: identifier => array(type, in the master?) for the summary tables
         $this->conv_contrib = array('kept' => array(), 'excluded' => array(), 'values' => 0); // contributor IDs: kept (id => rows) or excluded (kind => id => rows)
         echo "\nConverting [$dwca]\n      -> [{$this->conv_out_dir}input_files/]\n";
 
@@ -189,6 +191,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             foreach($arr as $sub => $v) if(is_int($v)) { unset($this->conv_debug[$topic][$sub]); $this->conv_debug[$topic]["$sub: " . number_format($v)] = ''; }
         }
         Functions::start_print_debug($this->conv_debug, $name . "_convert", $out_root);
+        self::conv_sources_summary("$out_root/{$name}_convert_debug_" . date('Y-m-d') . ".txt"); // (Nov 28, 2026) the 3 tables, on screen and at the end of the report
         echo "\nReport: [$out_root/{$name}_convert_debug_" . date('Y-m-d') . ".txt]\nDone: [{$this->conv_out_dir}input_files/]\n";
         return array('Taxon' => $this->conv_out_dir . "input_files/Taxon.tsv", 'Traits' => $this->conv_out_dir . "input_files/Traits.tsv",
                      'Sources' => $this->conv_out_dir . "input_files/Sources.tsv");
@@ -310,7 +313,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $f = Functions::file_open($file, "w");
         fwrite($f, implode("\t", $order) . "\n");
         self::conv_report_new_columns('Taxon.tsv', $order, $GLOBALS['taxon_columns']);
-        $taxa = array(); $written = 0;
+        $taxa = array(); $written = 0; $taxon_ref_changed = 0;
         foreach(self::conv_table_rows($meta) as list($line, $rec)) {
             if($has_eolid) { $rec['taxonKey'] = $rec['EOLid']; unset($rec['EOLid']); }
             if(isset($rec['higherClassification'])) $rec['higherClassification'] = trim($rec['higherClassification'], "| "); // 'Animalia|...|Ranidae|' -> 'Animalia|...|Ranidae'
@@ -335,6 +338,12 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 $rec['source'] = self::conv_merge_values($s, array($u));
                 unset($rec['furtherInformationURL']);
             }
+            if(isset($rec['referenceID']) && $rec['referenceID'] !== '') { // (Nov 28, 2026) as in Traits.tsv: ";" -> "|"; its references go into Sources.tsv
+                $new = self::conv_reference_ids($rec['referenceID']);
+                if($new !== $rec['referenceID']) { $taxon_ref_changed++; $rec['referenceID'] = $new; }
+                foreach(explode('|', $rec['referenceID']) as $id) if($id !== '') $this->conv_ref_used[$id] = '';
+            }
+            self::conv_collect_source((string) @$rec['source']);
             $out = array();
             foreach($order as $c) $out[] = @$rec[$c];
             fwrite($f, implode("\t", $out) . "\n");
@@ -344,6 +353,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         fclose($f);
         echo "\nTaxon.tsv: [" . number_format($written) . "] rows" . ($has_eolid ? ", EOLid renamed taxonKey" : '') . ".\n";
         $this->conv_debug["Counts"]["Taxon.tsv rows: " . number_format($written) . ($has_eolid ? " (EOLid renamed taxonKey)" : '')] = '';
+        if(in_array('referenceID', $order)) { $l = "Taxon.tsv referenceID: ';' changed to '|' in " . number_format($taxon_ref_changed) . " rows"; echo "$l\n"; $this->conv_debug["Counts"][$l] = ''; }
         if($has_url) {
             $l = "Taxon.tsv: furtherInformationURL put in source in " . number_format($url['moved']) . " rows (appended with \"|\" to an existing source in " .
                  number_format($url['appended']) . "; already in source, not repeated, in " . number_format($url['already there']) . ")";
@@ -424,6 +434,13 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         $all = array_filter(array_map('trim', array_merge($all, $vals)), fn($v) => $v !== '');
         return implode('|', array_values(array_unique($all)));
     }
+    private function conv_collect_source($value)
+    {   // (Nov 28, 2026) a source value, whole and its "|"/";" parts: those that are reference identifiers are written to Sources.tsv
+        $value = trim($value);
+        if($value === '') return;
+        $this->conv_src_used[$value] = '';
+        foreach(preg_split('/[;|]/', $value) as $part) if(($part = trim($part)) !== '') $this->conv_src_used[$part] = '';
+    }
     private function conv_reference_ids($str)
     {   // "a;b" -> "a|b". Every ";" is a separator except the one in old-style (SICI) DOIs, which end in "CO;2" or "co;2-3",
         // e.g. https://doi.org/10.1890/0012-9615(2001)071[0401:RAROAL]2.0.CO;2 -- protected first, restored after the split.
@@ -468,6 +485,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
                 if($new !== $rec['referenceID']) { $ref_changed++; $rec['referenceID'] = $new; }
                 foreach(explode('|', $rec['referenceID']) as $id) if($id !== '') $this->conv_ref_used[$id] = '';
             }
+            self::conv_collect_source((string) @$rec['source']); // (Nov 28, 2026) a source that is a reference identifier goes into Sources.tsv
             if($has_contributor && (string) @$rec['contributor'] !== '') { // after the referenceIDs: a contributor ID kept is added to them
                 $kept = self::conv_sort_contributors($rec['contributor']);
                 if($kept) $rec['referenceID'] = self::conv_merge_values((string) @$rec['referenceID'], $kept);
@@ -593,6 +611,48 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
         foreach($differs as $id => $cit) $this->conv_debug["Contributors already in the master with a different citation"]["$id -- master: [$cit] ours: [{$names[$id]}]"] = '';
         echo "\n";
     }
+    private function conv_sources_summary($report_file)
+    {   // (Nov 28, 2026) 3 tables about Sources.tsv, printed and appended to the report (the report printer sorts lines, so they're written here):
+        //   1. Sources.tsv rows by type (source, referenceID, contributor): already in the master / new, to be added to the master / total
+        //   2. the new referenceID rows: with a DOI as identifier / without / total
+        //   3. the contributor IDs: valid (ORCID, FishBase or WoRMS person page) / only a made-up EOL URI or a hash / other left out / total
+        $m = !empty($this->conv_master_found); $n = fn($x) => number_format($x);
+        $t1 = array(); foreach(array('source', 'referenceID', 'contributor') as $k) $t1[$k] = array('in' => 0, 'new' => 0);
+        $doi = 0; $no_doi = 0;
+        foreach($this->conv_summary as $id => list($type, $in)) {
+            $t1[$type][($m && $in) ? 'in' : 'new']++;
+            if($type == 'referenceID' && !($m && $in)) { if(preg_match('~^https?://(?:dx\.)?doi\.org/~i', $id)) $doi++; else $no_doi++; }
+        }
+        $valid = count((array) @$this->conv_contrib['kept']);
+        $ex = (array) @$this->conv_contrib['excluded'];
+        $madeup = count((array) @$ex['a made-up EOL URI']) + count((array) @$ex['a hash']);
+        $other  = count((array) @$ex['not an ORCID, FishBase collaborator page or WoRMS person page']);
+        $with_name = $t1['contributor']['in'] + $t1['contributor']['new'];
+        $row = fn($cells, $w) => implode('  ', array_map(fn($c, $i) => $i == 0 ? str_pad($c, $w[$i]) : str_pad($c, $w[$i], ' ', STR_PAD_LEFT), $cells, array_keys($cells)));
+        $out = array();
+        $total = 0; foreach($t1 as $v) $total += $v['in'] + $v['new'];
+        $w = array(14, 18, 30, 10);
+        $out[] = "Table 1. Sources.tsv: " . $n($total) . " rows" . ($m ? '' : " (the master sources.tsv was not found: all counted as new)");
+        $out[] = $row(array('type', 'already in master', 'new, to be added to master', 'total'), $w);
+        foreach($t1 as $k => $v) $out[] = $row(array("/$k", $m ? $n($v['in']) : 'n/a', $n($v['new']), $n($v['in'] + $v['new'])), $w);
+        $out[] = $row(array('total', $m ? $n(array_sum(array_column($t1, 'in'))) : 'n/a', $n(array_sum(array_column($t1, 'new'))), $n($total)), $w);
+        $out[] = "";
+        $w = array(14, 12, 14, 10);
+        $out[] = "Table 2. New, to be added to the master: " . $n($doi + $no_doi) . " referenceID rows";
+        $out[] = $row(array('', 'with DOI', 'without DOI', 'total'), $w);
+        $out[] = $row(array('/referenceID', $n($doi), $n($no_doi), $n($doi + $no_doi)), $w);
+        $out[] = "";
+        $w = array(24, 40, 18, 10);
+        $out[] = "Table 3. Contributors: " . $n($valid + $madeup + $other) . " distinct IDs";
+        $out[] = $row(array('with valid identifier', 'only made-up EOL URI or hash identifier', 'other, left out', 'total'), $w);
+        $out[] = $row(array($n($valid), $n($madeup), $n($other), $n($valid + $madeup + $other)), $w);
+        $out[] = "(valid = an ORCID, a FishBase collaborator page or a WoRMS person page: " . $n($with_name) . " with a name, in Sources.tsv as /contributor; " . $n($valid - $with_name) . " with no name, in referenceID only)";
+        echo "\n\nSources.tsv summary\n" . implode("\n", $out) . "\n";
+        if($report_file && ($h = @fopen($report_file, 'a'))) {
+            fwrite($h, "=============================================================[" . date('Y-m-d') . "]\nSources.tsv summary\n" . implode("\n", $out) . "\n");
+            fclose($h);
+        }
+    }
     private function conv_write_references($meta, $file, $names = array())
     {   // reference table -> Sources.tsv (identifier, citation, as the master TB_files/22776838_References/input_files/sources.tsv):
         // only the references Traits.tsv uses, in the order of the reference table; compared with the master sources.tsv.
@@ -606,7 +666,7 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             foreach(array('identifier', 'full_reference') as $c) if(!in_array($c, $cols)) { fclose($f); self::conv_exit("Reference table [" . basename($meta->file_uri) . "] has no [$c] column."); }
             foreach(self::conv_table_rows($meta) as list($line, $rec)) {
                 $id = $rec['identifier'];
-                if(!isset($this->conv_ref_used[$id]) || isset($written[$id])) continue; // not used in Traits.tsv, or a duplicate identifier (first kept)
+                if((!isset($this->conv_ref_used[$id]) && !isset($this->conv_src_used[$id])) || isset($written[$id])) continue; // not used as referenceID (Traits.tsv, Taxon.tsv) or source, or a duplicate identifier (first kept)
                 $full = trim(preg_replace('/\s+/', ' ', $rec['full_reference'])); // no tabs or line breaks inside a field
                 if($full === '') { $blank++; $this->conv_debug["Sources.tsv: blank citation (written anyway)"][$id] = ''; }
                 fwrite($f, "$id\t$full\n");
@@ -614,18 +674,21 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             }
         }
         $people = 0;
-        foreach($names as $id => $nm) { if(isset($written[$id])) continue; fwrite($f, "$id\t$nm\n"); $people++; } // contributors kept (Nov 27, 2026)
+        foreach(array_keys($written) as $id) $this->conv_summary[$id] = array(isset($this->conv_ref_used[$id]) ? 'referenceID' : 'source', false); // (Nov 28, 2026)
+        foreach($names as $id => $nm) { if(isset($written[$id])) continue; fwrite($f, "$id\t$nm\n"); $people++; $this->conv_summary[$id] = array('contributor', false); } // contributors kept (Nov 27, 2026)
         fclose($f);
         $missing = array_diff_key($this->conv_ref_used, $written);
         foreach(array_keys($missing) as $id) $this->conv_debug["Sources.tsv: referenceID used in Traits.tsv but not in the reference table"][$id] = '';
 
         // compared with the master sources (TB_files/22776838_References/input_files/sources.tsv)
         $shared_file = @glob(rtrim(CONTENT_RESOURCE_LOCAL_PATH, '/') . "/TB_files/22776838_*/input_files/sources.tsv")[0];
+        $this->conv_master_found = (bool) $shared_file;
         $in_shared = 0; $differs = 0; $in_master = array(); // (Nov 28, 2026) identifier => '' for the references already in the master
         if($shared_file && ($h = fopen($shared_file, 'r'))) {
             while(($row = fgets($h)) !== false) {
                 $tmp = explode("\t", rtrim($row, "\r\n"));
                 $id = trim((string) @$tmp[0]);
+                if(isset($this->conv_summary[$id])) $this->conv_summary[$id][1] = true; // (Nov 28, 2026) for the summary tables (references and contributors)
                 if(!isset($written[$id]) || isset($in_master[$id])) continue;
                 $in_shared++; $in_master[$id] = '';
                 $theirs = trim(preg_replace('/\s+/', ' ', (string) @$tmp[1]));
@@ -633,18 +696,10 @@ class LegacyDwCAMaintenanceAPI extends ZenodoTraitBankAPI
             }
             fclose($h);
         }
-        $lines = array("Sources.tsv rows: " . number_format(count($written) + $people) . ": references " . number_format(count($written)) . " (of " . number_format(count($this->conv_ref_used)) . " distinct referenceIDs in Traits.tsv from the reference table); not in the reference table: " . number_format(count($missing)) . "; blank citation: " . number_format($blank)
+        $lines = array("Sources.tsv rows: " . number_format(count($written) + $people) . ": references " . number_format(count($written)) . " (of " . number_format(count($this->conv_ref_used)) . " distinct referenceIDs in Traits.tsv and Taxon.tsv from the reference table); not in the reference table: " . number_format(count($missing)) . "; blank citation: " . number_format($blank)
                            . "; contributors kept, with their name: " . number_format($people),
                        $shared_file ? "References already in the master sources.tsv: " . number_format($in_shared) . " (same citation: " . number_format($in_shared - $differs) . ", different: " . number_format($differs) . "); new: " . number_format(count($written) - $in_shared)
                                     : "The master sources.tsv (TB_files/22776838_*/input_files/) not found: not compared");
-        // (Nov 28, 2026) the references by kind: a DOI as identifier, or not; each in the master already, or new
-        $kind = array('DOI' => array('all' => 0, 'in' => 0), 'other' => array('all' => 0, 'in' => 0));
-        foreach(array_keys($written) as $id) {
-            $k = preg_match('~^https?://(?:dx\.)?doi\.org/~i', $id) ? 'DOI' : 'other';
-            $kind[$k]['all']++; if(isset($in_master[$id])) $kind[$k]['in']++;
-        }
-        $fmt = fn($k) => number_format($kind[$k]['all']) . " (in the master " . number_format($kind[$k]['in']) . ", new " . number_format($kind[$k]['all'] - $kind[$k]['in']) . ")";
-        $lines[] = "References by kind: DOI as identifier " . $fmt('DOI') . "; other identifier " . $fmt('other') . ($shared_file ? "" : " (master not found: all counted as new)");
         foreach($lines as $l) { echo "\n$l"; $this->conv_debug["Counts"][$l] = ''; }
         echo "\n";
         if(!$meta && $this->conv_ref_used) echo "\nWARNING: the DwCA has no reference table: Sources.tsv has no references.\n";

@@ -70,9 +70,13 @@ php process_legacy_dwca.php _ '{"task": "convert_dwca_to_new_input_files", "sour
         Reported: values read, IDs kept and left out (by kind, with examples), already in the master, new to it, with no name.
       - Columns: measurementID, taxonID, scientificName, taxonKey, the other MoF columns, the new columns, then source and referenceID.
     - Sources.tsv (was References.tsv) = the reference table (reference.tab): identifier, citation, as the master sources
-      (TB_files/22776838_References/input_files/sources.tsv), only the references used in Traits.tsv' referenceID; then the contributors kept.
+      (TB_files/22776838_References/input_files/sources.tsv), only the references used as referenceID in Traits.tsv or (Nov 28, 2026)
+      Taxon.tsv, or in a source column of either; then the contributors kept. Taxon.tsv's referenceID: ";" -> "|", as in Traits.tsv.
       Reported: referenceIDs not in the reference table, and how many are already in the master sources.tsv (same or different citation).
-      Also by kind (Nov 28, 2026): references with a DOI as identifier and the others, each split into already in the master and new.
+      Sources.tsv summary (Nov 28, 2026), on screen and at the end of the report:
+        Table 1: Sources.tsv rows by type (/source, /referenceID, /contributor): already in the master / new, to be added to the master / total
+        Table 2: the new /referenceID rows: with DOI / without DOI / total
+        Table 3: the contributor IDs: with a valid identifier / only a made-up EOL URI or hash identifier / other, left out / total
     - New columns: columns of Taxon.tsv / Traits.tsv not in $GLOBALS['taxon_columns'] / ['trait_columns'] (top of LegacyDwCAMaintenanceAPI.php,
       the columns of the 21 Zenodo TraitBank datasets) are kept, and listed on screen and in the report.
     - Columns in a file's header row that aren't in meta.xml are read too (reported). The association table isn't used.

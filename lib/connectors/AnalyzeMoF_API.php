@@ -200,7 +200,9 @@ class AnalyzeMoF_API
         $this->mof_refs = array();
         // reference.tab is trimmed: a reference is kept only if a row that is written uses it (referenceID or source), in any table:
         // the kept MoF and association rows, the occurrences they keep (rule 6), every taxon, and every row of the other extensions (e.g. media, copied as-is)
-        $this->used_refs = array(); $this->ref_removed = 0; $this->ref_total = 0; $this->kept_oID = array(); $this->other_ext_refs = array();
+        $this->used_refs = array(); $this->ref_removed = 0; $this->ref_total = 0;
+        $this->kept_oID = array(); $this->other_ext_refs = array();
+        $this->kept_ref_ids = array(); // (Nov 28, 2026) identifiers of the reference.tab rows kept: only these get a new identifier (DOI_URL or prefix)
         $done_tbls = array('http://eol.org/schema/reference/reference' => 'reference', 'http://rs.tdwg.org/dwc/terms/measurementorfact' => 'mof',
                            'http://eol.org/schema/association' => 'association', 'http://rs.tdwg.org/dwc/terms/occurrence' => 'occurrence', 'http://rs.tdwg.org/dwc/terms/taxon' => 'taxon');
         foreach($done_tbls as $tbl => $class) if($class != 'reference' && ($meta = @$tables[$tbl][0])) self::process_table($meta, 'collect_used_refs', $class); // MoF and association first: they decide the occurrences
@@ -292,6 +294,7 @@ class AnalyzeMoF_API
         $id = (string) @$rec['identifier']; $full = (string) @$rec['full_reference'];
         $this->ref_total++;
         if($id === '' || !isset($this->used_refs[$id])) { $this->ref_removed++; return; } // (Nov 26-27, 2026) not used (referenceID or source) by any row that is written: removed, before any CrossRef lookup
+        $this->kept_ref_ids[$id] = ''; // (Nov 28, 2026) a reference.tab row that is kept
         $this->ref_done++;
         if(!isset($this->mof_refs[$id])) $status = 'not searched (not used by the MoF or associations)'; // (Nov 26, 2026) only those get a DOI; e.g. one used only by media keeps its identifier
         elseif($this->frs_stopped) $status = 'not searched (CrossRef asked us to slow down)';
@@ -335,19 +338,21 @@ class AnalyzeMoF_API
     private function new_ref_id($id)
     {   // (Nov 27, 2026) a reference's identifier in the output: its DOI_URL; else, with "supplied_name", the prefixed identifier
         // (only a kept reference, and not one already prefixed); else the identifier as it is
+        // (Nov 28, 2026) only an identifier of a reference.tab row that is kept (kept_ref_ids). used_refs also has every source value (e.g. a web
+        // page), and a referenceID with no reference row; those are never renamed: 'AmphibiaW_http://amphibiaweb.org/...' was wrong.
         if(isset($this->ref_map[$id])) return $this->ref_map[$id];
         $p = $this->supplied_name . '_';
-        if($this->supplied_name !== '' && isset($this->used_refs[$id]) && strpos($id, $p) !== 0) return $p . $id;
+        if($this->supplied_name !== '' && isset($this->kept_ref_ids[$id]) && strpos($id, $p) !== 0) return $p . $id;
         return $id;
     }
     private function map_source($value)
     {   // (Nov 27, 2026) a source that is a reference identifier (whole, or ';'/'|' parts) gets that reference's new identifier; any other source is kept
         $value = (string) $value;
         if($value === '') return $value;
-        if(isset($this->used_refs[$value])) return self::new_ref_id($value);
+        if(isset($this->kept_ref_ids[$value])) return self::new_ref_id($value); // (Nov 28, 2026) only a reference.tab identifier, not any source value
         if(!preg_match('/[;|]/', $value)) return $value;
         $parts = self::split_reference_ids($value); $hit = false;
-        foreach($parts as $k => $id) if(isset($this->used_refs[$id])) { $parts[$k] = self::new_ref_id($id); $hit = true; }
+        foreach($parts as $k => $id) if(isset($this->kept_ref_ids[$id])) { $parts[$k] = self::new_ref_id($id); $hit = true; }
         return $hit ? implode(str_contains($value, ';') ? ';' : '|', $parts) : $value;
     }
     private static function split_reference_ids($value)
